@@ -1,0 +1,8 @@
+Import('env')
+
+sources = map(File, [
+    'main.cc',
+])
+
+game = env.Library('game', sources)
+Return('game')

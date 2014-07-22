@@ -1,0 +1,9 @@
+sources = map(File, [
+    'buffer.cc',
+    'gpu.cc',
+    'pipeline.cc',
+    'program.cc',
+    'vertex_data.cc',
+])
+
+Return('sources')

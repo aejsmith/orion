@@ -1,0 +1,2 @@
+engine = SConscript(dirs = ['src'])
+Return('engine')

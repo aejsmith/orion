@@ -1,0 +1,7 @@
+sources = map(File, [
+    'error.cc',
+    'log.cc',
+    'utility.cc',
+])
+
+Return('sources')

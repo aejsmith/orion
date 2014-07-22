@@ -1,0 +1,2 @@
+game = SConscript(dirs = ['src'])
+Return('game')

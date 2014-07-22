@@ -1,0 +1,5 @@
+sources = map(File, [
+    'engine.cc',
+])
+
+Return('sources')
