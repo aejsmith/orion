@@ -13,6 +13,12 @@
 
 #include <SDL.h>
 
+/** Define to 1 to enable ARB_debug_output. */
+#define ORION_GL_DEBUG			1
+
+/** Define to 1 to enable ARB_debug_output notification messages (excessive). */
+#define ORION_GL_DEBUG_NOTIFICATIONS	0
+
 namespace gl {
 
 /** Convert a vertex attribute type to a GL type.

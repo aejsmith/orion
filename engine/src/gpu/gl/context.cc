@@ -38,54 +38,58 @@ static GLEWAPIENTRY void gl_debug_callback(
 {
 	const char *source_str = "OTHER";
 	switch(source) {
-	case GL_DEBUG_SOURCE_API_ARB:
+	case GL_DEBUG_SOURCE_API:
 		source_str = "API";
 		break;
-	case GL_DEBUG_SOURCE_SHADER_COMPILER_ARB:
+	case GL_DEBUG_SOURCE_SHADER_COMPILER:
 		source_str = "SHADER_COMPILER";
 		break;
-	case GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB:
+	case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
 		source_str = "WINDOW_SYSTEM";
 		break;
-	case GL_DEBUG_SOURCE_THIRD_PARTY_ARB:
+	case GL_DEBUG_SOURCE_THIRD_PARTY:
 		source_str = "THIRD_PARTY";
 		break;
-	case GL_DEBUG_SOURCE_APPLICATION_ARB:
+	case GL_DEBUG_SOURCE_APPLICATION:
 		source_str = "APPLICATION";
 		break;
 	}
 
 	const char *type_str = "OTHER";
 	switch(type) {
-	case GL_DEBUG_TYPE_ERROR_ARB:
+	case GL_DEBUG_TYPE_ERROR:
 		type_str = "ERROR";
 		break;
-	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB:
+	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
 		type_str = "DEPRECATED_BEHAVIOR";
 		break;
-	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB:
+	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
 		type_str = "UNDEFINED_BEHAVIOR";
 		break;
-	case GL_DEBUG_TYPE_PERFORMANCE_ARB:
+	case GL_DEBUG_TYPE_PERFORMANCE:
 		type_str = "PERFORMANCE";
 		break;
-	case GL_DEBUG_TYPE_PORTABILITY_ARB:
+	case GL_DEBUG_TYPE_PORTABILITY:
 		type_str = "PORTABILITY";
 		break;
 	}
 
 	LogLevel level = LogLevel::kDebug;
 	switch(severity) {
-	case GL_DEBUG_SEVERITY_HIGH_ARB:
+	case GL_DEBUG_SEVERITY_HIGH:
 		level = LogLevel::kError;
 		break;
-	case GL_DEBUG_SEVERITY_MEDIUM_ARB:
+	case GL_DEBUG_SEVERITY_MEDIUM:
+	case GL_DEBUG_SEVERITY_LOW:
 		level = LogLevel::kWarning;
 		break;
 	}
 
 	orion_log(level, "GL [source = %s, type = %s]:", source_str, type_str);
 	orion_log(level, "%s", message);
+
+	if(severity == GL_DEBUG_SEVERITY_HIGH)
+		orion_abort("GL driver error (see log for details)");
 }
 
 #endif /* ORION_GL_DEBUG */
@@ -102,26 +106,27 @@ GLContext::GLContext(const EngineConfiguration &config) {
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-#ifdef __APPLE__
-	/* On OS X, we want to create a Core profile context. If we do not,
-	 * we get a legacy profile which only supports GL 2.1. However, on
-	 * other systems, use a compatibility profile. Creating a core profile
-	 * tends to give a context which only supports the specific GL version
-	 * requested (even though the GLX spec, for example, permits later
-	 * versions to be returned). A compatibility profile on the other hand
-	 * will always support the latest version supported by the driver. In
-	 * fact, NVIDIA recommend that you use a compatibility profile instead
-	 * of core profile. */
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-#endif
+	#ifdef __APPLE__
+		/* On OS X, we want to create a Core profile context. If we do
+		 * not, we get a legacy profile which only supports GL 2.1.
+		 * However, on other systems, use a compatibility profile.
+		 * Creating a core profile tends to give a context which only
+		 * supports the specific GL version requested (even though the
+		 * GLX spec, for example, permits later versions to be
+		 * returned). A compatibility profile on the other hand will
+		 * always support the latest version supported by the driver.
+		 * In fact, NVIDIA recommend that you use a compatibility
+		 * profile instead of core profile. */
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	#endif
 
-#ifdef ORION_GL_DEBUG
-	/* If GL debugging is enabled, enable the debug context flag so that we
-	 * can use ARB_debug_output. */
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
-#endif
+	#if ORION_GL_DEBUG
+		/* If GL debugging is enabled, enable the debug context flag so
+		 * that we can use ARB_debug_output. */
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+	#endif
 
 	uint32_t flags = SDL_WINDOW_OPENGL;
 	if(config.display_fullscreen)
@@ -159,14 +164,16 @@ GLContext::GLContext(const EngineConfiguration &config) {
 		}
 	}
 
-#if ORION_GL_DEBUG
-	/* Hook up debug output if supported. */
-	if(glewIsSupported("GL_ARB_debug_output")) {
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
-		glDebugMessageCallbackARB(gl_debug_callback, nullptr);
-		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-	}
-#endif
+	#if ORION_GL_DEBUG
+		/* Hook up debug output if supported. */
+		if(glewIsSupported("GL_ARB_debug_output")) {
+			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+			glDebugMessageCallback(gl_debug_callback, nullptr);
+			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE,
+				GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr,
+				ORION_GL_DEBUG_NOTIFICATIONS);
+		}
+	#endif
 
 	/* Create the default VAO. */
 	glGenVertexArrays(1, &this->default_vao);

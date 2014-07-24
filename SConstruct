@@ -27,7 +27,6 @@ env['CXXFLAGS'] += [
 
 env['CPPDEFINES'] = {
     'ORION_BUILD_DEBUG': None,
-    'ORION_GL_DEBUG': None,
     'GLM_FORCE_CXX11': None,
     'GLM_FORCE_RADIANS': None,
 }

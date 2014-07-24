@@ -44,15 +44,13 @@ void GLVertexData::bind(const GPUBufferPtr &indices) {
 
 	glBindVertexArray(m_vao);
 
-	/*
-	 * As described at the top of the file, if the index buffer being used
+	/* As described at the top of the file, if the index buffer being used
 	 * for rendering is the same as the previous one used with this vertex
 	 * data, we can avoid a call to glBindBuffer here.
 	 *
 	 * Don't need to do anything if there is no index buffer being used as
 	 * in this case we will use glDrawArrays() over glDrawElements(), which
-	 * ignores the index buffer binding.
-	 */
+	 * ignores the index buffer binding. */
 	GLBuffer *buffer = static_cast<GLBuffer *>(indices.get());
 	if(buffer) {
 		if(unlikely(buffer != m_bound_indices)) {
