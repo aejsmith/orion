@@ -16,6 +16,7 @@ public:
 	~GLBuffer();
 
 	void bind() const;
+	void bind_indexed(unsigned index) const;
 
 	/** Get the buffer ID.
 	 * @return		Buffer ID. */

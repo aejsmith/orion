@@ -33,6 +33,20 @@ void GLBuffer::bind() const {
 	glBindBuffer(target, m_buffer);
 }
 
+/** Bind the buffer to an indexed target.
+ * @param index		Index to bind to. */
+void GLBuffer::bind_indexed(unsigned index) const {
+	/*
+	 * Quoting the GL spec: "Each target represents an indexed array of
+	 * buffer binding points, as well as a single general binding point
+	 * that can be used by other buffer manipulation functions". This means
+	 * that the general binding point used by bind() is separate and
+	 * unaffected by this function, and vice-versa.
+	 */
+	GLenum target = gl::convert_buffer_type(m_type);
+	glBindBufferBase(target, index, m_buffer);
+}
+
 /** Write data to the buffer.
  * @param offset	Offset to write at.
  * @param size		Size of the data to write.

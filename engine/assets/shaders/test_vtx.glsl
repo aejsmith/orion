@@ -6,18 +6,20 @@
  * @brief		Test vertex shader.
  */
 
+layout(std140) uniform ObjectParams {
+	mat4 mvp_matrix;
+};
+
 layout(location = 0) in vec3 attrib_position;
+layout(location = 14) in vec4 attrib_diffuse;
+
+out vec4 vtx_diffuse;
 
 out gl_PerVertex {
 	vec4 gl_Position;
 };
 
 void main() {
-	mat4 mvp = mat4(
-		1.000000238418579, 0, 0, 0,
-		0, 1.600000262260437, 0, 0,
-		0, 0, -1.000199913978577, -1,
-		0, 0, 9.801979064941406, 10);
-
-	gl_Position = mvp * vec4(attrib_position, 1.0);
+	vtx_diffuse = attrib_diffuse;
+	gl_Position = mvp_matrix * vec4(attrib_position, 1.0);
 }

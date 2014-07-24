@@ -70,6 +70,11 @@ public:
 	 * @param pipeline	Pipeline to use. */
 	virtual void bind_pipeline(const GPUPipelinePtr &pipeline) = 0;
 
+	/** Bind a uniform buffer.
+	 * @param index		Uniform block index to bind to.
+	 * @param buffer	Buffer to bind. */
+	virtual void bind_uniform_buffer(unsigned index, const GPUBufferPtr &buffer) = 0;
+
 	/** Draw primitives.
 	 * @param type		Primitive type to render.
 	 * @param vertices	Vertex data to use.

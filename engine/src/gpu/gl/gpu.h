@@ -23,6 +23,7 @@ public:
 	void swap_buffers();
 	void clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil);
 	void bind_pipeline(const GPUPipelinePtr &pipeline);
+	void bind_uniform_buffer(unsigned index, const GPUBufferPtr &buffer);
 	void draw(PrimitiveType type, const VertexDataPtr &vertices, const IndexDataPtr &indices);
 };
 

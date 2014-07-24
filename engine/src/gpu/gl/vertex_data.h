@@ -15,7 +15,7 @@ public:
 	explicit GLVertexData(size_t vertices);
 	~GLVertexData();
 
-	void bind(GPUBufferPtr indices);
+	void bind(const GPUBufferPtr &indices);
 
 	/** Get the VAO ID.
 	 * @return		VAO ID. */

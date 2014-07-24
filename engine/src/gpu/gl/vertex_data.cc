@@ -38,8 +38,8 @@ GLVertexData::~GLVertexData() {
 }
 
 /** Bind the VAO for rendering.
- * @param _indices	Index buffer being used for rendering. */
-void GLVertexData::bind(GPUBufferPtr indices) {
+ * @param indices	Index buffer being used for rendering. */
+void GLVertexData::bind(const GPUBufferPtr &indices) {
 	orion_assert(m_finalized);
 
 	glBindVertexArray(m_vao);

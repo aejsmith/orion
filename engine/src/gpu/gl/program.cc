@@ -61,7 +61,11 @@ GLProgram::~GLProgram() {
  * @param name		Name of uniform block.
  * @param index		Uniform buffer binding point index. */
 void GLProgram::bind_uniforms(const char *name, unsigned index) {
+	GLuint block_index = glGetUniformBlockIndex(m_program, name);
+	if(block_index == GL_INVALID_INDEX)
+		orion_abort("GL: Unknown uniform block `%s'", name);
 
+	glUniformBlockBinding(m_program, block_index, index);
 }
 
 /** Bind a sampler in the program.

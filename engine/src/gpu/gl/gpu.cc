@@ -92,6 +92,16 @@ void GLGPUInterface::bind_pipeline(const GPUPipelinePtr &_pipeline) {
 	pipeline->bind();
 }
 
+/** Bind a uniform buffer.
+ * @param index		Uniform block index to bind to.
+ * @param _buffer	Buffer to bind. */
+void GLGPUInterface::bind_uniform_buffer(unsigned index, const GPUBufferPtr &_buffer) {
+	GLBuffer *buffer = static_cast<GLBuffer *>(_buffer.get());
+	orion_assert(buffer->type() == GPUBuffer::kUniformBuffer);
+
+	buffer->bind_indexed(index);
+}
+
 /** Draw primitives.
  * @param type		Primitive type to render.
  * @param _vertices	Vertex data to use.
