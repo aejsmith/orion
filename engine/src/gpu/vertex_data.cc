@@ -72,7 +72,7 @@ void VertexData::finalize() {
 		if(m_format->buffer(i)) {
 			orion_check(
 				i < m_buffers.size() && m_buffers[i],
-				"Format requires buffer %u but no buffer bound", index);
+				"Format requires buffer %u but no buffer bound", i);
 		}
 	}
 
