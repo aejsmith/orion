@@ -18,6 +18,9 @@ struct GLContext {
 
 	/** Default VAO set when no object-specific VAO is in use. */
 	GLuint default_vao;
+public:
+	GLContext(const EngineConfiguration &config);
+	~GLContext();
 };
 
 extern GLContext *g_gl_context;

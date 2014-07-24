@@ -1,5 +1,6 @@
 sources = map(File, [
     'buffer.cc',
+    'context.cc',
     'gpu.cc',
     'pipeline.cc',
     'program.cc',
