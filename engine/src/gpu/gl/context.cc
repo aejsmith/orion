@@ -13,7 +13,8 @@ GLContext *g_gl_context = nullptr;
 
 /** Required OpenGL features. */
 static const char *required_gl_features[] = {
-	"GL_VERSION_4_1",
+	"GL_VERSION_3_3",
+	"GL_ARB_separate_shader_objects",
 };
 
 #if ORION_GL_DEBUG
@@ -111,8 +112,8 @@ GLContext::GLContext(const EngineConfiguration &config) {
 	 * will always support the latest version supported by the driver. In
 	 * fact, NVIDIA recommend that you use a compatibility profile instead
 	 * of core profile. */
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 #endif
 
