@@ -27,13 +27,17 @@ GLBuffer::~GLBuffer() {
 	glDeleteBuffers(1, &m_buffer);
 }
 
-/** Write data to the buffer.
- * @param buf		Buffer containing data to write.
- * @param size		Size of the data to write.
- * @param offset	Offset to write at. */
-void GLBuffer::write(const void *buf, size_t size, size_t offset) {
-	orion_check((offset + size) <= m_size, "Write outside buffer bounds");
+/** Bind the buffer. */
+void GLBuffer::bind() const {
+	GLenum target = gl::convert_buffer_type(m_type);
+	glBindBuffer(target, m_buffer);
+}
 
+/** Write data to the buffer.
+ * @param offset	Offset to write at.
+ * @param size		Size of the data to write.
+ * @param buf		Buffer containing data to write. */
+void GLBuffer::_write(size_t offset, size_t size, const void *buf) {
 	GLenum target = gl::convert_buffer_type(m_type);
 	glBindBuffer(target, m_buffer);
 
@@ -45,8 +49,33 @@ void GLBuffer::write(const void *buf, size_t size, size_t offset) {
 	}
 }
 
-/** Bind the buffer. */
-void GLBuffer::bind() const {
+/** Map the buffer.
+ * @param offset	Offset to map from.
+ * @param size		Size of the range to map.
+ * @param flags		Bitmask of mapping behaviour flags (see MapFlags).
+ * @param access	Bitmask of access flags.
+ * @return		Pointer to mapped buffer. */
+void *GLBuffer::_map(size_t offset, size_t size, uint32_t flags, uint32_t access) {
+	uint32_t gl = 0;
+
+	if(flags & kMapInvalidate)
+		gl |= GL_MAP_INVALIDATE_RANGE_BIT;
+	if(flags & kMapInvalidateBuffer)
+		gl |= GL_MAP_INVALIDATE_BUFFER_BIT;
+
+	if(access & kReadAccess)
+		gl |= GL_MAP_READ_BIT;
+	if(access & kWriteAccess)
+		gl |= GL_MAP_WRITE_BIT;
+
 	GLenum target = gl::convert_buffer_type(m_type);
 	glBindBuffer(target, m_buffer);
+	return glMapBufferRange(target, offset, size, gl);
+}
+
+/** Unmap the previous mapping created for the buffer with _map(). */
+void GLBuffer::_unmap() {
+	GLenum target = gl::convert_buffer_type(m_type);
+	glBindBuffer(target, m_buffer);
+	glUnmapBuffer(target);
 }

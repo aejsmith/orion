@@ -3,6 +3,7 @@ sources = SConscript(dirs = [
 ])
 
 sources += map(File, [
+    'buffer.cc',
     'gpu.cc',
     'index_data.cc',
     'pipeline.cc',

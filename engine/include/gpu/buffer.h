@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright		2014 Alex Smith
- * @brief		Hardware buffer classes.
+ * @brief		GPU buffer class.
  */
 
 #ifndef ORION_GPU_BUFFER_H
@@ -47,22 +47,45 @@ public:
 		kDynamicReadUsage,	/**< Used to read from. */
 		kDynamicCopyUsage,	/**< Used for reading and drawing. */
 	};
-public:
-	/** Destroy the buffer. */
-	virtual ~GPUBuffer() {}
 
-	/**
-	 * Write data to the buffer.
-	 *
-	 * Replaces some or all of the current buffer content with new data.
-	 * The area to write must lie within the bounds of the buffer, i.e.
-	 * (offset + size) must be less than or equal to the buffer size.
-	 *
-	 * @param buf		Buffer containing data to write.
-	 * @param size		Size of the data to write.
-	 * @param offset	Offset to write at.
-	 */
-	virtual void write(const void *buf, size_t size, size_t offset) = 0;
+	/** Buffer mapping flags. */
+	enum MapFlags : uint32_t {
+		/**
+		 * Invalidate the range contents when mapping.
+		 *
+		 * This flag should be used when the entire contents of the
+		 * mapped range is to be overwritten. If mapping the whole
+		 * buffer, the whole buffer will be invalidated, allowing the
+		 * driver to reallocate the buffer and avoid synchronization
+		 * with any previous draw calls still using the buffer. Note
+		 * that this can be useful even on partial ranges when mapping
+		 * write-only, as this allows the driver to return temporary
+		 * memory to avoid synchronization.
+		 */
+		kMapInvalidate = (1 << 0),
+
+		/**
+		 * Invalidate the entire buffer when mapping.
+		 *
+		 * This forces an invalidation of the entire buffer even if
+		 * only partially mapping it.
+		 */
+		kMapInvalidateBuffer = (1 << 1),
+	};
+
+	/** Buffer mapping access flags. */
+	enum AccessFlags : uint32_t {
+		/** Map for reading. */
+		kReadAccess = (1 << 0),
+		/** Map for writing. */
+		kWriteAccess = (1 << 1),
+	};
+public:
+	virtual ~GPUBuffer();
+
+	void write(size_t offset, size_t size, const void *buf);
+	void *map(size_t offset, size_t size, uint32_t flags, uint32_t access);
+	void unmap();
 
 	/** Get the type of the buffer.
 	 * @return		Type of the buffer. */
@@ -76,20 +99,71 @@ public:
 	 * @return		Total buffer size. */
 	size_t size() const { return m_size; }
 protected:
-	/** Construct the GPU buffer.
-	 * @param type		Type of the buffer.
-	 * @param usage		Usage hint.
-	 * @param size		Buffer size. */
-	GPUBuffer(Type type, Usage usage, size_t size) :
-		m_type(type), m_usage(usage), m_size(size)
-	{}
+	GPUBuffer(Type type, Usage usage, size_t size);
+
+	virtual void _write(size_t offset, size_t size, const void *buf) = 0;
+	virtual void *_map(size_t offset, size_t size, uint32_t flags, uint32_t access) = 0;
+	virtual void _unmap() = 0;
 protected:
 	Type m_type;			/**< Type of the buffer */
 	Usage m_usage;			/**< Buffer usage hint. */
 	size_t m_size;			/**< Buffer size. */
+	bool m_mapped;			/**< Whether the buffer is currently mapped. */
 };
 
 /** Type of a pointer to a GPU buffer. */
 typedef std::shared_ptr<GPUBuffer> GPUBufferPtr;
+
+/**
+ * Scoped buffer mapper class.
+ *
+ * This class is an RAII class which will map a GPUBuffer, and unmap it once it
+ * goes out of scope. The object behaves as a pointer of the specified type,
+ * through which the buffer contents can be accessed.
+ *
+ * @tparam T		Type of the data contained in the buffer.
+ */
+template <typename T>
+class GPUBufferMapper : Noncopyable {
+public:
+	/** Map the entire buffer.
+	 * @see			GPUBuffer::map(). */
+	GPUBufferMapper(const GPUBufferPtr &buffer, uint32_t flags, uint32_t access) :
+		m_buffer(buffer)
+	{
+		m_mapping = reinterpret_cast<T *>(m_buffer->map(0, buffer->size(), flags, access));
+	}
+
+	/** Map a range of the buffer.
+	 * @see			GPUBuffer::map(). */
+	GPUBufferMapper(const GPUBufferPtr &buffer, size_t offset, size_t size, uint32_t flags, uint32_t access) :
+		m_buffer(buffer)
+	{
+		m_mapping = reinterpret_cast<T *>(m_buffer->map(offset, size, flags, access));
+	}
+
+	/** Unmap the buffer. */
+	~GPUBufferMapper() {
+		m_buffer->unmap();
+	}
+
+	/** Get the mapping.
+	 * @return		Pointer to mapping. Valid while this object is
+	 *			still in scope. */
+	T *get() const { return m_mapping; }
+
+	T &operator *() const { return *m_mapping; }
+	T *operator ->() const { return m_mapping; }
+	T &operator [](size_t n) const { return m_mapping[n]; }
+private:
+	/** Buffer being mapped.
+	 * @note		Hold just a reference to the shared_ptr as the
+	 *			user should hold the pointer itself while it has
+	 *			the buffer mapped. */
+	const GPUBufferPtr &m_buffer;
+
+	/** Pointer to mapping. */
+	T *m_mapping;
+};
 
 #endif /* ORION_GPU_BUFFER_H */

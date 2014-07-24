@@ -36,30 +36,29 @@ int main(int argc, char **argv) {
 
 	Engine engine(config);
 
-	std::vector<Vertex> data;
-	data.push_back(Vertex(
-		glm::vec3(0.0, 1.0, -1.0),
-		glm::vec3(0.0, 0.0, 1.0),
-		glm::vec3(1.0, 0.0, 0.0)));
-	data.push_back(Vertex(
-		glm::vec3(-1.0, -1.0, -1.0),
-		glm::vec3(0.0, 0.0, 1.0),
-		glm::vec3(0.0, 1.0, 0.0)));
-	data.push_back(Vertex(
-		glm::vec3(1.0, -1.0, -1.0),
-		glm::vec3(0.0, 0.0, 1.0),
-		glm::vec3(0.0, 0.0, 1.0)));
-
 	GPUBufferPtr buffer = g_gpu->create_buffer(
 		GPUBuffer::kVertexBuffer,
 		GPUBuffer::kStaticDrawUsage,
-		sizeof(Vertex) * data.size());
-	buffer->write(&data[0], data.size() * sizeof(Vertex), 0);
+		3 * sizeof(Vertex));
+
+	{
+		GPUBufferMapper<Vertex> data(buffer, GPUBuffer::kMapInvalidate, GPUBuffer::kWriteAccess);
+		new(&data[0]) Vertex(
+			glm::vec3(0.0, 1.0, -1.0),
+			glm::vec3(0.0, 0.0, 1.0),
+			glm::vec3(1.0, 0.0, 0.0));
+		new(&data[1]) Vertex(
+			glm::vec3(-1.0, -1.0, -1.0),
+			glm::vec3(0.0, 0.0, 1.0),
+			glm::vec3(0.0, 1.0, 0.0));
+		new(&data[2]) Vertex(
+			glm::vec3(1.0, -1.0, -1.0),
+			glm::vec3(0.0, 0.0, 1.0),
+			glm::vec3(0.0, 0.0, 1.0));
+	}
 
 	VertexFormatPtr format = g_gpu->create_vertex_format();
-
 	format->add_buffer(0, sizeof(Vertex));
-
 	format->add_attribute(
 		VertexAttribute::kPositionSemantic, 0,
 		VertexAttribute::kFloatType, 3, 0, offsetof(Vertex, x));
@@ -69,7 +68,6 @@ int main(int argc, char **argv) {
 	format->add_attribute(
 		VertexAttribute::kDiffuseSemantic, 0,
 		VertexAttribute::kFloatType, 3, 0, offsetof(Vertex, r));
-
 	format->finalize();
 
 	VertexDataPtr vertices = g_gpu->create_vertex_data(3);
