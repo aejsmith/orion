@@ -8,6 +8,8 @@
 
 #include "gpu/gpu.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 struct Vertex {
@@ -99,11 +101,16 @@ int main(int argc, char **argv) {
 	pipeline->set_program(GPUProgram::kFragmentProgram, frag_program);
 	pipeline->finalize();
 
-	glm::mat4 mvp_matrix(
-		1.000000238418579, 0, 0, 0,
-		0, 1.600000262260437, 0, 0,
-		0, 0, -1.000199913978577, -1,
-		0, 0, 9.801979064941406, 10);
+	glm::vec3 model_position(0.0, 0.0, -10.0);
+	glm::quat model_orientation(1.0, 0.0, 0.0, 0.0);
+
+	glm::vec3 camera_position(0.0, 0.0, 0.0);
+	glm::quat camera_orientation(1.0, 0.0, 0.0, 0.0);
+
+	float aspect = 1440.0f / 900.0f;
+	float fovx = glm::radians(90.0f);
+	float fovy = 2.0f * atanf(tanf(fovx * 0.5f) / aspect);
+	glm::mat4 projection = glm::perspective(fovy, aspect, 0.1f, 1000.0f);
 
 	GPUBufferPtr uniform_buffer = g_gpu->create_buffer(
 		GPUBuffer::kUniformBuffer,
@@ -111,6 +118,19 @@ int main(int argc, char **argv) {
 		sizeof(ObjectParams));
 
 	while(true) {
+		model_orientation =
+			glm::angleAxis(glm::radians(0.02f), glm::vec3(0.0, 0.0, 1.0)) *
+			model_orientation;
+
+		glm::mat4 model =
+			glm::translate(glm::mat4(), model_position) *
+			glm::mat4_cast(model_orientation);
+		glm::mat4 view =
+			glm::mat4_cast(glm::inverse(camera_orientation)) *
+			glm::translate(glm::mat4(), -camera_position);
+
+		glm::mat4 mvp = projection * view * model;
+
 		g_gpu->clear(
 			RenderBuffer::kColourBuffer | RenderBuffer::kDepthBuffer,
 			glm::vec4(0.0, 0.0, 0.4, 1.0), 1.0, 0);
@@ -121,7 +141,7 @@ int main(int argc, char **argv) {
 				GPUBuffer::kMapInvalidate,
 				GPUBuffer::kWriteAccess);
 
-			memcpy(&params->mvp_matrix, glm::value_ptr(mvp_matrix), sizeof(params->mvp_matrix));
+			memcpy(&params->mvp_matrix, glm::value_ptr(mvp), sizeof(params->mvp_matrix));
 		}
 
 		g_gpu->bind_pipeline(pipeline);
