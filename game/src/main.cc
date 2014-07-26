@@ -8,9 +8,9 @@
 
 #include "gpu/gpu.h"
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "world/behaviour.h"
+#include "world/entity.h"
+#include "world/world.h"
 
 struct Vertex {
 	float x, y, z, _pad1;
@@ -30,6 +30,14 @@ struct ObjectParams {
 	float mvp_matrix[16];
 };
 
+class CustomBehaviour : public Behaviour {
+public:
+	CustomBehaviour(Entity *entity) : Behaviour(entity) {}
+
+	void activated() { orion_log(LogLevel::kDebug, "Entity was activated"); }
+	void deactivated() { orion_log(LogLevel::kDebug, "Entity was deactivated"); }
+};
+
 /** Main function of the engine.
  * @param argc		Argument count.
  * @param argv		Argument array. */
@@ -44,27 +52,36 @@ int main(int argc, char **argv) {
 
 	Engine engine(config);
 
+	World *world = new World;
+	Entity *entity = new Entity("test", world->root());
+	entity->set_position(glm::vec3(0.0, 0.0, -10.0));
+	entity->set_active(true);
+	Entity *child = new Entity("child", entity);
+	child->set_position(glm::vec3(0.0, 2.0, 0.0));
+	child->set_active(true);
+	CustomBehaviour *behaviour = new CustomBehaviour(child);
+	behaviour->set_active(true);
+
 	GPUBufferPtr vertex_buffer = g_gpu->create_buffer(
 		GPUBuffer::kVertexBuffer,
 		GPUBuffer::kStaticDrawUsage,
 		3 * sizeof(Vertex));
 
 	{
-		GPUBufferMapper<Vertex> data(
-			vertex_buffer,
+		GPUBufferMapper<Vertex> data(vertex_buffer,
 			GPUBuffer::kMapInvalidate,
 			GPUBuffer::kWriteAccess);
 
 		new(&data[0]) Vertex(
-			glm::vec3(0.0, 1.0, -1.0),
+			glm::vec3(0.0, 1.0, 0.0),
 			glm::vec3(0.0, 0.0, 1.0),
 			glm::vec4(1.0, 0.0, 0.0, 1.0));
 		new(&data[1]) Vertex(
-			glm::vec3(-1.0, -1.0, -1.0),
+			glm::vec3(-1.0, -1.0, 0.0),
 			glm::vec3(0.0, 0.0, 1.0),
 			glm::vec4(0.0, 1.0, 0.0, 1.0));
 		new(&data[2]) Vertex(
-			glm::vec3(1.0, -1.0, -1.0),
+			glm::vec3(1.0, -1.0, 0.0),
 			glm::vec3(0.0, 0.0, 1.0),
 			glm::vec4(0.0, 0.0, 1.0, 1.0));
 	}
@@ -101,9 +118,6 @@ int main(int argc, char **argv) {
 	pipeline->set_program(GPUProgram::kFragmentProgram, frag_program);
 	pipeline->finalize();
 
-	glm::vec3 model_position(0.0, 0.0, -10.0);
-	glm::quat model_orientation(1.0, 0.0, 0.0, 0.0);
-
 	glm::vec3 camera_position(0.0, 0.0, 0.0);
 	glm::quat camera_orientation(1.0, 0.0, 0.0, 0.0);
 
@@ -118,18 +132,13 @@ int main(int argc, char **argv) {
 		sizeof(ObjectParams));
 
 	while(true) {
-		model_orientation =
-			glm::angleAxis(glm::radians(0.02f), glm::vec3(0.0, 0.0, 1.0)) *
-			model_orientation;
+		entity->rotate(0.02f, glm::vec3(0.0, 0.0, 1.0));
 
-		glm::mat4 model =
-			glm::translate(glm::mat4(), model_position) *
-			glm::mat4_cast(model_orientation);
 		glm::mat4 view =
 			glm::mat4_cast(glm::inverse(camera_orientation)) *
 			glm::translate(glm::mat4(), -camera_position);
 
-		glm::mat4 mvp = projection * view * model;
+		glm::mat4 mvp = projection * view * child->world_transform();
 
 		g_gpu->clear(
 			RenderBuffer::kColourBuffer | RenderBuffer::kDepthBuffer,

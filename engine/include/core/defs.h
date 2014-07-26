@@ -15,9 +15,13 @@
 
 #include "lib/error.h"
 #include "lib/log.h"
+#include "lib/noncopyable.h"
 #include "lib/version.h"
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <cmath>
 #include <cstddef>

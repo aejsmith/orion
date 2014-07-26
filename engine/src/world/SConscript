@@ -1,0 +1,7 @@
+sources = map(File, [
+    'component.cc',
+    'entity.cc',
+    'world.cc',
+])
+
+Return('sources')
