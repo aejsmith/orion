@@ -7,6 +7,8 @@
 #ifndef ORION_WORLD_ENTITY_H
 #define ORION_WORLD_ENTITY_H
 
+#include "gpu/buffer.h"
+
 #include "world/component.h"
 
 #include <array>
@@ -14,6 +16,11 @@
 #include <string>
 
 class World;
+
+/** Per-entity uniform buffer structure. */
+struct EntityUniforms {
+	float transform[16];		/**< World transformation matrix. */
+};
 
 /**
  * Class representing an entity in the world.
@@ -107,6 +114,8 @@ public:
 	 * @return		Transformation matrix of the entity. */
 	const glm::mat4 &world_transform() const { return m_world_transform; }
 
+	GPUBufferPtr uniforms() const;
+
 	/**
 	 * Components.
 	 */
@@ -167,6 +176,10 @@ private:
 
 	/** Components attached to the entity. */
 	ComponentArray m_components;
+
+	/** Uniform buffer containing per-entity parameters. */
+	GPUBufferPtr m_uniforms;
+	mutable bool m_uniforms_outdated;
 
 	friend class Component;
 	friend class World;

@@ -8,6 +8,8 @@
  *			to root entity.
  */
 
+#include "gpu/gpu.h"
+
 #include "world/entity.h"
 
 /**
@@ -29,9 +31,13 @@ Entity::Entity(const std::string &name, Entity *parent) :
 	m_active_in_world(false),
 	m_position(0.0f, 0.0f, 0.0f),
 	m_orientation(1.0f, 0.0f, 0.0f, 0.0f),
-	m_scale(1.0f)
+	m_scale(1.0f),
+	m_uniforms_outdated(true)
 {
 	m_components.fill(nullptr);
+
+	/* Create the uniform buffer. */
+	m_uniforms = g_gpu->create_buffer(GPUBuffer::kUniformBuffer, GPUBuffer::kDynamicDrawUsage, sizeof(EntityUniforms));
 
 	/* Add ourself to the parent. */
 	parent->m_children.push_back(this);
@@ -54,7 +60,8 @@ Entity::Entity(const std::string &name, World *world) :
 	m_scale(1.0f),
 	m_world_position(0.0f, 0.0f, 0.0f),
 	m_world_orientation(1.0f, 0.0f, 0.0f, 0.0f),
-	m_world_scale(1.0f)
+	m_world_scale(1.0f),
+	m_uniforms_outdated(false)
 {
 	m_components.fill(nullptr);
 }
@@ -203,9 +210,34 @@ void Entity::set_scale(glm::vec3 scale) {
 	transformed();
 }
 
+/**
+ * Get the uniform buffer containing the entity parameters.
+ *
+ * Gets the uniform buffer which contains per-entity parameters. This function
+ * will update the buffer with the latest parameters if it is currently out of
+ * date.
+ *
+ * @return		Pointer to buffer containing entity parameters.
+ */
+GPUBufferPtr Entity::uniforms() const {
+	if(m_uniforms_outdated) {
+		GPUBufferMapper<EntityUniforms> uniforms(
+			m_uniforms,
+			GPUBuffer::kMapInvalidate,
+			GPUBuffer::kWriteAccess);
+
+		memcpy(&uniforms->transform, glm::value_ptr(m_world_transform), sizeof(uniforms->transform));
+
+		m_uniforms_outdated = false;
+	}
+
+	return m_uniforms;
+}
+
 /** Private function called by Component to register itself.
  * @param component	Component to add. */
 void Entity::add_component(Component *component) {
+	orion_check(m_parent, "Cannot attach components to root entity");
 	orion_check(!m_components[component->type()],
 		"Component of type %d already registered",
 		component->type());
@@ -247,6 +279,9 @@ void Entity::transformed() {
 	glm::mat4 orientation = glm::mat4_cast(m_world_orientation);
 	glm::mat4 scale = glm::scale(glm::mat4(), m_world_scale);
 	m_world_transform = position * orientation * scale;
+
+	/* The uniforms are now out of date. */
+	m_uniforms_outdated = true;
 
 	/* Let components know about the transformation. */
 	visit_components([](Component *c) { c->transformed(); });

@@ -6,9 +6,15 @@
  * @brief		Test vertex shader.
  */
 
-layout(std140) uniform ObjectParams {
-	mat4 mvp_matrix;
-};
+layout(std140) uniform EntityUniforms {
+	mat4 transform;
+} entity;
+
+layout(std140) uniform CameraUniforms {
+	mat4 view;
+	mat4 projection;
+	mat4 view_projection;
+} camera;
 
 layout(location = 0) in vec3 attrib_position;
 layout(location = 14) in vec4 attrib_diffuse;
@@ -21,5 +27,5 @@ out gl_PerVertex {
 
 void main() {
 	vtx_diffuse = attrib_diffuse;
-	gl_Position = mvp_matrix * vec4(attrib_position, 1.0);
+	gl_Position = camera.view_projection * entity.transform * vec4(attrib_position, 1.0);
 }

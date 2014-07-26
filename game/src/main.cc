@@ -26,8 +26,10 @@ public:
 	Vertex() {}
 };
 
-struct ObjectParams {
-	float mvp_matrix[16];
+struct CameraUniforms {
+	float view[16];
+	float projection[16];
+	float view_projection[16];
 };
 
 class CustomBehaviour : public Behaviour {
@@ -107,7 +109,8 @@ int main(int argc, char **argv) {
 	GPUProgramPtr vertex_program = g_gpu->load_program(
 		"engine/assets/shaders/test_vtx.glsl",
 		GPUProgram::kVertexProgram);
-	vertex_program->bind_uniforms("ObjectParams", 0);
+	vertex_program->bind_uniforms("EntityUniforms", 0);
+	vertex_program->bind_uniforms("CameraUniforms", 1);
 
 	GPUProgramPtr frag_program = g_gpu->load_program(
 		"engine/assets/shaders/test_frag.glsl",
@@ -120,6 +123,9 @@ int main(int argc, char **argv) {
 
 	glm::vec3 camera_position(0.0, 0.0, 0.0);
 	glm::quat camera_orientation(1.0, 0.0, 0.0, 0.0);
+	glm::mat4 view =
+		glm::mat4_cast(glm::inverse(camera_orientation)) *
+		glm::translate(glm::mat4(), -camera_position);
 
 	float aspect = 1440.0f / 900.0f;
 	float fovx = glm::radians(90.0f);
@@ -129,32 +135,30 @@ int main(int argc, char **argv) {
 	GPUBufferPtr uniform_buffer = g_gpu->create_buffer(
 		GPUBuffer::kUniformBuffer,
 		GPUBuffer::kDynamicDrawUsage,
-		sizeof(ObjectParams));
+		sizeof(CameraUniforms));
+
+	{
+		GPUBufferMapper<CameraUniforms> uniforms(
+			uniform_buffer,
+			GPUBuffer::kMapInvalidate,
+			GPUBuffer::kWriteAccess);
+
+		glm::mat4 view_projection = projection * view;
+		memcpy(&uniforms->view, glm::value_ptr(view), sizeof(uniforms->view));
+		memcpy(&uniforms->projection, glm::value_ptr(projection), sizeof(uniforms->projection));
+		memcpy(&uniforms->view_projection, glm::value_ptr(view_projection), sizeof(uniforms->view_projection));
+	}
 
 	while(true) {
 		entity->rotate(0.02f, glm::vec3(0.0, 0.0, 1.0));
-
-		glm::mat4 view =
-			glm::mat4_cast(glm::inverse(camera_orientation)) *
-			glm::translate(glm::mat4(), -camera_position);
-
-		glm::mat4 mvp = projection * view * child->world_transform();
 
 		g_gpu->clear(
 			RenderBuffer::kColourBuffer | RenderBuffer::kDepthBuffer,
 			glm::vec4(0.0, 0.0, 0.4, 1.0), 1.0, 0);
 
-		{
-			GPUBufferMapper<ObjectParams> params(
-				uniform_buffer,
-				GPUBuffer::kMapInvalidate,
-				GPUBuffer::kWriteAccess);
-
-			memcpy(&params->mvp_matrix, glm::value_ptr(mvp), sizeof(params->mvp_matrix));
-		}
-
 		g_gpu->bind_pipeline(pipeline);
-		g_gpu->bind_uniform_buffer(0, uniform_buffer);
+		g_gpu->bind_uniform_buffer(0, child->uniforms());
+		g_gpu->bind_uniform_buffer(1, uniform_buffer);
 		g_gpu->draw(PrimitiveType::kTriangleList, vertices, nullptr);
 
 		if(!engine.loop())
