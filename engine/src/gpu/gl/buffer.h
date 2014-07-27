@@ -27,6 +27,8 @@ protected:
 	void _unmap();
 private:
 	GLuint m_buffer;		/**< Buffer object ID. */
+	GLenum m_gl_target;		/**< GL target. */
+	GLenum m_gl_usage;		/**< GL usage. */
 };
 
 #endif /* ORION_GPU_GL_BUFFER_H */

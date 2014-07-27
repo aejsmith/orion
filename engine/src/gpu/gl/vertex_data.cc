@@ -27,14 +27,18 @@
  * @param vertices	Total number of vertices. */
 GLVertexData::GLVertexData(size_t vertices) :
 	VertexData(vertices),
-	m_vao(0),
+	m_vao(GL_NONE),
 	m_bound_indices(nullptr)
 {}
 
 /** Destroy the vertex data object. */
 GLVertexData::~GLVertexData() {
-	if(m_vao)
+	if(m_vao != GL_NONE) {
+		if(g_gl_context->state.bound_vao == m_vao)
+			g_gl_context->state.bind_vao(g_gl_context->default_vao);
+
 		glDeleteVertexArrays(1, &m_vao);
+	}
 }
 
 /** Bind the VAO for rendering.
@@ -42,28 +46,35 @@ GLVertexData::~GLVertexData() {
 void GLVertexData::bind(const GPUBufferPtr &indices) {
 	orion_assert(m_finalized);
 
-	glBindVertexArray(m_vao);
+	g_gl_context->state.bind_vao(m_vao);
 
-	/* As described at the top of the file, if the index buffer being used
-	 * for rendering is the same as the previous one used with this vertex
-	 * data, we can avoid a call to glBindBuffer here.
+	/*
+	 * As described at the top of the file, the index buffer binding is
+	 * part of VAO state. If the index buffer being used for rendering is
+	 * the same as the previous one used with this vertex data, we can avoid
+	 * a call to glBindBuffer here.
 	 *
-	 * Don't need to do anything if there is no index buffer being used as
-	 * in this case we will use glDrawArrays() over glDrawElements(), which
-	 * ignores the index buffer binding. */
-	GLBuffer *buffer = static_cast<GLBuffer *>(indices.get());
-	if(buffer) {
-		if(unlikely(buffer != m_bound_indices)) {
-			buffer->bind();
-			m_bound_indices = buffer;
+	 * We call glBindBuffer directly here as we don't want the binding we
+	 * set here to affect the context GLState. Additionally, GLState has a
+	 * special case to switch back to the default VAO if changing the index
+	 * buffer binding.
+	 */
+	if(unlikely(indices != m_bound_indices)) {
+		if(indices) {
+			GLBuffer *buffer = static_cast<GLBuffer *>(indices.get());
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer->buffer());
+		} else {
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		}
+
+		m_bound_indices = indices;
 	}
 }
 
 /** Bind the VAO for rendering. */
 void GLVertexData::_finalize() {
 	glGenVertexArrays(1, &m_vao);
-	glBindVertexArray(m_vao);
+	g_gl_context->state.bind_vao(m_vao);
 
 	for(const VertexAttribute &attribute : m_format->attributes()) {
 		GLuint index;
@@ -84,8 +95,6 @@ void GLVertexData::_finalize() {
 		glEnableVertexAttribArray(index);
 		glVertexAttribPointer(index, attribute.count, type, GL_FALSE, desc->stride, offset);
 	}
-
-	glBindVertexArray(g_gl_context->default_vao);
 }
 
 /** Map an attribute semantic/index to a GL attribute index.

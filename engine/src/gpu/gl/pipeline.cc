@@ -4,16 +4,21 @@
  * @brief		OpenGL pipeline implementation.
  */
 
+#include "context.h"
 #include "pipeline.h"
 #include "program.h"
 
 /** Construct the pipeline object. */
-GLPipeline::GLPipeline() : m_pipeline(0) {}
+GLPipeline::GLPipeline() : m_pipeline(GL_NONE) {}
 
 /** Destroy the pipeline object. */
 GLPipeline::~GLPipeline() {
-	if(m_pipeline)
+	if(m_pipeline != GL_NONE) {
+		if(g_gl_context->state.bound_pipeline == m_pipeline)
+			g_gl_context->state.bound_pipeline = GL_NONE;
+
 		glDeleteProgramPipelines(1, &m_pipeline);
+	}
 }
 
 /** Bind the pipeline for rendering. */
@@ -24,7 +29,7 @@ void GLPipeline::bind() {
 	 * precedence over the bound pipeline object, so if glUseProgram is
 	 * used anywhere, the program must be unbound when it is no longer
 	 * needed for this to function correctly. */
-	glBindProgramPipeline(m_pipeline);
+	g_gl_context->state.bind_pipeline(m_pipeline);
 }
 
 /** Finalize the pipeline. */

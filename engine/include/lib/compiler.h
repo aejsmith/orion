@@ -13,6 +13,7 @@
 # define NORETURN		__attribute__((noreturn))
 # define likely(x)		__builtin_expect(!!(x), 1)
 # define unlikely(x)		__builtin_expect(!!(x), 0)
+# define unreachable()		__builtin_unreachable()
 #else
 # error "Compiler is not supported"
 #endif

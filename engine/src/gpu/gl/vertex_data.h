@@ -26,7 +26,7 @@ protected:
 	void _finalize();
 private:
 	GLuint m_vao;			/**< Vertex array object. */
-	GLBuffer *m_bound_indices;	/**< Currently bound index buffer. */
+	GPUBufferPtr m_bound_indices;	/**< Currently bound index buffer. */
 };
 
 #endif /* ORION_GPU_GL_VERTEX_DATA_H */

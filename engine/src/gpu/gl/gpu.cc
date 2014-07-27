@@ -22,6 +22,10 @@ GLGPUInterface::~GLGPUInterface() {
 	delete g_gl_context;
 }
 
+/**
+ * Object creation methods.
+ */
+
 /** Create a GPU buffer.
  * @see		GPUBuffer::GPUBuffer().
  * @return	Pointer to created vertex buffer. */
@@ -54,6 +58,10 @@ GPUProgramPtr GLGPUInterface::load_program(const char *path, GPUProgram::Type ty
 	return GPUProgramPtr(program);
 }
 
+/**
+ * Rendering methods.
+ */
+
 /** Swap buffers. */
 void GLGPUInterface::swap_buffers() {
 	SDL_GL_SwapWindow(g_gl_context->sdl_window);
@@ -68,17 +76,17 @@ void GLGPUInterface::clear(unsigned buffers, const glm::vec4 &colour, float dept
 	GLbitfield mask = 0;
 
 	if(buffers & RenderBuffer::kColourBuffer) {
-		glClearColor(colour.r, colour.g, colour.b, colour.a);
+		g_gl_context->state.set_clear_colour(colour);
 		mask |= GL_COLOR_BUFFER_BIT;
 	}
 
 	if(buffers & RenderBuffer::kDepthBuffer) {
-		glClearDepth(depth);
+		g_gl_context->state.set_clear_depth(depth);
 		mask |= GL_DEPTH_BUFFER_BIT;
 	}
 
 	if(buffers & RenderBuffer::kStencilBuffer) {
-		glClearStencil(stencil);
+		g_gl_context->state.set_clear_stencil(stencil);
 		mask |= GL_STENCIL_BUFFER_BIT;
 	}
 
@@ -120,7 +128,4 @@ void GLGPUInterface::draw(PrimitiveType type, const VertexDataPtr &_vertices, co
 	} else {
 		glDrawArrays(mode, 0, vertices->count());
 	}
-
-	/* Restore default VAO. */
-	glBindVertexArray(g_gl_context->default_vao);
 }

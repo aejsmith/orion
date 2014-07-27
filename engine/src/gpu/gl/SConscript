@@ -4,6 +4,7 @@ sources = map(File, [
     'gpu.cc',
     'pipeline.cc',
     'program.cc',
+    'state.cc',
     'vertex_data.cc',
 ])
 

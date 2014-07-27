@@ -177,7 +177,7 @@ GLContext::GLContext(const EngineConfiguration &config) {
 
 	/* Create the default VAO. */
 	glGenVertexArrays(1, &this->default_vao);
-	glBindVertexArray(this->default_vao);
+	this->state.bind_vao(this->default_vao);
 }
 
 /** Shut down the GL context. */

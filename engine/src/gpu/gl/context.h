@@ -7,7 +7,7 @@
 #ifndef ORION_GPU_GL_CONTEXT_H
 #define ORION_GPU_GL_CONTEXT_H
 
-#include "defs.h"
+#include "state.h"
 
 #include "core/engine.h"
 
@@ -18,6 +18,9 @@ struct GLContext {
 
 	/** Default VAO set when no object-specific VAO is in use. */
 	GLuint default_vao;
+
+	/** Cached GL state. */
+	GLState state;
 public:
 	GLContext(const EngineConfiguration &config);
 	~GLContext();

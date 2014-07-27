@@ -4,6 +4,7 @@
  * @brief		OpenGL GPU buffer implementation.
  */
 
+#include "context.h"
 #include "buffer.h"
 
 /** Initialize a new GL buffer.
@@ -11,26 +12,28 @@
  * @param usage		Usage hint.
  * @param size		Buffer size. */
 GLBuffer::GLBuffer(Type type, Usage usage, size_t size) :
-	GPUBuffer(type, usage, size)
+	GPUBuffer(type, usage, size),
+	m_gl_target(gl::convert_buffer_type(type)),
+	m_gl_usage(gl::convert_buffer_usage(usage))
 {
 	glGenBuffers(1, &m_buffer);
 
 	/* Create an initial data store. */
-	GLenum target = gl::convert_buffer_type(type);
-	GLenum hint = gl::convert_buffer_usage(usage);
-	glBindBuffer(target, m_buffer);
-	glBufferData(target, size, nullptr, hint);
+	g_gl_context->state.bind_buffer(m_gl_target, m_buffer);
+	glBufferData(m_gl_target, size, nullptr, m_gl_usage);
 }
 
 /** Destroy the buffer. */
 GLBuffer::~GLBuffer() {
+	if(g_gl_context->state.bound_buffers[m_gl_target] == m_buffer)
+		g_gl_context->state.bound_buffers[m_gl_target] = GL_NONE;
+
 	glDeleteBuffers(1, &m_buffer);
 }
 
 /** Bind the buffer. */
 void GLBuffer::bind() const {
-	GLenum target = gl::convert_buffer_type(m_type);
-	glBindBuffer(target, m_buffer);
+	g_gl_context->state.bind_buffer(m_gl_target, m_buffer);
 }
 
 /** Bind the buffer to an indexed target.
@@ -41,8 +44,7 @@ void GLBuffer::bind_indexed(unsigned index) const {
 	 * that can be used by other buffer manipulation functions". This means
 	 * that the general binding point used by bind() is separate and
 	 * unaffected by this function, and vice-versa. */
-	GLenum target = gl::convert_buffer_type(m_type);
-	glBindBufferBase(target, index, m_buffer);
+	g_gl_context->state.bind_buffer_base(m_gl_target, index, m_buffer);
 }
 
 /** Write data to the buffer.
@@ -50,14 +52,12 @@ void GLBuffer::bind_indexed(unsigned index) const {
  * @param size		Size of the data to write.
  * @param buf		Buffer containing data to write. */
 void GLBuffer::_write(size_t offset, size_t size, const void *buf) {
-	GLenum target = gl::convert_buffer_type(m_type);
-	glBindBuffer(target, m_buffer);
+	g_gl_context->state.bind_buffer(m_gl_target, m_buffer);
 
 	if(offset == 0 && size == m_size) {
-		GLenum hint = gl::convert_buffer_usage(m_usage);
-		glBufferData(target, m_size, buf, hint);
+		glBufferData(m_gl_target, m_size, buf, m_gl_usage);
 	} else {
-		glBufferSubData(target, offset, size, buf);
+		glBufferSubData(m_gl_target, offset, size, buf);
 	}
 }
 
@@ -80,14 +80,12 @@ void *GLBuffer::_map(size_t offset, size_t size, uint32_t flags, uint32_t access
 	if(access & kWriteAccess)
 		gl |= GL_MAP_WRITE_BIT;
 
-	GLenum target = gl::convert_buffer_type(m_type);
-	glBindBuffer(target, m_buffer);
-	return glMapBufferRange(target, offset, size, gl);
+	g_gl_context->state.bind_buffer(m_gl_target, m_buffer);
+	return glMapBufferRange(m_gl_target, offset, size, gl);
 }
 
 /** Unmap the previous mapping created for the buffer with _map(). */
 void GLBuffer::_unmap() {
-	GLenum target = gl::convert_buffer_type(m_type);
-	glBindBuffer(target, m_buffer);
-	glUnmapBuffer(target);
+	g_gl_context->state.bind_buffer(m_gl_target, m_buffer);
+	glUnmapBuffer(m_gl_target);
 }
