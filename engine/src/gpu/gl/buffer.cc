@@ -81,6 +81,14 @@ void *GLBuffer::_map(size_t offset, size_t size, uint32_t flags, uint32_t access
 		gl |= GL_MAP_WRITE_BIT;
 
 	g_gl_context->state.bind_buffer(m_gl_target, m_buffer);
+
+	/* If we are invalidating, reallocate storage explicitly. OS X's GL
+	 * implementation appears to be too stupid to do this itself, doing
+	 * it explictly here knocks a huge chunk off the time it takes to do
+	 * a buffer map. */
+	if(flags & kMapInvalidateBuffer)
+		glBufferData(m_gl_target, m_size, nullptr, m_gl_usage);
+
 	return glMapBufferRange(m_gl_target, offset, size, gl);
 }
 
