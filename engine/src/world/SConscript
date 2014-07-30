@@ -1,4 +1,5 @@
 sources = map(File, [
+    'camera.cc',
     'component.cc',
     'entity.cc',
     'world.cc',

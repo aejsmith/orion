@@ -4,15 +4,19 @@
  * @brief		World class.
  */
 
+#include "render/scene.h"
+
 #include "world/world.h"
 
-/** Currently active world. */
-World *g_world = nullptr;
-
 /** Initialize the world. */
-World::World() : m_root("root", this) {}
+World::World() :
+	m_root("root", this)
+{
+	/* Create the renderer's scene manager for the world. */
+	m_scene = new Scene(this);
+}
 
 /** Destroy the world. */
 World::~World() {
-	orion_check(g_world != this, "Destroying active world");
+	delete m_scene;
 }

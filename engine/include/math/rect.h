@@ -20,6 +20,13 @@ public:
 	/** Vector of type T. */
 	typedef glm::detail::tvec2<T, glm::highp> VecType;
 public:
+	RectImpl() :
+		x(0),
+		y(0),
+		width(0),
+		height(0)
+	{}
+
 	RectImpl(T _x, T _y, T _width, T _height) :
 		x(_x),
 		y(_y),

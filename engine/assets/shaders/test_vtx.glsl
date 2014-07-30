@@ -10,11 +10,12 @@ layout(std140) uniform EntityUniforms {
 	mat4 transform;
 } entity;
 
-layout(std140) uniform CameraUniforms {
+layout(std140) uniform ViewUniforms {
 	mat4 view;
 	mat4 projection;
 	mat4 view_projection;
-} camera;
+	vec3 position;
+} view;
 
 layout(location = 0) in vec3 attrib_position;
 layout(location = 14) in vec4 attrib_diffuse;
@@ -27,5 +28,5 @@ out gl_PerVertex {
 
 void main() {
 	vtx_diffuse = attrib_diffuse;
-	gl_Position = camera.view_projection * entity.transform * vec4(attrib_position, 1.0);
+	gl_Position = view.view_projection * entity.transform * vec4(attrib_position, 1.0);
 }

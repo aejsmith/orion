@@ -1,0 +1,6 @@
+sources = map(File, [
+    'scene.cc',
+    'scene_view.cc',
+])
+
+Return('sources')

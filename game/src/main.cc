@@ -8,7 +8,10 @@
 
 #include "gpu/gpu.h"
 
+#include "render/scene_view.h"
+
 #include "world/behaviour.h"
+#include "world/camera.h"
 #include "world/entity.h"
 #include "world/world.h"
 
@@ -64,6 +67,11 @@ int main(int argc, char **argv) {
 	CustomBehaviour *behaviour = new CustomBehaviour(child);
 	behaviour->set_active(true);
 
+	Entity *cam_entity = new Entity("camera", world->root());
+	cam_entity->set_active(true);
+	Camera *camera = new Camera(cam_entity);
+	camera->perspective(90.0f, 0.1f, 1000.0f);
+
 	GPUBufferPtr vertex_buffer = g_gpu->create_buffer(
 		GPUBuffer::kVertexBuffer,
 		GPUBuffer::kStaticDrawUsage,
@@ -110,7 +118,7 @@ int main(int argc, char **argv) {
 		"engine/assets/shaders/test_vtx.glsl",
 		GPUProgram::kVertexProgram);
 	vertex_program->bind_uniforms("EntityUniforms", 0);
-	vertex_program->bind_uniforms("CameraUniforms", 1);
+	vertex_program->bind_uniforms("ViewUniforms", 1);
 
 	GPUProgramPtr frag_program = g_gpu->load_program(
 		"engine/assets/shaders/test_frag.glsl",
@@ -121,34 +129,6 @@ int main(int argc, char **argv) {
 	pipeline->set_program(GPUProgram::kFragmentProgram, frag_program);
 	pipeline->finalize();
 
-	glm::vec3 camera_position(0.0, 0.0, 0.0);
-	glm::quat camera_orientation(1.0, 0.0, 0.0, 0.0);
-	glm::mat4 view =
-		glm::mat4_cast(glm::inverse(camera_orientation)) *
-		glm::translate(glm::mat4(), -camera_position);
-
-	float aspect = 1440.0f / 900.0f;
-	float fovx = glm::radians(90.0f);
-	float fovy = 2.0f * atanf(tanf(fovx * 0.5f) / aspect);
-	glm::mat4 projection = glm::perspective(fovy, aspect, 0.1f, 1000.0f);
-
-	GPUBufferPtr uniform_buffer = g_gpu->create_buffer(
-		GPUBuffer::kUniformBuffer,
-		GPUBuffer::kDynamicDrawUsage,
-		sizeof(CameraUniforms));
-
-	{
-		GPUBufferMapper<CameraUniforms> uniforms(
-			uniform_buffer,
-			GPUBuffer::kMapInvalidate,
-			GPUBuffer::kWriteAccess);
-
-		glm::mat4 view_projection = projection * view;
-		memcpy(&uniforms->view, glm::value_ptr(view), sizeof(uniforms->view));
-		memcpy(&uniforms->projection, glm::value_ptr(projection), sizeof(uniforms->projection));
-		memcpy(&uniforms->view_projection, glm::value_ptr(view_projection), sizeof(uniforms->view_projection));
-	}
-
 	while(true) {
 		entity->rotate(0.02f, glm::vec3(0.0, 0.0, 1.0));
 
@@ -158,7 +138,7 @@ int main(int argc, char **argv) {
 
 		g_gpu->bind_pipeline(pipeline);
 		g_gpu->bind_uniform_buffer(0, child->uniforms());
-		g_gpu->bind_uniform_buffer(1, uniform_buffer);
+		g_gpu->bind_uniform_buffer(1, camera->scene_view()->uniforms());
 		g_gpu->draw(PrimitiveType::kTriangleList, vertices, nullptr);
 
 		if(!engine.loop())
