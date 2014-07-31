@@ -27,7 +27,6 @@ public:
 
 	/** @return		Root entity of the world. */
 	Entity *root() { return &m_root; }
-
 	/** @return		Renderer's scene manager. */
 	Scene *scene() const { return m_scene; }
 private:

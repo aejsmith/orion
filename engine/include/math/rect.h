@@ -41,12 +41,9 @@ public:
 		height(size.y)
 	{}
 
-	/** Get the position of this rectangle.
-	 * @return		Position of the rectangle. */
+	/** @return		Position of the rectangle. */
 	VecType pos() const { return VecType(x, y); }
-
-	/** Get the size of this rectangle.
-	 * @return		Size of the rectangle. */
+	/** @return		Size of the rectangle. */
 	VecType size() const { return VecType(width, height); }
 
 	/** Check whether the rectangle contains a point.

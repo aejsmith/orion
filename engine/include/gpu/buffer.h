@@ -87,16 +87,11 @@ public:
 	void *map(size_t offset, size_t size, uint32_t flags, uint32_t access);
 	void unmap();
 
-	/** Get the type of the buffer.
-	 * @return		Type of the buffer. */
+	/** @return		Type of the buffer. */
 	Type type() const { return m_type; }
-
-	/** Get the usage hint for the buffer.
-	 * @return		Buffer usage hint. */
+	/** @return		Buffer usage hint. */
 	Usage usage() const { return m_usage; }
-
-	/** Get the total buffer size.
-	 * @return		Total buffer size. */
+	/** @return		Total buffer size. */
 	size_t size() const { return m_size; }
 protected:
 	GPUBuffer(Type type, Usage usage, size_t size);

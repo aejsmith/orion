@@ -41,12 +41,9 @@ public:
 
 	void finalize();
 
-	/** Get the total number of vertices.
-	 * @return		Total number of vertices. */
+	/** @return		Total number of vertices. */
 	size_t count() const { return m_count; }
-
-	/** Get the vertex format.
-	 * @return		Pointer to vertex format descriptor. */
+	/** @return		Pointer to vertex format descriptor. */
 	VertexFormatPtr format() const { return m_format; }
 
 	/** Get a vertex buffer.
@@ -57,8 +54,7 @@ public:
 		return (index < m_buffers.size()) ? m_buffers[index] : nullptr;
 	}
 
-	/** Return whether the format is finalized.
-	 * @return		Whether the format is finalized. */
+	/** @return		Whether the format is finalized. */
 	bool finalized() const { return m_finalized; }
 protected:
 	/** Type of a GPU buffer array. */

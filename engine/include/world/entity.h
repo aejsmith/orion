@@ -43,14 +43,9 @@ public:
 	void set_parent(Entity *parent);
 	void set_active(bool active);
 
-	/** Get the world that the entity belongs to.
-	 * @return		World that the entity belongs to (null if not
-	 *			attached to a world). */
+	/** @return		World that the entity belongs to. */
 	World *world() const { return m_world; }
-
-	/** Get the parent of the entity.
-	 * @return		Parent of the entity (null if not attached to an
-	 *			entity). */
+	/** @return		Parent of the entity. */
 	Entity *parent() const { return m_parent; }
 
 	/**
@@ -86,32 +81,19 @@ public:
 	void rotate(glm::quat rotation);
 	void set_scale(glm::vec3 scale);
 
-	/** Get the current relative position.
-	 * @return		Current relative position. */
+	/** @return		Current relative position. */
 	const glm::vec3 &position() const { return m_position; }
-
-	/** Get the current relative orientation.
-	 * @return		Current relative orientation. */
+	/** @return		Current relative orientation. */
 	const glm::quat &orientation() const { return m_orientation; }
-
-	/** Get the current relative scale.
-	 * @return		Current relative scale. */
+	/** @return		Current relative scale. */
 	const glm::vec3 &scale() const { return m_scale; }
-
-	/** Get the current absolute position in the world.
-	 * @return		Current absolute position. */
+	/** @return		Current absolute position. */
 	const glm::vec3 &world_position() const { return m_world_position; }
-
-	/** Get the current absolute orientation in the world.
-	 * @return		Current absolute orientation. */
+	/** @return		Current absolute orientation. */
 	const glm::quat &world_orientation() const { return m_world_orientation; }
-
-	/** Get the current absolute scale in the world.
-	 * @return		Current absolute scale. */
+	/** @return		Current absolute scale. */
 	const glm::vec3 &world_scale() const { return m_world_scale; }
-
-	/** Get the absolute transformation matrix for the entity.
-	 * @return		Transformation matrix of the entity. */
+	/** @return		Transformation matrix of the entity. */
 	const glm::mat4 &world_transform() const { return m_world_transform; }
 
 	GPUBufferPtr uniforms() const;

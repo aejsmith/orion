@@ -60,8 +60,7 @@ public:
 	 */
 	virtual void bind_texture(const char *name, unsigned index) = 0;
 
-	/** Get the type of the program.
-	 * @return		Type of the program. */
+	/** @return		Type of the program. */
 	Type type() const { return m_type; }
 protected:
 	/** Initialize the program.

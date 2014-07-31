@@ -40,16 +40,11 @@ public:
 	void destroy();
 	void set_active(bool active);
 
-	/** Get the type ID of the component.
-	 * @return		Type ID of the component. */
+	/** @return		Type ID of the component. */
 	Type type() const { return m_type; }
-
-	/** Get the entity that the component is attached to.
-	 * @return		Entity that the component is attached to. */
+	/** @return		Entity that the component is attached to. */
 	Entity *entity() const { return m_entity; }
-
-	/** Get whether the component is active.
-	 * @return		Whether the component is active. */
+	/** @return		Whether the component is active. */
 	bool active() const { return m_active; }
 
 	bool active_in_world() const;

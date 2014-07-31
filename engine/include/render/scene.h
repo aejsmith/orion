@@ -25,8 +25,7 @@ public:
 	explicit Scene(World *world);
 	~Scene();
 
-	/** Get the world that this scene corresponds to.
-	 * @return		World that the scene corresponds to. */
+	/** @return		World that the scene corresponds to. */
 	World *world() const { return m_world; }
 private:
 	World *m_world;			/**< World that the scene corresponds to. */

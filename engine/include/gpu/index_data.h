@@ -28,20 +28,13 @@ public:
 public:
 	virtual ~IndexData();
 
-	/** Get the buffer containing index data.
-	 * @return		Buffer containing index data. */
+	/** @return		Buffer containing index data. */
 	GPUBufferPtr buffer() const { return m_buffer; }
-
-	/** Get the type of index data.
-	 * @return		Type of index elements. */
+	/** @return		Type of index elements. */
 	Type type() const { return m_type; }
-
-	/** Get the number of indices.
-	 * @return		Number of indices. */
+	/** @return		Number of indices. */
 	size_t count() const { return m_count; }
-
-	/** Get the size of a single index element.
-	 * @return		Size of a single index element. */
+	/** @return		Size of a single index element. */
 	size_t element_size() const { return element_size(m_type); }
 
 	static size_t element_size(Type type);

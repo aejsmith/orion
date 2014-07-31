@@ -66,8 +66,7 @@ struct VertexAttribute {
 public:
 	static size_t size(Type type, size_t count = 1);
 
-	/** Get the size of the attribute.
-	 * @return		Size of the attribute. */
+	/** @return		Size of the attribute in bytes. */
 	size_t size() const { return size(type, count); }
 };
 
@@ -139,16 +138,11 @@ public:
 	const VertexBufferDesc *buffer(unsigned index) const;
 	const VertexAttribute *find_attribute(VertexAttribute::Semantic semantic, unsigned index) const;
 
-	/** Get the buffer array.
-	 * @return		Buffer array. */
+	/** @return		Array of buffer descriptors. */
 	const BufferArray &buffers() const { return m_buffers; }
-
-	/** Get the attribute list.
-	 * @return		Attribute list. */
+	/** @return		List of all attributes. */
 	const AttributeList &attributes() const { return m_attributes; }
-
-	/** Return whether the format is finalized.
-	 * @return		Whether the format is finalized. */
+	/** @return		Whether the descriptor is finalized. */
 	bool finalized() const { return m_finalized; }
 protected:
 	VertexFormat();
@@ -156,7 +150,7 @@ protected:
 	/** Called when the object is being finalized. */
 	virtual void _finalize() {}
 protected:
-	BufferArray m_buffers;		/**< Array of all buffer descriptors. */
+	BufferArray m_buffers;		/**< Array of buffer descriptors. */
 	AttributeList m_attributes;	/**< List of all attributes. */
 	bool m_finalized;		/**< Whether the descriptor is finalized. */
 
