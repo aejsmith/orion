@@ -5,6 +5,7 @@
  */
 
 #include "context.h"
+#include "gpu.h"
 #include "pipeline.h"
 #include "program.h"
 
@@ -44,4 +45,11 @@ void GLPipeline::_finalize() {
 		GLbitfield stage = gl::convert_program_type_bitfield(program->type());
 		glUseProgramStages(m_pipeline, stage, program->program());
 	}
+}
+
+/** Create a pipeline object.
+ * @return		Pointer to created pipeline. */
+GPUPipelinePtr GLGPUInterface::create_pipeline() {
+	GPUPipeline *pipeline = new GLPipeline();
+	return GPUPipelinePtr(pipeline);
 }

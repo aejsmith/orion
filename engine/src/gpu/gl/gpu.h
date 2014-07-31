@@ -12,8 +12,10 @@
 /** OpenGL GPU interface implementation. */
 class GLGPUInterface : public GPUInterface {
 public:
-	GLGPUInterface(const EngineConfiguration &config);
+	GLGPUInterface();
 	~GLGPUInterface();
+
+	void init(SDL_Window *window);
 
 	GPUBufferPtr create_buffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size);
 	VertexDataPtr create_vertex_data(size_t vertices);

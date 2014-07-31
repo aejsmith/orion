@@ -9,7 +9,11 @@
 
 #include "core/defs.h"
 
+#include <list>
 #include <string>
+
+class RenderTarget;
+class Window;
 
 /**
  * Engine configuration.
@@ -39,7 +43,7 @@ public:
 };
 
 /** Main class of the engine. */
-class Engine {
+class Engine : Noncopyable {
 public:
 	Engine(const EngineConfiguration &config);
 	~Engine();
@@ -47,12 +51,29 @@ public:
 	bool loop();
 	void shutdown();
 
-	/** Get the engine configuration.
-	 * @return		Engine configuration. */
+	/** @return		Engine configuration. */
 	const EngineConfiguration &config() const { return m_config; }
+	/** @return		Engine main window. */
+	Window *window() const { return m_window; }
+
+	/**
+	 * Rendering loop.
+	 */
+
+	void add_render_target(RenderTarget *target);
+	void remove_render_target(RenderTarget *target);
+private:
+	/** Type of a list of render targets. */
+	typedef std::list<RenderTarget *> RenderTargetList;
 private:
 	/** Engine configuration. */
 	EngineConfiguration m_config;
+
+	/** Global resources. */
+	Window *m_window;		/**< Main window. */
+
+	/** List of render targets. */
+	RenderTargetList m_render_targets;
 };
 
 extern Engine *g_engine;

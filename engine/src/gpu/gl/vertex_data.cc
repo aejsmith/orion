@@ -21,6 +21,7 @@
  */
 
 #include "context.h"
+#include "gpu.h"
 #include "vertex_data.h"
 
 /** Initialize the vertex data object.
@@ -141,4 +142,12 @@ bool GLVertexData::map_attribute(VertexAttribute::Semantic semantic, unsigned in
 	}
 
 	return false;
+}
+
+/** Create a vertex data object.
+ * @see			VertexData::VertexData().
+ * @return		Pointer to created vertex data object. */
+VertexDataPtr GLGPUInterface::create_vertex_data(size_t vertices) {
+	VertexData *data = new GLVertexData(vertices);
+	return VertexDataPtr(data);
 }

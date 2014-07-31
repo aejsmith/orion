@@ -13,17 +13,10 @@
 
 /** Global OpenGL state. */
 struct GLContext {
-	SDL_Window *sdl_window;		/**< SDL window. */
 	SDL_GLContext sdl_context;	/**< SDL GL context. */
-
-	/** Default VAO set when no object-specific VAO is in use. */
-	GLuint default_vao;
-
-	/** Cached GL state. */
-	GLState state;
-public:
-	GLContext(const EngineConfiguration &config);
-	~GLContext();
+	SDL_Window *sdl_window;		/**< SDL main window. */
+	GLuint default_vao;		/**< Default VAO when no object-specific VAO is in use. */
+	GLState state;			/**< Cached GL state. */
 };
 
 extern GLContext *g_gl_context;

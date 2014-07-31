@@ -16,6 +16,8 @@
 #include "gpu/program.h"
 #include "gpu/vertex_data.h"
 
+struct SDL_Window;
+
 /**
  * Low-level GPU interface.
  *
@@ -26,9 +28,13 @@
  */
 class GPUInterface : Noncopyable {
 public:
-	static void init(const EngineConfiguration &config);
+	static void create(const EngineConfiguration &config);
 
 	virtual ~GPUInterface();
+
+	/** Initialize the GPU interface.
+	 * @param window	Created SDL window. */
+	virtual void init(SDL_Window *window) = 0;
 
 	/**
 	 * Object creation methods.

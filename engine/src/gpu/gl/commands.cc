@@ -11,57 +11,6 @@
 #include "program.h"
 #include "vertex_data.h"
 
-/** Initialize the GPU interface.
- * @param config	Engine configuration. */
-GLGPUInterface::GLGPUInterface(const EngineConfiguration &config) {
-	g_gl_context = new GLContext(config);
-}
-
-/** Shut down the GPU interface. */
-GLGPUInterface::~GLGPUInterface() {
-	delete g_gl_context;
-}
-
-/**
- * Object creation methods.
- */
-
-/** Create a GPU buffer.
- * @see		GPUBuffer::GPUBuffer().
- * @return	Pointer to created vertex buffer. */
-GPUBufferPtr GLGPUInterface::create_buffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) {
-	GPUBuffer *buffer = new GLBuffer(type, usage, size);
-	return GPUBufferPtr(buffer);
-}
-
-/** Create a vertex data object.
- * @see			VertexData::VertexData().
- * @return		Pointer to created vertex data object. */
-VertexDataPtr GLGPUInterface::create_vertex_data(size_t vertices) {
-	VertexData *data = new GLVertexData(vertices);
-	return VertexDataPtr(data);
-}
-
-/** Create a pipeline object.
- * @return		Pointer to created pipeline. */
-GPUPipelinePtr GLGPUInterface::create_pipeline() {
-	GPUPipeline *pipeline = new GLPipeline();
-	return GPUPipelinePtr(pipeline);
-}
-
-/** Load a GPU program.
- * @param path		Path to the program source.
- * @param type		Type of the program.
- * @return		Pointer to created program. */
-GPUProgramPtr GLGPUInterface::load_program(const char *path, GPUProgram::Type type) {
-	GPUProgram *program = new GLProgram(path, type);
-	return GPUProgramPtr(program);
-}
-
-/**
- * Rendering methods.
- */
-
 /** Swap buffers. */
 void GLGPUInterface::swap_buffers() {
 	SDL_GL_SwapWindow(g_gl_context->sdl_window);

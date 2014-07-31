@@ -1,10 +1,11 @@
 /**
  * @file
  * @copyright		2014 Alex Smith
- * @brief		GL context class.
+ * @brief		GL context management.
  */
 
 #include "context.h"
+#include "gpu.h"
 
 #include "lib/utility.h"
 
@@ -16,6 +17,10 @@ static const char *required_gl_features[] = {
 	"GL_VERSION_3_3",
 	"GL_ARB_separate_shader_objects",
 };
+
+/** GL version to use. */
+static const int kGLMajorVersion = 3;
+static const int kGLMinorVersion = 3;
 
 #if ORION_GL_DEBUG
 
@@ -94,10 +99,9 @@ static GLEWAPIENTRY void gl_debug_callback(
 
 #endif /* ORION_GL_DEBUG */
 
-/** Initialize the GL context.
- * @param config	Engine configuration. */
-GLContext::GLContext(const EngineConfiguration &config) {
-	/* Set SDL attributes for OpenGL. */
+/** Initialize the GPU interface. */
+GLGPUInterface::GLGPUInterface() {
+	/* Prior to window creation we must set SDL attributes for OpenGL. */
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
@@ -117,8 +121,8 @@ GLContext::GLContext(const EngineConfiguration &config) {
 		 * always support the latest version supported by the driver.
 		 * In fact, NVIDIA recommend that you use a compatibility
 		 * profile instead of core profile. */
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, kGLMajorVersion);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, kGLMinorVersion);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	#endif
 
@@ -127,23 +131,17 @@ GLContext::GLContext(const EngineConfiguration &config) {
 		 * that we can use ARB_debug_output. */
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 	#endif
+}
 
-	uint32_t flags = SDL_WINDOW_OPENGL;
-	if(config.display_fullscreen)
-		flags |= SDL_WINDOW_FULLSCREEN;
+/** Initialize the GPU interface.
+ * @param window	Created SDL window. */
+void GLGPUInterface::init(SDL_Window *window) {
+	g_gl_context = new GLContext;
+	g_gl_context->sdl_window = window;
 
-	this->sdl_window = SDL_CreateWindow(config.title.c_str(),
-		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		config.display_width, config.display_height,
-		flags);
-	if(!this->sdl_window)
-		orion_abort("Failed to create main window: %s", SDL_GetError());
-
-	this->sdl_context = SDL_GL_CreateContext(this->sdl_window);
-	if(!this->sdl_context)
+	g_gl_context->sdl_context = SDL_GL_CreateContext(window);
+	if(!g_gl_context->sdl_context)
 		orion_abort("Failed to create GL context: %s", SDL_GetError());
-
-	SDL_GL_SetSwapInterval(config.display_vsync);
 
 	glewExperimental = GL_TRUE;
 	if(glewInit() != GLEW_OK)
@@ -176,12 +174,12 @@ GLContext::GLContext(const EngineConfiguration &config) {
 	#endif
 
 	/* Create the default VAO. */
-	glGenVertexArrays(1, &this->default_vao);
-	this->state.bind_vao(this->default_vao);
+	glGenVertexArrays(1, &g_gl_context->default_vao);
+	g_gl_context->state.bind_vao(g_gl_context->default_vao);
 }
 
-/** Shut down the GL context. */
-GLContext::~GLContext() {
-	SDL_GL_DeleteContext(this->sdl_context);
-	SDL_DestroyWindow(this->sdl_window);
+/** Shut down the GPU interface. */
+GLGPUInterface::~GLGPUInterface() {
+	SDL_GL_DeleteContext(g_gl_context->sdl_context);
+	delete g_gl_context;
 }

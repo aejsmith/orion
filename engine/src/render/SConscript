@@ -1,4 +1,5 @@
 sources = map(File, [
+    'render_target.cc',
     'scene.cc',
     'scene_view.cc',
 ])

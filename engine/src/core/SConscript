@@ -1,5 +1,6 @@
 sources = map(File, [
     'engine.cc',
+    'window.cc',
 ])
 
 Return('sources')

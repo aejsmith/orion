@@ -21,17 +21,21 @@ GPUInterface::~GPUInterface() {
 	g_gpu = nullptr;
 }
 
-/** Initialize the GPU interface.
+/** Create the GPU interface.
  * @param config	Engine configuration. */
-void GPUInterface::init(const EngineConfiguration &config) {
+void GPUInterface::create(const EngineConfiguration &config) {
 	switch(config.graphics_api) {
 	case EngineConfiguration::kGLGraphicsAPI:
-		new GLGPUInterface(config);
+		new GLGPUInterface;
 		break;
 	default:
 		orion_abort("Configuration specifies unknown graphics API");
 	}
 }
+
+/**
+ * Default object creation methods.
+ */
 
 /** Create a vertex format descriptor.
  * @return		Pointer to created vertex format descriptor. */

@@ -4,8 +4,9 @@
  * @brief		OpenGL GPU buffer implementation.
  */
 
-#include "context.h"
 #include "buffer.h"
+#include "context.h"
+#include "gpu.h"
 
 /** Initialize a new GL buffer.
  * @param type		Type of the buffer.
@@ -96,4 +97,12 @@ void *GLBuffer::_map(size_t offset, size_t size, uint32_t flags, uint32_t access
 void GLBuffer::_unmap() {
 	g_gl_context->state.bind_buffer(m_gl_target, m_buffer);
 	glUnmapBuffer(m_gl_target);
+}
+
+/** Create a GPU buffer.
+ * @see		GPUBuffer::GPUBuffer().
+ * @return	Pointer to created vertex buffer. */
+GPUBufferPtr GLGPUInterface::create_buffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) {
+	GPUBuffer *buffer = new GLBuffer(type, usage, size);
+	return GPUBufferPtr(buffer);
 }

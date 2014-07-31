@@ -10,6 +10,7 @@
  * attached.
  */
 
+#include "gpu.h"
 #include "program.h"
 
 #include <fstream>
@@ -73,4 +74,13 @@ void GLProgram::bind_uniforms(const char *name, unsigned index) {
  * @param index		Texture unit index. */
 void GLProgram::bind_texture(const char *name, unsigned index) {
 
+}
+
+/** Load a GPU program.
+ * @param path		Path to the program source.
+ * @param type		Type of the program.
+ * @return		Pointer to created program. */
+GPUProgramPtr GLGPUInterface::load_program(const char *path, GPUProgram::Type type) {
+	GPUProgram *program = new GLProgram(path, type);
+	return GPUProgramPtr(program);
 }
