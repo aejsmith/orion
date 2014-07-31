@@ -58,19 +58,20 @@ int main(int argc, char **argv) {
 	Engine engine(config);
 
 	World *world = new World;
-	Entity *entity = new Entity("test", world->root());
+	Entity *entity = world->create_entity("test");
 	entity->set_position(glm::vec3(0.0, 0.0, -10.0));
 	entity->set_active(true);
-	Entity *child = new Entity("child", entity);
+	Entity *child = entity->create_child("child");
 	child->set_position(glm::vec3(0.0, 2.0, 0.0));
 	child->set_active(true);
-	CustomBehaviour *behaviour = new CustomBehaviour(child);
+	CustomBehaviour *behaviour = child->create_component<CustomBehaviour>();
 	behaviour->set_active(true);
 
-	Entity *cam_entity = new Entity("camera", world->root());
+	Entity *cam_entity = world->create_entity("camera");
 	cam_entity->set_active(true);
-	Camera *camera = new Camera(cam_entity);
+	Camera *camera = cam_entity->create_component<Camera>();
 	camera->perspective(90.0f, 0.1f, 1000.0f);
+	camera->set_active(true);
 
 	GPUBufferPtr vertex_buffer = g_engine->gpu()->create_buffer(
 		GPUBuffer::kVertexBuffer,

@@ -11,6 +11,7 @@
 
 #include "world/component.h"
 
+#include <algorithm>
 #include <array>
 #include <list>
 #include <string>
@@ -36,17 +37,15 @@ struct EntityUniforms {
  */
 class Entity : Noncopyable {
 public:
-	Entity(const std::string &name, Entity *parent);
-
 	void destroy();
 
-	void set_parent(Entity *parent);
-	void set_active(bool active);
-
-	/** @return		World that the entity belongs to. */
+	/** @return		World that the entity belongs to (null if not
+	 *			attached). */
 	World *world() const { return m_world; }
-	/** @return		Parent of the entity. */
+	/** @return		Parent of the entity (null if not attached). */
 	Entity *parent() const { return m_parent; }
+
+	void set_active(bool active);
 
 	/**
 	 * Check the entity's active property.
@@ -69,6 +68,19 @@ public:
 	 * @return		Whether the entity is really active.
 	 */
 	bool active_in_world() const { return m_active_in_world; }
+
+	/**
+	 * Children.
+	 */
+
+	Entity *create_child(const std::string &name);
+
+	/**
+	 * Components.
+	 */
+
+	template<typename Type, typename ...Args> Type *create_component(Args &&...args);
+	template<typename Type> Type *find_component() const;
 
 	/**
 	 * Transformation.
@@ -97,12 +109,6 @@ public:
 	const glm::mat4 &world_transform() const { return m_world_transform; }
 
 	GPUBufferPtr uniforms() const;
-
-	/**
-	 * Components.
-	 */
-
-	template<typename Type> Type *find_component() const;
 private:
 	/** Type of a list of entities. */
 	typedef std::list<Entity *> EntityList;
@@ -163,11 +169,24 @@ private:
 	GPUBufferPtr m_uniforms;
 	mutable bool m_uniforms_outdated;
 
+	/** Component needs to use remove_component(). */
 	friend class Component;
+	/** World needs access to constructor to create root entity. */
 	friend class World;
 };
 
-/** Get a component attached to the object.
+/** Create a new component and attach it to the entity.
+ * @tparam Type		Type of the component to create.
+ * @param args		Arguments to forward to Type's constructor.
+ * @return		Pointer to created component. */
+template<typename Type, typename ...Args>
+Type *Entity::create_component(Args &&...args) {
+	Type *component = new Type(this, std::forward<Args>(args)...);
+	add_component(component);
+	return component;
+}
+
+/** Get a component attached to the entity.
  * @tparam Type		Type of component to find.
  * @return              Component found, or null if no components of the
  *                      specified type are attached. */

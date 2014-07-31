@@ -25,10 +25,17 @@ public:
 	World();
 	~World();
 
-	/** @return		Root entity of the world. */
-	Entity *root() { return &m_root; }
 	/** @return		Renderer's scene manager. */
 	Scene *scene() const { return m_scene; }
+
+	/**
+	 * Entity management.
+	 */
+
+	Entity *create_entity(const std::string &name);
+
+	/** @return		Root entity of the world. */
+	Entity *root() { return &m_root; }
 private:
 	Entity m_root;			/**< Root of the entity hierarchy. */
 	Scene *m_scene;			/**< Scene manager. */

@@ -7,40 +7,25 @@
 #include "world/component.h"
 #include "world/entity.h"
 
-/**
- * Construct the component.
- *
- * Construct the component and attach it to the specified entity. A component
- * is tied to the entity it is created for; it cannot be moved to another
- * entity.
- *
+/** Construct the component.
  * @param type		Component type ID.
- * @param entity	Entity owning the component.
- */
+ * @param entity	Entity the component belongs to. */
 Component::Component(Type type, Entity *entity) :
 	m_type(type),
 	m_entity(entity),
 	m_active(false)
-{
-	/* Add to the entity. */
-	m_entity->add_component(this);
-}
+{}
 
-/**
- * Private destructor.
- *
- * This destructor is protected, as a component can only be destroyed by
- * calling destroy(). The component will be deactivated by destroy() before
- * the destructors are called.
- */
-Component::~Component() {
-	/* Remove from the parent. */
-	m_entity->remove_component(this);
-}
+/** Private destructor. To destroy a component use destroy(). */
+Component::~Component() {}
 
 /** Destroy the component. */
 void Component::destroy() {
 	set_active(false);
+
+	/* Remove from the parent. */
+	m_entity->remove_component(this);
+
 	delete this;
 }
 

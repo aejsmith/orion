@@ -12,26 +12,21 @@
 
 #include "world/entity.h"
 
-/**
- * Initialize a new entity.
- *
- * Initializes a new entity as a child of the specified entity. The entity will
- * initially be inactive, with a position of (0, 0, 0), no rotation, and a
- * scale of (1, 1, 1). To add an entity at the root of the world, specify the
- * world's root entity obtained from World::root() as the parent.
- *
+/** Initialize a new entity.
  * @param name		Name of the entity.
- * @param parent	Parent entity.
- */
-Entity::Entity(const std::string &name, Entity *parent) :
+ * @param world		World the entity belongs to. */
+Entity::Entity(const std::string &name, World *world) :
 	m_name(name),
-	m_world(parent->world()),
-	m_parent(parent),
+	m_world(world),
+	m_parent(nullptr),
 	m_active(false),
 	m_active_in_world(false),
 	m_position(0.0f, 0.0f, 0.0f),
 	m_orientation(1.0f, 0.0f, 0.0f, 0.0f),
-	m_scale(1.0f),
+	m_scale(1.0f, 1.0f, 1.0f),
+	m_world_position(0.0f, 0.0f, 0.0f),
+	m_world_orientation(1.0f, 0.0f, 0.0f, 0.0f),
+	m_world_scale(1.0f, 1.0f, 1.0f),
 	m_uniforms_outdated(true)
 {
 	m_components.fill(nullptr);
@@ -41,32 +36,6 @@ Entity::Entity(const std::string &name, Entity *parent) :
 		GPUBuffer::kUniformBuffer,
 		GPUBuffer::kDynamicDrawUsage,
 		sizeof(EntityUniforms));
-
-	/* Add ourself to the parent. */
-	parent->m_children.push_back(this);
-
-	/* Set the cached transform to incorporate the parent's transformation. */
-	transformed();
-}
-
-/** Private constructor with no parent for root entity initialization.
- * @param name		Name of the entity.
- * @param world		World for the entity. */
-Entity::Entity(const std::string &name, World *world) :
-	m_name(name),
-	m_world(world),
-	m_parent(nullptr),
-	m_active(true),
-	m_active_in_world(true),
-	m_position(0.0f, 0.0f, 0.0f),
-	m_orientation(1.0f, 0.0f, 0.0f, 0.0f),
-	m_scale(1.0f),
-	m_world_position(0.0f, 0.0f, 0.0f),
-	m_world_orientation(1.0f, 0.0f, 0.0f, 0.0f),
-	m_world_scale(1.0f),
-	m_uniforms_outdated(false)
-{
-	m_components.fill(nullptr);
 }
 
 /** Private destructor. To destroy an entity use destroy(). */
@@ -96,38 +65,6 @@ void Entity::destroy() {
 }
 
 /**
- * Set the parent of the entity.
- *
- * Sets the parent of the entity. The new parent must belong to the same world
- * as the previous parent. If the entity's active property is set but was not
- * actually active due to its parent being inactive, it will become active if
- * the new parent is active. Conversely, if it was active but the new parent is
- * inactive, it will be deactivated.
- *
- * @param parent	New parent.
- */
-void Entity::set_parent(Entity *parent) {
-	orion_assert(parent);
-	orion_check(m_parent, "Cannot set parent of root entity");
-	orion_check(parent->m_world == m_parent->m_world, "Cannot set parent to entity in another world");
-
-	/* Deactivate ourself while we're moving. */
-	if(m_active_in_world)
-		deactivated();
-
-	m_parent->m_children.remove(this);
-	m_parent = parent;
-	m_parent->m_children.push_back(this);
-
-	/* Update transformation based on new parent. */
-	transformed();
-
-	/* Reactivate if we and the new parent are active. */
-	if(m_parent->m_active_in_world && m_active)
-		activated();
-}
-
-/**
  * Set whether the entity is active.
  *
  * Sets the entity's active property. Note that when setting to true, the entity
@@ -139,12 +76,59 @@ void Entity::set_parent(Entity *parent) {
 void Entity::set_active(bool active) {
 	m_active = active;
 	if(m_active) {
-		if(m_parent->m_active_in_world && !m_active_in_world)
+		if((!m_parent || m_parent->m_active_in_world) && !m_active_in_world)
 			activated();
 	} else {
 		if(m_active_in_world)
 			deactivated();
 	}
+}
+
+/**
+ * Create a child entity.
+ *
+ * Create a new entity as a child of this entity. The new entity will initially
+ * be inactive, and have a relative position of (0, 0, 0) and no relative
+ * rotation.
+ *
+ * @param name		Name of entity to create.
+ *
+ * @return		Pointer to created entity.
+ */
+Entity *Entity::create_child(const std::string &name) {
+	Entity *entity = new Entity(name, m_world);
+
+	entity->m_parent = this;
+	m_children.push_back(entity);
+
+	/* Update the cached transform to incorporate our transformation. */
+	entity->transformed();
+
+	return entity;
+}
+
+/** Add a component to the entity (internal method).
+ * @param component	Component to add. */
+void Entity::add_component(Component *component) {
+	orion_check(m_parent, "Cannot attach components to root entity");
+	orion_check(!m_components[component->type()],
+		"Component of type %d already registered",
+		component->type());
+
+	component->m_entity = this;
+	m_components[component->type()] = component;
+
+	/* We do not need to activate the component at this point as the
+	 * component is initially inactive. We do however need to let it do
+	 * anything it needs to with the new transformation. */
+	component->transformed();
+}
+
+/** Remove a component from the entity (internal method).
+ * @param component	Component to remove. */
+void Entity::remove_component(Component *component) {
+	orion_assert(m_components[component->type()] == component);
+	m_components[component->type()] = nullptr;
 }
 
 /**
@@ -235,27 +219,6 @@ GPUBufferPtr Entity::uniforms() const {
 	}
 
 	return m_uniforms;
-}
-
-/** Private function called by Component to register itself.
- * @param component	Component to add. */
-void Entity::add_component(Component *component) {
-	orion_check(m_parent, "Cannot attach components to root entity");
-	orion_check(!m_components[component->type()],
-		"Component of type %d already registered",
-		component->type());
-
-	/* Do not need to activate the component at this point as we are called
-	 * from the Component constructor only, where the component will not
-	 * be active. */
-	m_components[component->type()] = component;
-}
-
-/** Private function called by Component to unregister itself.
- * @param component	Component to remove. */
-void Entity::remove_component(Component *component) {
-	orion_assert(m_components[component->type()] == component);
-	m_components[component->type()] = nullptr;
 }
 
 /** Called when the transformation has been updated. */

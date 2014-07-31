@@ -23,6 +23,26 @@ class Entity;
  * Components have a number of hook functions that get called from the Entity
  * to which they are attached, which can be overridden by derived classes to
  * implement their behaviour.
+ *
+ * Components should always be created through Entity::create_component(). This
+ * constructs the component and handles attaching it to the entity. They should
+ * only be destroyed by calling destroy(). The function call sequence for
+ * creating a component is:
+ *
+ *   Entity::create_component()
+ *    |-> constructors
+ *    |-> Entity::add_component()
+ *    |-> Component::transformed()
+ *
+ * The call sequence for destroying a component is:
+ *
+ *   Component::destroy()
+ *    |-> Component::deactivated() (if currently active)
+ *    |-> Entity::remove_component()
+ *    |-> destructors
+ *
+ * As can be seen, this ensures that the hook functions are called when the
+ * component is fully constructed.
  */
 class Component : Noncopyable {
 public:
@@ -68,6 +88,8 @@ private:
 	Type m_type;			/**< Type of the component. */
 	Entity *m_entity;		/**< Entity that the component is attached to. */
 	bool m_active;			/**< Whether the component is active. */
+
+	friend class Entity;
 };
 
 /** Declare a component type. */
