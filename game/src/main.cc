@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
 	Camera *camera = new Camera(cam_entity);
 	camera->perspective(90.0f, 0.1f, 1000.0f);
 
-	GPUBufferPtr vertex_buffer = g_gpu->create_buffer(
+	GPUBufferPtr vertex_buffer = g_engine->gpu()->create_buffer(
 		GPUBuffer::kVertexBuffer,
 		GPUBuffer::kStaticDrawUsage,
 		3 * sizeof(Vertex));
@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
 			glm::vec4(0.0, 0.0, 1.0, 1.0));
 	}
 
-	VertexFormatPtr format = g_gpu->create_vertex_format();
+	VertexFormatPtr format = g_engine->gpu()->create_vertex_format();
 	format->add_buffer(0, sizeof(Vertex));
 	format->add_attribute(
 		VertexAttribute::kPositionSemantic, 0,
@@ -109,22 +109,22 @@ int main(int argc, char **argv) {
 		VertexAttribute::kFloatType, 4, 0, offsetof(Vertex, r));
 	format->finalize();
 
-	VertexDataPtr vertices = g_gpu->create_vertex_data(3);
+	VertexDataPtr vertices = g_engine->gpu()->create_vertex_data(3);
 	vertices->set_format(format);
 	vertices->set_buffer(0, vertex_buffer);
 	vertices->finalize();
 
-	GPUProgramPtr vertex_program = g_gpu->load_program(
+	GPUProgramPtr vertex_program = g_engine->gpu()->load_program(
 		"engine/assets/shaders/test_vtx.glsl",
 		GPUProgram::kVertexProgram);
 	vertex_program->bind_uniforms("EntityUniforms", 0);
 	vertex_program->bind_uniforms("ViewUniforms", 1);
 
-	GPUProgramPtr frag_program = g_gpu->load_program(
+	GPUProgramPtr frag_program = g_engine->gpu()->load_program(
 		"engine/assets/shaders/test_frag.glsl",
 		GPUProgram::kFragmentProgram);
 
-	GPUPipelinePtr pipeline = g_gpu->create_pipeline();
+	GPUPipelinePtr pipeline = g_engine->gpu()->create_pipeline();
 	pipeline->set_program(GPUProgram::kVertexProgram, vertex_program);
 	pipeline->set_program(GPUProgram::kFragmentProgram, frag_program);
 	pipeline->finalize();
@@ -132,14 +132,14 @@ int main(int argc, char **argv) {
 	while(true) {
 		entity->rotate(0.02f, glm::vec3(0.0, 0.0, 1.0));
 
-		g_gpu->clear(
+		g_engine->gpu()->clear(
 			RenderBuffer::kColourBuffer | RenderBuffer::kDepthBuffer,
 			glm::vec4(0.0, 0.0, 0.4, 1.0), 1.0, 0);
 
-		g_gpu->bind_pipeline(pipeline);
-		g_gpu->bind_uniform_buffer(0, child->uniforms());
-		g_gpu->bind_uniform_buffer(1, camera->scene_view()->uniforms());
-		g_gpu->draw(PrimitiveType::kTriangleList, vertices, nullptr);
+		g_engine->gpu()->bind_pipeline(pipeline);
+		g_engine->gpu()->bind_uniform_buffer(0, child->uniforms());
+		g_engine->gpu()->bind_uniform_buffer(1, camera->scene_view()->uniforms());
+		g_engine->gpu()->draw(PrimitiveType::kTriangleList, vertices, nullptr);
 
 		if(!engine.loop())
 			break;

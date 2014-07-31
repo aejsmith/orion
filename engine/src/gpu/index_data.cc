@@ -4,6 +4,8 @@
  * @brief		Index data class.
  */
 
+#include "core/engine.h"
+
 #include "gpu/index_data.h"
 
 /**

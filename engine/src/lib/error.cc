@@ -30,8 +30,8 @@ void __orion_abort(const char *file, int line, const char *fmt, ...) {
 	std::string str = "Fatal Error: " + util::format(fmt, args);
 	va_end(args);
 
-	if(g_log_manager) {
-		g_log_manager->write(LogLevel::kError, file, line, "%s", str.c_str());
+	if(g_engine && g_engine->log()) {
+		g_engine->log()->write(LogLevel::kError, file, line, "%s", str.c_str());
 	} else {
 		fprintf(stderr, "%s\n", str.c_str());
 	}

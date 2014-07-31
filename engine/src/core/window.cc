@@ -11,16 +11,14 @@
 #include <SDL.h>
 
 /** Create the main window.
- * @param config	Engine configuration structure. */
-Window::Window(const EngineConfiguration &config) :
+ * @param config	Engine configuration structure.
+ * @param gpu		GPU interface. */
+Window::Window(const EngineConfiguration &config, GPUInterface *gpu) :
 	RenderTarget(kWindowPriority),
 	m_size(config.display_width, config.display_height)
 {
-	/* Create the GPU interface and let it perform any pre-window creation
-	 * setup it needs. */
-	GPUInterface::create(config);
-
 	uint32_t flags = 0;
+
 	if(config.display_fullscreen)
 		flags |= SDL_WINDOW_FULLSCREEN;
 	if(config.graphics_api == EngineConfiguration::kGLGraphicsAPI)
@@ -34,11 +32,10 @@ Window::Window(const EngineConfiguration &config) :
 		orion_abort("Failed to create main window: %s", SDL_GetError());
 
 	/* Initialize the GPU interface properly. */
-	g_gpu->init(m_window);
+	gpu->init(m_window);
 }
 
 /** Destroy the window. */
 Window::~Window() {
-	delete g_gpu;
 	SDL_DestroyWindow(m_window);
 }

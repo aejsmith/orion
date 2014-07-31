@@ -15,19 +15,11 @@
 #include <ctime>
 #include <iostream>
 
-/** Global log manager instance. */
-LogManager *g_log_manager = nullptr;
-
 /** Initialize the log manager. */
-LogManager::LogManager() {
-	orion_assert(!g_log_manager);
-	g_log_manager = this;
-}
+LogManager::LogManager() {}
 
 /** Destroy the log manager. */
-LogManager::~LogManager() {
-	g_log_manager = nullptr;
-}
+LogManager::~LogManager() {}
 
 /** Write a message to the log.
  * @param level		Log level.

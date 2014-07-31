@@ -4,6 +4,8 @@
  * @brief		GPU buffer class.
  */
 
+#include "core/engine.h"
+
 #include "gpu/buffer.h"
 
 /** Construct the GPU buffer.

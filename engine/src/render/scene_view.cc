@@ -62,7 +62,8 @@ GPUBufferPtr SceneView::uniforms() {
 	if(m_uniforms_outdated) {
 		if(!m_uniforms) {
 			/* Create the uniform buffer. */
-			m_uniforms = g_gpu->create_buffer(GPUBuffer::kUniformBuffer,
+			m_uniforms = g_engine->gpu()->create_buffer(
+				GPUBuffer::kUniformBuffer,
 				GPUBuffer::kDynamicDrawUsage,
 				sizeof(ViewUniforms));
 		}

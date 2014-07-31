@@ -4,6 +4,8 @@
  * @brief		Vertex format class.
  */
 
+#include "core/engine.h"
+
 #include "gpu/vertex_format.h"
 
 /** Initialize a vertex format descriptor. */
@@ -37,9 +39,13 @@ void VertexFormat::add_buffer(unsigned index, size_t stride) {
  *
  * @see			VertexAttribute.
  */
-void VertexFormat::add_attribute(VertexAttribute::Semantic semantic,
-	unsigned index, VertexAttribute::Type type, size_t count,
-	unsigned buffer, size_t offset)
+void VertexFormat::add_attribute(
+	VertexAttribute::Semantic semantic,
+	unsigned index,
+	VertexAttribute::Type type,
+	size_t count,
+	unsigned buffer,
+	size_t offset)
 {
 	orion_assert(!m_finalized);
 

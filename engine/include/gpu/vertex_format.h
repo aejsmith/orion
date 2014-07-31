@@ -126,8 +126,12 @@ public:
 	virtual ~VertexFormat();
 
 	void add_buffer(unsigned index, size_t stride);
-	void add_attribute(VertexAttribute::Semantic semantic, unsigned index,
-		VertexAttribute::Type type, size_t count, unsigned buffer,
+	void add_attribute(
+		VertexAttribute::Semantic semantic,
+		unsigned index,
+		VertexAttribute::Type type,
+		size_t count,
+		unsigned buffer,
 		size_t offset);
 
 	virtual void finalize();

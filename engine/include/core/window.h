@@ -11,12 +11,13 @@
 
 #include "render/render_target.h"
 
+class GPUInterface;
 struct SDL_Window;
 
 /** Engine main window class. */
 class Window : public RenderTarget {
 public:
-	explicit Window(const EngineConfiguration &config);
+	Window(const EngineConfiguration &config, GPUInterface *gpu);
 	~Window();
 
 	/** @return		Size of the window (in pixels). */

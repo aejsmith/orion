@@ -4,6 +4,8 @@
  * @brief		Vertex data class.
  */
 
+#include "core/engine.h"
+
 #include "gpu/vertex_data.h"
 
 /**

@@ -37,7 +37,10 @@ Entity::Entity(const std::string &name, Entity *parent) :
 	m_components.fill(nullptr);
 
 	/* Create the uniform buffer. */
-	m_uniforms = g_gpu->create_buffer(GPUBuffer::kUniformBuffer, GPUBuffer::kDynamicDrawUsage, sizeof(EntityUniforms));
+	m_uniforms = g_engine->gpu()->create_buffer(
+		GPUBuffer::kUniformBuffer,
+		GPUBuffer::kDynamicDrawUsage,
+		sizeof(EntityUniforms));
 
 	/* Add ourself to the parent. */
 	parent->m_children.push_back(this);

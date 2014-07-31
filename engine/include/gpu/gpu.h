@@ -28,9 +28,9 @@ struct SDL_Window;
  */
 class GPUInterface : Noncopyable {
 public:
-	static void create(const EngineConfiguration &config);
+	static GPUInterface *create(const EngineConfiguration &config);
 
-	virtual ~GPUInterface();
+	virtual ~GPUInterface() {}
 
 	/** Initialize the GPU interface.
 	 * @param window	Created SDL window. */
@@ -87,9 +87,7 @@ public:
 	 * @param indices	Index data to use (can be null). */
 	virtual void draw(PrimitiveType type, const VertexDataPtr &vertices, const IndexDataPtr &indices) = 0;
 protected:
-	GPUInterface();
+	GPUInterface() {}
 };
-
-extern GPUInterface *g_gpu;
 
 #endif /* ORION_GPU_GPU_H */

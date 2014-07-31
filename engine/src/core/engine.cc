@@ -23,14 +23,17 @@ Engine::Engine(const EngineConfiguration &config) :
 	g_engine = this;
 
 	/* Initialize the log. */
-	new LogManager();
+	m_log = new LogManager;
 	orion_log(LogLevel::kInfo, "Orion revision %s built at %s", g_version_string, g_version_timestamp);
 
 	if(SDL_Init(SDL_INIT_EVERYTHING) != 0)
 		orion_abort("Failed to initialize SDL: %s", SDL_GetError());
 
-	/* Create the main window and set up the GPU interface. */
-	m_window = new Window(config);
+	/* Create the GPU interface. */
+	m_gpu = GPUInterface::create(config);
+
+	/* Create the main window, which properly initializes the GPU interface. */
+	m_window = new Window(config, m_gpu);
 }
 
 /** Shut down the engine. */
@@ -41,7 +44,9 @@ Engine::~Engine() {
 
 /** Shut down the engine. */
 void Engine::shutdown() {
-	delete g_log_manager;
+	delete m_gpu;
+	delete m_window;
+	delete m_log;
 	SDL_Quit();
 }
 
@@ -76,7 +81,7 @@ void Engine::remove_render_target(RenderTarget *target) {
 
 bool Engine::loop() {
 	/* FIXME: temporary. */
-	g_gpu->swap_buffers();
+	m_gpu->swap_buffers();
 
 	/* Handle SDL events. */
 	SDL_Event event;

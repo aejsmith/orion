@@ -9,6 +9,8 @@
 
 #include "core/defs.h"
 
+#include "lib/noncopyable.h"
+
 #include <memory>
 
 /**

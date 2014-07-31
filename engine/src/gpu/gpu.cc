@@ -6,28 +6,13 @@
 
 #include "gl/gpu.h"
 
-/** Instance of the GPU interface. */
-GPUInterface *g_gpu = nullptr;
-
-/** Construct the GPU interface. */
-GPUInterface::GPUInterface() {
-	orion_assert(!g_gpu);
-	g_gpu = this;
-}
-
-/** Destroy the GPU interface. */
-GPUInterface::~GPUInterface() {
-	orion_assert(g_gpu == this);
-	g_gpu = nullptr;
-}
-
 /** Create the GPU interface.
- * @param config	Engine configuration. */
-void GPUInterface::create(const EngineConfiguration &config) {
+ * @param config	Engine configuration.
+ * @return		Pointer to created GPU interface. */
+GPUInterface *GPUInterface::create(const EngineConfiguration &config) {
 	switch(config.graphics_api) {
 	case EngineConfiguration::kGLGraphicsAPI:
-		new GLGPUInterface;
-		break;
+		return new GLGPUInterface;
 	default:
 		orion_abort("Configuration specifies unknown graphics API");
 	}
