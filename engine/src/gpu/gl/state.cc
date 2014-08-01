@@ -15,12 +15,22 @@
  * default values.
  */
 GLState::GLState() :
+	swap_interval(0),
 	clear_colour(0.0f, 0.0f, 0.0f, 0.0f),
 	clear_depth(1.0f),
 	clear_stencil(0.0f),
 	bound_vao(GL_NONE),
 	bound_pipeline(GL_NONE)
 {}
+
+/** Set the current swap interval.
+ * @param interval	Interval to set (passed to SDL_GL_SetSwapInterval). */
+void GLState::set_swap_interval(int interval) {
+	if(interval != this->swap_interval) {
+		SDL_GL_SetSwapInterval(interval);
+		this->swap_interval = interval;
+	}
+}
 
 /** Set the colour clear value.
  * @param colour	Colour clear value. */

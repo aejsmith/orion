@@ -22,11 +22,11 @@ public:
 	GPUPipelinePtr create_pipeline();
 	GPUProgramPtr load_program(const char *path, GPUProgram::Type type);
 
-	void swap_buffers();
 	void clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil);
 	void bind_pipeline(const GPUPipelinePtr &pipeline);
 	void bind_uniform_buffer(unsigned index, const GPUBufferPtr &buffer);
 	void draw(PrimitiveType type, const VertexDataPtr &vertices, const IndexDataPtr &indices);
+	void end_frame(bool vsync);
 };
 
 #endif /* ORION_GPU_GL_GPU_H */

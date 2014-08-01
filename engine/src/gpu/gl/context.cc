@@ -143,6 +143,8 @@ void GLGPUInterface::init(SDL_Window *window) {
 	if(!g_gl_context->sdl_context)
 		orion_abort("Failed to create GL context: %s", SDL_GetError());
 
+	SDL_GL_SetSwapInterval(0);
+
 	glewExperimental = GL_TRUE;
 	if(glewInit() != GLEW_OK)
 		orion_abort("Failed to initialize GLEW");

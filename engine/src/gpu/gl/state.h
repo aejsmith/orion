@@ -46,6 +46,8 @@ struct GLState {
 		GLuint m_uniform_buffer;
 	};
 public:
+	int swap_interval;		/**< Current swap interval. */
+
 	/** Clear state. */
 	glm::vec4 clear_colour;
 	float clear_depth;
@@ -57,6 +59,8 @@ public:
 	GLuint bound_pipeline;
 public:
 	GLState();
+
+	void set_swap_interval(int interval);
 
 	void set_clear_colour(const glm::vec4 &colour);
 	void set_clear_depth(float depth);

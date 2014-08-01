@@ -11,11 +11,6 @@
 #include "program.h"
 #include "vertex_data.h"
 
-/** Swap buffers. */
-void GLGPUInterface::swap_buffers() {
-	SDL_GL_SwapWindow(g_gl_context->sdl_window);
-}
-
 /** Clear rendering buffers.
  * @param buffers	Buffers to clear (bitmask of RenderBuffer values).
  * @param colour	Colour to clear to.
@@ -77,4 +72,11 @@ void GLGPUInterface::draw(PrimitiveType type, const VertexDataPtr &_vertices, co
 	} else {
 		glDrawArrays(mode, 0, vertices->count());
 	}
+}
+
+/** End a frame and present it on screen.
+ * @param vsync		Whether to wait for vertical sync. */
+void GLGPUInterface::end_frame(bool vsync) {
+	g_gl_context->state.set_swap_interval(vsync);
+	SDL_GL_SwapWindow(g_gl_context->sdl_window);
 }

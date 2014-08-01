@@ -80,8 +80,7 @@ void Engine::remove_render_target(RenderTarget *target) {
 }
 
 bool Engine::loop() {
-	/* FIXME: temporary. */
-	m_gpu->swap_buffers();
+	m_gpu->end_frame(m_config.display_vsync);
 
 	/* Handle SDL events. */
 	SDL_Event event;

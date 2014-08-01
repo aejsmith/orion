@@ -62,9 +62,6 @@ public:
 	 * Rendering methods.
 	 */
 
-	// FIXME: Temporary.
-	virtual void swap_buffers() {}
-
 	/** Clear rendering buffers.
 	 * @param buffers	Buffers to clear (bitmask of RenderBuffer values).
 	 * @param colour	Colour to clear to.
@@ -86,6 +83,10 @@ public:
 	 * @param vertices	Vertex data to use.
 	 * @param indices	Index data to use (can be null). */
 	virtual void draw(PrimitiveType type, const VertexDataPtr &vertices, const IndexDataPtr &indices) = 0;
+
+	/** End a frame and present it on screen.
+	 * @param vsync		Whether to wait for vertical sync. */
+	virtual void end_frame(bool vsync) {}
 protected:
 	GPUInterface() {}
 };
