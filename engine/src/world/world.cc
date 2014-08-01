@@ -24,6 +24,13 @@ World::~World() {
 	delete m_scene;
 }
 
+/** Update the world.
+ * @param dt		Time elapsed since last update in seconds. */
+void World::tick(float dt) {
+	/* Update all entities. */
+	m_root->tick(dt);
+}
+
 /**
  * Create an entity in the world.
  *

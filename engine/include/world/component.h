@@ -81,6 +81,20 @@ public:
 
 	/** Called when the component becomes inactive in the world. */
 	virtual void deactivated() {}
+
+	/**
+	 * Update the component.
+	 *
+	 * Called every frame while the component is active in the world to
+	 * perform per-frame updates. The supplied time delta is the time since
+	 * the last call to this function. This function is not called at a
+	 * fixed interval, it is dependent on the frame rate. Therefore, the
+	 * time delta should be used to make updates independent of the frame
+	 * rate.
+	 *
+	 * @param dt		Time delta since last update in seconds.
+	 */
+	virtual void tick(float dt) {}
 protected:
 	Component(Type type, Entity *entity);
 	virtual ~Component();

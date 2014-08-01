@@ -39,10 +39,11 @@ class Entity : Noncopyable {
 public:
 	void destroy();
 
-	/** @return		World that the entity belongs to (null if not
-	 *			attached). */
+	void tick(float dt);
+
+	/** @return		World that the entity belongs to. */
 	World *world() const { return m_world; }
-	/** @return		Parent of the entity (null if not attached). */
+	/** @return		Parent of the entity. */
 	Entity *parent() const { return m_parent; }
 
 	void set_active(bool active);

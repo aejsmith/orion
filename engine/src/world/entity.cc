@@ -221,6 +221,21 @@ GPUBufferPtr Entity::uniforms() const {
 	return m_uniforms;
 }
 
+/** Update the entity. */
+void Entity::tick(float dt) {
+	// FIXME: This does not handle activation/deactivation quite well. When
+	// an entity becomes active in a frame, it should *not* have it's tick
+	// function called in the rest of the frame, otherwise it will get a
+	// meaningless dt value. It shouldn't be called until next frame, where
+	// dt would be time since activation.
+
+	/* Tick all components. */
+	visit_active_components([dt](Component *c) { c->tick(dt); });
+
+	/* Tick all children. */
+	visit_active_children([dt](Entity *e) { e->tick(dt); });
+}
+
 /** Called when the transformation has been updated. */
 void Entity::transformed() {
 	/* Recalculate absolute transformations. */

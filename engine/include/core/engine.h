@@ -21,6 +21,7 @@ class GPUInterface;
 class LogManager;
 class RenderTarget;
 class Window;
+class World;
 
 /** Engine configuration.
  * @todo		Eventually this will only contain static configuration
@@ -53,8 +54,11 @@ public:
 	Engine(const EngineConfiguration &config);
 	~Engine();
 
-	bool loop();
 	void shutdown();
+
+	// XXX: temporary
+	bool start_frame();
+	void end_frame();
 
 	/** @return		Engine configuration. */
 	const EngineConfiguration &config() const { return m_config; }
@@ -69,6 +73,15 @@ public:
 	GPUInterface *gpu() const { return m_gpu; }
 	/** @return		Engine main window. */
 	Window *window() const { return m_window; }
+
+	/**
+	 * World management.
+	 */
+
+	World *create_world();
+
+	/** @return		Active game world. */
+	World *world() const { return m_world; }
 
 	/**
 	 * Rendering loop.
@@ -88,8 +101,14 @@ private:
 	GPUInterface *m_gpu;		/**< GPU interface. */
 	Window *m_window;		/**< Main window. */
 
+	/** Active game world. */
+	World *m_world;
+
 	/** List of render targets. */
 	RenderTargetList m_render_targets;
+
+	/** Timing information. */
+	uint32_t m_last_tick;		/**< Last tick time. */
 };
 
 extern Engine *g_engine;

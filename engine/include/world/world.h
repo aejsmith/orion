@@ -25,6 +25,8 @@ public:
 	World();
 	~World();
 
+	void tick(float dt);
+
 	/** @return		Renderer's scene manager. */
 	Scene *scene() const { return m_scene; }
 

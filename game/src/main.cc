@@ -35,6 +35,10 @@ public:
 
 	void activated() { orion_log(LogLevel::kDebug, "Entity was activated"); }
 	void deactivated() { orion_log(LogLevel::kDebug, "Entity was deactivated"); }
+
+	void tick(float dt) {
+		entity()->rotate(dt * 90.0f, glm::vec3(0.0, 0.0, 1.0));
+	}
 };
 
 /** Main function of the engine.
@@ -51,15 +55,16 @@ int main(int argc, char **argv) {
 
 	Engine engine(config);
 
-	World *world = new World;
+	World *world = engine.create_world();
+
 	Entity *entity = world->create_entity("test");
 	entity->set_position(glm::vec3(0.0, 0.0, -10.0));
 	entity->set_active(true);
+	CustomBehaviour *behaviour = entity->create_component<CustomBehaviour>();
+	behaviour->set_active(true);
 	Entity *child = entity->create_child("child");
 	child->set_position(glm::vec3(0.0, 2.0, 0.0));
 	child->set_active(true);
-	CustomBehaviour *behaviour = child->create_component<CustomBehaviour>();
-	behaviour->set_active(true);
 
 	Entity *cam_entity = world->create_entity("camera");
 	cam_entity->set_active(true);
@@ -125,7 +130,8 @@ int main(int argc, char **argv) {
 	pipeline->finalize();
 
 	while(true) {
-		entity->rotate(0.02f, glm::vec3(0.0, 0.0, 1.0));
+		if(!g_engine->start_frame())
+			break;
 
 		g_engine->gpu()->clear(
 			RenderBuffer::kColourBuffer | RenderBuffer::kDepthBuffer,
@@ -136,10 +142,8 @@ int main(int argc, char **argv) {
 		g_engine->gpu()->bind_uniform_buffer(1, camera->scene_view().uniforms());
 		g_engine->gpu()->draw(PrimitiveType::kTriangleList, vertices, nullptr);
 
-		if(!engine.loop())
-			break;
+		g_engine->end_frame();
 	}
 
-	delete world;
 	return 0;
 }

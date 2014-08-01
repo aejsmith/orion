@@ -9,6 +9,8 @@
 
 #include "gpu/gpu.h"
 
+#include "world/world.h"
+
 #include <SDL.h>
 
 /** Global instance of the engine. */
@@ -17,7 +19,9 @@ Engine *g_engine = nullptr;
 /** Initialize the engine.
  * @param config	Engine configuration structure. */
 Engine::Engine(const EngineConfiguration &config) :
-	m_config(config)
+	m_config(config),
+	m_world(nullptr),
+	m_last_tick(0)
 {
 	orion_assert(!g_engine);
 	g_engine = this;
@@ -44,10 +48,23 @@ Engine::~Engine() {
 
 /** Shut down the engine. */
 void Engine::shutdown() {
+	if(m_world)
+		delete m_world;
+
 	delete m_gpu;
 	delete m_window;
 	delete m_log;
 	SDL_Quit();
+}
+
+/** Create a world and make it the active world.
+ * @return		Created world. */
+World *Engine::create_world() {
+	if(m_world)
+		delete m_world;
+
+	m_world = new World;
+	return m_world;
 }
 
 /**
@@ -79,9 +96,7 @@ void Engine::remove_render_target(RenderTarget *target) {
 	m_render_targets.remove(target);
 }
 
-bool Engine::loop() {
-	m_gpu->end_frame(m_config.display_vsync);
-
+bool Engine::start_frame() {
 	/* Handle SDL events. */
 	SDL_Event event;
 	if(SDL_PollEvent(&event)) {
@@ -95,5 +110,19 @@ bool Engine::loop() {
 		}
 	}
 
+	uint32_t tick = SDL_GetTicks();
+
+	if(m_last_tick && tick != m_last_tick) {
+		/* Update the world. */
+		float dt = static_cast<float>(tick - m_last_tick) / 1000.0f;
+		m_world->tick(dt);
+	}
+
+	m_last_tick = tick;
+
 	return true;
+}
+
+void Engine::end_frame() {
+	m_gpu->end_frame(m_config.display_vsync);
 }
