@@ -9,55 +9,54 @@
 #include "render/scene.h"
 #include "render/scene_view.h"
 
-/**
- * Initialize the scene view.
- *
- * Initialize the scene view. The view will initially have invalid view and
- * projection matrices, they must be set manually. The viewport rectangle will
- * initially be set to (0, 0, 1, 1).
- *
- * @param scene		Scene that the view is for.
- */
-SceneView::SceneView(Scene *scene) :
-	m_scene(scene),
-	m_position(0.0f, 0.0f, 0.0f),
-	m_orientation(1.0f, 0.0f, 0.0f, 0.0f),
+/** Initialize the scene view. */
+SceneView::SceneView() :
+	m_view_outdated(true),
+	m_projection_outdated(true),
 	m_uniforms_outdated(true)
 {}
 
 /** Destroy the scene view. */
 SceneView::~SceneView() {}
 
-/** Set the world transformation of the view.
- * @param position	Position of the view.
- * @param orientation	Orientation of the view. */
-void SceneView::set_transform(const glm::vec3 &position, const glm::quat &orientation) {
-	m_position = position;
-	m_orientation = orientation;
+/** Get the world-to-view matrix.
+ * @return		World-to-view matrix. */
+const glm::mat4 &SceneView::view() {
+	if(m_view_outdated) {
+		/* Viewing matrix is a world-to-view transformation, so we want
+		 * the inverse of the given position and orientation. */
+		glm::mat4 position = glm::translate(glm::mat4(), this->position);
+		glm::mat4 orientation = glm::mat4_cast(glm::inverse(this->orientation));
 
-	/* Viewing matrix is a world-to-view transformation, so we want the
-	 * inverse of the given position and orientation. */
-	m_view = glm::mat4_cast(glm::inverse(orientation)) * glm::translate(glm::mat4(), position);
+		m_view = orientation * position;
+		m_view_outdated = false;
+	}
 
-	m_uniforms_outdated = true;
+	return m_view;
 }
 
-/** Set the projection matrix.
- * @param projection	New projection matrix. */
-void SceneView::set_projection(const glm::mat4 &projection) {
-	m_projection = projection;
-	m_uniforms_outdated = true;
+/** Get the view-to-projection matrix.
+ * @return		View-to-projection matrix. */
+const glm::mat4 &SceneView::projection() {
+	if(m_projection_outdated) {
+		/* Determine the aspect ratio. */
+		float aspect =
+			static_cast<float>(this->viewport.width) /
+			static_cast<float>(this->viewport.height);
+
+		/* Convert horizontal field of view to vertical. */
+		float fovx = glm::radians(this->fovx);
+		float fovy = 2.0f * atanf(tanf(fovx * 0.5f) / aspect);
+
+		m_projection = glm::perspective(fovy, aspect, this->znear, this->zfar);
+		m_projection_outdated = false;
+	}
+
+	return m_projection;
 }
 
-/**
- * Get the uniform buffer containing view parameters.
- *
- * Gets the uniform buffer which contains per-view parameters. This function
- * will update the buffer with the latest parameters if it is currently out of
- * date.
- *
- * @return		Pointer to buffer containing view parameters.
- */
+/** Get the uniform buffer containing view parameters.
+ * @return		Pointer to buffer containing view parameters. */
 GPUBufferPtr SceneView::uniforms() {
 	if(m_uniforms_outdated) {
 		if(!m_uniforms) {
@@ -68,16 +67,17 @@ GPUBufferPtr SceneView::uniforms() {
 				sizeof(ViewUniforms));
 		}
 
+		/* Ensure view and projection are up to date. */
+		view();
+		projection();
 		glm::mat4 view_projection = m_projection * m_view;
 
-		GPUBufferMapper<ViewUniforms> uniforms(m_uniforms,
-			GPUBuffer::kMapInvalidate,
-			GPUBuffer::kWriteAccess);
+		GPUBufferMapper<ViewUniforms> uniforms(m_uniforms, GPUBuffer::kMapInvalidate, GPUBuffer::kWriteAccess);
 
 		memcpy(&uniforms->view, glm::value_ptr(m_view), sizeof(uniforms->view));
 		memcpy(&uniforms->projection, glm::value_ptr(m_projection), sizeof(uniforms->projection));
 		memcpy(&uniforms->view_projection, glm::value_ptr(view_projection), sizeof(uniforms->view_projection));
-		memcpy(&uniforms->position, glm::value_ptr(m_position), sizeof(uniforms->position));
+		memcpy(&uniforms->position, glm::value_ptr(this->position), sizeof(uniforms->position));
 
 		m_uniforms_outdated = false;
 	}

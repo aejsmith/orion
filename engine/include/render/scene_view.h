@@ -28,43 +28,52 @@ struct ViewUniforms {
  * the Camera component. A Camera simply holds a SceneView and updates it as
  * necessary. The separation allows the renderer to avoid the baggage of
  * creating a component whenever it needs to create a camera for internal use.
+ *
+ * The view/projection matrices and uniform buffer are automatically created
+ * as required on first use. For single use SceneViews you can just fill in the
+ * members and the matrices will be created when the getter functions are
+ * called. For persistent SceneViews (should only be used by Camera), the
+ * update_* functions should be called when things are changed so that the
+ * calculated matrices will be updated.
  */
-class SceneView {
+struct SceneView {
+	Scene *scene;			/**< Scene that the view is for. */
+
+	/** View settings (call update_view() after changing). */
+	glm::vec3 position;		/**< View position. */
+	glm::quat orientation;		/**< View orientation. */
+
+	/** Projection settings (call update_projection() after changing). */
+	float fovx;			/**< Horizontal field of view. */
+	float znear;			/**< Near clipping plane. */
+	float zfar;			/**< Far clipping plane. */
+
+	/** Viewport rectangle in pixels (call update_projection() after changing). */
+	IntRect viewport;
 public:
-	explicit SceneView(Scene *scene);
+	SceneView();
 	~SceneView();
 
-	/** @return		Scene that the view is for. */
-	Scene *scene() const { return m_scene; }
+	/** Mark the view matrix as outdated. */
+	void update_view() {
+		m_view_outdated = true;
+		m_uniforms_outdated = true;
+	}
 
-	void set_transform(const glm::vec3 &position, const glm::quat &orientation);
-	void set_projection(const glm::mat4 &projection);
+	/** Mark the projection matrix as outdated. */
+	void update_projection() {
+		m_projection_outdated = true;
+		m_uniforms_outdated = true;
+	}
 
-	/** Set the viewport rectangle.
-	 * @param viewport	New viewport rectangle (in pixels). */
-	void set_viewport(const IntRect &viewport) { m_viewport = viewport; }
-
-	/** @return		View position. */
-	const glm::vec3 &position() const { return m_position; }
-	/** @return		View orientation. */
-	const glm::quat &orientation() const { return m_orientation; }
-	/** @return		World-to-view matrix. */
-	const glm::mat4 &view() const { return m_view; }
-	/** @return		View-to-projection matrix. */
-	const glm::mat4 &projection() const { return m_projection; }
-	/** @return		Viewport rectangle in pixels. */
-	const IntRect &viewport() const { return m_viewport; }
-
+	const glm::mat4 &view();
+	const glm::mat4 &projection();
 	GPUBufferPtr uniforms();
 private:
-	Scene *m_scene;			/**< Scene that the view is for. */
-
-	glm::vec3 m_position;		/**< View position. */
-	glm::quat m_orientation;	/**< View orientation. */
 	glm::mat4 m_view;		/**< World-to-view matrix. */
+	bool m_view_outdated;		/**< Whether the view matrix needs updating. */
 	glm::mat4 m_projection;		/**< View-to-projection matrix. */
-	IntRect m_viewport;		/**< Viewport rectangle in pixels. */
-
+	bool m_projection_outdated;	/**< Whether the projection matrix needs updating. */
 	GPUBufferPtr m_uniforms;	/**< Uniform buffer containing per-view parameters. */
 	bool m_uniforms_outdated;	/**< Whether the uniform buffer needs updating. */
 };

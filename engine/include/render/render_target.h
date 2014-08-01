@@ -11,7 +11,7 @@
 
 #include <list>
 
-class SceneView;
+struct SceneView;
 
 /**
  * Base render target class.

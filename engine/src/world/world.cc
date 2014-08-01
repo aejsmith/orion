@@ -9,17 +9,18 @@
 #include "world/world.h"
 
 /** Initialize the world. */
-World::World() :
-	m_root("root", this)
-{
-	m_root.set_active(true);
-
+World::World() {
 	/* Create the renderer's scene manager for the world. */
 	m_scene = new Scene(this);
+
+	/* Create the root entity. */
+	m_root = new Entity("root", this);
+	m_root->set_active(true);
 }
 
 /** Destroy the world. */
 World::~World() {
+	m_root->destroy();
 	delete m_scene;
 }
 
@@ -34,5 +35,5 @@ World::~World() {
  * @return		Pointer to created entity.
  */
 Entity *World::create_entity(const std::string &name) {
-	return m_root.create_child(name);
+	return m_root->create_child(name);
 }

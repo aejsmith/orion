@@ -35,9 +35,9 @@ public:
 	Entity *create_entity(const std::string &name);
 
 	/** @return		Root entity of the world. */
-	Entity *root() { return &m_root; }
+	Entity *root() { return m_root; }
 private:
-	Entity m_root;			/**< Root of the entity hierarchy. */
+	Entity *m_root;			/**< Root of the entity hierarchy. */
 	Scene *m_scene;			/**< Scene manager. */
 };
 

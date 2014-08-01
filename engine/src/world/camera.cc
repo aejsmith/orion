@@ -8,7 +8,9 @@
  */
 
 #include "core/engine.h"
+#include "core/window.h"
 
+#include "render/render_target.h"
 #include "render/scene_view.h"
 
 #include "world/camera.h"
@@ -20,56 +22,69 @@
  *
  * Constructs the camera with a perspective projection with a 75 degree
  * horizontal FOV, near clipping plane of 1.0 and far clipping plane of 1000.0.
+ * The default render target will be the main window.
  *
  * @param entity	Entity to attach the camera to.
  */
 Camera::Camera(Entity *entity) :
 	Component(Component::kCameraType, entity),
-	m_fovx(75.0f),
-	m_znear(1.0f),
-	m_zfar(1000.0f),
+	m_render_target(g_engine->window()),
 	m_viewport(0.0f, 0.0f, 1.0f, 1.0f)
 {
-	m_scene_view = new SceneView(entity->world()->scene());
+	/* Initialize the scene view with a default projection and viewport
+	 * matching the main window. Transform will be set when transformed()
+	 * is called. */
+	m_scene_view.scene = entity->world()->scene();
+	perspective();
 	update_viewport();
-	update_projection();
 }
 
 /** Destroy the camera. */
-Camera::~Camera() {
-	delete m_scene_view;
-}
+Camera::~Camera() {}
 
 /** Set up a perspective projection.
  * @param fovx		Horizontal field of view, in degrees.
  * @param znear		Distance to near clipping plane.
  * @param zfar		Distance to far clipping plane. */
 void Camera::perspective(float fovx, float znear, float zfar) {
-	m_fovx = fovx;
-	m_znear = znear;
-	m_zfar = zfar;
-	update_projection();
+	m_scene_view.fovx = fovx;
+	m_scene_view.znear = znear;
+	m_scene_view.zfar = zfar;
+	m_scene_view.update_projection();
 }
 
 /** Set the horizontal field of view.
  * @param fovx		New horizontal FOV, in degrees. */
 void Camera::set_fov(float fovx) {
-	m_fovx = fovx;
-	update_projection();
+	m_scene_view.fovx = fovx;
+	m_scene_view.update_projection();
 }
 
 /** Set the near clipping plane.
  * @param znear		New distance to the near clipping plane. */
 void Camera::set_znear(float znear) {
-	m_znear = znear;
-	update_projection();
+	m_scene_view.znear = znear;
+	m_scene_view.update_projection();
 }
 
 /** Set the far clipping plane.
  * @param zfar		New distance to the far clipping plane. */
 void Camera::set_zfar(float zfar) {
-	m_zfar = zfar;
-	update_projection();
+	m_scene_view.zfar = zfar;
+	m_scene_view.update_projection();
+}
+
+/** Set the render target.
+ * @param target	New render target. */
+void Camera::set_render_target(RenderTarget *target) {
+	if(active_in_world())
+		m_render_target->remove_view(&m_scene_view);
+
+	m_render_target = target;
+	update_viewport();
+
+	if(active_in_world())
+		m_render_target->add_view(&m_scene_view);
 }
 
 /**
@@ -87,43 +102,32 @@ void Camera::set_viewport(const Rect &viewport) {
 	update_viewport();
 }
 
+/** Update the viewport. */
+void Camera::update_viewport() {
+	/* Calculate real viewport size based on render target dimensions. */
+	glm::ivec2 size = m_render_target->size();
+	m_scene_view.viewport.x = m_viewport.x * size.x;
+	m_scene_view.viewport.y = m_viewport.y * size.y;
+	m_scene_view.viewport.width = m_viewport.width * size.x;
+	m_scene_view.viewport.height = m_viewport.height * size.y;
+
+	/* Projection matrix must be recalculated in case aspect changed. */
+	m_scene_view.update_projection();
+}
+
 /** Called when the camera transformation is changed. */
 void Camera::transformed() {
-	m_scene_view->set_transform(entity()->position(), entity()->orientation());
+	m_scene_view.position = entity()->position();
+	m_scene_view.orientation = entity()->orientation();
+	m_scene_view.update_view();
 }
 
 /** Called when the camera becomes active in the world. */
 void Camera::activated() {
-	// XXX: Attach to render target
+	m_render_target->add_view(&m_scene_view);
 }
 
 /** Called when the camera becomes inactive in the world. */
 void Camera::deactivated() {
-	// XXX: Detach from render target
-}
-
-/** Update the projection matrix. */
-void Camera::update_projection() {
-	/* Determine the aspect ratio. */
-	float aspect =
-		static_cast<float>(m_scene_view->viewport().width) /
-		static_cast<float>(m_scene_view->viewport().height);
-
-	/* Convert horizontal field of view to vertical. */
-	float fovx = glm::radians(m_fovx);
-	float fovy = 2.0f * atanf(tanf(fovx * 0.5f) / aspect);
-
-	m_scene_view->set_projection(glm::perspective(fovy, aspect, m_znear, m_zfar));
-}
-
-/** Update the viewport. */
-void Camera::update_viewport() {
-	/* Calculate real viewport size based on render target dimensions. */
-	// XXX: Actually get this.
-	int x = m_viewport.x * 1440;
-	int y = m_viewport.y * 900;
-	int width = m_viewport.width * 1440;
-	int height = m_viewport.height * 900;
-
-	m_scene_view->set_viewport(IntRect(x, y, width, height));
+	m_render_target->remove_view(&m_scene_view);
 }

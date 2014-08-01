@@ -29,12 +29,6 @@ public:
 	Vertex() {}
 };
 
-struct CameraUniforms {
-	float view[16];
-	float projection[16];
-	float view_projection[16];
-};
-
 class CustomBehaviour : public Behaviour {
 public:
 	CustomBehaviour(Entity *entity) : Behaviour(entity) {}
@@ -139,12 +133,13 @@ int main(int argc, char **argv) {
 
 		g_engine->gpu()->bind_pipeline(pipeline);
 		g_engine->gpu()->bind_uniform_buffer(0, child->uniforms());
-		g_engine->gpu()->bind_uniform_buffer(1, camera->scene_view()->uniforms());
+		g_engine->gpu()->bind_uniform_buffer(1, camera->scene_view().uniforms());
 		g_engine->gpu()->draw(PrimitiveType::kTriangleList, vertices, nullptr);
 
 		if(!engine.loop())
 			break;
 	}
 
+	delete world;
 	return 0;
 }
