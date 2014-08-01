@@ -21,7 +21,9 @@ Engine *g_engine = nullptr;
 Engine::Engine(const EngineConfiguration &config) :
 	m_config(config),
 	m_world(nullptr),
-	m_last_tick(0)
+	m_last_tick(0),
+	m_last_fps(0),
+	m_frames(0)
 {
 	orion_assert(!g_engine);
 	g_engine = this;
@@ -120,9 +122,21 @@ bool Engine::start_frame() {
 
 	m_last_tick = tick;
 
+	/* Update FPS counter. */
+	if(!m_last_fps || (tick - m_last_fps) > 1000) {
+		unsigned fps = (m_last_fps)
+			? static_cast<float>(m_frames) / (static_cast<float>(tick - m_last_fps) / 1000.0f)
+			: 0;
+
+		m_window->set_title(m_config.title + " [FPS: " + std::to_string(fps) + "]");
+		m_last_fps = tick;
+		m_frames = 0;
+	}
+
 	return true;
 }
 
 void Engine::end_frame() {
 	m_gpu->end_frame(m_config.display_vsync);
+	m_frames++;
 }

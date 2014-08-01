@@ -109,6 +109,8 @@ private:
 
 	/** Timing information. */
 	uint32_t m_last_tick;		/**< Last tick time. */
+	uint32_t m_last_fps;		/**< Last time FPS was updated. */
+	uint32_t m_frames;		/**< Frames completed since last FPS update. */
 };
 
 extern Engine *g_engine;

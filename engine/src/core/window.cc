@@ -39,3 +39,9 @@ Window::Window(const EngineConfiguration &config, GPUInterface *gpu) :
 Window::~Window() {
 	SDL_DestroyWindow(m_window);
 }
+
+/** Set the window title.
+ * @param title		Title of the window. */
+void Window::set_title(const std::string &title) {
+	SDL_SetWindowTitle(m_window, title.c_str());
+}

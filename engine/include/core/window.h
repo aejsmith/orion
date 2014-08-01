@@ -11,6 +11,8 @@
 
 #include "render/render_target.h"
 
+#include <string>
+
 class GPUInterface;
 struct SDL_Window;
 
@@ -19,6 +21,8 @@ class Window : public RenderTarget {
 public:
 	Window(const EngineConfiguration &config, GPUInterface *gpu);
 	~Window();
+
+	void set_title(const std::string &title);
 
 	/** @return		Size of the window (in pixels). */
 	glm::ivec2 size() const { return m_size; }
