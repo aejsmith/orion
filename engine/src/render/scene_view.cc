@@ -12,8 +12,7 @@
 /** Initialize the scene view. */
 SceneView::SceneView() :
 	m_view_outdated(true),
-	m_projection_outdated(true),
-	m_uniforms_outdated(true)
+	m_projection_outdated(true)
 {}
 
 /** Destroy the scene view. */
@@ -58,29 +57,17 @@ const glm::mat4 &SceneView::projection() {
 /** Get the uniform buffer containing view parameters.
  * @return		Pointer to buffer containing view parameters. */
 GPUBufferPtr SceneView::uniforms() {
-	if(m_uniforms_outdated) {
-		if(!m_uniforms) {
-			/* Create the uniform buffer. */
-			m_uniforms = g_engine->gpu()->create_buffer(
-				GPUBuffer::kUniformBuffer,
-				GPUBuffer::kDynamicDrawUsage,
-				sizeof(ViewUniforms));
-		}
-
+	return m_uniforms.get([this](const GPUBufferMapper<ViewUniforms> &uniforms) {
 		/* Ensure view and projection are up to date. */
 		view();
 		projection();
-		glm::mat4 view_projection = m_projection * m_view;
 
-		GPUBufferMapper<ViewUniforms> uniforms(m_uniforms, GPUBuffer::kMapInvalidate, GPUBuffer::kWriteAccess);
+		/* Calculate combined view-projection matrix. */
+		glm::mat4 view_projection = m_projection * m_view;
 
 		memcpy(&uniforms->view, glm::value_ptr(m_view), sizeof(uniforms->view));
 		memcpy(&uniforms->projection, glm::value_ptr(m_projection), sizeof(uniforms->projection));
 		memcpy(&uniforms->view_projection, glm::value_ptr(view_projection), sizeof(uniforms->view_projection));
 		memcpy(&uniforms->position, glm::value_ptr(this->position), sizeof(uniforms->position));
-
-		m_uniforms_outdated = false;
-	}
-
-	return m_uniforms;
+	});
 }

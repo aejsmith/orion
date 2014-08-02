@@ -7,7 +7,7 @@
 #ifndef ORION_RENDER_SCENE_VIEW_H
 #define ORION_RENDER_SCENE_VIEW_H
 
-#include "gpu/buffer.h"
+#include "gpu/uniform_buffer.h"
 
 #include "math/rect.h"
 
@@ -57,13 +57,13 @@ public:
 	/** Mark the view matrix as outdated. */
 	void update_view() {
 		m_view_outdated = true;
-		m_uniforms_outdated = true;
+		m_uniforms.invalidate();
 	}
 
 	/** Mark the projection matrix as outdated. */
 	void update_projection() {
 		m_projection_outdated = true;
-		m_uniforms_outdated = true;
+		m_uniforms.invalidate();
 	}
 
 	const glm::mat4 &view();
@@ -74,8 +74,9 @@ private:
 	bool m_view_outdated;		/**< Whether the view matrix needs updating. */
 	glm::mat4 m_projection;		/**< View-to-projection matrix. */
 	bool m_projection_outdated;	/**< Whether the projection matrix needs updating. */
-	GPUBufferPtr m_uniforms;	/**< Uniform buffer containing per-view parameters. */
-	bool m_uniforms_outdated;	/**< Whether the uniform buffer needs updating. */
+
+	/** Uniform buffer containing per-view parameters. */
+	DynamicUniformBuffer<ViewUniforms> m_uniforms;
 };
 
 #endif /* ORION_RENDER_SCENE_VIEW_H */
