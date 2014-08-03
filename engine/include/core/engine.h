@@ -9,10 +9,7 @@
 
 #include "core/defs.h"
 
-#include "lib/error.h"
 #include "lib/log.h"
-#include "lib/noncopyable.h"
-#include "lib/version.h"
 
 #include <list>
 #include <string>

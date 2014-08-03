@@ -50,9 +50,9 @@ public:
 	enum Type {
 		kBehaviourType,
 		kCameraType,
-		kLightType,
 		kColliderType,
-		kMeshRendererType,
+		kLightType,
+		kRendererType,
 		kRigidBodyType,
 		kNumComponentTypes,
 	};

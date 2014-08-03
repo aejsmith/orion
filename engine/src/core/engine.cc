@@ -9,6 +9,7 @@
 
 #include "gpu/gpu.h"
 
+#include "world/camera.h"
 #include "world/world.h"
 
 #include <SDL.h>
@@ -131,6 +132,19 @@ bool Engine::start_frame() {
 		m_window->set_title(m_config.title + " [FPS: " + std::to_string(fps) + "]");
 		m_last_fps = tick;
 		m_frames = 0;
+	}
+
+	/* Update all render targets. */
+	for(RenderTarget *target : m_render_targets) {
+		// FIXME: Where does this go? Should clear from camera with
+		// world background colour, but then we need a rect constraint
+		// to clear to only clear viewport.
+		m_gpu->clear(
+			RenderBuffer::kColourBuffer | RenderBuffer::kDepthBuffer | RenderBuffer::kStencilBuffer,
+			glm::vec4(0.0, 0.0, 0.0, 1.0), 1.0, 0);
+
+		for(Camera *camera : target->cameras())
+			camera->render();
 	}
 
 	return true;

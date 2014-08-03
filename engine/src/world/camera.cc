@@ -31,60 +31,28 @@ Camera::Camera(Entity *entity) :
 	m_render_target(g_engine->window()),
 	m_viewport(0.0f, 0.0f, 1.0f, 1.0f)
 {
-	/* Initialize the scene view with a default projection and viewport
-	 * matching the main window. Transform will be set when transformed()
-	 * is called. */
-	m_scene_view.scene = entity->world()->scene();
+	/* Initialize the scene view with a default projection and a viewport
+	 * matching the main window. Its transformation will be set when our
+	 * transformed() function is called. */
 	perspective();
 	update_viewport();
+	set_rendering_path(RenderConfiguration::kDeferredPath);
 }
 
 /** Destroy the camera. */
 Camera::~Camera() {}
 
-/** Set up a perspective projection.
- * @param fovx		Horizontal field of view, in degrees.
- * @param znear		Distance to near clipping plane.
- * @param zfar		Distance to far clipping plane. */
-void Camera::perspective(float fovx, float znear, float zfar) {
-	m_scene_view.fovx = fovx;
-	m_scene_view.znear = znear;
-	m_scene_view.zfar = zfar;
-	m_scene_view.update_projection();
-}
-
-/** Set the horizontal field of view.
- * @param fovx		New horizontal FOV, in degrees. */
-void Camera::set_fov(float fovx) {
-	m_scene_view.fovx = fovx;
-	m_scene_view.update_projection();
-}
-
-/** Set the near clipping plane.
- * @param znear		New distance to the near clipping plane. */
-void Camera::set_znear(float znear) {
-	m_scene_view.znear = znear;
-	m_scene_view.update_projection();
-}
-
-/** Set the far clipping plane.
- * @param zfar		New distance to the far clipping plane. */
-void Camera::set_zfar(float zfar) {
-	m_scene_view.zfar = zfar;
-	m_scene_view.update_projection();
-}
-
 /** Set the render target.
  * @param target	New render target. */
 void Camera::set_render_target(RenderTarget *target) {
 	if(active_in_world())
-		m_render_target->remove_view(&m_scene_view);
+		m_render_target->remove_camera(this);
 
 	m_render_target = target;
 	update_viewport();
 
 	if(active_in_world())
-		m_render_target->add_view(&m_scene_view);
+		m_render_target->add_camera(this);
 }
 
 /**
@@ -102,32 +70,51 @@ void Camera::set_viewport(const Rect &viewport) {
 	update_viewport();
 }
 
+/**
+ * Set the rendering path.
+ *
+ * Sets the rendering path to use. If the specified path is not supported by
+ * the system we are running on, will fall back on the best supported path.
+ *
+ * @param path		Rendering path to use.
+ */
+void Camera::set_rendering_path(RenderConfiguration::Path path) {
+	// FIXME: Fall back if unsupported.
+	m_render_config.path = path;
+}
+
+/** Render the scene from the camera to its render target. */
+void Camera::render() {
+	SceneRenderer *renderer = SceneRenderer::create(
+		entity()->world()->scene(),
+		m_render_target,
+		m_render_config);
+
+	renderer->render(&m_scene_view);
+}
+
 /** Update the viewport. */
 void Camera::update_viewport() {
 	/* Calculate real viewport size based on render target dimensions. */
 	glm::ivec2 size = m_render_target->size();
-	m_scene_view.viewport.x = m_viewport.x * size.x;
-	m_scene_view.viewport.y = m_viewport.y * size.y;
-	m_scene_view.viewport.width = m_viewport.width * size.x;
-	m_scene_view.viewport.height = m_viewport.height * size.y;
-
-	/* Projection matrix must be recalculated in case aspect changed. */
-	m_scene_view.update_projection();
+	int x = m_viewport.x * static_cast<float>(size.x);
+	int y = m_viewport.y * static_cast<float>(size.y);
+	int width = m_viewport.width * static_cast<float>(size.x);
+	int height = m_viewport.height * static_cast<float>(size.y);
+	m_scene_view.set_viewport(IntRect(x, y, width, height));
 }
 
 /** Called when the camera transformation is changed. */
 void Camera::transformed() {
-	m_scene_view.position = entity()->position();
-	m_scene_view.orientation = entity()->orientation();
-	m_scene_view.update_view();
+	m_scene_view.transform(entity()->position(), entity()->orientation());
 }
 
 /** Called when the camera becomes active in the world. */
 void Camera::activated() {
-	m_render_target->add_view(&m_scene_view);
+	m_render_target->add_camera(this);
 }
 
 /** Called when the camera becomes inactive in the world. */
 void Camera::deactivated() {
-	m_render_target->remove_view(&m_scene_view);
+	m_render_target->remove_camera(this);
 }

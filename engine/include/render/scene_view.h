@@ -11,69 +11,67 @@
 
 #include "math/rect.h"
 
-class Scene;
-
 /** Per-view uniform buffer structure. */
 struct ViewUniforms {
 	float view[16];			/**< Viewing matrix. */
 	float projection[16];		/**< Projection matrix. */
-	float view_projection[16];	/**< View-projection matrix. */
+	float view_projection[16];	/**< Combined view-projection matrix. */
 	float position[3], _pad;	/**< Viewing position in world space. */
 };
 
 /**
- * A view into the scene.
+ * A view into a scene.
  *
  * This class represents a view into a scene. It is the renderer's version of
- * the Camera component. A Camera simply holds a SceneView and updates it as
- * necessary. The separation allows the renderer to avoid the baggage of
- * creating a component whenever it needs to create a camera for internal use.
- *
- * The view/projection matrices and uniform buffer are automatically created
- * as required on first use. For single use SceneViews you can just fill in the
- * members and the matrices will be created when the getter functions are
- * called. For persistent SceneViews (should only be used by Camera), the
- * update_* functions should be called when things are changed so that the
- * calculated matrices will be updated.
+ * the Camera component. A Camera holds a SceneView and updates it as necessary.
+ * The separation allows the renderer to avoid the baggage of creating a
+ * component whenever it needs to create a camera for internal use.
  */
-struct SceneView {
-	Scene *scene;			/**< Scene that the view is for. */
-
-	/** View settings (call update_view() after changing). */
-	glm::vec3 position;		/**< View position. */
-	glm::quat orientation;		/**< View orientation. */
-
-	/** Projection settings (call update_projection() after changing). */
-	float fovx;			/**< Horizontal field of view. */
-	float znear;			/**< Near clipping plane. */
-	float zfar;			/**< Far clipping plane. */
-
-	/** Viewport rectangle in pixels (call update_projection() after changing). */
-	IntRect viewport;
+class SceneView {
 public:
 	SceneView();
 	~SceneView();
 
-	/** Mark the view matrix as outdated. */
-	void update_view() {
-		m_view_outdated = true;
-		m_uniforms.invalidate();
-	}
+	void transform(const glm::vec3 &position, const glm::quat &orientation);
+	void perspective(float fovx, float znear, float zfar);
+	void set_viewport(const IntRect &viewport);
 
-	/** Mark the projection matrix as outdated. */
-	void update_projection() {
-		m_projection_outdated = true;
-		m_uniforms.invalidate();
-	}
+	/** @return		Current position. */
+	const glm::vec3 &position() const { return m_position; }
+	/** @return		Current orientation. */
+	const glm::quat &orientation() const { return m_orientation; }
 
 	const glm::mat4 &view();
+
+	/** @return		Horizontal field of view. */
+	float fovx() const { return m_fovx; }
+	/** @return		Near clipping plane. */
+	float znear() const { return m_znear; }
+	/** @return		Far clipping plane. */
+	float zfar() const { return m_zfar; }
+
+	/** @return		Viewport rectangle. */
+	const IntRect &viewport() const { return m_viewport; }
+	/** @return		Aspect ratio. */
+	float aspect() const { return m_aspect; }
+
 	const glm::mat4 &projection();
+
 	GPUBufferPtr uniforms();
 private:
+	glm::vec3 m_position;		/**< View position. */
+	glm::quat m_orientation;	/**< View orientation. */
 	glm::mat4 m_view;		/**< World-to-view matrix. */
 	bool m_view_outdated;		/**< Whether the view matrix needs updating. */
+
+	float m_fovx;			/**< Horizontal field of view. */
+	float m_znear;			/**< Near clipping plane. */
+	float m_zfar;			/**< Far clipping plane. */
 	glm::mat4 m_projection;		/**< View-to-projection matrix. */
 	bool m_projection_outdated;	/**< Whether the projection matrix needs updating. */
+
+	IntRect m_viewport;		/**< Viewport rectangle in pixels. */
+	float m_aspect;			/**< Aspect ratio. */
 
 	/** Uniform buffer containing per-view parameters. */
 	DynamicUniformBuffer<ViewUniforms> m_uniforms;

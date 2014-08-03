@@ -17,24 +17,24 @@ RenderTarget::RenderTarget(unsigned priority) :
 
 /** Destroy the render target. */
 RenderTarget::~RenderTarget() {
-	orion_check(m_views.empty(), "Destroying render target with active scene views");
+	orion_check(m_cameras.empty(), "Destroying render target with active cameras");
 }
 
-/** Add a scene view to the render target.
- * @param view		View to add. */
-void RenderTarget::add_view(SceneView *view) {
-	bool was_empty = m_views.empty();
-	m_views.push_back(view);
+/** Add a camera to the render target.
+ * @param camera	Camera to add. */
+void RenderTarget::add_camera(Camera *camera) {
+	bool was_empty = m_cameras.empty();
+	m_cameras.push_back(camera);
 
 	if(was_empty)
 		g_engine->add_render_target(this);
 }
 
-/** Remove a scene view from the render target.
- * @param view		View to remove. */
-void RenderTarget::remove_view(SceneView *view) {
-	m_views.remove(view);
+/** Remove a camera from the render target.
+ * @param camera	Camera to remove. */
+void RenderTarget::remove_camera(Camera *camera) {
+	m_cameras.remove(camera);
 
-	if(m_views.empty())
+	if(m_cameras.empty())
 		g_engine->remove_render_target(this);
 }

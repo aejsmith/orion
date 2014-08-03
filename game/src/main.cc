@@ -133,10 +133,6 @@ int main(int argc, char **argv) {
 		if(!g_engine->start_frame())
 			break;
 
-		g_engine->gpu()->clear(
-			RenderBuffer::kColourBuffer | RenderBuffer::kDepthBuffer,
-			glm::vec4(0.0, 0.0, 0.4, 1.0), 1.0, 0);
-
 		g_engine->gpu()->bind_pipeline(pipeline);
 		g_engine->gpu()->bind_uniform_buffer(0, child->uniforms());
 		g_engine->gpu()->bind_uniform_buffer(1, camera->scene_view().uniforms());

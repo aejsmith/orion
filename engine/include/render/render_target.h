@@ -11,7 +11,7 @@
 
 #include <list>
 
-struct SceneView;
+class Camera;
 
 /**
  * Base render target class.
@@ -22,8 +22,8 @@ struct SceneView;
  * render textures used in the scene are updated before the main window is
  * rendered. The Engine class maintains a list of active render targets and the
  * rendering loop will update them all ordered by their priority. Each render
- * target maintains a list of SceneViews targeting them. A render target is
- * active if at least one SceneView targets it.
+ * target maintains a list of Cameras targeting them. A render target is active
+ * if at least one Camera targets it.
  */
 class RenderTarget {
 public:
@@ -39,26 +39,26 @@ public:
 		kWindowPriority,
 	};
 
-	/** Type of the registered view list. */
-	typedef std::list<SceneView *> SceneViewList;
+	/** Type of the registered camera list. */
+	typedef std::list<Camera *> CameraList;
 public:
 	virtual ~RenderTarget();
 
 	/** @return		Size of the render target (in pixels). */
 	virtual glm::ivec2 size() const = 0;
 
-	void add_view(SceneView *view);
-	void remove_view(SceneView *view);
+	void add_camera(Camera *camera);
+	void remove_camera(Camera *camera);
 
 	/** @return		Rendering priority. */
 	unsigned priority() const { return m_priority; }
-	/** @return		List of registered scene views. */
-	const SceneViewList &views() const { return m_views; }
+	/** @return		List of registered cameras. */
+	const CameraList &cameras() const { return m_cameras; }
 protected:
 	explicit RenderTarget(unsigned priority);
 private:
 	unsigned m_priority;		/**< Rendering priority. */
-	SceneViewList m_views;		/**< Registered views. */
+	CameraList m_cameras;		/**< Registered cameras. */
 };
 
 #endif /* ORION_RENDER_RENDER_TARGET_H */

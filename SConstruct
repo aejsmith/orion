@@ -19,6 +19,7 @@ env['CCFLAGS'] += [
     '-Wall', '-Wextra', '-Wno-variadic-macros', '-Wno-unused-parameter',
     '-Wwrite-strings', '-Wmissing-declarations', '-Wredundant-decls',
     '-Wno-format', '-Wno-unused-function', '-g', '-Wno-comment',
+    '-Wno-unused-private-field',
 ]
 
 env['CXXFLAGS'] += [
