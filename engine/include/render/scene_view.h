@@ -22,10 +22,9 @@ struct ViewUniforms {
 /**
  * A view into a scene.
  *
- * This class represents a view into a scene. It is the renderer's version of
- * the Camera component. A Camera holds a SceneView and updates it as necessary.
- * The separation allows the renderer to avoid the baggage of creating a
- * component whenever it needs to create a camera for internal use.
+ * This class represents a view into a scene: a viewing transformation, a
+ * projection transformation, and a viewport rectangle. It also holds a uniform
+ * buffer containing the view's parameters that can be passed to a shader.
  */
 class SceneView {
 public:

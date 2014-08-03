@@ -22,7 +22,7 @@ RenderTarget::~RenderTarget() {
 
 /** Add a camera to the render target.
  * @param camera	Camera to add. */
-void RenderTarget::add_camera(Camera *camera) {
+void RenderTarget::add_camera(CameraComponent *camera) {
 	bool was_empty = m_cameras.empty();
 	m_cameras.push_back(camera);
 
@@ -32,7 +32,7 @@ void RenderTarget::add_camera(Camera *camera) {
 
 /** Remove a camera from the render target.
  * @param camera	Camera to remove. */
-void RenderTarget::remove_camera(Camera *camera) {
+void RenderTarget::remove_camera(CameraComponent *camera) {
 	m_cameras.remove(camera);
 
 	if(m_cameras.empty())

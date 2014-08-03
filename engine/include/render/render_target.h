@@ -11,7 +11,7 @@
 
 #include <list>
 
-class Camera;
+class CameraComponent;
 
 /**
  * Base render target class.
@@ -22,8 +22,8 @@ class Camera;
  * render textures used in the scene are updated before the main window is
  * rendered. The Engine class maintains a list of active render targets and the
  * rendering loop will update them all ordered by their priority. Each render
- * target maintains a list of Cameras targeting them. A render target is active
- * if at least one Camera targets it.
+ * target maintains a list of CameraComponents targeting them. A render target
+ * is active if at least one camera targets it.
  */
 class RenderTarget {
 public:
@@ -40,15 +40,15 @@ public:
 	};
 
 	/** Type of the registered camera list. */
-	typedef std::list<Camera *> CameraList;
+	typedef std::list<CameraComponent *> CameraList;
 public:
 	virtual ~RenderTarget();
 
 	/** @return		Size of the render target (in pixels). */
 	virtual glm::ivec2 size() const = 0;
 
-	void add_camera(Camera *camera);
-	void remove_camera(Camera *camera);
+	void add_camera(CameraComponent *camera);
+	void remove_camera(CameraComponent *camera);
 
 	/** @return		Rendering priority. */
 	unsigned priority() const { return m_priority; }

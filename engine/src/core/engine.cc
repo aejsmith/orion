@@ -143,7 +143,7 @@ bool Engine::start_frame() {
 			RenderBuffer::kColourBuffer | RenderBuffer::kDepthBuffer | RenderBuffer::kStencilBuffer,
 			glm::vec4(0.0, 0.0, 0.0, 1.0), 1.0, 0);
 
-		for(Camera *camera : target->cameras())
+		for(CameraComponent *camera : target->cameras())
 			camera->render();
 	}
 

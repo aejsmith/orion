@@ -17,12 +17,12 @@
  * includes the necessary boilerplate to set the component type. Custom
  * behaviour can be implemented via the Component hook functions.
  */
-class Behaviour : public Component {
+class BehaviourComponent : public Component {
 public:
 	ORION_COMPONENT(Component::kBehaviourType);
 protected:
-	Behaviour(Entity *entity) : Component(Component::kBehaviourType, entity) {}
-	~Behaviour() {}
+	BehaviourComponent(Entity *entity) : Component(Component::kBehaviourType, entity) {}
+	~BehaviourComponent() {}
 };
 
 #endif /* ORION_WORLD_BEHAVIOUR_H */

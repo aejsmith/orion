@@ -29,9 +29,9 @@ public:
 	Vertex() {}
 };
 
-class CustomBehaviour : public Behaviour {
+class CustomBehaviour : public BehaviourComponent {
 public:
-	CustomBehaviour(Entity *entity) : Behaviour(entity) {}
+	CustomBehaviour(Entity *entity) : BehaviourComponent(entity) {}
 
 	void activated() { orion_log(LogLevel::kDebug, "Entity was activated"); }
 	void deactivated() { orion_log(LogLevel::kDebug, "Entity was deactivated"); }
@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
 
 	Entity *cam_entity = world->create_entity("camera");
 	cam_entity->set_active(true);
-	Camera *camera = cam_entity->create_component<Camera>();
+	CameraComponent *camera = cam_entity->create_component<CameraComponent>();
 	camera->perspective(90.0f, 0.1f, 1000.0f);
 	camera->set_active(true);
 

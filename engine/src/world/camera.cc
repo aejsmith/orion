@@ -26,7 +26,7 @@
  *
  * @param entity	Entity to attach the camera to.
  */
-Camera::Camera(Entity *entity) :
+CameraComponent::CameraComponent(Entity *entity) :
 	Component(Component::kCameraType, entity),
 	m_render_target(g_engine->window()),
 	m_viewport(0.0f, 0.0f, 1.0f, 1.0f)
@@ -40,11 +40,11 @@ Camera::Camera(Entity *entity) :
 }
 
 /** Destroy the camera. */
-Camera::~Camera() {}
+CameraComponent::~CameraComponent() {}
 
 /** Set the render target.
  * @param target	New render target. */
-void Camera::set_render_target(RenderTarget *target) {
+void CameraComponent::set_render_target(RenderTarget *target) {
 	if(active_in_world())
 		m_render_target->remove_camera(this);
 
@@ -65,7 +65,7 @@ void Camera::set_render_target(RenderTarget *target) {
  *
  * @param viewport	Normalized viewport rectangle.
  */
-void Camera::set_viewport(const Rect &viewport) {
+void CameraComponent::set_viewport(const Rect &viewport) {
 	m_viewport = viewport;
 	update_viewport();
 }
@@ -78,13 +78,13 @@ void Camera::set_viewport(const Rect &viewport) {
  *
  * @param path		Rendering path to use.
  */
-void Camera::set_rendering_path(RenderConfiguration::Path path) {
+void CameraComponent::set_rendering_path(RenderConfiguration::Path path) {
 	// FIXME: Fall back if unsupported.
 	m_render_config.path = path;
 }
 
 /** Render the scene from the camera to its render target. */
-void Camera::render() {
+void CameraComponent::render() {
 	SceneRenderer *renderer = SceneRenderer::create(
 		entity()->world()->scene(),
 		m_render_target,
@@ -94,7 +94,7 @@ void Camera::render() {
 }
 
 /** Update the viewport. */
-void Camera::update_viewport() {
+void CameraComponent::update_viewport() {
 	/* Calculate real viewport size based on render target dimensions. */
 	glm::ivec2 size = m_render_target->size();
 	int x = m_viewport.x * static_cast<float>(size.x);
@@ -105,16 +105,16 @@ void Camera::update_viewport() {
 }
 
 /** Called when the camera transformation is changed. */
-void Camera::transformed() {
+void CameraComponent::transformed() {
 	m_scene_view.transform(entity()->position(), entity()->orientation());
 }
 
 /** Called when the camera becomes active in the world. */
-void Camera::activated() {
+void CameraComponent::activated() {
 	m_render_target->add_camera(this);
 }
 
 /** Called when the camera becomes inactive in the world. */
-void Camera::deactivated() {
+void CameraComponent::deactivated() {
 	m_render_target->remove_camera(this);
 }

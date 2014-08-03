@@ -13,11 +13,11 @@
 #include "world/component.h"
 
 /** A view into the world from which the scene will be rendered. */
-class Camera : public Component {
+class CameraComponent : public Component {
 public:
 	ORION_COMPONENT(Component::kCameraType);
 public:
-	explicit Camera(Entity *entity);
+	explicit CameraComponent(Entity *entity);
 
 	/**
 	 * Rendering.
@@ -65,7 +65,7 @@ public:
 	// XXX: Temporary.
 	SceneView &scene_view() { return m_scene_view; }
 protected:
-	~Camera();
+	~CameraComponent();
 
 	void transformed();
 	void activated();
@@ -73,37 +73,36 @@ protected:
 private:
 	void update_viewport();
 private:
-	SceneView m_scene_view;		/**< Scene view implementing this camera. */
+	SceneView m_scene_view;			/**< Scene view implementing this camera. */
 
-	RenderTarget *m_render_target;	/**< Render target for the camera. */
-	Rect m_viewport;		/**< Normalized viewport rectangle. */
-	/** Rendering configuration. */
-	RenderConfiguration m_render_config;
+	RenderTarget *m_render_target;		/**< Render target for the camera. */
+	Rect m_viewport;			/**< Normalized viewport rectangle. */
+	RenderConfiguration m_render_config;	/**< Rendering configuration. */
 };
 
 /** Set up a perspective projection.
  * @param fovx		Horizontal field of view, in degrees.
  * @param znear		Distance to near clipping plane.
  * @param zfar		Distance to far clipping plane. */
-inline void Camera::perspective(float fovx, float znear, float zfar) {
+inline void CameraComponent::perspective(float fovx, float znear, float zfar) {
 	m_scene_view.perspective(fovx, znear, zfar);
 }
 
 /** Set the horizontal field of view.
  * @param fovx		New horizontal FOV, in degrees. */
-inline void Camera::set_fov(float fovx) {
+inline void CameraComponent::set_fov(float fovx) {
 	m_scene_view.perspective(fovx, znear(), zfar());
 }
 
 /** Set the near clipping plane.
  * @param znear		New distance to the near clipping plane. */
-inline void Camera::set_znear(float znear) {
+inline void CameraComponent::set_znear(float znear) {
 	m_scene_view.perspective(fovx(), znear, zfar());
 }
 
 /** Set the far clipping plane.
  * @param zfar		New distance to the far clipping plane. */
-inline void Camera::set_zfar(float zfar) {
+inline void CameraComponent::set_zfar(float zfar) {
 	m_scene_view.perspective(fovx(), znear(), zfar);
 }
 
