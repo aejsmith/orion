@@ -2,6 +2,7 @@ sources = map(File, [
     'camera.cc',
     'component.cc',
     'entity.cc',
+    'renderer.cc',
     'world.cc',
 ])
 

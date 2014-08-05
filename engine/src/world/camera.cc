@@ -106,7 +106,7 @@ void CameraComponent::update_viewport() {
 
 /** Called when the camera transformation is changed. */
 void CameraComponent::transformed() {
-	m_scene_view.transform(entity()->position(), entity()->orientation());
+	m_scene_view.set_transform(entity()->position(), entity()->orientation());
 }
 
 /** Called when the camera becomes active in the world. */

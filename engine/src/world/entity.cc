@@ -8,8 +8,6 @@
  *			to root entity.
  */
 
-#include "gpu/gpu.h"
-
 #include "world/entity.h"
 
 /** Initialize a new entity.
@@ -20,22 +18,9 @@ Entity::Entity(const std::string &name, World *world) :
 	m_world(world),
 	m_parent(nullptr),
 	m_active(false),
-	m_active_in_world(false),
-	m_position(0.0f, 0.0f, 0.0f),
-	m_orientation(1.0f, 0.0f, 0.0f, 0.0f),
-	m_scale(1.0f, 1.0f, 1.0f),
-	m_world_position(0.0f, 0.0f, 0.0f),
-	m_world_orientation(1.0f, 0.0f, 0.0f, 0.0f),
-	m_world_scale(1.0f, 1.0f, 1.0f),
-	m_uniforms_outdated(true)
+	m_active_in_world(false)
 {
 	m_components.fill(nullptr);
-
-	/* Create the uniform buffer. */
-	m_uniforms = g_engine->gpu()->create_buffer(
-		GPUBuffer::kUniformBuffer,
-		GPUBuffer::kDynamicDrawUsage,
-		sizeof(EntityUniforms));
 }
 
 /** Private destructor. To destroy an entity use destroy(). */
@@ -50,8 +35,10 @@ Entity::~Entity() {}
 void Entity::destroy() {
 	set_active(false);
 
-	while(!m_children.empty())
+	while(!m_children.empty()) {
+		/* The child's destroy() function removes it from the list. */
 		m_children.front()->destroy();
+	}
 
 	for(Component *component : m_components) {
 		if(component)
@@ -140,15 +127,15 @@ void Entity::remove_component(Component *component) {
  *
  * @param pos		New position relative to parent.
  */
-void Entity::set_position(glm::vec3 pos) {
-	m_position = pos;
+void Entity::set_position(const glm::vec3 &pos) {
+	m_transform.set_position(pos);
 	transformed();
 }
 
 /** Translate the position of the entity.
  * @param vec		Vector to move by. */
-void Entity::translate(glm::vec3 vec) {
-	m_position += vec;
+void Entity::translate(const glm::vec3 &vec) {
+	m_transform.set_position(m_transform.position() + vec);
 	transformed();
 }
 
@@ -161,25 +148,24 @@ void Entity::translate(glm::vec3 vec) {
  *
  * @param pos		New position relative to parent.
  */
-void Entity::set_orientation(glm::quat orientation) {
-	m_orientation = orientation;
+void Entity::set_orientation(const glm::quat &orientation) {
+	m_transform.set_orientation(orientation);
 	transformed();
 }
 
 /** Rotate the entity relative to its current orientation.
  * @param angle		Angle to rotate by (in degrees).
  * @param axis		Axis to rotate around. */
-void Entity::rotate(float angle, glm::vec3 axis) {
-	axis = glm::normalize(axis);
-	rotate(glm::angleAxis(glm::radians(angle), axis));
+void Entity::rotate(float angle, const glm::vec3 &axis) {
+	rotate(glm::angleAxis(glm::radians(angle), glm::normalize(axis)));
 }
 
 /** Rotate the entity relative to its current orientation.
  * @param rotation	Quaternion representing rotation to apply. */
-void Entity::rotate(glm::quat rotation) {
+void Entity::rotate(const glm::quat &rotation) {
 	/* The order of this is important, quaternion multiplication is not
 	 * commutative. */
-	m_orientation = rotation * m_orientation;
+	m_transform.set_orientation(rotation * m_transform.orientation());
 	transformed();
 }
 
@@ -192,33 +178,9 @@ void Entity::rotate(glm::quat rotation) {
  *
  * @param scale		New scale relative to parent.
  */
-void Entity::set_scale(glm::vec3 scale) {
-	m_scale = scale;
+void Entity::set_scale(const glm::vec3 &scale) {
+	m_transform.set_scale(scale);
 	transformed();
-}
-
-/**
- * Get the uniform buffer containing the entity parameters.
- *
- * Gets the uniform buffer which contains per-entity parameters. This function
- * will update the buffer with the latest parameters if it is currently out of
- * date.
- *
- * @return		Pointer to buffer containing entity parameters.
- */
-GPUBufferPtr Entity::uniforms() const {
-	if(m_uniforms_outdated) {
-		GPUBufferMapper<EntityUniforms> uniforms(
-			m_uniforms,
-			GPUBuffer::kMapInvalidate,
-			GPUBuffer::kWriteAccess);
-
-		memcpy(&uniforms->transform, glm::value_ptr(m_world_transform), sizeof(uniforms->transform));
-
-		m_uniforms_outdated = false;
-	}
-
-	return m_uniforms;
 }
 
 /** Update the entity. */
@@ -238,6 +200,10 @@ void Entity::tick(float dt) {
 
 /** Called when the transformation has been updated. */
 void Entity::transformed() {
+	glm::vec3 position = m_transform.position();
+	glm::quat orientation = m_transform.orientation();
+	glm::vec3 scale = m_transform.scale();
+
 	/* Recalculate absolute transformations. */
 	if(m_parent) {
 		glm::vec3 parent_position = m_parent->world_position();
@@ -246,23 +212,12 @@ void Entity::transformed() {
 
 		/* Our position must take the parent's orientation and scale
 		 * into account. */
-		m_world_position = (parent_orientation * (parent_scale * m_position)) + parent_position;
-		m_world_orientation = parent_orientation * m_orientation;
-		m_world_scale = parent_scale * m_scale;
-	} else {
-		m_world_position = m_position;
-		m_world_orientation = m_orientation;
-		m_world_scale = m_scale;
+		position = (parent_orientation * (parent_scale * position)) + parent_position;
+		orientation = parent_orientation * orientation;
+		scale = parent_scale * scale;
 	}
 
-	/* Recalculate our transformation matrix. */
-	glm::mat4 position = glm::translate(glm::mat4(), m_world_position);
-	glm::mat4 orientation = glm::mat4_cast(m_world_orientation);
-	glm::mat4 scale = glm::scale(glm::mat4(), m_world_scale);
-	m_world_transform = position * orientation * scale;
-
-	/* The uniforms are now out of date. */
-	m_uniforms_outdated = true;
+	m_world_transform.set(position, orientation, scale);
 
 	/* Let components know about the transformation. */
 	visit_components([](Component *c) { c->transformed(); });

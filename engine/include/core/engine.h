@@ -52,10 +52,7 @@ public:
 	~Engine();
 
 	void shutdown();
-
-	// XXX: temporary
-	bool start_frame();
-	void end_frame();
+	void run();
 
 	/** @return		Engine configuration. */
 	const EngineConfiguration &config() const { return m_config; }
@@ -103,11 +100,6 @@ private:
 
 	/** List of render targets. */
 	RenderTargetList m_render_targets;
-
-	/** Timing information. */
-	uint32_t m_last_tick;		/**< Last tick time. */
-	uint32_t m_last_fps;		/**< Last time FPS was updated. */
-	uint32_t m_frames;		/**< Frames completed since last FPS update. */
 };
 
 extern Engine *g_engine;

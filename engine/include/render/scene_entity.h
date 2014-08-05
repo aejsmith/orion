@@ -9,6 +9,12 @@
 
 #include "gpu/uniform_buffer.h"
 
+#include "math/transform.h"
+
+#include <list>
+
+class Scene;
+
 /** Per-entity uniform buffer structure. */
 struct EntityUniforms {
 	float transform[16];		/**< World transformation matrix. */
@@ -26,28 +32,35 @@ class SceneEntity {
 public:
 	virtual ~SceneEntity();
 
-	void transform(const glm::vec3 &position, const glm::quat &orientation, const glm::vec3 &scale);
+	// Derpy hack to get things working
+	virtual void render() = 0;
 
+	/** @return		Current transformation. */
+	const Transform &transform() const { return m_transform; }
 	/** @return		Current position. */
-	const glm::vec3 &position() const { return m_position; }
+	const glm::vec3 &position() const { return m_transform.position(); }
 	/** @return		Current orientation. */
-	const glm::quat &orientation() const { return m_orientation; }
+	const glm::quat &orientation() const { return m_transform.orientation(); }
 	/** @return		Current scale. */
-	const glm::vec3 &scale() const { return m_scale; }
-	/** @return		Current local-to-world transformation. */
-	const glm::mat4 &transform() const { return m_transform; }
+	const glm::vec3 &scale() const { return m_transform.scale(); }
 
 	GPUBufferPtr uniforms();
 protected:
 	SceneEntity();
 private:
-	glm::vec3 m_position;		/**< Position of the entity. */
-	glm::quat m_orientation;	/**< Orientation of the entity. */
-	glm::vec3 m_scale;		/**< Scale of the entity. */
-	glm::mat4 m_transform;		/**< Pre-calculated local-to-world transformation. */
+	void set_transform(const Transform &transform);
+private:
+	Scene *scene;			/**< Scene that the entity belongs to. */
+
+	Transform m_transform;		/**< Transformation of the entity. */
 
 	/** Uniform buffer containing per-entity parameters. */
 	DynamicUniformBuffer<EntityUniforms> m_uniforms;
+
+	friend class Scene;
 };
+
+/** Type of a scene entity list. */
+typedef std::list<SceneEntity *> SceneEntityList;
 
 #endif /* ORION_RENDER_SCENE_ENTITY_H */

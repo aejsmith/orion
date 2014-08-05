@@ -7,7 +7,7 @@
 #ifndef ORION_WORLD_ENTITY_H
 #define ORION_WORLD_ENTITY_H
 
-#include "gpu/buffer.h"
+#include "math/transform.h"
 
 #include "world/component.h"
 
@@ -17,11 +17,6 @@
 #include <string>
 
 class World;
-
-/** Per-entity uniform buffer structure. */
-struct EntityUniforms {
-	float transform[16];		/**< World transformation matrix. */
-};
 
 /**
  * Class representing an entity in the world.
@@ -87,29 +82,29 @@ public:
 	 * Transformation.
 	 */
 
-	void set_position(glm::vec3 pos);
-	void translate(glm::vec3 vec);
-	void set_orientation(glm::quat orientation);
-	void rotate(float angle, glm::vec3 axis);
-	void rotate(glm::quat rotation);
-	void set_scale(glm::vec3 scale);
+	void set_position(const glm::vec3 &pos);
+	void translate(const glm::vec3 &vec);
+	void set_orientation(const glm::quat &orientation);
+	void rotate(float angle, const glm::vec3 &axis);
+	void rotate(const glm::quat &rotation);
+	void set_scale(const glm::vec3 &scale);
 
+	/** @return		Transformation for the object. */
+	const Transform &transform() const { return m_transform; }
 	/** @return		Current relative position. */
-	const glm::vec3 &position() const { return m_position; }
+	const glm::vec3 &position() const { return m_transform.position(); }
 	/** @return		Current relative orientation. */
-	const glm::quat &orientation() const { return m_orientation; }
+	const glm::quat &orientation() const { return m_transform.orientation(); }
 	/** @return		Current relative scale. */
-	const glm::vec3 &scale() const { return m_scale; }
-	/** @return		Current absolute position. */
-	const glm::vec3 &world_position() const { return m_world_position; }
-	/** @return		Current absolute orientation. */
-	const glm::quat &world_orientation() const { return m_world_orientation; }
-	/** @return		Current absolute scale. */
-	const glm::vec3 &world_scale() const { return m_world_scale; }
+	const glm::vec3 &scale() const { return m_transform.scale(); }
 	/** @return		Transformation matrix of the entity. */
-	const glm::mat4 &world_transform() const { return m_world_transform; }
-
-	GPUBufferPtr uniforms() const;
+	const Transform &world_transform() const { return m_world_transform; }
+	/** @return		Current absolute position. */
+	const glm::vec3 &world_position() const { return m_world_transform.position(); }
+	/** @return		Current absolute orientation. */
+	const glm::quat &world_orientation() const { return m_world_transform.orientation(); }
+	/** @return		Current absolute scale. */
+	const glm::vec3 &world_scale() const { return m_world_transform.scale(); }
 private:
 	/** Type of a list of entities. */
 	typedef std::list<Entity *> EntityList;
@@ -146,29 +141,19 @@ private:
 	 */
 	bool m_active_in_world;
 
-	/** Transformations relative to the parent. */
-	glm::vec3 m_position;		/**< Position of the entity. */
-	glm::quat m_orientation;	/**< Orientation of the entity. */
-	glm::vec3 m_scale;		/**< Scale of the entity. */
+	/** Transformation relative to the parent. */
+	Transform m_transform;
 
 	/**
-	 * Pre-calculated world transformations.
+	 * Pre-calculated world transformation.
 	 *
-	 * We pre-calcluate the world transformations and a transformation
-	 * matrix from the based on our parent to save having to recalculate
-	 * them every time they're needed.
+	 * We pre-calcluate the world transformation based on our parent to
+	 * save having to recalculate it every time they're needed.
 	 */
-	glm::vec3 m_world_position;	/**< Position of the entity. */
-	glm::quat m_world_orientation;	/**< Orientation of the entity. */
-	glm::vec3 m_world_scale;	/**< Scale of the entity. */
-	glm::mat4 m_world_transform;	/**< Transformation matrix. */
+	Transform m_world_transform;
 
 	/** Components attached to the entity. */
 	ComponentArray m_components;
-
-	/** Uniform buffer containing per-entity parameters. */
-	GPUBufferPtr m_uniforms;
-	mutable bool m_uniforms_outdated;
 
 	/** Component needs to use remove_component(). */
 	friend class Component;

@@ -27,7 +27,7 @@ SceneView::~SceneView() {}
 /** Set the viewing transformation.
  * @param position	Viewing position.
  * @param orientation	Viewing orientation. */
-void SceneView::transform(const glm::vec3 &position, const glm::quat &orientation) {
+void SceneView::set_transform(const glm::vec3 &position, const glm::quat &orientation) {
 	m_position = position;
 	m_orientation = orientation;
 

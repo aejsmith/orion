@@ -8,11 +8,13 @@
 
 #include "gpu/gpu.h"
 
+#include "render/scene_entity.h"
 #include "render/scene_view.h"
 
 #include "world/behaviour.h"
 #include "world/camera.h"
 #include "world/entity.h"
+#include "world/renderer.h"
 #include "world/world.h"
 
 struct Vertex {
@@ -27,6 +29,94 @@ public:
 	{}
 
 	Vertex() {}
+};
+
+class TriangleSceneEntity : public SceneEntity {
+public:
+	TriangleSceneEntity(VertexDataPtr vertices, GPUPipelinePtr pipeline) :
+		m_vertices(vertices),
+		m_pipeline(pipeline)
+	{}
+
+	void render() {
+		g_engine->gpu()->bind_pipeline(m_pipeline);
+		g_engine->gpu()->draw(PrimitiveType::kTriangleList, m_vertices, nullptr);
+	}
+private:
+	VertexDataPtr m_vertices;
+	GPUPipelinePtr m_pipeline;
+};
+
+class TriangleRendererComponent : public RendererComponent {
+public:
+	TriangleRendererComponent(Entity *entity) :
+		RendererComponent(entity)
+	{
+		GPUBufferPtr buffer = g_engine->gpu()->create_buffer(
+			GPUBuffer::kVertexBuffer,
+			GPUBuffer::kStaticDrawUsage,
+			3 * sizeof(Vertex));
+
+		{
+			GPUBufferMapper<Vertex> data(
+				buffer,
+				GPUBuffer::kMapInvalidate,
+				GPUBuffer::kWriteAccess);
+
+			new(&data[0]) Vertex(
+				glm::vec3(0.0, 1.0, 0.0),
+				glm::vec3(0.0, 0.0, 1.0),
+				glm::vec4(1.0, 0.0, 0.0, 1.0));
+			new(&data[1]) Vertex(
+				glm::vec3(-1.0, -1.0, 0.0),
+				glm::vec3(0.0, 0.0, 1.0),
+				glm::vec4(0.0, 1.0, 0.0, 1.0));
+			new(&data[2]) Vertex(
+				glm::vec3(1.0, -1.0, 0.0),
+				glm::vec3(0.0, 0.0, 1.0),
+				glm::vec4(0.0, 0.0, 1.0, 1.0));
+		}
+
+		VertexFormatPtr format = g_engine->gpu()->create_vertex_format();
+		format->add_buffer(0, sizeof(Vertex));
+		format->add_attribute(
+			VertexAttribute::kPositionSemantic, 0,
+			VertexAttribute::kFloatType, 3, 0, offsetof(Vertex, x));
+		format->add_attribute(
+			VertexAttribute::kNormalSemantic, 0,
+			VertexAttribute::kFloatType, 3, 0, offsetof(Vertex, nx));
+		format->add_attribute(
+			VertexAttribute::kDiffuseSemantic, 0,
+			VertexAttribute::kFloatType, 4, 0, offsetof(Vertex, r));
+		format->finalize();
+
+		m_vertices = g_engine->gpu()->create_vertex_data(3);
+		m_vertices->set_format(format);
+		m_vertices->set_buffer(0, buffer);
+		m_vertices->finalize();
+
+		GPUProgramPtr vertex_program = g_engine->gpu()->load_program(
+			"engine/assets/shaders/test_vtx.glsl",
+			GPUProgram::kVertexProgram);
+		vertex_program->bind_uniforms("EntityUniforms", 0);
+		vertex_program->bind_uniforms("ViewUniforms", 1);
+
+		GPUProgramPtr frag_program = g_engine->gpu()->load_program(
+			"engine/assets/shaders/test_frag.glsl",
+			GPUProgram::kFragmentProgram);
+
+		m_pipeline = g_engine->gpu()->create_pipeline();
+		m_pipeline->set_program(GPUProgram::kVertexProgram, vertex_program);
+		m_pipeline->set_program(GPUProgram::kFragmentProgram, frag_program);
+		m_pipeline->finalize();
+	}
+
+	virtual void create_scene_entities(SceneEntityList &entities) {
+		entities.push_back(new TriangleSceneEntity(m_vertices, m_pipeline));
+	}
+private:
+	VertexDataPtr m_vertices;
+	GPUPipelinePtr m_pipeline;
 };
 
 class CustomBehaviour : public BehaviourComponent {
@@ -65,6 +155,8 @@ int main(int argc, char **argv) {
 	Entity *child = entity->create_child("child");
 	child->set_position(glm::vec3(0.0, 2.0, 0.0));
 	child->set_active(true);
+	TriangleRendererComponent *renderer = child->create_component<TriangleRendererComponent>();
+	renderer->set_active(true);
 
 	Entity *cam_entity = world->create_entity("camera");
 	cam_entity->set_active(true);
@@ -72,74 +164,6 @@ int main(int argc, char **argv) {
 	camera->perspective(90.0f, 0.1f, 1000.0f);
 	camera->set_active(true);
 
-	GPUBufferPtr vertex_buffer = g_engine->gpu()->create_buffer(
-		GPUBuffer::kVertexBuffer,
-		GPUBuffer::kStaticDrawUsage,
-		3 * sizeof(Vertex));
-
-	{
-		GPUBufferMapper<Vertex> data(vertex_buffer,
-			GPUBuffer::kMapInvalidate,
-			GPUBuffer::kWriteAccess);
-
-		new(&data[0]) Vertex(
-			glm::vec3(0.0, 1.0, 0.0),
-			glm::vec3(0.0, 0.0, 1.0),
-			glm::vec4(1.0, 0.0, 0.0, 1.0));
-		new(&data[1]) Vertex(
-			glm::vec3(-1.0, -1.0, 0.0),
-			glm::vec3(0.0, 0.0, 1.0),
-			glm::vec4(0.0, 1.0, 0.0, 1.0));
-		new(&data[2]) Vertex(
-			glm::vec3(1.0, -1.0, 0.0),
-			glm::vec3(0.0, 0.0, 1.0),
-			glm::vec4(0.0, 0.0, 1.0, 1.0));
-	}
-
-	VertexFormatPtr format = g_engine->gpu()->create_vertex_format();
-	format->add_buffer(0, sizeof(Vertex));
-	format->add_attribute(
-		VertexAttribute::kPositionSemantic, 0,
-		VertexAttribute::kFloatType, 3, 0, offsetof(Vertex, x));
-	format->add_attribute(
-		VertexAttribute::kNormalSemantic, 0,
-		VertexAttribute::kFloatType, 3, 0, offsetof(Vertex, nx));
-	format->add_attribute(
-		VertexAttribute::kDiffuseSemantic, 0,
-		VertexAttribute::kFloatType, 4, 0, offsetof(Vertex, r));
-	format->finalize();
-
-	VertexDataPtr vertices = g_engine->gpu()->create_vertex_data(3);
-	vertices->set_format(format);
-	vertices->set_buffer(0, vertex_buffer);
-	vertices->finalize();
-
-	GPUProgramPtr vertex_program = g_engine->gpu()->load_program(
-		"engine/assets/shaders/test_vtx.glsl",
-		GPUProgram::kVertexProgram);
-	vertex_program->bind_uniforms("EntityUniforms", 0);
-	vertex_program->bind_uniforms("ViewUniforms", 1);
-
-	GPUProgramPtr frag_program = g_engine->gpu()->load_program(
-		"engine/assets/shaders/test_frag.glsl",
-		GPUProgram::kFragmentProgram);
-
-	GPUPipelinePtr pipeline = g_engine->gpu()->create_pipeline();
-	pipeline->set_program(GPUProgram::kVertexProgram, vertex_program);
-	pipeline->set_program(GPUProgram::kFragmentProgram, frag_program);
-	pipeline->finalize();
-
-	while(true) {
-		if(!g_engine->start_frame())
-			break;
-
-		g_engine->gpu()->bind_pipeline(pipeline);
-		g_engine->gpu()->bind_uniform_buffer(0, child->uniforms());
-		g_engine->gpu()->bind_uniform_buffer(1, camera->scene_view().uniforms());
-		g_engine->gpu()->draw(PrimitiveType::kTriangleList, vertices, nullptr);
-
-		g_engine->end_frame();
-	}
-
+	engine.run();
 	return 0;
 }

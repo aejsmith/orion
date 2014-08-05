@@ -31,7 +31,7 @@ public:
 	SceneView();
 	~SceneView();
 
-	void transform(const glm::vec3 &position, const glm::quat &orientation);
+	void set_transform(const glm::vec3 &position, const glm::quat &orientation);
 	void perspective(float fovx, float znear, float zfar);
 	void set_viewport(const IntRect &viewport);
 

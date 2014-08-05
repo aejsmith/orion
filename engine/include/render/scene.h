@@ -9,6 +9,9 @@
 
 #include "core/defs.h"
 
+#include "render/scene_entity.h"
+
+class SceneView;
 class World;
 
 /**
@@ -25,10 +28,19 @@ public:
 	explicit Scene(World *world);
 	~Scene();
 
+	void add_entity(SceneEntity *entity, const Transform &transform);
+	void remove_entity(SceneEntity *entity);
+	void transform_entity(SceneEntity *entity, const Transform &transform);
+
+	void find_visible_entities(const SceneView *view, SceneEntityList &entities);
+
 	/** @return		World that the scene corresponds to. */
 	World *world() const { return m_world; }
 private:
 	World *m_world;			/**< World that the scene corresponds to. */
+
+	/** List of registered entities. */
+	SceneEntityList m_entities;
 };
 
 #endif /* ORION_RENDER_SCENE_H */
