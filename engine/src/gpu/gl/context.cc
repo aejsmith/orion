@@ -178,6 +178,10 @@ void GLGPUInterface::init(SDL_Window *window) {
 	/* Create the default VAO. */
 	glGenVertexArrays(1, &g_gl_context->default_vao);
 	g_gl_context->state.bind_vao(g_gl_context->default_vao);
+
+	/* Set up some default state. FIXME */
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 }
 
 /** Shut down the GPU interface. */

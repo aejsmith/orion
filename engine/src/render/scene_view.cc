@@ -70,7 +70,7 @@ const glm::mat4 &SceneView::view() {
 	if(m_view_outdated) {
 		/* Viewing matrix is a world-to-view transformation, so we want
 		 * the inverse of the given position and orientation. */
-		glm::mat4 position = glm::translate(glm::mat4(), m_position);
+		glm::mat4 position = glm::translate(glm::mat4(), -m_position);
 		glm::mat4 orientation = glm::mat4_cast(glm::inverse(m_orientation));
 
 		m_view = orientation * position;
