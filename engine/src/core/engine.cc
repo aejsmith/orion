@@ -21,7 +21,10 @@ Engine *g_engine = nullptr;
  * @param config	Engine configuration structure. */
 Engine::Engine(const EngineConfiguration &config) :
 	m_config(config),
-	m_world(nullptr)
+	m_world(nullptr),
+	m_last_tick(0),
+	m_last_fps(0),
+	m_frames(0)
 {
 	orion_assert(!g_engine);
 	g_engine = this;
@@ -54,66 +57,81 @@ void Engine::shutdown() {
 	delete m_gpu;
 	delete m_window;
 	delete m_log;
+
 	SDL_Quit();
 }
 
 /** Run the engine main loop. */
 void Engine::run() {
-	uint32_t last_tick = 0;
-	uint32_t last_fps = 0;
-	uint32_t frames = 0;
-
 	while(true) {
-		/* Handle SDL events. */
-		SDL_Event event;
-		if(SDL_PollEvent(&event)) {
-			switch(event.type) {
-			case SDL_KEYUP:
-				if(event.key.keysym.sym == SDLK_ESCAPE)
-					return;
+		if(!poll_events())
+			return;
 
-				break;
-			case SDL_QUIT:
-				return;
-			}
-		}
+		tick();
+		render_all_targets();
 
-		uint32_t tick = SDL_GetTicks();
-
-		if(last_tick && tick != last_tick) {
-			/* Update the world. */
-			float dt = static_cast<float>(tick - last_tick) / 1000.0f;
-			m_world->tick(dt);
-		}
-
-		last_tick = tick;
-
-		/* Update FPS counter. */
-		if(!last_fps || (tick - last_fps) > 1000) {
-			unsigned fps = (last_fps)
-				? static_cast<float>(frames) / (static_cast<float>(tick - last_fps) / 1000.0f)
-				: 0;
-
-			m_window->set_title(m_config.title + " [FPS: " + std::to_string(fps) + "]");
-			last_fps = tick;
-			frames = 0;
-		}
-
-		/* Update all render targets. */
-		for(RenderTarget *target : m_render_targets) {
-			// FIXME: Where does this go? Should clear from camera with
-			// world background colour, but then we need a rect constraint
-			// to clear to only clear viewport.
-			m_gpu->clear(
-				RenderBuffer::kColourBuffer | RenderBuffer::kDepthBuffer | RenderBuffer::kStencilBuffer,
-				glm::vec4(0.0, 0.0, 0.0, 1.0), 1.0, 0);
-
-			for(CameraComponent *camera : target->cameras())
-				camera->render();
-		}
-
+		/* Present the final rendered frame. */
 		m_gpu->end_frame(m_config.display_vsync);
-		frames++;
+		m_frames++;
+	}
+}
+
+/** Poll for pending SDL events.
+ * @return		Whether to continue executing. */
+bool Engine::poll_events() {
+	SDL_Event event;
+
+	while(SDL_PollEvent(&event)) {
+		switch(event.type) {
+		case SDL_KEYUP:
+			if(event.key.keysym.sym == SDLK_ESCAPE)
+				return false;
+
+			break;
+		case SDL_QUIT:
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/** Tick the world. */
+void Engine::tick() {
+	uint32_t tick = SDL_GetTicks();
+
+	if(m_last_tick && tick != m_last_tick) {
+		/* Update the world. */
+		float dt = static_cast<float>(tick - m_last_tick) / 1000.0f;
+		m_world->tick(dt);
+	}
+
+	m_last_tick = tick;
+
+	/* Update FPS counter. */
+	if(!m_last_fps || (tick - m_last_fps) > 1000) {
+		unsigned fps = (m_last_fps)
+			? static_cast<float>(m_frames) / (static_cast<float>(tick - m_last_fps) / 1000.0f)
+			: 0;
+
+		m_window->set_title(m_config.title + " [FPS: " + std::to_string(fps) + "]");
+		m_last_fps = tick;
+		m_frames = 0;
+	}
+}
+
+/** Render all render targets. */
+void Engine::render_all_targets() {
+	for(RenderTarget *target : m_render_targets) {
+		// FIXME: Where does this go? Clear settings should go in
+		// SceneView, need a rect constraint to clear to only clear
+		// viewport.
+		m_gpu->clear(
+			RenderBuffer::kColourBuffer | RenderBuffer::kDepthBuffer | RenderBuffer::kStencilBuffer,
+			glm::vec4(0.0, 0.0, 0.0, 1.0), 1.0, 0);
+
+		for(CameraComponent *camera : target->cameras())
+			camera->render();
 	}
 }
 

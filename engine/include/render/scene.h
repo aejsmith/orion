@@ -11,6 +11,8 @@
 
 #include "render/scene_entity.h"
 
+#include <functional>
+
 class SceneView;
 class World;
 
@@ -32,7 +34,7 @@ public:
 	void remove_entity(SceneEntity *entity);
 	void transform_entity(SceneEntity *entity, const Transform &transform);
 
-	void find_visible_entities(const SceneView *view, SceneEntityList &entities);
+	void visit_visible_entities(const SceneView *view, const std::function<void (SceneEntity *)> &func);
 
 	/** @return		World that the scene corresponds to. */
 	World *world() const { return m_world; }

@@ -87,6 +87,14 @@ private:
 	/** Type of a list of render targets. */
 	typedef std::list<RenderTarget *> RenderTargetList;
 private:
+	/**
+	 * Main loop functions.
+	 */
+
+	bool poll_events();
+	void tick();
+	void render_all_targets();
+private:
 	/** Engine configuration. */
 	EngineConfiguration m_config;
 
@@ -100,6 +108,11 @@ private:
 
 	/** List of render targets. */
 	RenderTargetList m_render_targets;
+
+	/** Timing information. */
+	uint32_t m_last_tick;		/**< Last tick time. */
+	uint32_t m_last_fps;		/**< Last FPS value. */
+	uint32_t m_frames;		/**< Number of frames rendered since last FPS update. */
 };
 
 extern Engine *g_engine;

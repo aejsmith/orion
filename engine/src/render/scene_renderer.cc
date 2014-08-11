@@ -11,13 +11,13 @@
 /** Create a scene renderer.
  * @param scene		Scene to render.
  * @param target	Render target.
- * @param config	Rendering configuration. */
-SceneRenderer *SceneRenderer::create(Scene *scene, RenderTarget *target, const RenderConfiguration &config) {
-	switch(config.path) {
-	case RenderConfiguration::kDeferredPath:
+ * @param params	Renderer parameters. */
+SceneRenderer *SceneRenderer::create(Scene *scene, RenderTarget *target, const RendererParams &params) {
+	switch(params.path) {
+	case RendererParams::kDeferredPath:
 		// TODO
-	case RenderConfiguration::kForwardPath:
-		return new ForwardRenderer(scene, target, config);
+	case RendererParams::kForwardPath:
+		return new ForwardRenderer(scene, target, params);
 	default:
 		unreachable();
 	}
@@ -26,9 +26,9 @@ SceneRenderer *SceneRenderer::create(Scene *scene, RenderTarget *target, const R
 /** Initialize the scene renderer.
  * @param scene		Scene to render.
  * @param target	Render target.
- * @param config	Rendering configuration. */
-SceneRenderer::SceneRenderer(Scene *scene, RenderTarget *target, const RenderConfiguration &config) :
+ * @param params	Renderer parameters. */
+SceneRenderer::SceneRenderer(Scene *scene, RenderTarget *target, const RendererParams &params) :
 	m_scene(scene),
 	m_target(target),
-	m_config(config)
+	m_params(params)
 {}

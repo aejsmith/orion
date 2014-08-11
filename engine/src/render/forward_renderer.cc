@@ -14,9 +14,9 @@
 /** Initialize the scene renderer.
  * @param scene		Scene to render.
  * @param target	Render target.
- * @param config	Rendering configuration. */
-ForwardRenderer::ForwardRenderer(Scene *scene, RenderTarget *target, const RenderConfiguration &config) :
-	SceneRenderer(scene, target, config)
+ * @param params	Renderer parameters. */
+ForwardRenderer::ForwardRenderer(Scene *scene, RenderTarget *target, const RendererParams &params) :
+	SceneRenderer(scene, target, params)
 {}
 
 /** Render the scene.
@@ -24,13 +24,9 @@ ForwardRenderer::ForwardRenderer(Scene *scene, RenderTarget *target, const Rende
 void ForwardRenderer::render(SceneView *view) {
 	g_engine->gpu()->bind_uniform_buffer(1, view->uniforms());
 
-	/* Get the list of entities to render. */
-	SceneEntityList entities;
-	m_scene->find_visible_entities(view, entities);
-
-	/* Render everything. */
-	for(SceneEntity *entity : entities) {
+	/* Render all visible entities. */
+	m_scene->visit_visible_entities(view, [](SceneEntity *entity) {
 		g_engine->gpu()->bind_uniform_buffer(0, entity->uniforms());
 		entity->render();
-	}
+	});
 }

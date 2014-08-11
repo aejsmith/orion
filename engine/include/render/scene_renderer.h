@@ -14,7 +14,7 @@ class Scene;
 class SceneView;
 
 /** Rendering configuration. */
-struct RenderConfiguration {
+struct RendererParams {
 	/** Rendering paths. */
 	enum Path {
 		/** Forward rendering. */
@@ -29,7 +29,7 @@ public:
 /** Class to render a scene. */
 class SceneRenderer {
 public:
-	static SceneRenderer *create(Scene *scene, RenderTarget *target, const RenderConfiguration &config);
+	static SceneRenderer *create(Scene *scene, RenderTarget *target, const RendererParams &params);
 
 	virtual ~SceneRenderer() {}
 
@@ -37,11 +37,11 @@ public:
 	 * @param view		View to render from. */
 	virtual void render(SceneView *view) = 0;
 protected:
-	SceneRenderer(Scene *scene, RenderTarget *target, const RenderConfiguration &config);
+	SceneRenderer(Scene *scene, RenderTarget *target, const RendererParams &params);
 protected:
 	Scene *m_scene;			/**< Scene being rendered. */
 	RenderTarget *m_target;		/**< Render target. */
-	RenderConfiguration m_config;	/**< Rendering configuration. */
+	RendererParams m_params;	/**< Renderer parameters. */
 };
 
 #endif /* ORION_RENDER_SCENE_RENDERER_H */

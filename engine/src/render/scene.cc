@@ -37,10 +37,11 @@ void Scene::transform_entity(SceneEntity *entity, const Transform &transform) {
 	entity->set_transform(transform);
 }
 
-/** Get the entities visible from a view.
+/** Call a function on each entity visible from a view.
  * @param view		View into the scene.
- * @param entities	List of entities to populate. */
-void Scene::find_visible_entities(const SceneView *view, SceneEntityList &entities) {
+ * @param func		Function to call on visible entities. */
+void Scene::visit_visible_entities(const SceneView *view, const std::function<void (SceneEntity *)> &func) {
 	// TODO: Frustum culling.
-	entities = m_entities;
+	for(SceneEntity *entity : m_entities)
+		func(entity);
 }

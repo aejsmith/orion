@@ -36,7 +36,7 @@ CameraComponent::CameraComponent(Entity *entity) :
 	 * transformed() function is called. */
 	perspective();
 	update_viewport();
-	set_rendering_path(RenderConfiguration::kDeferredPath);
+	set_rendering_path(RendererParams::kDeferredPath);
 }
 
 /** Destroy the camera. */
@@ -78,9 +78,9 @@ void CameraComponent::set_viewport(const Rect &viewport) {
  *
  * @param path		Rendering path to use.
  */
-void CameraComponent::set_rendering_path(RenderConfiguration::Path path) {
+void CameraComponent::set_rendering_path(RendererParams::Path path) {
 	// FIXME: Fall back if unsupported.
-	m_render_config.path = path;
+	m_renderer_params.path = path;
 }
 
 /** Render the scene from the camera to its render target. */
@@ -88,7 +88,7 @@ void CameraComponent::render() {
 	SceneRenderer *renderer = SceneRenderer::create(
 		entity()->world()->scene(),
 		m_render_target,
-		m_render_config);
+		m_renderer_params);
 
 	renderer->render(&m_scene_view);
 }

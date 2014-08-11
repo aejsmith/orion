@@ -24,7 +24,7 @@ struct ViewUniforms {
  *
  * This class represents a view into a scene: a viewing transformation, a
  * projection transformation, and a viewport rectangle. It also holds a uniform
- * buffer containing the view's parameters that can be passed to a shader.
+ * buffer containing the view's parameters that can be passed to shaders.
  */
 class SceneView {
 public:

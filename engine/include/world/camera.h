@@ -25,14 +25,14 @@ public:
 
 	void set_render_target(RenderTarget *target);
 	void set_viewport(const Rect &viewport);
-	void set_rendering_path(RenderConfiguration::Path path);
+	void set_rendering_path(RendererParams::Path path);
 
 	/** @return		Render target. */
 	RenderTarget *render_target() const { return m_render_target; }
 	/** @return		Normalized viewport rectangle. */
 	const Rect &viewport() const { return m_viewport; }
 	/** @return		Rendering path. */
-	RenderConfiguration::Path rendering_path() const { return m_render_config.path; }
+	RendererParams::Path rendering_path() const { return m_renderer_params.path; }
 
 	void render();
 
@@ -61,9 +61,6 @@ public:
 
 	/** @return		View-to-projection matrix. */
 	const glm::mat4 &projection() { return m_scene_view.projection(); }
-
-	// XXX: Temporary.
-	SceneView &scene_view() { return m_scene_view; }
 protected:
 	~CameraComponent();
 
@@ -74,10 +71,9 @@ private:
 	void update_viewport();
 private:
 	SceneView m_scene_view;			/**< Scene view implementing this camera. */
-
 	RenderTarget *m_render_target;		/**< Render target for the camera. */
 	Rect m_viewport;			/**< Normalized viewport rectangle. */
-	RenderConfiguration m_render_config;	/**< Rendering configuration. */
+	RendererParams m_renderer_params;	/**< Renderer parameters. */
 };
 
 /** Set up a perspective projection.

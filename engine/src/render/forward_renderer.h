@@ -12,7 +12,7 @@
 /** Scene renderer implementing forward rendering. */
 class ForwardRenderer : public SceneRenderer {
 public:
-	ForwardRenderer(Scene *scene, RenderTarget *target, const RenderConfiguration &config);
+	ForwardRenderer(Scene *scene, RenderTarget *target, const RendererParams &params);
 
 	void render(SceneView *view);
 };
