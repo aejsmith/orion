@@ -4,8 +4,8 @@
  * @brief		Camera component.
  */
 
-#ifndef ORION_WORLD_CAMERA_H
-#define ORION_WORLD_CAMERA_H
+#ifndef ORION_WORLD_CAMERA_COMPONENT_H
+#define ORION_WORLD_CAMERA_COMPONENT_H
 
 #include "render/scene_renderer.h"
 #include "render/scene_view.h"
@@ -102,4 +102,4 @@ inline void CameraComponent::set_zfar(float zfar) {
 	m_scene_view.perspective(fovx(), znear(), zfar);
 }
 
-#endif /* ORION_WORLD_CAMERA_H */
+#endif /* ORION_WORLD_CAMERA_COMPONENT_H */

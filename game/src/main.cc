@@ -14,9 +14,9 @@
 #include "render/scene_view.h"
 
 #include "world/behaviour.h"
-#include "world/camera.h"
+#include "world/camera_component.h"
 #include "world/entity.h"
-#include "world/renderer.h"
+#include "world/renderer_component.h"
 #include "world/world.h"
 
 struct Vertex {
@@ -256,19 +256,6 @@ int main(int argc, char **argv) {
 	cube->set_active(true);
 	CustomBehaviour *behaviour = cube->create_component<CustomBehaviour>();
 	behaviour->set_active(true);
-
-#if 0
-	Entity *entity = world->create_entity("test");
-	entity->set_position(glm::vec3(0.0, 0.0, -10.0));
-	entity->set_active(true);
-	CustomBehaviour *behaviour = entity->create_component<CustomBehaviour>();
-	behaviour->set_active(true);
-	Entity *child = entity->create_child("child");
-	child->set_position(glm::vec3(0.0, 2.0, 0.0));
-	child->set_active(true);
-	StaticMeshRendererComponent *renderer = child->create_component<StaticMeshRendererComponent>();
-	renderer->set_active(true);
-#endif
 
 	Entity *cam_entity = world->create_entity("camera");
 	cam_entity->set_position(glm::vec3(0.0f, 1.5f, 0.0f));

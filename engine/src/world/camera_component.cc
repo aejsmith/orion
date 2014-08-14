@@ -13,7 +13,7 @@
 #include "render/render_target.h"
 #include "render/scene_view.h"
 
-#include "world/camera.h"
+#include "world/camera_component.h"
 #include "world/entity.h"
 #include "world/world.h"
 
