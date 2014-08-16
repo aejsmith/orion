@@ -16,6 +16,7 @@
 #include "world/behaviour.h"
 #include "world/camera_component.h"
 #include "world/entity.h"
+#include "world/light_component.h"
 #include "world/renderer_component.h"
 #include "world/world.h"
 
@@ -35,28 +36,25 @@ public:
 
 class StaticMeshSceneEntity : public SceneEntity {
 public:
-	StaticMeshSceneEntity(VertexDataPtr vertices, IndexDataPtr indices, GPUPipelinePtr pipeline) :
+	StaticMeshSceneEntity(VertexDataPtr vertices, IndexDataPtr indices) :
 		m_vertices(vertices),
-		m_indices(indices),
-		m_pipeline(pipeline)
+		m_indices(indices)
 	{}
 
 	void render() {
-		g_engine->gpu()->bind_pipeline(m_pipeline);
 		g_engine->gpu()->draw(PrimitiveType::kTriangleList, m_vertices, m_indices);
 	}
 private:
 	VertexDataPtr m_vertices;
 	IndexDataPtr m_indices;
-	GPUPipelinePtr m_pipeline;
 };
 
 class StaticMeshRendererComponent : public RendererComponent {
 public:
-	StaticMeshRendererComponent(Entity *entity, VertexDataPtr vertices, IndexDataPtr indices, GPUPipelinePtr pipeline) :
+	StaticMeshRendererComponent(Entity *entity, VertexDataPtr vertices, IndexDataPtr indices) :
 		RendererComponent(entity)
 	{
-		m_scene_entity = new StaticMeshSceneEntity(vertices, indices, pipeline);
+		m_scene_entity = new StaticMeshSceneEntity(vertices, indices);
 	}
 
 	virtual void create_scene_entities(SceneEntityList &entities) {
@@ -78,7 +76,6 @@ public:
 	}
 };
 
-static GPUPipelinePtr test_pipeline;
 static VertexFormatPtr test_vertex_format;
 
 static Entity *make_cube(Entity *parent, const std::string &name) {
@@ -152,7 +149,7 @@ static Entity *make_cube(Entity *parent, const std::string &name) {
 	vertices->finalize();
 
 	Entity *entity = parent->create_child(name);
-	StaticMeshRendererComponent *renderer = entity->create_component<StaticMeshRendererComponent>(vertices, nullptr, test_pipeline);
+	StaticMeshRendererComponent *renderer = entity->create_component<StaticMeshRendererComponent>(vertices, nullptr);
 	renderer->set_active(true);
 
 	return entity;
@@ -195,7 +192,7 @@ static Entity *make_plane(Entity *parent, const std::string &name) {
 	vertices->finalize();
 
 	Entity *entity = parent->create_child(name);
-	StaticMeshRendererComponent *renderer = entity->create_component<StaticMeshRendererComponent>(vertices, nullptr, test_pipeline);
+	StaticMeshRendererComponent *renderer = entity->create_component<StaticMeshRendererComponent>(vertices, nullptr);
 	renderer->set_active(true);
 
 	return entity;
@@ -228,22 +225,11 @@ int main(int argc, char **argv) {
 		VertexAttribute::kFloatType, 4, 0, offsetof(Vertex, r));
 	test_vertex_format->finalize();
 
-	GPUProgramPtr vertex_program = g_engine->gpu()->load_program(
-		"engine/assets/shaders/test_vtx.glsl",
-		GPUProgram::kVertexProgram);
-	vertex_program->bind_uniforms("EntityUniforms", 0);
-	vertex_program->bind_uniforms("ViewUniforms", 1);
-
-	GPUProgramPtr frag_program = g_engine->gpu()->load_program(
-		"engine/assets/shaders/test_frag.glsl",
-		GPUProgram::kFragmentProgram);
-
-	test_pipeline = g_engine->gpu()->create_pipeline();
-	test_pipeline->set_program(GPUProgram::kVertexProgram, vertex_program);
-	test_pipeline->set_program(GPUProgram::kFragmentProgram, frag_program);
-	test_pipeline->finalize();
-
 	World *world = engine.create_world();
+
+	AmbientLightComponent *ambient_light = world->root()->create_component<AmbientLightComponent>();
+	ambient_light->set_intensity(0.1f);
+	ambient_light->set_active(true);
 
 	Entity *floor = make_plane(world->root(), "floor");
 	floor->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
@@ -263,6 +249,12 @@ int main(int argc, char **argv) {
 	CameraComponent *camera = cam_entity->create_component<CameraComponent>();
 	camera->perspective(90.0f, 0.1f, 1000.0f);
 	camera->set_active(true);
+
+	Entity *light_entity = world->create_entity("light");
+	light_entity->set_position(glm::vec3(0.0f, 2.0f, -2.0f));
+	light_entity->set_active(true);
+	PointLightComponent *point_light = light_entity->create_component<PointLightComponent>();
+	point_light->set_active(true);
 
 	engine.run();
 	return 0;

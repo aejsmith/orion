@@ -11,14 +11,12 @@
 
 #include "math/transform.h"
 
-#include <list>
-
 class Scene;
 
 /** Per-entity uniform buffer structure. */
 struct EntityUniforms {
-	float transform[16];		/**< World transformation matrix. */
-	float position[4];		/**< Position of the entity in the world. */
+	float transform[16];
+	float position[3], _pad1;
 };
 
 /**
@@ -50,8 +48,6 @@ protected:
 private:
 	void set_transform(const Transform &transform);
 private:
-	Scene *scene;			/**< Scene that the entity belongs to. */
-
 	Transform m_transform;		/**< Transformation of the entity. */
 
 	/** Uniform buffer containing per-entity parameters. */
@@ -59,8 +55,5 @@ private:
 
 	friend class Scene;
 };
-
-/** Type of a scene entity list. */
-typedef std::list<SceneEntity *> SceneEntityList;
 
 #endif /* ORION_RENDER_SCENE_ENTITY_H */

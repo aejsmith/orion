@@ -48,9 +48,59 @@ static inline GLenum convert_attribute_type(VertexAttribute::Type type) {
 	}
 }
 
+/** Convert a blend function to a GL blend equation.
+ * @param func		Function to convert.
+ * @return		OpenGL blend equation. */
+static inline GLenum convert_blend_func(BlendFunc func) {
+	switch(func) {
+	case BlendFunc::kAdd:
+		return GL_FUNC_ADD;
+	case BlendFunc::kSubtract:
+		return GL_FUNC_SUBTRACT;
+	case BlendFunc::kReverseSubtract:
+		return GL_FUNC_REVERSE_SUBTRACT;
+	case BlendFunc::kMin:
+		return GL_MIN;
+	case BlendFunc::kMax:
+		return GL_MAX;
+	default:
+		return 0;
+	}
+}
+
+/** Convert a blend factor to a GL blend factor.
+ * @param func		Function to convert.
+ * @return		OpenGL blend equation. */
+static inline GLenum convert_blend_factor(BlendFactor factor) {
+	switch(factor) {
+	case BlendFactor::kZero:
+		return GL_ZERO;
+	case BlendFactor::kOne:
+		return GL_ONE;
+	case BlendFactor::kSourceColour:
+		return GL_SRC_COLOR;
+	case BlendFactor::kDestColour:
+		return GL_DST_COLOR;
+	case BlendFactor::kOneMinusSourceColour:
+		return GL_ONE_MINUS_SRC_COLOR;
+	case BlendFactor::kOneMinusDestColour:
+		return GL_ONE_MINUS_DST_COLOR;
+	case BlendFactor::kSourceAlpha:
+		return GL_SRC_ALPHA;
+	case BlendFactor::kDestAlpha:
+		return GL_DST_ALPHA;
+	case BlendFactor::kOneMinusSourceAlpha:
+		return GL_ONE_MINUS_SRC_ALPHA;
+	case BlendFactor::kOneMinusDestAlpha:
+		return GL_ONE_MINUS_DST_ALPHA;
+	default:
+		return 0;
+	}
+}
+
 /** Convert a buffer type to a GL buffer target.
  * @param type		Buffer type.
- * @return		OpenGL buffer target. */
+ * @return		GL buffer target. */
 static inline GLenum convert_buffer_type(GPUBuffer::Type type) {
 	switch(type) {
 	case GPUBuffer::kVertexBuffer:
@@ -87,6 +137,32 @@ static inline GLenum convert_buffer_usage(GPUBuffer::Usage usage) {
 		return GL_DYNAMIC_READ;
 	case GPUBuffer::kDynamicCopyUsage:
 		return GL_DYNAMIC_COPY;
+	default:
+		return 0;
+	}
+}
+
+/** Convert a comparison function to a GL comparison function.
+ * @param func		Function to convert.
+ * @return		GL comparison function. */
+static inline GLenum convert_comparison_func(ComparisonFunc func) {
+	switch(func) {
+	case ComparisonFunc::kAlways:
+		return GL_ALWAYS;
+	case ComparisonFunc::kNever:
+		return GL_NEVER;
+	case ComparisonFunc::kEqual:
+		return GL_EQUAL;
+	case ComparisonFunc::kNotEqual:
+		return GL_NOTEQUAL;
+	case ComparisonFunc::kLess:
+		return GL_LESS;
+	case ComparisonFunc::kLessOrEqual:
+		return GL_LEQUAL;
+	case ComparisonFunc::kGreater:
+		return GL_GREATER;
+	case ComparisonFunc::kGreaterOrEqual:
+		return GL_GEQUAL;
 	default:
 		return 0;
 	}

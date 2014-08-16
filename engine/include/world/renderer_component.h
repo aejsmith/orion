@@ -11,6 +11,8 @@
 
 #include "world/component.h"
 
+#include <list>
+
 /**
  * Base class for a component which renders something.
  *
@@ -23,6 +25,9 @@ public:
 	ORION_COMPONENT(Component::kRendererType);
 public:
 	~RendererComponent();
+protected:
+	/** Type of a scene entity list. */
+	typedef std::list<SceneEntity *> SceneEntityList;
 protected:
 	explicit RendererComponent(Entity *entity);
 

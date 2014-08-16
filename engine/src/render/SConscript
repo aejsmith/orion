@@ -3,6 +3,7 @@ sources = map(File, [
     'render_target.cc',
     'scene.cc',
     'scene_entity.cc',
+    'scene_light.cc',
     'scene_renderer.cc',
     'scene_view.cc',
 ])

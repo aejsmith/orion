@@ -1,0 +1,5 @@
+TODO list
+=========
+
+- Investigate depth pre-pass. It's not always a win, depends on scene content.
+  Sorting the render list in front to back order is possibly enough.

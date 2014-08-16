@@ -10,15 +10,22 @@
 /**
  * Initalize the GL state.
  *
- * This initializes the state object with default OpenGL state. Be careful when
- * adding things here, check the OpenGL specifications to determine the correct
- * default values.
+ * This initializes the state object with default OpenGL state. Check the OpenGL
+ * specifications to determine the correct default values when adding new
+ * entries here.
  */
 GLState::GLState() :
 	swap_interval(0),
 	clear_colour(0.0f, 0.0f, 0.0f, 0.0f),
 	clear_depth(1.0f),
 	clear_stencil(0.0f),
+	blend_enabled(false),
+	blend_equation(GL_FUNC_ADD),
+	blend_source_factor(GL_ONE),
+	blend_dest_factor(GL_ZERO),
+	depth_test_enabled(false),
+	depth_write_enabled(true),
+	depth_func(GL_LESS),
 	bound_vao(GL_NONE),
 	bound_pipeline(GL_NONE)
 {}
@@ -56,6 +63,72 @@ void GLState::set_clear_stencil(uint32_t stencil) {
 	if(stencil != this->clear_stencil) {
 		glClearStencil(stencil);
 		this->clear_stencil = stencil;
+	}
+}
+
+/** Set whether blending is enabled.
+ * @param enable	Whether to enable blending. */
+void GLState::enable_blend(bool enable) {
+	if(enable != this->blend_enabled) {
+		if(enable) {
+			glEnable(GL_BLEND);
+		} else {
+			glDisable(GL_BLEND);
+		}
+
+		this->blend_enabled = enable;
+	}
+}
+
+/** Set the blend equation.
+ * @param equation	Blending equation. */
+void GLState::set_blend_equation(GLenum equation) {
+	if(equation != this->blend_equation) {
+		glBlendEquation(equation);
+		this->blend_equation = equation;
+	}
+}
+
+/** Set the blending factors.
+ * @param source_factor	Source factor.
+ * @param dest_factor	Destination factor. */
+void GLState::set_blend_func(GLenum source_factor, GLenum dest_factor) {
+	if(source_factor != this->blend_source_factor || dest_factor != this->blend_dest_factor) {
+		glBlendFunc(source_factor, dest_factor);
+		this->blend_source_factor = source_factor;
+		this->blend_dest_factor = dest_factor;
+	}
+}
+
+/** Set whether the depth test is enabled.
+ * @param enable	Whether to enable the depth test. */
+void GLState::enable_depth_test(bool enable) {
+	if(enable != this->depth_test_enabled) {
+		if(enable) {
+			glEnable(GL_DEPTH_TEST);
+		} else {
+			glDisable(GL_DEPTH_TEST);
+		}
+
+		this->depth_test_enabled = enable;
+	}
+}
+
+/** Set whether depth buffer writes are enabled.
+ * @param enable	Whether to enable depth buffer writes. */
+void GLState::enable_depth_write(bool enable) {
+	if(enable != this->depth_write_enabled) {
+		glDepthMask(enable);
+		this->depth_write_enabled = enable;
+	}
+}
+
+/** Set the depth comparison function.
+ * @param func		Depth comparison function. */
+void GLState::set_depth_func(GLenum func) {
+	if(func != this->depth_func) {
+		glDepthFunc(func);
+		this->depth_func = func;
 	}
 }
 

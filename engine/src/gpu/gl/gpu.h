@@ -22,11 +22,15 @@ public:
 	GPUPipelinePtr create_pipeline();
 	GPUProgramPtr load_program(const char *path, GPUProgram::Type type);
 
-	void clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil);
 	void bind_pipeline(const GPUPipelinePtr &pipeline);
 	void bind_uniform_buffer(unsigned index, const GPUBufferPtr &buffer);
-	void draw(PrimitiveType type, const VertexDataPtr &vertices, const IndexDataPtr &indices);
+	void set_blend_mode(BlendFunc func, BlendFactor source_factor, BlendFactor dest_factor);
+	void set_depth_mode(ComparisonFunc func, bool enable_write);
+
 	void end_frame(bool vsync);
+
+	void clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil);
+	void draw(PrimitiveType type, const VertexDataPtr &vertices, const IndexDataPtr &indices);
 };
 
 #endif /* ORION_GPU_GL_GPU_H */

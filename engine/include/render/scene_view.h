@@ -13,10 +13,10 @@
 
 /** Per-view uniform buffer structure. */
 struct ViewUniforms {
-	float view[16];			/**< Viewing matrix. */
-	float projection[16];		/**< Projection matrix. */
-	float view_projection[16];	/**< Combined view-projection matrix. */
-	float position[3], _pad;	/**< Viewing position in world space. */
+	float view[16];
+	float projection[16];
+	float view_projection[16];
+	float position[3], _pad;
 };
 
 /**

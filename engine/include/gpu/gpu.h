@@ -59,15 +59,8 @@ public:
 	virtual GPUProgramPtr load_program(const char *path, GPUProgram::Type type) = 0;
 
 	/**
-	 * Rendering methods.
+	 * State methods.
 	 */
-
-	/** Clear rendering buffers.
-	 * @param buffers	Buffers to clear (bitmask of RenderBuffer values).
-	 * @param colour	Colour to clear to.
-	 * @param depth		Depth value to clear to.
-	 * @param stencil	Stencil value to clear to. */
-	virtual void clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil) = 0;
 
 	/** Bind a pipeline for rendering.
 	 * @param pipeline	Pipeline to use. */
@@ -78,15 +71,61 @@ public:
 	 * @param buffer	Buffer to bind. */
 	virtual void bind_uniform_buffer(unsigned index, const GPUBufferPtr &buffer) = 0;
 
+	/**
+	 * Set the blending mode.
+	 *
+	 * Sets the colour blending mode, which determines how fragment colour
+	 * outputs are combined with the values already in the colour buffers.
+	 * The default arguments set the blend mode to add, the source factor
+	 * to one, and the destination factor to zero. This effectively disables
+	 * blending.
+	 *
+	 * @param func		Blending function.
+	 * @param source_factor	Source blend factor.
+	 * @param dest_factor	Destination factor.
+	 */
+	virtual void set_blend_mode(
+		BlendFunc func = BlendFunc::kAdd,
+		BlendFactor source_factor = BlendFactor::kOne,
+		BlendFactor dest_factor = BlendFactor::kZero) = 0;
+
+	/**
+	 * Set the depth testing mode.
+	 *
+	 * Sets the depth testing mode. The default arguments set the function
+	 * to less than or equal, and enables writes to the depth buffer.
+	 *
+	 * @param func		Depth comparison function.
+	 * @param enable_write	Whether to enable depth writes.
+	 */
+	virtual void set_depth_mode(
+		ComparisonFunc func = ComparisonFunc::kLessOrEqual,
+		bool enable_write = true) = 0;
+
+	/**
+	 * Frame methods.
+	 */
+
+	/** End a frame and present it on screen.
+	 * @param vsync		Whether to wait for vertical sync. */
+	virtual void end_frame(bool vsync) {}
+
+	/**
+	 * Rendering methods.
+	 */
+
+	/** Clear rendering buffers.
+	 * @param buffers	Buffers to clear (bitmask of RenderBuffer values).
+	 * @param colour	Colour to clear to.
+	 * @param depth		Depth value to clear to.
+	 * @param stencil	Stencil value to clear to. */
+	virtual void clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil) = 0;
+
 	/** Draw primitives.
 	 * @param type		Primitive type to render.
 	 * @param vertices	Vertex data to use.
 	 * @param indices	Index data to use (can be null). */
 	virtual void draw(PrimitiveType type, const VertexDataPtr &vertices, const IndexDataPtr &indices) = 0;
-
-	/** End a frame and present it on screen.
-	 * @param vsync		Whether to wait for vertical sync. */
-	virtual void end_frame(bool vsync) {}
 protected:
 	GPUInterface() {}
 };

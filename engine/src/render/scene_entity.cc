@@ -7,9 +7,7 @@
 #include "render/scene_entity.h"
 
 /** Initialize the entity. */
-SceneEntity::SceneEntity() :
-	scene(nullptr)
-{}
+SceneEntity::SceneEntity() {}
 
 /** Destroy the entity. */
 SceneEntity::~SceneEntity() {}

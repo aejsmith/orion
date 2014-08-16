@@ -49,8 +49,7 @@ void GLVertexData::bind(const GPUBufferPtr &indices) {
 
 	g_gl_context->state.bind_vao(m_vao);
 
-	/*
-	 * As described at the top of the file, the index buffer binding is
+	/* As described at the top of the file, the index buffer binding is
 	 * part of VAO state. If the index buffer being used for rendering is
 	 * the same as the previous one used with this vertex data, we can avoid
 	 * a call to glBindBuffer here.
@@ -58,8 +57,7 @@ void GLVertexData::bind(const GPUBufferPtr &indices) {
 	 * We call glBindBuffer directly here as we don't want the binding we
 	 * set here to affect the context GLState. Additionally, GLState has a
 	 * special case to switch back to the default VAO if changing the index
-	 * buffer binding.
-	 */
+	 * buffer binding. */
 	if(unlikely(indices != m_bound_indices)) {
 		if(indices) {
 			GLBuffer *buffer = static_cast<GLBuffer *>(indices.get());

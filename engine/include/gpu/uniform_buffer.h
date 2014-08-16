@@ -16,7 +16,8 @@
  * uniform buffer. It only updates the uniform buffer when it is actually
  * needed. Whenever the data in the uniform buffer becomes outdated, the derived
  * class should call invalidate(), and the next time get() is called the buffer
- * will be updated.
+ * will be updated. The entire previous buffer content is thrown away as
+ * performing a partial update can cause a GPU synchronization.
  *
  * @tparam Uniforms	Type of the uniform structure.
  */

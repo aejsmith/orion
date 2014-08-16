@@ -6,6 +6,7 @@
  * @todo		Lookup function for entities based on hierarchy (use
  *			a path). Also a lookup function on World that forwards
  *			to root entity.
+ * @fixme		Disallow transformation of root entity.
  */
 
 #include "world/entity.h"
@@ -97,7 +98,6 @@ Entity *Entity::create_child(const std::string &name) {
 /** Add a component to the entity (internal method).
  * @param component	Component to add. */
 void Entity::add_component(Component *component) {
-	orion_check(m_parent, "Cannot attach components to root entity");
 	orion_check(!m_components[component->type()],
 		"Component of type %d already registered",
 		component->type());

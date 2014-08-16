@@ -22,10 +22,15 @@ enum class PrimitiveType {
 };
 
 /** Render buffer definitions. */
-enum RenderBuffer {
-	kColourBuffer = (1 << 0),	/**< Colour buffer. */
-	kDepthBuffer = (1 << 1),	/**< Depth buffer. */
-	kStencilBuffer = (1 << 2),	/**< Stencil buffer. */
+namespace RenderBuffer {
+	enum {
+		/** Colour buffer. */
+		kColourBuffer = (1 << 0),
+		/** Depth buffer. */
+		kDepthBuffer = (1 << 1),
+		/** Stencil buffer. */
+		kStencilBuffer = (1 << 2),
+	};
 };
 
 /**
@@ -35,7 +40,6 @@ enum RenderBuffer {
  * combined with the colour already in the framebuffer ("destination" colour).
  */
 enum class BlendFunc {
-	kDisabled,			/**< Disable blending. */
 	kAdd,				/**< Add source and destination colour. */
 	kSubtract,			/**< Subtract destination from source. */
 	kReverseSubtract,		/**< Subtract source from destination. */

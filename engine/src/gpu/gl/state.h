@@ -53,6 +53,17 @@ public:
 	float clear_depth;
 	uint32_t clear_stencil;
 
+	/** Blending state. */
+	bool blend_enabled;
+	GLenum blend_equation;
+	GLenum blend_source_factor;
+	GLenum blend_dest_factor;
+
+	/** Depth testing state. */
+	bool depth_test_enabled;
+	bool depth_write_enabled;
+	GLenum depth_func;
+
 	/** Object bindings. */
 	GLuint bound_vao;
 	BufferBindings bound_buffers;
@@ -65,6 +76,14 @@ public:
 	void set_clear_colour(const glm::vec4 &colour);
 	void set_clear_depth(float depth);
 	void set_clear_stencil(uint32_t stencil);
+
+	void enable_blend(bool enable);
+	void set_blend_equation(GLenum equation);
+	void set_blend_func(GLenum source_factor, GLenum dest_factor);
+
+	void enable_depth_test(bool enable);
+	void enable_depth_write(bool enable);
+	void set_depth_func(GLenum func);
 
 	void bind_vao(GLuint vao);
 	void bind_buffer(GLenum target, GLuint buffer);
