@@ -10,6 +10,7 @@ sources = util.flatten(SConscript(dirs = [
     'lib',
     'math',
     'render',
+    'shader',
     'world',
 ]))
 
