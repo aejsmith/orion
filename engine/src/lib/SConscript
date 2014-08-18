@@ -1,7 +1,11 @@
+import os
+
 sources = map(File, [
     'error.cc',
     'log.cc',
     'utility.cc',
 ])
+
+sources += SConscript(dirs = [os.name])
 
 Return('sources')

@@ -1,0 +1,5 @@
+sources = map(File, [
+    'fs.cc',
+])
+
+Return('sources')
