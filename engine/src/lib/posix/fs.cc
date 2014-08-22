@@ -19,15 +19,15 @@ public:
 	POSIXFile(int fd);
 	~POSIXFile();
 
-	uint64_t size() const;
+	uint64_t size() const override;
 
-	bool read(void *buf, size_t size);
-	bool write(const void *buf, size_t size);
-	bool seek(SeekMode mode, int64_t offset);
-	uint64_t offset() const;
+	bool read(void *buf, size_t size) override;
+	bool write(const void *buf, size_t size) override;
+	bool seek(SeekMode mode, int64_t offset) override;
+	uint64_t offset() const override;
 
-	bool read(void *buf, size_t size, uint64_t offset);
-	bool write(const void *buf, size_t size, uint64_t offset);
+	bool read(void *buf, size_t size, uint64_t offset) override;
+	bool write(const void *buf, size_t size, uint64_t offset) override;
 private:
 	int m_fd;		/**< File descriptor. */
 };
