@@ -9,6 +9,8 @@
 
 #include "core/defs.h"
 
+#include <type_traits>
+
 /**
  * Base class providing reference counting functionality.
  *
@@ -52,13 +54,14 @@ template <typename T>
 class ReferencePtr {
 public:
 	/** Create a null pointer. */
-	ReferencePtr() : m_object(nullptr) {}
+	constexpr ReferencePtr() : m_object(nullptr) {}
 
 	/** Create a null pointer. */
-	ReferencePtr(std::nullptr_t) : m_object(nullptr) {}
+	constexpr ReferencePtr(std::nullptr_t) : m_object(nullptr) {}
 
 	/** Point to an object, increasing its reference count. */
-	explicit ReferencePtr(T *ptr) :
+	template <typename U, typename = typename std::enable_if<std::is_convertible<U *, T *>::value>::type>
+	explicit ReferencePtr(U *ptr) :
 		m_object(ptr)
 	{
 		if(m_object)
@@ -74,11 +77,12 @@ public:
 	}
 
 	/** Copy another pointer of compatible type, increasing the reference count. */
-	template <typename Other>
-	ReferencePtr(const ReferencePtr<Other> &other) :
-		m_object(other.ptr())
+	template <typename U, typename = typename std::enable_if<std::is_convertible<U *, T *>::value>::type>
+	ReferencePtr(const ReferencePtr<U> &other) :
+		m_object(other.get())
 	{
-		m_object->retain();
+		if(m_object)
+			m_object->retain();
 	}
 
 	/** Move another pointer to this one. */
@@ -101,14 +105,25 @@ public:
 	}
 
 	/** Copy another pointer of compatible type, increasing the reference count. */
-	template <typename Other>
-	ReferencePtr &operator =(const ReferencePtr<Other> &other) {
-		reset(other.ptr());
+	template <typename U>
+	typename std::enable_if<std::is_convertible<U *, T *>::value, ReferencePtr &> operator =(const ReferencePtr<U> &other) {
+		reset(other.get());
 		return *this;
 	}
 
 	/** Move another pointer to this one. */
 	ReferencePtr &operator =(ReferencePtr &&other) {
+		if(m_object)
+			m_object->release();
+
+		m_object = other.m_object;
+		other.m_object = nullptr;
+		return *this;
+	}
+
+	/** Move another pointer of compatible type to this one. */
+	template <typename U>
+	typename std::enable_if<std::is_convertible<U *, T *>::value, ReferencePtr &> operator =(ReferencePtr<U> &&other) {
 		if(m_object)
 			m_object->release();
 

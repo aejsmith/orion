@@ -4,6 +4,11 @@
  * @brief		Main entry point of the engine.
  */
 
+#include "asset/asset.h"
+#include "asset/asset_factory.h"
+#include "asset/asset_loader.h"
+#include "asset/asset_manager.h"
+
 #include "core/engine.h"
 
 #include "gpu/gpu.h"
@@ -19,6 +24,67 @@
 #include "world/light_component.h"
 #include "world/renderer_component.h"
 #include "world/world.h"
+
+/**
+ * Asset test code.
+ */
+
+class TestAsset : public Asset {
+public:
+	/** Type-specific load method.
+	 * @param state		Asset loading state.
+	 * @return		Whether the asset was successfully loaded. */
+	bool load_impl(AssetLoadState &state) override {
+		orion_log(LogLevel::kDebug, "TestAsset::load_impl");
+
+		for(auto it = state.attributes.MemberBegin(); it != state.attributes.MemberEnd(); ++it)
+			orion_log(LogLevel::kDebug, "attribute '%s'", it->name.GetString());
+
+		return true;
+	}
+
+	/** Type-specific unload method. */
+	void unload_impl() override {
+		
+	}
+private:
+	TestAsset(AssetManager *manager, const std::string &path) :
+		Asset(manager, path)
+	{}
+
+	friend class TestAssetFactory;
+};
+
+class TestAssetFactory : public AssetFactory {
+public:
+	TestAssetFactory() : AssetFactory("TestAsset") {}
+
+	/** Create an unloaded asset of this type.
+	 * @param manager	Manager creating the asset.
+	 * @param path		Path to the asset.
+	 * @return		Pointer to created asset, null on failure. */
+	Asset *create(AssetManager *manager, const std::string &path) override {
+		return new TestAsset(manager, path);
+	}
+};
+
+class TestAssetLoader : public AssetLoader {
+public:
+	TestAssetLoader() : AssetLoader("tga", "TestAsset") {}
+
+	/** Load the asset.
+	 * @param asset		Asset being loaded.
+	 * @param state		Asset loading state.
+	 * @return		Whether the object was loaded successfully. */
+	bool load(Asset *asset, AssetLoadState &state) override {
+		orion_log(LogLevel::kDebug, "TestAssetLoader::load");
+		return true;
+	}
+};
+
+/**
+ * Rendering test code.
+ */
 
 struct Vertex {
 	float x, y, z, _pad1;
@@ -209,8 +275,15 @@ int main(int argc, char **argv) {
 	config.display_height = 900;
 	config.display_fullscreen = false;
 	config.display_vsync = false;
+	config.asset_stores.push_back(std::make_tuple("game", "fs", "game/assets"));
 
 	Engine engine(config);
+
+	g_engine->assets()->register_factory(new TestAssetFactory);
+	g_engine->assets()->register_loader(new TestAssetLoader);
+
+	TypedAssetPtr<TestAsset> asset = g_engine->assets()->load<TestAsset>("game/textures/test");
+	orion_log(LogLevel::kDebug, "Got asset %p", asset.get());
 
 	test_vertex_format = g_engine->gpu()->create_vertex_format();
 	test_vertex_format->add_buffer(0, sizeof(Vertex));

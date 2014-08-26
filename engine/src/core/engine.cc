@@ -4,6 +4,8 @@
  * @brief		Engine main class.
  */
 
+#include "asset/asset_manager.h"
+
 #include "core/engine.h"
 #include "core/window.h"
 
@@ -36,11 +38,13 @@ Engine::Engine(const EngineConfiguration &config) :
 	if(SDL_Init(SDL_INIT_EVERYTHING) != 0)
 		orion_abort("Failed to initialize SDL: %s", SDL_GetError());
 
-	/* Create the GPU interface. */
+	/* Create the GPU interface, then create the main window which properly
+	 * initializes the GPU interface. */
 	m_gpu = GPUInterface::create(config);
-
-	/* Create the main window, which properly initializes the GPU interface. */
 	m_window = new Window(config, m_gpu);
+
+	/* Initialize other global systems. */
+	m_assets = new AssetManager(config);
 }
 
 /** Shut down the engine. */

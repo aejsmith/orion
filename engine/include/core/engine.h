@@ -13,7 +13,9 @@
 
 #include <list>
 #include <string>
+#include <tuple>
 
+class AssetManager;
 class GPUInterface;
 class LogManager;
 class RenderTarget;
@@ -31,6 +33,9 @@ struct EngineConfiguration {
 	enum GraphicsAPI {
 		kGLGraphicsAPI,
 	};
+
+	/** Tuple specifying an asset store to mount. */
+	typedef std::tuple<std::string, std::string, std::string> AssetStoreTuple;
 public:
 	/** Title of the game. */
 	std::string title;
@@ -43,6 +48,9 @@ public:
 	uint32_t display_height;	/**< Screen height. */
 	bool display_fullscreen;	/**< Whether the window should be fullscreen. */
 	bool display_vsync;		/**< Whether to synchronize updates with vertical retrace. */
+
+	/** List of asset stores. */
+	std::list<AssetStoreTuple> asset_stores;
 };
 
 /** Main class of the engine. */
@@ -61,10 +69,12 @@ public:
 	 * Global resources.
 	 */
 
-	/** @return		Log manager. */
-	LogManager *log() const { return m_log; }
+	/** @return		Asset manager. */
+	AssetManager *assets() const { return m_assets; }
 	/** @return		GPU interface. */
 	GPUInterface *gpu() const { return m_gpu; }
+	/** @return		Log manager. */
+	LogManager *log() const { return m_log; }
 	/** @return		Engine main window. */
 	Window *window() const { return m_window; }
 
@@ -99,8 +109,9 @@ private:
 	EngineConfiguration m_config;
 
 	/** Global resources. */
-	LogManager *m_log;		/**< Log manager. */
+	AssetManager *m_assets;		/**< Asset manager. */
 	GPUInterface *m_gpu;		/**< GPU interface. */
+	LogManager *m_log;		/**< Log manager. */
 	Window *m_window;		/**< Main window. */
 
 	/** Active game world. */

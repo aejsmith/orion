@@ -39,14 +39,6 @@ public:
 	struct Entry {
 		std::string name;	/**< Name of the entry. */
 		FileType type;		/**< Type of the entry. */
-	public:
-		bool operator ==(const Entry &other) const {
-			return type == other.type && name == other.name;
-		}
-
-		bool operator !=(const Entry &other) const {
-			return type != other.type || name != other.name;
-		}
 	};
 public:
 	virtual ~Directory() {}

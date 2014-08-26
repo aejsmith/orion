@@ -5,6 +5,7 @@ import vcs
 Import('env')
 
 sources = util.flatten(SConscript(dirs = [
+    'asset',
     'core',
     'gpu',
     'lib',
