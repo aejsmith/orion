@@ -14,7 +14,7 @@ class ForwardRenderer : public SceneRenderer {
 public:
 	ForwardRenderer(Scene *scene, RenderTarget *target, const RendererParams &params);
 
-	void render(SceneView *view);
+	void render(SceneView *view) override;
 };
 
 #endif /* ORION_RENDER_FORWARD_RENDERER_H */

@@ -23,7 +23,7 @@ public:
 
 	static bool map_attribute(VertexAttribute::Semantic semantic, unsigned index, GLuint *gl);
 protected:
-	void _finalize();
+	void finalize_impl() override;
 private:
 	GLuint m_vao;			/**< Vertex array object. */
 	GPUBufferPtr m_bound_indices;	/**< Currently bound index buffer. */

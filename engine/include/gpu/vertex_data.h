@@ -10,7 +10,6 @@
 #include "gpu/buffer.h"
 #include "gpu/vertex_format.h"
 
-#include <memory>
 #include <vector>
 
 /**
@@ -32,7 +31,7 @@
  * Since this class may have an API-specific implementation, instances must be
  * created with GPUInterface::create_vertex_data().
  */
-class VertexData : Noncopyable {
+class VertexData : public GPUResource {
 public:
 	virtual ~VertexData();
 
@@ -63,7 +62,7 @@ protected:
 	explicit VertexData(size_t count);
 
 	/** Called when the object is being finalized. */
-	virtual void _finalize() {}
+	virtual void finalize_impl() {}
 protected:
 	size_t m_count;			/**< Vertex count. */
 	VertexFormatPtr m_format;	/**< Vertex format. */
@@ -75,6 +74,6 @@ protected:
 };
 
 /** Shared pointer to VertexData. */
-typedef std::shared_ptr<VertexData> VertexDataPtr;
+typedef GPUResourcePtr<VertexData> VertexDataPtr;
 
 #endif /* ORION_GPU_VERTEX_DATA_H */

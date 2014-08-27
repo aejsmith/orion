@@ -78,6 +78,6 @@ void VertexData::finalize() {
 		}
 	}
 
-	_finalize();
+	finalize_impl();
 	m_finalized = true;
 }

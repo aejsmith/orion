@@ -31,9 +31,9 @@ protected:
 protected:
 	explicit RendererComponent(Entity *entity);
 
-	void transformed();
-	void activated();
-	void deactivated();
+	void transformed() override;
+	void activated() override;
+	void deactivated() override;
 
 	/**
 	 * Create scene entities.

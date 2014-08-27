@@ -25,7 +25,7 @@ public:
 	void set_title(const std::string &title);
 
 	/** @return		Size of the window (in pixels). */
-	glm::ivec2 size() const { return m_size; }
+	glm::ivec2 size() const override { return m_size; }
 private:
 	SDL_Window *m_window;		/**< SDL window. */
 	glm::ivec2 m_size;		/**< Size of the window. */

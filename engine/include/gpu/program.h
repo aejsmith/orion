@@ -15,12 +15,10 @@
 #ifndef ORION_GPU_PROGRAM_H
 #define ORION_GPU_PROGRAM_H
 
-#include "core/defs.h"
-
-#include <memory>
+#include "gpu/defs.h"
 
 /** GPU program class. */
-class GPUProgram : Noncopyable {
+class GPUProgram : public GPUResource {
 public:
 	/** Type of the program. */
 	enum Type {
@@ -71,6 +69,6 @@ private:
 };
 
 /** Type of a GPU program pointer. */
-typedef std::shared_ptr<GPUProgram> GPUProgramPtr;
+typedef GPUResourcePtr<GPUProgram> GPUProgramPtr;
 
 #endif /* ORION_GPU_PROGRAM_H */

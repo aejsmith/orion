@@ -10,7 +10,6 @@
 #include "core/engine.h"
 
 #include "gpu/buffer.h"
-#include "gpu/defs.h"
 #include "gpu/index_data.h"
 #include "gpu/pipeline.h"
 #include "gpu/program.h"

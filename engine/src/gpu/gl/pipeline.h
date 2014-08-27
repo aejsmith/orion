@@ -21,7 +21,7 @@ public:
 	 * @return		Pipeline object ID. */
 	GLuint pipeline() const { return m_pipeline; }
 protected:
-	void _finalize();
+	void finalize_impl() override;
 private:
 	GLuint m_pipeline;		/**< Pipeline object ID. */
 };

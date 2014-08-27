@@ -17,7 +17,7 @@
  * used for rendering. Since this class may have an API-specific implementation,
  * instances must be created with GPUInterface::create_index_data().
  */
-class IndexData : Noncopyable {
+class IndexData : public GPUResource {
 public:
 	/** Type of index elements. */
 	enum Type {
@@ -37,7 +37,21 @@ public:
 	/** @return		Size of a single index element. */
 	size_t element_size() const { return element_size(m_type); }
 
-	static size_t element_size(Type type);
+	/** Get the size of a buffer element of a certain type.
+	 * @param type		Type of buffer element.
+	 * @return		Size of element. */
+	static size_t element_size(Type type) {
+		switch(type) {
+		case kUnsignedByteType:
+			return 1;
+		case kUnsignedShortType:
+			return 2;
+		case kUnsignedIntType:
+			return 4;
+		default:
+			return 0;
+		}
+	}
 protected:
 	IndexData(const GPUBufferPtr &buffer, Type type, size_t count);
 protected:
@@ -50,22 +64,6 @@ protected:
 };
 
 /** Shared pointer to IndexData. */
-typedef std::shared_ptr<IndexData> IndexDataPtr;
-
-/** Get the size of a buffer element of a certain type.
- * @param type		Type of buffer element.
- * @return		Size of element. */
-inline size_t IndexData::element_size(Type type) {
-	switch(type) {
-	case kUnsignedByteType:
-		return 1;
-	case kUnsignedShortType:
-		return 2;
-	case kUnsignedIntType:
-		return 4;
-	default:
-		return 0;
-	}
-}
+typedef GPUResourcePtr<IndexData> IndexDataPtr;
 
 #endif /* ORION_GPU_INDEX_DATA_H */

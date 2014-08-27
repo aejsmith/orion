@@ -7,7 +7,7 @@
 #ifndef ORION_GPU_DEFS_H
 #define ORION_GPU_DEFS_H
 
-#include "core/defs.h"
+#include "lib/refcounted.h"
 
 /** Possible primitive types. */
 enum class PrimitiveType {
@@ -84,5 +84,20 @@ enum class CullMode {
 	kBack,				/**< Cull back-facing polygons. */
 	kFront,				/**< Cull front-facing polygons. */
 };
+
+/**
+ * Base class for GPU resources.
+ *
+ * All GPU resources derive from this class. It includes reference counting
+ * functionality so that resources will only be freed once they have no more
+ * users. GPU resources are also not copyable.
+ */
+class GPUResource : public Refcounted, Noncopyable {
+protected:
+	GPUResource() {}
+};
+
+/** Type of a GPU resource pointer. */
+template <typename T> using GPUResourcePtr = ReferencePtr<T>;
 
 #endif /* ORION_GPU_DEFS_H */

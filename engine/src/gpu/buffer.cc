@@ -41,7 +41,7 @@ void GPUBuffer::write(size_t offset, size_t size, const void *buf) {
 		"Write outside buffer bounds (total: %zu, offset: %zu, size: %zu)",
 		m_size, offset, size);
 
-	_write(offset, size, buf);
+	write_impl(offset, size, buf);
 }
 
 /**
@@ -75,7 +75,7 @@ void *GPUBuffer::map(size_t offset, size_t size, uint32_t flags, uint32_t access
 	if(flags & kMapInvalidate && offset == 0 && size == m_size)
 		flags = (flags & ~kMapInvalidate) | kMapInvalidateBuffer;
 
-	void *ret = _map(offset, size, flags, access);
+	void *ret = map_impl(offset, size, flags, access);
 	m_mapped = true;
 	return ret;
 }
@@ -84,6 +84,6 @@ void *GPUBuffer::map(size_t offset, size_t size, uint32_t flags, uint32_t access
 void GPUBuffer::unmap() {
 	orion_check(m_mapped, "Unmapping buffer which is not currently mapped");
 
-	_unmap();
+	unmap_impl();
 	m_mapped = false;
 }

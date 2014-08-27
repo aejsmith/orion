@@ -32,5 +32,5 @@ void GPUPipeline::finalize() {
 		m_programs[GPUProgram::kVertexProgram] && m_programs[GPUProgram::kFragmentProgram],
 		"A pipeline requires at least a vertex and a fragment program");
 
-	_finalize();
+	finalize_impl();
 }

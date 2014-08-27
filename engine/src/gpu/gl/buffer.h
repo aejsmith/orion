@@ -22,9 +22,9 @@ public:
 	 * @return		Buffer ID. */
 	GLuint buffer() const { return m_buffer; }
 protected:
-	void _write(size_t offset, size_t size, const void *buf);
-	void *_map(size_t offset, size_t size, uint32_t flags, uint32_t access);
-	void _unmap();
+	void write_impl(size_t offset, size_t size, const void *buf) override;
+	void *map_impl(size_t offset, size_t size, uint32_t flags, uint32_t access) override;
+	void unmap_impl() override;
 private:
 	GLuint m_buffer;		/**< Buffer object ID. */
 	GLenum m_gl_target;		/**< GL target. */

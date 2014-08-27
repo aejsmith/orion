@@ -64,9 +64,9 @@ public:
 protected:
 	~CameraComponent();
 
-	void transformed();
-	void activated();
-	void deactivated();
+	void transformed() override;
+	void activated() override;
+	void deactivated() override;
 private:
 	void update_viewport();
 private:

@@ -34,7 +34,7 @@ void GLPipeline::bind() {
 }
 
 /** Finalize the pipeline. */
-void GLPipeline::_finalize() {
+void GLPipeline::finalize_impl() {
 	glGenProgramPipelines(1, &m_pipeline);
 
 	for(size_t i = 0; i < GPUProgram::kNumProgramTypes; i++) {

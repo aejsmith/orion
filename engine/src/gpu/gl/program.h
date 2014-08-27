@@ -15,8 +15,8 @@ public:
 	GLProgram(const char *path, Type type);
 	~GLProgram();
 
-	void bind_uniforms(const char *name, unsigned index);
-	void bind_texture(const char *name, unsigned index);
+	void bind_uniforms(const char *name, unsigned index) override;
+	void bind_texture(const char *name, unsigned index) override;
 
 	/** Get the GL program object.
 	 * @return		GL program object ID. */

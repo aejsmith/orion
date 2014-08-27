@@ -33,9 +33,9 @@ public:
 protected:
 	LightComponent(Entity *entity, SceneLight::Type type);
 
-	void transformed();
-	void activated();
-	void deactivated();
+	void transformed() override;
+	void activated() override;
+	void deactivated() override;
 
 	/**
 	 * Methods made public by derived classes that require them.

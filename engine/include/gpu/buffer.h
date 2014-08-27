@@ -7,11 +7,7 @@
 #ifndef ORION_GPU_BUFFER_H
 #define ORION_GPU_BUFFER_H
 
-#include "core/defs.h"
-
-#include "lib/noncopyable.h"
-
-#include <memory>
+#include "gpu/defs.h"
 
 /**
  * Class for storing data on the GPU.
@@ -21,7 +17,7 @@
  * implementation of the class is API-specific, therefore instances must be
  * created with GPUInterface::create_buffer().
  */
-class GPUBuffer : Noncopyable {
+class GPUBuffer : public GPUResource {
 public:
 	/** Enum of possible buffer types. */
 	enum Type {
@@ -96,9 +92,14 @@ public:
 protected:
 	GPUBuffer(Type type, Usage usage, size_t size);
 
-	virtual void _write(size_t offset, size_t size, const void *buf) = 0;
-	virtual void *_map(size_t offset, size_t size, uint32_t flags, uint32_t access) = 0;
-	virtual void _unmap() = 0;
+	/** API-specific implementation of write(). */
+	virtual void write_impl(size_t offset, size_t size, const void *buf) = 0;
+
+	/** API-specific implementation of map(). */
+	virtual void *map_impl(size_t offset, size_t size, uint32_t flags, uint32_t access) = 0;
+
+	/** API-specific implementation of unmap(). */
+	virtual void unmap_impl() = 0;
 protected:
 	Type m_type;			/**< Type of the buffer */
 	Usage m_usage;			/**< Buffer usage hint. */
@@ -107,7 +108,7 @@ protected:
 };
 
 /** Type of a pointer to a GPU buffer. */
-typedef std::shared_ptr<GPUBuffer> GPUBufferPtr;
+typedef GPUResourcePtr<GPUBuffer> GPUBufferPtr;
 
 /**
  * Scoped buffer mapper class.
@@ -152,7 +153,7 @@ public:
 	T &operator [](size_t n) const { return m_mapping[n]; }
 private:
 	/** Buffer being mapped.
-	 * @note		Hold just a reference to the shared_ptr as the
+	 * @note		Hold just a reference to the pointer as the
 	 *			user should hold the pointer itself while it has
 	 *			the buffer mapped. */
 	const GPUBufferPtr &m_buffer;

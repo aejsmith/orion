@@ -77,7 +77,7 @@ void VertexFormat::add_attribute(
 
 /** Finalize the format descriptor. */
 void VertexFormat::finalize() {
-	_finalize();
+	finalize_impl();
 	m_finalized = true;
 }
 

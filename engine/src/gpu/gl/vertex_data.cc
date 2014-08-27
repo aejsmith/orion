@@ -71,7 +71,7 @@ void GLVertexData::bind(const GPUBufferPtr &indices) {
 }
 
 /** Bind the VAO for rendering. */
-void GLVertexData::_finalize() {
+void GLVertexData::finalize_impl() {
 	glGenVertexArrays(1, &m_vao);
 	g_gl_context->state.bind_vao(m_vao);
 

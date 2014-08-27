@@ -52,7 +52,7 @@ void GLBuffer::bind_indexed(unsigned index) const {
  * @param offset	Offset to write at.
  * @param size		Size of the data to write.
  * @param buf		Buffer containing data to write. */
-void GLBuffer::_write(size_t offset, size_t size, const void *buf) {
+void GLBuffer::write_impl(size_t offset, size_t size, const void *buf) {
 	g_gl_context->state.bind_buffer(m_gl_target, m_buffer);
 
 	if(offset == 0 && size == m_size) {
@@ -68,7 +68,7 @@ void GLBuffer::_write(size_t offset, size_t size, const void *buf) {
  * @param flags		Bitmask of mapping behaviour flags (see MapFlags).
  * @param access	Bitmask of access flags.
  * @return		Pointer to mapped buffer. */
-void *GLBuffer::_map(size_t offset, size_t size, uint32_t flags, uint32_t access) {
+void *GLBuffer::map_impl(size_t offset, size_t size, uint32_t flags, uint32_t access) {
 	uint32_t gl = 0;
 
 	if(flags & kMapInvalidate)
@@ -94,7 +94,7 @@ void *GLBuffer::_map(size_t offset, size_t size, uint32_t flags, uint32_t access
 }
 
 /** Unmap the previous mapping created for the buffer with _map(). */
-void GLBuffer::_unmap() {
+void GLBuffer::unmap_impl() {
 	g_gl_context->state.bind_buffer(m_gl_target, m_buffer);
 	glUnmapBuffer(m_gl_target);
 }

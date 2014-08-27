@@ -60,7 +60,9 @@ public:
 	constexpr ReferencePtr(std::nullptr_t) : m_object(nullptr) {}
 
 	/** Point to an object, increasing its reference count. */
-	template <typename U, typename = typename std::enable_if<std::is_convertible<U *, T *>::value>::type>
+	template <
+		typename U,
+		typename = typename std::enable_if<std::is_convertible<U *, T *>::value>::type>
 	explicit ReferencePtr(U *ptr) :
 		m_object(ptr)
 	{
@@ -77,7 +79,9 @@ public:
 	}
 
 	/** Copy another pointer of compatible type, increasing the reference count. */
-	template <typename U, typename = typename std::enable_if<std::is_convertible<U *, T *>::value>::type>
+	template <
+		typename U,
+		typename = typename std::enable_if<std::is_convertible<U *, T *>::value>::type>
 	ReferencePtr(const ReferencePtr<U> &other) :
 		m_object(other.get())
 	{
@@ -106,7 +110,8 @@ public:
 
 	/** Copy another pointer of compatible type, increasing the reference count. */
 	template <typename U>
-	typename std::enable_if<std::is_convertible<U *, T *>::value, ReferencePtr &> operator =(const ReferencePtr<U> &other) {
+	typename std::enable_if<std::is_convertible<U *, T *>::value, ReferencePtr &>
+	operator =(const ReferencePtr<U> &other) {
 		reset(other.get());
 		return *this;
 	}
@@ -123,7 +128,8 @@ public:
 
 	/** Move another pointer of compatible type to this one. */
 	template <typename U>
-	typename std::enable_if<std::is_convertible<U *, T *>::value, ReferencePtr &> operator =(ReferencePtr<U> &&other) {
+	typename std::enable_if<std::is_convertible<U *, T *>::value, ReferencePtr &>
+	operator =(ReferencePtr<U> &&other) {
 		if(m_object)
 			m_object->release();
 
@@ -158,5 +164,17 @@ public:
 private:
 	T *m_object;			/**< Referenced object. */
 };
+
+/** Compare ReferencePtrs for equality. */
+template <typename T, typename U>
+bool operator ==(const ReferencePtr<T> &a, const ReferencePtr<U> &b) {
+	return a.get() == b.get();
+}
+
+/** Compare ReferencePtrs for inequality. */
+template <typename T, typename U>
+bool operator !=(const ReferencePtr<T> &a, const ReferencePtr<U> &b) {
+	return !(a == b);
+}
 
 #endif /* ORION_LIB_REFCOUNTED_H */

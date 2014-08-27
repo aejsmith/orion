@@ -10,7 +10,6 @@
 #include "gpu/program.h"
 
 #include <array>
-#include <memory>
 
 /**
  * Rendering pipeline.
@@ -32,7 +31,7 @@
  *			individual pipeline for each shader/vertex format
  *			combination which is somewhat awkward to support.
  */
-class GPUPipeline : Noncopyable {
+class GPUPipeline : public GPUResource {
 public:
 	virtual ~GPUPipeline();
 
@@ -50,7 +49,7 @@ protected:
 	GPUPipeline();
 
 	/** Called when the object is being finalized. */
-	virtual void _finalize() {}
+	virtual void finalize_impl() {}
 protected:
 	ProgramArray m_programs;	/**< Array of programs for each stage. */
 	bool m_finalized;		/**< Whether the state has been finalized. */
@@ -60,6 +59,6 @@ protected:
 };
 
 /** Type of a pipeline object pointer. */
-typedef std::shared_ptr<GPUPipeline> GPUPipelinePtr;
+typedef GPUResourcePtr<GPUPipeline> GPUPipelinePtr;
 
 #endif /* ORION_GPU_PIPELINE_H */

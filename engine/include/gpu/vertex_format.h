@@ -7,10 +7,9 @@
 #ifndef ORION_GPU_VERTEX_FORMAT_H
 #define ORION_GPU_VERTEX_FORMAT_H
 
-#include "core/defs.h"
+#include "gpu/defs.h"
 
 #include <list>
-#include <memory>
 #include <vector>
 
 /**
@@ -114,7 +113,7 @@ inline size_t VertexAttribute::size(Type type, size_t count) {
  * Since this class may have an API-specific implementation, instances must be
  * created with GPUInterface::create_vertex_format().
  */
-class VertexFormat {
+class VertexFormat : public GPUResource {
 public:
 	/** Type of the buffer array. */
 	typedef std::vector<VertexBufferDesc> BufferArray;
@@ -148,7 +147,7 @@ protected:
 	VertexFormat();
 
 	/** Called when the object is being finalized. */
-	virtual void _finalize() {}
+	virtual void finalize_impl() {}
 protected:
 	BufferArray m_buffers;		/**< Array of buffer descriptors. */
 	AttributeList m_attributes;	/**< List of all attributes. */
@@ -159,6 +158,6 @@ protected:
 };
 
 /** Shared pointer to VertexFormat. */
-typedef std::shared_ptr<VertexFormat> VertexFormatPtr;
+typedef GPUResourcePtr<VertexFormat> VertexFormatPtr;
 
 #endif /* ORION_GPU_VERTEX_FORMAT_H */
