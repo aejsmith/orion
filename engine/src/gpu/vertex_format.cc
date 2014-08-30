@@ -11,9 +11,6 @@
 /** Initialize a vertex format descriptor. */
 VertexFormat::VertexFormat() : m_finalized(false) {}
 
-/** Destroy the descriptor. */
-VertexFormat::~VertexFormat() {}
-
 /** Add a buffer.
  * @see			VertexBufferDesc.
  * @param index		Index of the buffer to add. */

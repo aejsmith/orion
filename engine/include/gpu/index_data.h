@@ -26,8 +26,6 @@ public:
 		kUnsignedIntType,	/**< Unsigned 32-bit. */
 	};
 public:
-	virtual ~IndexData();
-
 	/** @return		Buffer containing index data. */
 	GPUBufferPtr buffer() const { return m_buffer; }
 	/** @return		Type of index elements. */

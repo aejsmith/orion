@@ -7,6 +7,7 @@ sources += map(File, [
     'gpu.cc',
     'index_data.cc',
     'pipeline.cc',
+    'texture.cc',
     'vertex_data.cc',
     'vertex_format.cc',
 ])

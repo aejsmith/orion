@@ -23,9 +23,6 @@ VertexData::VertexData(size_t count) :
 	m_finalized(false)
 {}
 
-/** Destroy the vertex data object. */
-VertexData::~VertexData() {}
-
 /**
  * Set the vertex format.
  *

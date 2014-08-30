@@ -11,9 +11,6 @@
 /** Initialize the pipeline. */
 GPUPipeline::GPUPipeline() : m_finalized(false) {}
 
-/** Destroy the pipeline. */
-GPUPipeline::~GPUPipeline() {}
-
 /** Set the program to use for a stage.
  * @param stage		Stage to set for.
  * @param program	Program to set. Type must match stage. */

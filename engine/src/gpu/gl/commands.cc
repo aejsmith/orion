@@ -5,11 +5,12 @@
  */
 
 #include "buffer.h"
-#include "context.h"
-#include "gpu.h"
+#include "gl.h"
 #include "pipeline.h"
 #include "program.h"
 #include "vertex_data.h"
+
+#include "core/window.h"
 
 /** Bind a pipeline for rendering.
  * @param _pipeline	Pipeline to use. */
@@ -38,9 +39,9 @@ void GLGPUInterface::set_blend_mode(BlendFunc func, BlendFactor source_factor, B
 		source_factor != BlendFactor::kOne ||
 		dest_factor != BlendFactor::kZero;
 
-	g_gl_context->state.enable_blend(enable_blend);
-	g_gl_context->state.set_blend_equation(gl::convert_blend_func(func));
-	g_gl_context->state.set_blend_func(
+	g_opengl->state.enable_blend(enable_blend);
+	g_opengl->state.set_blend_equation(gl::convert_blend_func(func));
+	g_opengl->state.set_blend_func(
 		gl::convert_blend_factor(source_factor),
 		gl::convert_blend_factor(dest_factor));
 }
@@ -54,16 +55,16 @@ void GLGPUInterface::set_depth_mode(ComparisonFunc func, bool enable_write) {
 	 * depth test is disabled". */
 	bool enable_test = func != ComparisonFunc::kAlways || enable_write;
 
-	g_gl_context->state.enable_depth_test(enable_test);
-	g_gl_context->state.enable_depth_write(enable_write);
-	g_gl_context->state.set_depth_func(gl::convert_comparison_func(func));
+	g_opengl->state.enable_depth_test(enable_test);
+	g_opengl->state.enable_depth_write(enable_write);
+	g_opengl->state.set_depth_func(gl::convert_comparison_func(func));
 }
 
 /** End a frame and present it on screen.
  * @param vsync		Whether to wait for vertical sync. */
 void GLGPUInterface::end_frame(bool vsync) {
-	g_gl_context->state.set_swap_interval(vsync);
-	SDL_GL_SwapWindow(g_gl_context->sdl_window);
+	g_opengl->state.set_swap_interval(vsync);
+	SDL_GL_SwapWindow(g_engine->window()->sdl());
 }
 
 /** Clear rendering buffers.
@@ -75,17 +76,17 @@ void GLGPUInterface::clear(unsigned buffers, const glm::vec4 &colour, float dept
 	GLbitfield mask = 0;
 
 	if(buffers & RenderBuffer::kColourBuffer) {
-		g_gl_context->state.set_clear_colour(colour);
+		g_opengl->state.set_clear_colour(colour);
 		mask |= GL_COLOR_BUFFER_BIT;
 	}
 
 	if(buffers & RenderBuffer::kDepthBuffer) {
-		g_gl_context->state.set_clear_depth(depth);
+		g_opengl->state.set_clear_depth(depth);
 		mask |= GL_DEPTH_BUFFER_BIT;
 	}
 
 	if(buffers & RenderBuffer::kStencilBuffer) {
-		g_gl_context->state.set_clear_stencil(stencil);
+		g_opengl->state.set_clear_stencil(stencil);
 		mask |= GL_STENCIL_BUFFER_BIT;
 	}
 

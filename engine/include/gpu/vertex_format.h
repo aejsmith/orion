@@ -121,8 +121,6 @@ public:
 	/** Type of the attribute list. */
 	typedef std::list<VertexAttribute> AttributeList;
 public:
-	virtual ~VertexFormat();
-
 	void add_buffer(unsigned index, size_t stride);
 	void add_attribute(
 		VertexAttribute::Semantic semantic,

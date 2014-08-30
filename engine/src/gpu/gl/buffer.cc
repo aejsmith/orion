@@ -5,8 +5,7 @@
  */
 
 #include "buffer.h"
-#include "context.h"
-#include "gpu.h"
+#include "gl.h"
 
 /** Initialize a new GL buffer.
  * @param type		Type of the buffer.
@@ -20,21 +19,21 @@ GLBuffer::GLBuffer(Type type, Usage usage, size_t size) :
 	glGenBuffers(1, &m_buffer);
 
 	/* Create an initial data store. */
-	g_gl_context->state.bind_buffer(m_gl_target, m_buffer);
+	g_opengl->state.bind_buffer(m_gl_target, m_buffer);
 	glBufferData(m_gl_target, size, nullptr, m_gl_usage);
 }
 
 /** Destroy the buffer. */
 GLBuffer::~GLBuffer() {
-	if(g_gl_context->state.bound_buffers[m_gl_target] == m_buffer)
-		g_gl_context->state.bound_buffers[m_gl_target] = GL_NONE;
+	if(g_opengl->state.bound_buffers[m_gl_target] == m_buffer)
+		g_opengl->state.bound_buffers[m_gl_target] = GL_NONE;
 
 	glDeleteBuffers(1, &m_buffer);
 }
 
 /** Bind the buffer. */
 void GLBuffer::bind() const {
-	g_gl_context->state.bind_buffer(m_gl_target, m_buffer);
+	g_opengl->state.bind_buffer(m_gl_target, m_buffer);
 }
 
 /** Bind the buffer to an indexed target.
@@ -45,7 +44,7 @@ void GLBuffer::bind_indexed(unsigned index) const {
 	 * that can be used by other buffer manipulation functions". This means
 	 * that the general binding point used by bind() is separate and
 	 * unaffected by this function, and vice-versa. */
-	g_gl_context->state.bind_buffer_base(m_gl_target, index, m_buffer);
+	g_opengl->state.bind_buffer_base(m_gl_target, index, m_buffer);
 }
 
 /** Write data to the buffer.
@@ -53,7 +52,7 @@ void GLBuffer::bind_indexed(unsigned index) const {
  * @param size		Size of the data to write.
  * @param buf		Buffer containing data to write. */
 void GLBuffer::write_impl(size_t offset, size_t size, const void *buf) {
-	g_gl_context->state.bind_buffer(m_gl_target, m_buffer);
+	g_opengl->state.bind_buffer(m_gl_target, m_buffer);
 
 	if(offset == 0 && size == m_size) {
 		glBufferData(m_gl_target, m_size, buf, m_gl_usage);
@@ -81,7 +80,7 @@ void *GLBuffer::map_impl(size_t offset, size_t size, uint32_t flags, uint32_t ac
 	if(access & kWriteAccess)
 		gl |= GL_MAP_WRITE_BIT;
 
-	g_gl_context->state.bind_buffer(m_gl_target, m_buffer);
+	g_opengl->state.bind_buffer(m_gl_target, m_buffer);
 
 	/* If we are invalidating, reallocate storage explicitly. OS X's GL
 	 * implementation appears to be too stupid to do this itself, doing
@@ -95,7 +94,7 @@ void *GLBuffer::map_impl(size_t offset, size_t size, uint32_t flags, uint32_t ac
 
 /** Unmap the previous mapping created for the buffer with _map(). */
 void GLBuffer::unmap_impl() {
-	g_gl_context->state.bind_buffer(m_gl_target, m_buffer);
+	g_opengl->state.bind_buffer(m_gl_target, m_buffer);
 	glUnmapBuffer(m_gl_target);
 }
 

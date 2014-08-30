@@ -7,7 +7,7 @@
 #ifndef ORION_GPU_GL_PIPELINE_H
 #define ORION_GPU_GL_PIPELINE_H
 
-#include "defs.h"
+#include "gl.h"
 
 /** OpenGL pipeline implementation. */
 class GLPipeline : public GPUPipeline {

@@ -7,7 +7,7 @@
 #ifndef ORION_GPU_GL_PROGRAM_H
 #define ORION_GPU_GL_PROGRAM_H
 
-#include "defs.h"
+#include "gl.h"
 
 /** OpenGL GPU program implementation. */
 class GLProgram : public GPUProgram {

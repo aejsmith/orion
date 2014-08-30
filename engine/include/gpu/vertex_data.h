@@ -33,8 +33,6 @@
  */
 class VertexData : public GPUResource {
 public:
-	virtual ~VertexData();
-
 	void set_format(const VertexFormatPtr &format);
 	void set_buffer(unsigned index, const GPUBufferPtr &buffer);
 

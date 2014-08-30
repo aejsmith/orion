@@ -85,6 +85,18 @@ enum class CullMode {
 	kFront,				/**< Cull front-facing polygons. */
 };
 
+/** Faces for a cubemap. */
+namespace CubeFace {
+	enum {
+		kPositiveX,		/**< Positive X direction. */
+		kNegativeX,		/**< Negative X direction. */
+		kPositiveY,		/**< Positive Y direction. */
+		kNegativeY,		/**< Negative Y direction. */
+		kPositiveZ,		/**< Positive Z direction. */
+		kNegativeZ,		/**< Negative Z direction. */
+	};
+}
+
 /**
  * Base class for GPU resources.
  *

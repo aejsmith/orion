@@ -27,8 +27,6 @@ public:
 		kNumProgramTypes,
 	};
 public:
-	virtual ~GPUProgram() {}
-
 	/**
 	 * Bind a uniform block in the program.
 	 *

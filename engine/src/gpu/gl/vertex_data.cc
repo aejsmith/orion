@@ -20,8 +20,7 @@
  * between the various attribute semantics.
  */
 
-#include "context.h"
-#include "gpu.h"
+#include "gl.h"
 #include "vertex_data.h"
 
 /** Initialize the vertex data object.
@@ -35,8 +34,8 @@ GLVertexData::GLVertexData(size_t vertices) :
 /** Destroy the vertex data object. */
 GLVertexData::~GLVertexData() {
 	if(m_vao != GL_NONE) {
-		if(g_gl_context->state.bound_vao == m_vao)
-			g_gl_context->state.bind_vao(g_gl_context->default_vao);
+		if(g_opengl->state.bound_vao == m_vao)
+			g_opengl->state.bind_vao(g_opengl->default_vao);
 
 		glDeleteVertexArrays(1, &m_vao);
 	}
@@ -47,7 +46,7 @@ GLVertexData::~GLVertexData() {
 void GLVertexData::bind(const GPUBufferPtr &indices) {
 	orion_assert(m_finalized);
 
-	g_gl_context->state.bind_vao(m_vao);
+	g_opengl->state.bind_vao(m_vao);
 
 	/* As described at the top of the file, the index buffer binding is
 	 * part of VAO state. If the index buffer being used for rendering is
@@ -55,7 +54,7 @@ void GLVertexData::bind(const GPUBufferPtr &indices) {
 	 * a call to glBindBuffer here.
 	 *
 	 * We call glBindBuffer directly here as we don't want the binding we
-	 * set here to affect the context GLState. Additionally, GLState has a
+	 * set here to affect the global GLState. Additionally, GLState has a
 	 * special case to switch back to the default VAO if changing the index
 	 * buffer binding. */
 	if(unlikely(indices != m_bound_indices)) {
@@ -73,7 +72,7 @@ void GLVertexData::bind(const GPUBufferPtr &indices) {
 /** Bind the VAO for rendering. */
 void GLVertexData::finalize_impl() {
 	glGenVertexArrays(1, &m_vao);
-	g_gl_context->state.bind_vao(m_vao);
+	g_opengl->state.bind_vao(m_vao);
 
 	for(const VertexAttribute &attribute : m_format->attributes()) {
 		GLuint index;

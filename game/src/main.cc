@@ -298,6 +298,9 @@ int main(int argc, char **argv) {
 		VertexAttribute::kFloatType, 4, 0, offsetof(Vertex, r));
 	test_vertex_format->finalize();
 
+	GPUTexture2DDesc desc = { 1024, 1024, PixelFormat::kRGBA8, 0, 0 };
+	GPUTexturePtr texture = g_engine->gpu()->create_texture(desc);
+
 	World *world = engine.create_world();
 
 	AmbientLightComponent *ambient_light = world->root()->create_component<AmbientLightComponent>();

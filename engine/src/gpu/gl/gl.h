@@ -1,23 +1,116 @@
 /**
  * @file
  * @copyright		2014 Alex Smith
- * @brief		OpenGL internal definitions and helper functions.
+ * @brief		OpenGL GPU interface implementation.
  */
 
-#ifndef ORION_GPU_GL_DEFS_H
-#define ORION_GPU_GL_DEFS_H
+#ifndef ORION_GPU_GL_GL_H
+#define ORION_GPU_GL_GL_H
+
+#include "state.h"
 
 #include "gpu/gpu.h"
 
-#include <GL/glew.h>
-
 #include <SDL.h>
+
+#include <array>
 
 /** Define to 1 to enable ARB_debug_output. */
 #define ORION_GL_DEBUG			1
 
 /** Define to 1 to enable ARB_debug_output notification messages (excessive). */
 #define ORION_GL_DEBUG_NOTIFICATIONS	0
+
+/** Target GL major version. */
+static const int kGLMajorVersion = 3;
+
+/** Target GL minor version. */
+static const int kGLMinorVersion = 3;
+
+#include "state.h"
+
+/** OpenGL feature information. */
+struct GLFeatures {
+	/** Cached glGet* parameters. */
+	GLint max_texture_units;	/**< GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS */
+};
+
+/** Structure mapping PixelFormat to GL types. */
+struct GLPixelFormat {
+	GLenum internal_format;		/**< Internal texture format. */
+	GLenum format;			/**< Pixel data format. */
+	GLenum type;			/**< Pixel data type. */
+public:
+	GLPixelFormat(GLenum i = GL_NONE, GLenum f = GL_NONE, GLenum t = GL_NONE) :
+		internal_format(i),
+		format(f),
+		type(t)
+	{}
+};
+
+/** OpenGL GPU interface implementation. */
+class GLGPUInterface : public GPUInterface {
+public:
+	/** Type of the pixel format mapping array. */
+	typedef std::array<GLPixelFormat, PixelFormat::kNumFormats> PixelFormatArray;
+public:
+	GLGPUInterface();
+	~GLGPUInterface();
+
+	void init(SDL_Window *window) override;
+
+	/**
+	 * GPU interface methods.
+	 */
+
+	GPUBufferPtr create_buffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) override;
+	VertexDataPtr create_vertex_data(size_t vertices) override;
+	GPUPipelinePtr create_pipeline() override;
+	GPUProgramPtr load_program(const char *path, GPUProgram::Type type) override;
+	GPUTexturePtr create_texture(const GPUTexture2DDesc &desc) override;
+	GPUTexturePtr create_texture(const GPUTexture2DArrayDesc &desc) override;
+	GPUTexturePtr create_texture(const GPUTextureCubeDesc &desc) override;
+	GPUTexturePtr create_texture(const GPUTexture3DDesc &desc) override;
+
+	void bind_pipeline(const GPUPipelinePtr &pipeline) override;
+	void bind_uniform_buffer(unsigned index, const GPUBufferPtr &buffer) override;
+	void set_blend_mode(BlendFunc func, BlendFactor source_factor, BlendFactor dest_factor) override;
+	void set_depth_mode(ComparisonFunc func, bool enable_write) override;
+
+	void end_frame(bool vsync) override;
+
+	void clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil) override;
+	void draw(PrimitiveType type, const VertexDataPtr &vertices, const IndexDataPtr &indices) override;
+public:
+	/** GL feature information. */
+	GLFeatures features;
+	/** Mapping of engine pixel formats to GL types. */
+	PixelFormatArray pixel_formats;
+	/** Cached GL state. */
+	GLState state;
+	/** Default VAO when no object-specific VAO is in use. */
+	GLuint default_vao;
+private:
+	void init_features();
+	void init_pixel_formats();
+
+	static GLEWAPIENTRY void debug_callback(
+		GLenum source,
+		GLenum type,
+		GLuint id,
+		GLenum severity,
+		GLsizei length,
+		const GLchar *message,
+		const GLvoid *param);
+private:
+	SDL_GLContext m_sdl_context;	/**< SDL GL context. */
+};
+
+extern GLGPUInterface *g_opengl;
+
+/**
+ * Utility functions.
+ */
 
 namespace gl {
 
@@ -232,4 +325,4 @@ static inline GLbitfield convert_program_type_bitfield(GPUProgram::Type type) {
 
 }
 
-#endif /* ORION_GPU_GL_DEFS_H */
+#endif /* ORION_GPU_GL_GL_H */

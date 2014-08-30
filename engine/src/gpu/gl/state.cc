@@ -4,8 +4,7 @@
  * @brief		OpenGL state management.
  */
 
-#include "context.h"
-#include "state.h"
+#include "gl.h"
 
 /**
  * Initalize the GL state.
@@ -26,9 +25,23 @@ GLState::GLState() :
 	depth_test_enabled(false),
 	depth_write_enabled(true),
 	depth_func(GL_LESS),
-	bound_vao(GL_NONE),
-	bound_pipeline(GL_NONE)
+	bound_vao(0),
+	bound_pipeline(0),
+	active_texture(0),
+	texture_units(nullptr)
 {}
+
+/** Destroy the GL state. */
+GLState::~GLState() {
+	if(this->texture_units)
+		delete[] this->texture_units;
+}
+
+/** Allocate arrays dependent on GL implementation capabilities.
+ * @param features	GL features description. */
+void GLState::init_resources(GLFeatures &features) {
+	this->texture_units = new TextureUnit[features.max_texture_units];
+}
 
 /** Set the current swap interval.
  * @param interval	Interval to set (passed to SDL_GL_SetSwapInterval). */
@@ -152,7 +165,7 @@ void GLState::bind_buffer(GLenum target, GLuint buffer) {
 		 * on the default VAO so that we don't affect the per-object
 		 * VAOs and so that we can keep track of the currently bound
 		 * buffer more easily. */
-		bind_vao(g_gl_context->default_vao);
+		bind_vao(g_opengl->default_vao);
 	}
 
 	if(this->bound_buffers[target] != buffer) {
@@ -179,5 +192,39 @@ void GLState::bind_pipeline(GLuint pipeline) {
 	if(this->bound_pipeline != pipeline) {
 		glBindProgramPipeline(pipeline);
 		this->bound_pipeline = pipeline;
+	}
+}
+
+/**
+ * Bind a texture to a texture unit.
+ *
+ * Makes the specified texture unit active and binds the given texture to it.
+ * Although technically you can bind multiple textures with different targets
+ * to the same texture unit, bad things are likely to happen if this is done,
+ * so we don't allow it - we only bind one texture at a time to a unit.
+ *
+ * @param unit		Texture unit to bind to. Note this is specified as
+ *			the unit, not as a GL_TEXTUREn constant - this is added
+ *			on automatically.
+ * @param target	Texture target to bind.
+ * @param texture	Texture object to bind.
+ */
+void GLState::bind_texture(unsigned unit, GLenum target, GLuint texture) {
+	if(this->active_texture != unit) {
+		glActiveTexture(GL_TEXTURE0 + unit);
+		this->active_texture = unit;
+	}
+
+	TextureUnit &unit_state = this->texture_units[unit];
+	if(unit_state.target != target || unit_state.texture != texture) {
+		if(unit_state.target != target && unit_state.texture != 0) {
+			/* Unbind the texture currently bound so that we don't
+			 * have multiple textures bound to different targets. */
+			glBindTexture(unit_state.target, 0);
+		}
+
+		glBindTexture(target, texture);
+		unit_state.target = target;
+		unit_state.texture = texture;
 	}
 }

@@ -13,6 +13,7 @@
 #include "gpu/index_data.h"
 #include "gpu/pipeline.h"
 #include "gpu/program.h"
+#include "gpu/texture.h"
 #include "gpu/vertex_data.h"
 
 struct SDL_Window;
@@ -44,10 +45,31 @@ public:
 	 * @return		Pointer to created buffer. */
 	virtual GPUBufferPtr create_buffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) = 0;
 
-	virtual VertexFormatPtr create_vertex_format();
-	virtual VertexDataPtr create_vertex_data(size_t vertices);
-	virtual IndexDataPtr create_index_data(const GPUBufferPtr &buffer, IndexData::Type type, size_t count);
-	virtual GPUPipelinePtr create_pipeline();
+	/** Create a vertex format descriptor.
+	 * @return		Pointer to created vertex format descriptor. */
+	virtual VertexFormatPtr create_vertex_format() {
+		return VertexFormatPtr(new VertexFormat);
+	}
+
+	/** Create a vertex data object.
+	 * @see			VertexData::VertexData().
+	 * @return		Pointer to created vertex data object. */
+	virtual VertexDataPtr create_vertex_data(size_t vertices) {
+		return VertexDataPtr(new VertexData(vertices));
+	}
+
+	/** Create an index data object.
+	 * @see			IndexData::IndexData().
+	 * @return		Pointer to created index data object. */
+	virtual IndexDataPtr create_index_data(const GPUBufferPtr &buffer, IndexData::Type type, size_t count) {
+		return IndexDataPtr(new IndexData(buffer, type, count));
+	}
+
+	/** Create a pipeline object.
+	 * @return		Pointer to created pipeline. */
+	virtual GPUPipelinePtr create_pipeline() {
+		return GPUPipelinePtr(new GPUPipeline());
+	}
 
 	/** Load a GPU program.
 	 * @note	 	This is temporary until the resource system is
@@ -56,6 +78,26 @@ public:
 	 * @param type		Type of the program.
 	 * @return		Pointer to created program. */
 	virtual GPUProgramPtr load_program(const char *path, GPUProgram::Type type) = 0;
+
+	/** Create a 2D texture.
+	 * @param desc		Descriptor containing texture parameters.
+	 * @return		Pointer to created texture. */
+	virtual GPUTexturePtr create_texture(const GPUTexture2DDesc &desc) = 0;
+
+	/** Create a 2D array texture.
+	 * @param desc		Descriptor containing texture parameters.
+	 * @return		Pointer to created texture. */
+	virtual GPUTexturePtr create_texture(const GPUTexture2DArrayDesc &desc) = 0;
+
+	/** Create a cube texture.
+	 * @param desc		Descriptor containing texture parameters.
+	 * @return		Pointer to created texture. */
+	virtual GPUTexturePtr create_texture(const GPUTextureCubeDesc &desc) = 0;
+
+	/** Create a 3D texture.
+	 * @param desc		Descriptor containing texture parameters.
+	 * @return		Pointer to created texture. */
+	virtual GPUTexturePtr create_texture(const GPUTexture3DDesc &desc) = 0;
 
 	/**
 	 * State methods.

@@ -7,17 +7,18 @@
 #ifndef ORION_GPU_GL_STATE_H
 #define ORION_GPU_GL_STATE_H
 
-#include "defs.h"
+#include "core/defs.h"
 
-struct GLContext;
+#include <GL/glew.h>
+
+struct GLFeatures;
 
 /**
- * Object managing OpenGL state.
+ * OpenGL state cache.
  *
- * This class holds information about OpenGL state. GLContext contains a state
- * object which caches the current state for that context. In most cases, GL
- * state changes should be made by calling functions on the active context's
- * state object.
+ * This class caches current OpenGL state, to avoid unnecessary API calls to
+ * change state. GLGPUInterface holds an instance of it, GL state changes should
+ * be made by calling functions on that.
  *
  * When adding state to this structure, be sure to add default initializers to
  * the constructor.
@@ -27,23 +28,36 @@ struct GLState {
 	class BufferBindings {
 	public:
 		BufferBindings() :
-			m_array_buffer(GL_NONE),
-			m_element_array_buffer(GL_NONE),
-			m_uniform_buffer(GL_NONE)
+			m_array_buffer(0),
+			m_element_array_buffer(0),
+			m_uniform_buffer(0)
 		{}
 
+		/** @return		Current binding for the specified target. */
 		GLuint &operator [](GLenum target) {
 			switch(target) {
-			case GL_ARRAY_BUFFER:		return m_array_buffer;
-			case GL_ELEMENT_ARRAY_BUFFER:	return m_element_array_buffer;
-			case GL_UNIFORM_BUFFER:		return m_uniform_buffer;
-			default:			unreachable();
+			case GL_ARRAY_BUFFER:
+				return m_array_buffer;
+			case GL_ELEMENT_ARRAY_BUFFER:
+				return m_element_array_buffer;
+			case GL_UNIFORM_BUFFER:
+				return m_uniform_buffer;
+			default:
+				unreachable();
 			}
 		}
 	private:
 		GLuint m_array_buffer;
 		GLuint m_element_array_buffer;
 		GLuint m_uniform_buffer;
+	};
+
+	/** Structure holding texture unit state. */
+	struct TextureUnit {
+		GLenum target;
+		GLuint texture;
+	public:
+		TextureUnit() : target(GL_NONE), texture(0) {}
 	};
 public:
 	int swap_interval;		/**< Current swap interval. */
@@ -68,8 +82,13 @@ public:
 	GLuint bound_vao;
 	BufferBindings bound_buffers;
 	GLuint bound_pipeline;
+	unsigned active_texture;
+	TextureUnit *texture_units;
 public:
 	GLState();
+	~GLState();
+
+	void init_resources(GLFeatures &features);
 
 	void set_swap_interval(int interval);
 
@@ -89,6 +108,7 @@ public:
 	void bind_buffer(GLenum target, GLuint buffer);
 	void bind_buffer_base(GLenum target, GLuint index, GLuint buffer);
 	void bind_pipeline(GLuint pipeline);
+	void bind_texture(unsigned unit, GLenum target, GLuint texture);
 };
 
 #endif /* ORION_GPU_GL_STATE_H */

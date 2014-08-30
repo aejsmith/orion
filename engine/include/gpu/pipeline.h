@@ -33,8 +33,6 @@
  */
 class GPUPipeline : public GPUResource {
 public:
-	virtual ~GPUPipeline();
-
 	void set_program(GPUProgram::Type stage, const GPUProgramPtr &program);
 	void finalize();
 

@@ -10,7 +10,7 @@
  * attached.
  */
 
-#include "gpu.h"
+#include "gl.h"
 #include "program.h"
 
 #include <fstream>

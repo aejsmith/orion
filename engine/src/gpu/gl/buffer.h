@@ -7,7 +7,7 @@
 #ifndef ORION_GPU_GL_BUFFER_H
 #define ORION_GPU_GL_BUFFER_H
 
-#include "defs.h"
+#include "gl.h"
 
 /** OpenGL GPU buffer implementation. */
 class GLBuffer : public GPUBuffer {

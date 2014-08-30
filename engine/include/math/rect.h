@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright		2014 Alex Smith
- * @brief		Rectangle structure.
+ * @brief		2D rectangle structure.
  */
 
 #ifndef ORION_MATH_RECT_H
@@ -72,6 +72,6 @@ public:
 typedef RectImpl<float> Rect;
 
 /** Rectangle using integer values. */
-typedef RectImpl<int> IntRect;
+typedef RectImpl<int32_t> IntRect;
 
 #endif /* ORION_MATH_RECT_H */

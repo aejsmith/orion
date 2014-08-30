@@ -1,10 +1,11 @@
 sources = map(File, [
     'buffer.cc',
     'commands.cc',
-    'context.cc',
+    'gl.cc',
     'pipeline.cc',
     'program.cc',
     'state.cc',
+    'texture.cc',
     'vertex_data.cc',
 ])
 

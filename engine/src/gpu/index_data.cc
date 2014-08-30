@@ -26,6 +26,3 @@ IndexData::IndexData(const GPUBufferPtr &buffer, Type type, size_t count) :
 	orion_assert(buffer->type() == GPUBuffer::kIndexBuffer);
 	orion_assert(buffer->size() == (element_size() * count));
 }
-
-/** Destroy the index data object. */
-IndexData::~IndexData() {}
