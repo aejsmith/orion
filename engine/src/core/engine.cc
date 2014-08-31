@@ -58,6 +58,7 @@ void Engine::shutdown() {
 	if(m_world)
 		delete m_world;
 
+	delete m_assets;
 	delete m_gpu;
 	delete m_window;
 	delete m_log;

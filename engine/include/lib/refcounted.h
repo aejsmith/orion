@@ -31,7 +31,6 @@
 class Refcounted {
 public:
 	Refcounted() : m_refcount(0) {}
-	virtual ~Refcounted();
 
 	/** Increase the object's reference count.
 	 * @return		New value of the reference count. */
@@ -41,9 +40,10 @@ public:
 
 	/** @return		Current reference count. */
 	int32_t refcount() const { return m_refcount; }
+protected:
+	virtual ~Refcounted();
 private:
-	/** Called when the object is released. */
-	virtual void released() {}
+	virtual void released();
 private:
 	mutable int32_t m_refcount;	/**< Object reference count. */
 };

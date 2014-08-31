@@ -333,5 +333,10 @@ int main(int argc, char **argv) {
 	point_light->set_active(true);
 
 	engine.run();
-	return 0;
+
+	/* FIXME: This is somewhat a hack for now. We have a problem with
+	 * destruction of global objects, in particular GPU resource pointers.
+	 * These are effectively destroyed when m_gpu is deleted above, but
+	 * their destructors will be called after this, leading to crashes. */
+	_Exit(0);
 }

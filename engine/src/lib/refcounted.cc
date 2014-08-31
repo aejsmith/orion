@@ -34,3 +34,8 @@ int32_t Refcounted::release() const {
 
 	return ret;
 }
+
+/** Called when the object is released. */
+void Refcounted::released() {
+	delete this;
+}
