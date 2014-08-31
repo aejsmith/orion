@@ -14,6 +14,7 @@
 #include <SDL.h>
 
 #include <array>
+#include <set>
 
 /** Define to 1 to enable ARB_debug_output. */
 #define ORION_GL_DEBUG			1
@@ -21,18 +22,25 @@
 /** Define to 1 to enable ARB_debug_output notification messages (excessive). */
 #define ORION_GL_DEBUG_NOTIFICATIONS	0
 
-/** Target GL major version. */
-static const int kGLMajorVersion = 3;
-
-/** Target GL minor version. */
-static const int kGLMinorVersion = 3;
-
 #include "state.h"
 
-/** OpenGL feature information. */
+/** OpenGL feature information.
+ * @todo		Add a bitmap of features that we often need to check
+ *			for so we don't have to do a string comparison every
+ *			time they are checked. */
 struct GLFeatures {
+	/** List of extensions. */
+	std::set<std::string> extensions;
+
 	/** Cached glGet* parameters. */
 	GLint max_texture_units;	/**< GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS */
+public:
+	/** Check whether an extension is supported.
+	 * @param extension	Extension to check for.
+	 * @return		Whether the extension is supported. */
+	bool operator [](const char *extension) const {
+		return this->extensions.find(extension) != this->extensions.end();
+	}
 };
 
 /** Structure mapping PixelFormat to GL types. */

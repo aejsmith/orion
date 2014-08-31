@@ -11,11 +11,16 @@
 /** Global GL GPU interface. */
 GLGPUInterface *g_opengl = nullptr;
 
-/** Required OpenGL features. */
-static const char *required_gl_features[] = {
-	"GL_VERSION_3_3",
+/** Target GL major version. */
+static const int kGLMajorVersion = 3;
+
+/** Target GL minor version. */
+static const int kGLMinorVersion = 3;
+
+/** Required OpenGL extensions. */
+static const char *required_gl_extensions[] = {
 	"GL_ARB_separate_shader_objects",
-	//"GL_ARB_texture_storage",
+	"GL_ARB_texture_storage",
 };
 
 /** Initialize the GPU interface. */
@@ -78,13 +83,7 @@ void GLGPUInterface::init(SDL_Window *window) {
 	if(glewInit() != GLEW_OK)
 		orion_abort("Failed to initialize GLEW");
 
-	/* Log some OpenGL details. */
-	orion_log(LogLevel::kInfo, "OpenGL vendor:   %s", glGetString(GL_VENDOR));
-	orion_log(LogLevel::kInfo, "OpenGL renderer: %s", glGetString(GL_RENDERER));
-	orion_log(LogLevel::kInfo, "OpenGL version:  %s", glGetString(GL_VERSION));
-	orion_log(LogLevel::kInfo, "GLEW version:    %s", glewGetString(GLEW_VERSION));
-
-	/* Initialize the features table. */
+	/* Initialize the features table and check requirements. */
 	init_features();
 	this->state.init_resources(this->features);
 
@@ -93,7 +92,7 @@ void GLGPUInterface::init(SDL_Window *window) {
 
 	#if ORION_GL_DEBUG
 		/* Hook up debug output if supported. */
-		if(glewIsSupported("GL_ARB_debug_output")) {
+		if(this->features["GL_ARB_debug_output"]) {
 			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 			glDebugMessageCallback(debug_callback, nullptr);
 			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE,
@@ -117,18 +116,39 @@ void GLGPUInterface::init(SDL_Window *window) {
 void GLGPUInterface::init_features() {
 	GLFeatures &features = this->features;
 
-	/* Check for required OpenGL functionality. */
-	for(size_t i = 0; i < util::array_size(required_gl_features); i++) {
-		if(!glewIsSupported(required_gl_features[i])) {
-			orion_abort(
-				"Required OpenGL feature '%s' is not supported",
-				required_gl_features[i]);
-		}
+	/* Log some OpenGL details. */
+	orion_log(LogLevel::kInfo, "OpenGL vendor:   %s", glGetString(GL_VENDOR));
+	orion_log(LogLevel::kInfo, "OpenGL renderer: %s", glGetString(GL_RENDERER));
+	orion_log(LogLevel::kInfo, "OpenGL version:  %s", glGetString(GL_VERSION));
+
+	/* Check whether the version number is high enough. */
+	GLint major = 0, minor = 0;
+	glGetIntegerv(GL_MAJOR_VERSION, &major);
+	glGetIntegerv(GL_MINOR_VERSION, &minor);
+	if(major < kGLMajorVersion || (major == kGLMajorVersion && minor < kGLMinorVersion))
+		orion_abort("OpenGL version %d.%d is required", kGLMajorVersion, kGLMinorVersion);
+
+	/* Query supported extensions. */
+	GLint count = 0;
+	glGetIntegerv(GL_NUM_EXTENSIONS, &count);
+	for(GLint i = 0; i < count; i++) {
+		std::string extension((const char *)glGetStringi(GL_EXTENSIONS, i));
+		features.extensions.insert(extension);
 	}
 
-	/* Temporary: https://github.com/nigels-com/glew/issues/15 */
-	if(!glTexStorage2D)
-		orion_abort("Required OpenGL feature 'GL_ARB_texture_storage' is not supported");
+	/* Print out a (sorted) list of the extensions found. */
+	orion_log(LogLevel::kDebug, "OpenGL extensions:");
+	for(const std::string &extension : features.extensions)
+		orion_log(LogLevel::kDebug, " %s", extension.c_str());
+
+	/* Check for required extensions. */
+	for(size_t i = 0; i < util::array_size(required_gl_extensions); i++) {
+		if(!this->features[required_gl_extensions[i]]) {
+			orion_abort(
+				"Required OpenGL extension '%s' is not supported",
+				required_gl_extensions[i]);
+		}
+	}
 
 	/* Cache some GL information. */
 	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &features.max_texture_units);
