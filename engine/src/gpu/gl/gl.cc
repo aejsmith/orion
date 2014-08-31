@@ -94,7 +94,7 @@ void GLGPUInterface::init(SDL_Window *window) {
 		/* Hook up debug output if supported. */
 		if(this->features["GL_ARB_debug_output"]) {
 			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-			glDebugMessageCallback(debug_callback, nullptr);
+			glDebugMessageCallback((GLDEBUGPROC)debug_callback, nullptr);
 			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE,
 				GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr,
 				ORION_GL_DEBUG_NOTIFICATIONS);

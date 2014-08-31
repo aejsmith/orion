@@ -9,6 +9,7 @@
 
 #include "core/defs.h"
 
+#include <algorithm>
 #include <type_traits>
 
 /**

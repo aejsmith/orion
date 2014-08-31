@@ -25,6 +25,8 @@
 
 #include "lib/fs.h"
 
+#include <memory>
+
 /** Filesystem asset store constructor.
  * @param path		Base path for the asset store. */
 FilesystemAssetStore::FilesystemAssetStore(const std::string &path) :

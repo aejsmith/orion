@@ -26,6 +26,8 @@
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
 
+#include <memory>
+
 /** Initialize the asset manager.
  * @param config	Engine configuration structure. */
 AssetManager::AssetManager(const EngineConfiguration &config) {
