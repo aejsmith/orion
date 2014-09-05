@@ -3,10 +3,9 @@
  * @copyright		2014 Alex Smith
  * @brief		Engine asset manager.
  *
- * I think most of the way this works now will be temporary. In future I think
- * it will be changed so that assets will be stored as serialized objects, which
- * are then unserialized into the assets. This will include asset data as well
- * as attributes.
+ * The way this works now is somewhat temporary. At the moment we always load
+ * in data from disk. I think in future we will store assets as serialized
+ * objects, which would include the asset data as well as attributes.
  *
  * Loaders would become importers that initially create an asset from a file in
  * the editor, but they would not be used at runtime. The external interface
@@ -17,351 +16,175 @@
  * fiddle with things with JSON attributes.
  */
 
-#include "filesystem_asset_store.h"
-
-#include "asset/asset_factory.h"
 #include "asset/asset_loader.h"
 #include "asset/asset_manager.h"
+
+#include "core/engine.h"
+
+#include "lib/filesystem.h"
 
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
 
 #include <memory>
 
-/** Initialize the asset manager.
- * @param config	Engine configuration structure. */
-AssetManager::AssetManager(const EngineConfiguration &config) {
-	/* Create and register the default store factories. */
-	register_store_factory(new FilesystemAssetStoreFactory);
-
-	/* Mount the engine internal assets. */
-	if(!mount_store("engine", "fs", "engine/assets"))
-		orion_abort("Failed to mount engine asset store");
-
-	/* Mount all asset stores specified in the configuration. */
-	for(const EngineConfiguration::AssetStoreTuple &store : config.asset_stores) {
-		std::string name, type, path;
-		std::tie(name, type, path) = store;
-
-		if(!mount_store(name, type, path)) {
-			orion_abort(
-				"Failed to mount asset store '%s' (%s://%s)",
-				name.c_str(), type.c_str(), path.c_str());
-		}
-	}
+/** Initialize the asset manager. */
+AssetManager::AssetManager() {
+	/* Register asset search paths. */
+	m_search_paths.insert(std::make_pair("engine", "engine/assets"));
+	m_search_paths.insert(std::make_pair("game", "game/assets"));
 }
 
 /** Destroy the asset manager. */
 AssetManager::~AssetManager() {
-	// TODO: Destroy assets and still registered factories/loaders.
+	// TODO: Destroy assets and still registered loaders.
 }
 
 /**
- * Look up an asset.
+ * Load an asset.
  *
- * Looks up an asset by path. The asset will not necessarily be loaded, if this
- * is required it should be explicitly loaded by calling Asset::load() on the
- * returned asset, or call load() instead which requests that the asset is
- * loaded.
+ * Loads an asset by path. Asset paths are not filesystem paths, the asset
+ * manager maintains its own namespace which maps into locations within the
+ * filesystem. Asset paths must be relative.
  *
- * @param path		Path to the asset.
+ * @param path		Path to the asset to load.
  *
- * @return		Pointer to asset, or null if asset not found.
+ * @return		Pointer to loaded asset, or null if asset not found.
  */
-AssetPtr AssetManager::lookup(const std::string &path) {
+AssetPtr AssetManager::load(const Path &path) {
 	/* Look up the path in the cache of known assets. */
-	auto exist = m_assets.find(path);
-	if(exist != m_assets.end())
-		return AssetPtr(exist->second);
-
-	/* No asset found, we must create a new one. */
-	AssetLoadState state;
-	if(!open(path, state))
+	Asset *exist = lookup_asset(path);
+	if(exist)
+		return AssetPtr(exist);
+	
+	/* Turn the asset path into a filesystem path. */
+	auto search_path = m_search_paths.find(path.subset(0, 1).str());
+	if(search_path == m_search_paths.end()) {
+		orion_log(LogLevel::kError, "Could not find asset '%s'", path.c_str());
 		return nullptr;
+	}
 
-	/* Create the asset. */
-	Asset *asset = state.factory->create(this, path);
+	Path fs_path = Path(search_path->second) / path.subset(1);
+	Path directory_path = fs_path.directory_name();
+	std::string asset_name = fs_path.base_file_name();
+
+	/* Open the directory. */
+	std::unique_ptr<Directory> directory(g_engine->filesystem()->open_directory(directory_path));
+	if(!directory) {
+		orion_log(LogLevel::kError, "Could not find asset '%s'", path.c_str());
+		return nullptr;
+	}
+
+	/* Iterate over entries to try to find the asset data/metadata. */
+	std::unique_ptr<DataStream> data;
+	std::unique_ptr<DataStream> metadata;
+	std::string type;
+	Directory::Entry entry;
+	while(directory->next(entry)) {
+		if(entry.type != FileType::kFile)
+			continue;
+
+		if(entry.name.base_file_name() == asset_name) {
+			std::string entry_ext = entry.name.extension();
+			Path file_path = directory_path / entry.name;
+
+			if(entry_ext == "metadata") {
+				metadata.reset(g_engine->filesystem()->open_file(file_path));
+				if(!metadata) {
+					orion_log(LogLevel::kError, "Could not open '%s'", file_path.c_str());
+					return nullptr;
+				}
+			} else if(entry_ext.length()) {
+				if(data) {
+					orion_log(LogLevel::kError,
+						"Asset '%s' has multiple data streams",
+						path.c_str());
+					return nullptr;
+				}
+
+				data.reset(g_engine->filesystem()->open_file(file_path));
+				if(!data) {
+					orion_log(LogLevel::kError, "Could not open '%s'", file_path.c_str());
+					return nullptr;
+				}
+
+				type = entry_ext;
+			}
+		}
+	}
+
+	/* Succeeded if we have at least a data stream. */
+	if(!data) {
+		orion_log(LogLevel::kError, "Could not find asset '%s'", path.c_str());
+		return nullptr;
+	}
+
+	/* Look for a loader for the asset. */
+	AssetLoader *loader = lookup_loader(type);
+	if(!loader) {
+		orion_log(LogLevel::kError,
+			"Cannot load asset '%s' with unknown file type '%s'",
+			path.c_str(), type.c_str());
+		return nullptr;
+	}
+
+	/* Create a metadata JSON stream. If we don't have a metadata stream
+	 * from the filesystem, we'll just leave it empty so the loader sees
+	 * no attributes. */
+	rapidjson::Document attributes;
+	if(metadata && metadata->size()) {
+		std::unique_ptr<char[]> buf(new char[metadata->size() + 1]);
+		buf[metadata->size()] = 0;
+		if(!metadata->read(buf.get(), metadata->size())) {
+			orion_log(LogLevel::kError, "Failed to read asset '%s' metadata", path.c_str());
+			return nullptr;
+		}
+
+		attributes.Parse(buf.get());
+		if(attributes.HasParseError()) {
+			const char *msg = rapidjson::GetParseError_En(attributes.GetParseError());
+			orion_log(LogLevel::kError,
+				"Parse error in '%s' metadata (at %zu): %s",
+				path.c_str(), attributes.GetErrorOffset(), msg);
+			return nullptr;
+		}
+	} else {
+		attributes.SetObject();
+	}
+
+	/* Create the asset. The loader should log an error if it fails. */
+	Asset *asset = loader->load(data.get(), attributes, path.c_str());
 	if(!asset)
 		return nullptr;
 
-	m_assets.insert(std::make_pair(path, asset));
+	/* Mark the asset as managed and cache it. */
+	asset->m_path = path.str();
+	m_assets.insert(std::make_pair(path.str(), asset));
+
+	orion_log(LogLevel::kDebug, "Loaded asset '%s' with file type '%s'", path.c_str(), type.c_str());
 	return AssetPtr(asset);
 }
 
-/**
- * Look up an asset and load it.
- *
- * Looks up an asset by path, and requests that it is loaded. This is equivalent
- * to calling lookup() and then Asset::load() on the returned asset.
- *
+/** Look up an asset in the cache.
  * @param path		Path to the asset.
- *
- * @return		Pointer to asset, or null if asset not found.
- */
-AssetPtr AssetManager::load(const std::string &path) {
-	AssetPtr asset = lookup(path);
-
-	if(asset)
-		asset->load();
-
-	return asset;
+ * @return		Pointer to asset if found, null if not. */
+Asset *AssetManager::lookup_asset(const Path &path) const {
+	auto ret = m_assets.find(path.str());
+	return (ret != m_assets.end()) ? ret->second : nullptr;
 }
 
-/**
- * Open an asset.
- *
- * Opens an asset. This function will find an asset given a path, then open its
- * metadata and data streams, parse the metadata, and find the factory and
- * loader for the asset. All of this is returned in a state structure to be used
- * to instantiate a new asset, or load in an asset's data.
- *
- * @param path		Path to the asset.
- * @param state		State structure to fill in.
- *
- * @return		Whether the asset was opened successfully.
- */
-bool AssetManager::open(const std::string &path, AssetLoadState &state) {
-	/* Look up the store, and the path within the store. */
-	std::string store_path;
-	AssetStore *store = find_store(path, store_path);
-	if(!store) {
-		orion_log(LogLevel::kError, "Could not find asset '%s' (invalid store)", path.c_str());
-		return false;
-	}
-
-	/* Open the asset from the store. */
-	if(!store->open(store_path, state)) {
-		orion_log(LogLevel::kError, "Could not find asset '%s' (store error)", path.c_str());
-		return false;
-	}
-
-	orion_assert(state.metadata || state.data);
-
-	/* Create a metadata JSON stream. If we don't have a metadata stream
-	 * from the asset store, we'll create an empty one and infer the type
-	 * from the loader. */
-	rapidjson::Document metadata;
-	if(state.metadata && state.metadata->size()) {
-		std::unique_ptr<char[]> buf(new char[state.metadata->size() + 1]);
-		buf[state.metadata->size()] = 0;
-		if(!state.metadata->read(buf.get(), state.metadata->size())) {
-			orion_log(LogLevel::kError, "Failed to read asset '%s' metadata", path.c_str());
-			return false;
-		}
-
-		metadata.Parse(buf.get());
-		if(metadata.HasParseError()) {
-			const char *msg = rapidjson::GetParseError_En(metadata.GetParseError());
-			orion_log(LogLevel::kError,
-				"Parse error in '%s' metadata (at %zu): %s",
-				path.c_str(), metadata.GetErrorOffset(), msg);
-			return false;
-		}
-	}
-
-	/* Look for a loader for the data stream, if any. */
-	if(state.data) {
-		state.loader = find_loader(state.type);
-		if(!state.loader) {
-			orion_log(LogLevel::kError,
-				"Cannot load asset '%s' with unknown file type '%s'",
-				path.c_str(), state.type.c_str());
-			return false;
-		}
-	}
-
-	/* Try to determine the asset type. If the metadata file defines a type,
-	 * use that. Otherwise, infer it from the loader type. */
-	if(metadata.HasMember("type")) {
-		if(!metadata["type"].IsString()) {
-			orion_log(LogLevel::kError, "Asset '%s' metadata is invalid", path.c_str());
-			return false;
-		}
-
-		state.factory = find_factory(metadata["type"].GetString());
-		if(!state.factory) {
-			orion_log(LogLevel::kError,
-				"Asset '%s' metadata specifies unknown type '%s'",
-				path.c_str(), metadata["type"].GetString());
-			return false;
-		}
-
-		/* Error if the loader's type does not match. */
-		if(state.loader && strcmp(state.factory->type(), state.loader->asset_type()) != 0) {
-			orion_log(LogLevel::kError,
-				"Asset '%s' metadata specifies type '%s' not matching file type '%s'",
-				path.c_str(), state.factory->type(), state.loader->asset_type());
-			return false;
-		}
-	} else {
-		/* Need a loader to infer the type. */
-		if(!state.loader) {
-			orion_log(LogLevel::kError,
-				"Asset '%s' metadata does not specify type and no data to infer from",
-				path.c_str());
-			return false;
-		}
-
-		state.factory = find_factory(state.loader->asset_type());
-		orion_assert(state.factory);
-	}
-
-	/* Get attributes from the metadata. */
-	if(metadata.HasMember("attributes")) {
-		if(!metadata["attributes"].IsObject()) {
-			orion_log(LogLevel::kError, "Asset '%s' metadata is invalid", path.c_str());
-			return false;
-		}
-
-		state.attributes = metadata["attributes"];
-	} else {
-		/* Create an empty object. */
-		state.attributes.SetObject();
-	}
-
-	return true;
-}
-
-/**
- * Mount an asset store.
- *
- * Mounts an asset store into the asset tree. Asset stores are mounted at the
- * top level of the tree, so for example mounting an asset store with the name
- * 'game' makes its contents available under 'game/...'.
- *
- * @param name		Name to mount the store as.
- * @param type		Type of the store.
- * @param path		Path to the store. The interpretation of this path is
- *			entirely up to the asset store type. For a filesystem
- *			store this would be the filesystem path to where the
- *			store can be found.
- *
- * @return		Whether the store was mounted successfully.
- */
-bool AssetManager::mount_store(const std::string &name, const std::string &type, const std::string &path) {
-	/* Check for a name conflict. */
-	if(m_stores.find(name) != m_stores.end()) {
-		orion_log(LogLevel::kError, "Asset store '%s' already mounted", name.c_str());
-		return false;
-	}
-
-	/* Look up the factory. */
-	AssetStoreFactory *factory = find_store_factory(type);
-	if(!factory) {
-		orion_log(LogLevel::kError, "Unknown asset store type '%s'", type.c_str());
-		return false;
-	}
-
-	/* Create the store. */
-	AssetStore *store = factory->create(path);
-	if(!store)
-		return false;
-
-	m_stores.insert(std::make_pair(name, store));
-	orion_log(LogLevel::kInfo, "Mounted asset store '%s' (%s://%s)", name.c_str(), type.c_str(), path.c_str());
-	return true;
-}
-
-/** Unmount an asset store.
- * @param name		Name of the store to unmount. */
-void AssetManager::unmount_store(const std::string &name) {
-	orion_abort("TODO: unmount store");
-}
-
-/** Find the store containing an asset.
- * @param path		Path to the asset.
- * @param store_path	String which will be set to the path to the asset within
- *			the store.
- * @return		Pointer to store found, null if store does not exist. */
-AssetStore *AssetManager::find_store(const std::string &path, std::string &store_path) const {
-	size_t pos = path.find('/');
-	if(pos == std::string::npos)
-		return nullptr;
-
-	std::string store_name = path.substr(0, pos);
-	store_path = path.substr(pos + 1);
-
-	if(!store_name.size() || !store_path.size())
-		return nullptr;
-
-	auto store = m_stores.find(store_name);
-	return (store != m_stores.end()) ? store->second : nullptr;
-}
-
-/**
- * Register an asset factory.
- *
- * Registers an asset factory. The factory becomes owned by the manager, if
- * the engine is shutdown while the factory is still registered, it will be
- * deleted.
- *
- * @param factory	Factory to register.
- */
-void AssetManager::register_factory(AssetFactory *factory) {
-	auto ret = m_factories.insert(std::make_pair(factory->type(), factory));
-	orion_check(ret.second, "Registering asset factory '%s' that already exists", factory->type());
-}
-
-/**
- * Unregister an asset factory.
- *
- * Unregisters an asset factory. The factory will not be deleted, this must be
- * done manually.
- *
- * @param factory	Factory to unregister.
- */
-void AssetManager::unregister_factory(AssetFactory *factory) {
-	size_t ret = m_factories.erase(factory->type());
-	orion_check(ret, "Unregistering asset factory '%s' that does not exist", factory->type());
-}
-
-/** Look up an asset factory by type.
- * @param type		Asset type name. */
-AssetFactory *AssetManager::find_factory(const std::string &type) const {
-	auto ret = m_factories.find(type);
-	return (ret != m_factories.end()) ? ret->second : nullptr;
-}
-
-/**
- * Register an asset store factory.
- *
- * Registers an asset store factory. The factory becomes owned by the manager,
- * if the engine is shutdown while the factory is still registered, it will be
- * deleted.
- *
- * @param factory	Factory to register.
- */
-void AssetManager::register_store_factory(AssetStoreFactory *factory) {
-	auto ret = m_store_factories.insert(std::make_pair(factory->type(), factory));
-	orion_check(ret.second, "Registering asset store factory '%s' that already exists", factory->type());
-}
-
-/**
- * Unregister an asset store factory.
- *
- * Unregisters an asset store factory. The factory will not be deleted, this
- * must be done manually.
- *
- * @param factory	Factory to unregister.
- */
-void AssetManager::unregister_store_factory(AssetStoreFactory *factory) {
-	// FIXME: Don't allow removing factories with active stores.
-	size_t ret = m_store_factories.erase(factory->type());
-	orion_check(ret, "Unregistering asset store factory '%s' that does not exist", factory->type());
-}
-
-/** Look up an asset store factory by type.
- * @param type		Asset store type name. */
-AssetStoreFactory *AssetManager::find_store_factory(const std::string &type) const {
-	auto ret = m_store_factories.find(type);
-	return (ret != m_store_factories.end()) ? ret->second : nullptr;
+/** Unregister an asset that is about to be destroyed.
+ * @param asset		Asset to unregister. */
+void AssetManager::unregister_asset(Asset *asset) {
+	size_t ret = m_assets.erase(asset->path());
+	orion_check(ret, "Destroying asset '%s' which is not in the cache", asset->path().c_str());
 }
 
 /**
  * Register an asset loader.
  *
  * Registers an asset loader. The loader becomes owned by the manager, if the
- * 0engine is shutdown while the loader is still registered, it will be deleted.
+ * engine is shutdown while the loader is still registered, it will be deleted.
  *
  * @param loader	Loader to register.
  */
@@ -379,14 +202,14 @@ void AssetManager::register_loader(AssetLoader *loader) {
  * @param loader	Loader to unregister.
  */
 void AssetManager::unregister_loader(AssetLoader *loader) {
-	// FIXME: Don't allow removing loaders with active assets.
 	size_t ret = m_loaders.erase(loader->type());
 	orion_check(ret, "Unregistering asset loader '%s' that does not exist", loader->type());
 }
 
 /** Look up an asset loader by type.
- * @param type		File type string. */
-AssetLoader *AssetManager::find_loader(const std::string &type) const {
+ * @param type		File type string.
+ * @return		Pointer to loader if found, null if not. */
+AssetLoader *AssetManager::lookup_loader(const std::string &type) const {
 	auto ret = m_loaders.find(type);
 	return (ret != m_loaders.end()) ? ret->second : nullptr;
 }

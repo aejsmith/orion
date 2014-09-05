@@ -1,10 +1,12 @@
 /**
  * @file
  * @copyright		2014 Alex Smith
- * @brief		POSIX filesystem implementation
+ * @brief		POSIX filesystem implementation.
  */
 
-#include "lib/fs.h"
+#include "lib/filesystem.h"
+
+#include <SDL.h>
 
 #include <sys/stat.h>
 
@@ -42,6 +44,16 @@ public:
 	bool next(Entry &entry);
 private:
 	DIR *m_dir;		/**< Directory handle. */
+};
+
+/** POSIX filesystem interface. */
+class POSIXFilesystem : public Filesystem {
+public:
+	File *open_file(const Path &path, unsigned mode = File::kRead) override;
+	Directory *open_directory(const Path &path) override;
+
+	bool exists(const Path &path) override;
+	bool is_type(const Path &path, FileType type) override;
 };
 
 /** Initialize the file.
@@ -173,17 +185,11 @@ bool POSIXDirectory::next(Entry &entry) {
 	return true;
 }
 
-/**
- * Global filesystem API.
- */
-
-namespace fs {
-
 /** Open a regular file.
  * @param path		Path to file to open.
  * @param mode		Mode to open file with (combination of File::Mode flags).
  * @return		Pointer to opened file, or null on failure. */
-File *open_file(const std::string &path, unsigned mode) {
+File *POSIXFilesystem::open_file(const Path &path, unsigned mode) {
 	int flags = 0;
 
 	if(mode & File::kRead)
@@ -201,7 +207,7 @@ File *open_file(const std::string &path, unsigned mode) {
 /** Open a directory.
  * @param path		Path to directory.
  * @return		Pointer to opened directory, or null on failure. */
-Directory *open_directory(const std::string &path) {
+Directory *POSIXFilesystem::open_directory(const Path &path) {
 	DIR *dir = opendir(path.c_str());
 	if(!dir)
 		return nullptr;
@@ -212,7 +218,7 @@ Directory *open_directory(const std::string &path) {
 /** Check if a path exists.
  * @param path		Path to check.
  * @return		Whether the path exists. */
-bool exists(const std::string &path) {
+bool POSIXFilesystem::exists(const Path &path) {
 	struct stat st;
 	return stat(path.c_str(), &st) == 0;
 }
@@ -221,7 +227,7 @@ bool exists(const std::string &path) {
  * @param path		Path to check.
  * @param type		Type to check for.
  * @return		Whether the path exists and is the specified type. */
-bool is_type(const std::string &path, FileType type) {
+bool POSIXFilesystem::is_type(const Path &path, FileType type) {
 	struct stat st;
 	if(stat(path.c_str(), &st) != 0)
 		return false;
@@ -236,4 +242,16 @@ bool is_type(const std::string &path, FileType type) {
 	}
 }
 
+/** Initialize the platform filesystem interface.
+ * @return		Pointer to Filesystem object. */
+Filesystem *platform::create_filesystem() {
+	/* Switch to the engine base directory. SDL_GetBasePath returns the
+	 * binary directory, the base directory is above that. */
+	char *base_path = SDL_GetBasePath();
+	std::string path(base_path);
+	path += "..";
+	chdir(path.c_str());
+	SDL_free(base_path);
+
+	return new POSIXFilesystem;
 }

@@ -4,8 +4,6 @@
  * @brief		Main entry point of the engine.
  */
 
-#include "asset/asset.h"
-#include "asset/asset_factory.h"
 #include "asset/asset_loader.h"
 #include "asset/asset_manager.h"
 
@@ -13,6 +11,7 @@
 
 #include "gpu/gpu.h"
 
+#include "lib/path.h"
 #include "lib/utility.h"
 
 #include "render/scene_entity.h"
@@ -31,54 +30,23 @@
 
 class TestAsset : public Asset {
 public:
-	/** Type-specific load method.
-	 * @param state		Asset loading state.
-	 * @return		Whether the asset was successfully loaded. */
-	bool load_impl(AssetLoadState &state) override {
-		orion_log(LogLevel::kDebug, "TestAsset::load_impl");
-
-		for(auto it = state.attributes.MemberBegin(); it != state.attributes.MemberEnd(); ++it)
-			orion_log(LogLevel::kDebug, "attribute '%s'", it->name.GetString());
-
-		return true;
-	}
-
-	/** Type-specific unload method. */
-	void unload_impl() override {
-		
-	}
-private:
-	TestAsset(AssetManager *manager, const std::string &path) :
-		Asset(manager, path)
-	{}
-
-	friend class TestAssetFactory;
-};
-
-class TestAssetFactory : public AssetFactory {
-public:
-	TestAssetFactory() : AssetFactory("TestAsset") {}
-
-	/** Create an unloaded asset of this type.
-	 * @param manager	Manager creating the asset.
-	 * @param path		Path to the asset.
-	 * @return		Pointer to created asset, null on failure. */
-	Asset *create(AssetManager *manager, const std::string &path) override {
-		return new TestAsset(manager, path);
-	}
+	TestAsset() {}
 };
 
 class TestAssetLoader : public AssetLoader {
 public:
-	TestAssetLoader() : AssetLoader("tga", "TestAsset") {}
+	TestAssetLoader() : AssetLoader("tga") {}
 
 	/** Load the asset.
-	 * @param asset		Asset being loaded.
-	 * @param state		Asset loading state.
-	 * @return		Whether the object was loaded successfully. */
-	bool load(Asset *asset, AssetLoadState &state) override {
-		orion_log(LogLevel::kDebug, "TestAssetLoader::load");
-		return true;
+	 * @param stream	Stream containing asset data.
+	 * @param attributes	Attributes specified in metadata.
+	 * @param path		Path to asset (supplied so that useful error
+	 *			messages can be logged).
+	 * @return		Pointer to loaded asset, null on failure. */
+	Asset *load(DataStream *stream, rapidjson::Value &attributes, const char *path) override {
+		orion_log(LogLevel::kDebug, "TestAssetLoader::load('%s')", path);
+		orion_log(LogLevel::kDebug, "meow = '%s'", attributes["meow"].GetString());
+		return new TestAsset;
 	}
 };
 
@@ -275,11 +243,10 @@ int main(int argc, char **argv) {
 	config.display_height = 900;
 	config.display_fullscreen = false;
 	config.display_vsync = false;
-	config.asset_stores.push_back(std::make_tuple("game", "fs", "game/assets"));
+	//config.asset_stores.push_back(std::make_tuple("game", "fs", "game/assets"));
 
 	Engine engine(config);
 
-	g_engine->assets()->register_factory(new TestAssetFactory);
 	g_engine->assets()->register_loader(new TestAssetLoader);
 
 	TypedAssetPtr<TestAsset> asset = g_engine->assets()->load<TestAsset>("game/textures/test");

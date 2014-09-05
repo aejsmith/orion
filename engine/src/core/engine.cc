@@ -11,6 +11,8 @@
 
 #include "gpu/gpu.h"
 
+#include "lib/filesystem.h"
+
 #include "world/camera_component.h"
 #include "world/world.h"
 
@@ -38,13 +40,16 @@ Engine::Engine(const EngineConfiguration &config) :
 	if(SDL_Init(SDL_INIT_EVERYTHING) != 0)
 		orion_abort("Failed to initialize SDL: %s", SDL_GetError());
 
+	/* Initialize platform systems. */
+	m_filesystem = platform::create_filesystem();
+
 	/* Create the GPU interface, then create the main window which properly
 	 * initializes the GPU interface. */
 	m_gpu = GPUInterface::create(config);
 	m_window = new Window(config, m_gpu);
 
 	/* Initialize other global systems. */
-	m_assets = new AssetManager(config);
+	m_assets = new AssetManager;
 }
 
 /** Shut down the engine. */
@@ -61,6 +66,7 @@ void Engine::shutdown() {
 	delete m_assets;
 	delete m_gpu;
 	delete m_window;
+	delete m_filesystem;
 	delete m_log;
 
 	SDL_Quit();

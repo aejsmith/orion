@@ -1,7 +1,6 @@
 sources = map(File, [
     'asset.cc',
     'asset_manager.cc',
-    'filesystem_asset_store.cc',
 ])
 
 Return('sources')
