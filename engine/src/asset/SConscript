@@ -4,4 +4,8 @@ sources = map(File, [
     'texture.cc',
 ])
 
+sources += SConscript(dirs = [
+    'loaders',
+])
+
 Return('sources')

@@ -28,11 +28,16 @@
 
 #include <memory>
 
+#include "loaders/tga_loader.h"
+
 /** Initialize the asset manager. */
 AssetManager::AssetManager() {
 	/* Register asset search paths. */
 	m_search_paths.insert(std::make_pair("engine", "engine/assets"));
 	m_search_paths.insert(std::make_pair("game", "game/assets"));
+
+	/* Register asset loaders. */
+	register_loader(new TGALoader);
 }
 
 /** Destroy the asset manager. */

@@ -77,7 +77,7 @@ void GLProgram::bind_texture(const char *name, unsigned index) {
 	if(location < 0)
 		orion_abort("GL: Unknown sampler uniform name '%s'", name);
 
-	glUniform1i(location, index);
+	glProgramUniform1i(m_program, location, index);
 }
 
 /** Load a GPU program.

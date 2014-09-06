@@ -4,7 +4,6 @@
  * @brief		Main entry point of the engine.
  */
 
-#include "asset/asset_loader.h"
 #include "asset/asset_manager.h"
 #include "asset/texture.h"
 
@@ -24,32 +23,6 @@
 #include "world/light_component.h"
 #include "world/renderer_component.h"
 #include "world/world.h"
-
-/**
- * Asset test code.
- */
-
-class TestAsset : public Asset {
-public:
-	TestAsset() {}
-};
-
-class TestAssetLoader : public AssetLoader {
-public:
-	TestAssetLoader() : AssetLoader("tga") {}
-
-	/** Load the asset.
-	 * @param stream	Stream containing asset data.
-	 * @param attributes	Attributes specified in metadata.
-	 * @param path		Path to asset (supplied so that useful error
-	 *			messages can be logged).
-	 * @return		Pointer to loaded asset, null on failure. */
-	Asset *load(DataStream *stream, rapidjson::Value &attributes, const char *path) override {
-		orion_log(LogLevel::kDebug, "TestAssetLoader::load('%s')", path);
-		orion_log(LogLevel::kDebug, "meow = '%s'", attributes["meow"].GetString());
-		return new TestAsset;
-	}
-};
 
 /**
  * Rendering test code.
@@ -247,10 +220,9 @@ int main(int argc, char **argv) {
 
 	Engine engine(config);
 
-	g_engine->assets()->register_loader(new TestAssetLoader);
-
-	TypedAssetPtr<TestAsset> asset = g_engine->assets()->load<TestAsset>("game/textures/test");
-	orion_log(LogLevel::kDebug, "Got asset %p", asset.get());
+	Texture2DPtr texture = g_engine->assets()->load<Texture2D>("game/textures/test");
+	orion_log(LogLevel::kDebug, "Got asset %p", texture.get());
+	g_engine->gpu()->bind_texture(0, texture->gpu());
 
 	test_vertex_format = g_engine->gpu()->create_vertex_format();
 	test_vertex_format->add_buffer(0, sizeof(Vertex));
@@ -264,22 +236,6 @@ int main(int argc, char **argv) {
 		VertexAttribute::kTexCoordSemantic, 0,
 		VertexAttribute::kFloatType, 2, 0, offsetof(Vertex, u));
 	test_vertex_format->finalize();
-
-	Texture2D *texture = new Texture2D(1024, 1024);
-	{
-		std::unique_ptr<uint32_t []> buf(new uint32_t[1024 * 1024]);
-		for(size_t i = 0; i < 1024; i++) {
-			for(size_t j = 0; j < 1024; j++) {
-				if(i >= 256 && i < 768 && j >= 256 && j < 768) {
-					buf[(i * 1024) + j] = 0xffff0000;
-				} else {
-					buf[(i * 1024) + j] = 0xffffffff;
-				}
-			}
-		}
-		texture->update(buf.get());
-	}
-	g_engine->gpu()->bind_texture(0, texture->gpu());
 
 	World *world = engine.create_world();
 

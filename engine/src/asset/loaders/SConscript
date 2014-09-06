@@ -1,0 +1,5 @@
+sources = map(File, [
+    'tga_loader.cc',
+])
+
+Return('sources')

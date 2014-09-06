@@ -4,8 +4,6 @@ TODO list
 - Investigate depth pre-pass. It's not always a win, depends on scene content.
   Sorting the render list in front to back order is possibly enough.
 - Reload assets when changed (e.g. for shaders).
-- Perhaps improve asset store implementation (make it more like Kiwi VFS for
-  example).
 - Object system: serialization, properties, functions, type information.
   Something like Qt's object system, for example. Once this is implemented, we
   can replace things like manual asset type strings and component type IDs.
