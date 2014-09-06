@@ -38,6 +38,7 @@ ForwardRenderer::ForwardRenderer(Scene *scene, RenderTarget *target, const Rende
 			GPUProgram::kFragmentProgram);
 		frag_program->bind_uniforms("ViewUniforms", ShaderUniforms::kViewUniforms);
 		frag_program->bind_uniforms("LightUniforms", ShaderUniforms::kLightUniforms);
+		frag_program->bind_texture("diffuse_texture", 0);
 
 		lighting_pipeline = g_engine->gpu()->create_pipeline();
 		lighting_pipeline->set_program(GPUProgram::kVertexProgram, vertex_program);

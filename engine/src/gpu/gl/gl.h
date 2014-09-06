@@ -81,6 +81,7 @@ public:
 	GPUTexturePtr create_texture(const GPUTexture3DDesc &desc) override;
 
 	void bind_pipeline(const GPUPipelinePtr &pipeline) override;
+	void bind_texture(unsigned index, const GPUTexturePtr &texture) override;
 	void bind_uniform_buffer(unsigned index, const GPUBufferPtr &buffer) override;
 	void set_blend_mode(BlendFunc func, BlendFactor source_factor, BlendFactor dest_factor) override;
 	void set_depth_mode(ComparisonFunc func, bool enable_write) override;

@@ -37,9 +37,11 @@ const int kSpotLight = 3;
 const float mat_shininess = 32.0;
 const vec3 mat_specular = vec3(0.5, 0.5, 0.5);
 
+uniform sampler2D diffuse_texture;
+
 layout(location = 0) in vec3 vtx_position;
 layout(location = 1) in vec3 vtx_normal;
-layout(location = 2) in vec4 vtx_diffuse;
+layout(location = 2) in vec2 vtx_texcoord;
 
 layout(location = 0) out vec4 frag_colour;
 
@@ -136,5 +138,6 @@ void main() {
 		break;
 	}
 
-	frag_colour = vtx_diffuse * light_factor;
+	vec4 texel = texture(diffuse_texture, vtx_texcoord);
+	frag_colour = texel * light_factor;
 }

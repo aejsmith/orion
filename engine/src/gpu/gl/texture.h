@@ -20,11 +20,13 @@ public:
 	explicit GLTexture(const GPUTextureCubeDesc &desc);
 	explicit GLTexture(const GPUTexture3DDesc &desc);
 
+	~GLTexture();
+
 	void update(const Rect &area, const void *data, unsigned mip, unsigned layer) override;
 	void update(const Box &area, const void *data, unsigned mip) override;
 	void generate_mipmap() override;
 
-	~GLTexture();
+	void bind(unsigned index);
 private:
 	void bind_for_modification();
 private:

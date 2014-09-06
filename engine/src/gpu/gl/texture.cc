@@ -80,6 +80,12 @@ GLTexture::~GLTexture() {
 	glDeleteTextures(1, &m_texture);
 }
 
+/** Bind the texture to a specific texture unit.
+ * @param index		Texture unit index to bind to. */
+void GLTexture::bind(unsigned index) {
+	g_opengl->state.bind_texture(index, m_gl_target, m_texture);
+}
+
 /** Bind the texture for modification. */
 void GLTexture::bind_for_modification() {
 	/* We reserve the last available texture unit to bind textures to when

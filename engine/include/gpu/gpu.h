@@ -107,6 +107,11 @@ public:
 	 * @param pipeline	Pipeline to use. */
 	virtual void bind_pipeline(const GPUPipelinePtr &pipeline) = 0;
 
+	/** Bind a texture.
+	 * @param index		Texture unit index to bind to.
+	 * @param texture	Texture to bind. */
+	virtual void bind_texture(unsigned index, const GPUTexturePtr &texture) = 0;
+
 	/** Bind a uniform buffer.
 	 * @param index		Uniform block index to bind to.
 	 * @param buffer	Buffer to bind. */

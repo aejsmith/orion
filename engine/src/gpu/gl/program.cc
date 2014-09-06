@@ -64,7 +64,7 @@ GLProgram::~GLProgram() {
 void GLProgram::bind_uniforms(const char *name, unsigned index) {
 	GLuint block_index = glGetUniformBlockIndex(m_program, name);
 	if(block_index == GL_INVALID_INDEX)
-		orion_abort("GL: Unknown uniform block `%s'", name);
+		orion_abort("GL: Unknown uniform block '%s'", name);
 
 	glUniformBlockBinding(m_program, block_index, index);
 }
@@ -73,7 +73,11 @@ void GLProgram::bind_uniforms(const char *name, unsigned index) {
  * @param name		Name of sampler.
  * @param index		Texture unit index. */
 void GLProgram::bind_texture(const char *name, unsigned index) {
+	GLint location = glGetUniformLocation(m_program, name);
+	if(location < 0)
+		orion_abort("GL: Unknown sampler uniform name '%s'", name);
 
+	glUniform1i(location, index);
 }
 
 /** Load a GPU program.

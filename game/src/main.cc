@@ -58,12 +58,12 @@ public:
 struct Vertex {
 	float x, y, z, _pad1;
 	float nx, ny, nz, _pad2;
-	float r, g, b, a;
+	float u, v, _pad3, _pad4;
 public:
-	Vertex(const glm::vec3 &pos, const glm::vec3 &normal, const glm::vec4 &colour) :
+	Vertex(const glm::vec3 &pos, const glm::vec3 &normal, const glm::vec2 &texcoord) :
 		x(pos.x), y(pos.y), z(pos.z),
 		nx(normal.x), ny(normal.y), nz(normal.z),
-		r(colour.x), g(colour.y), b(colour.z), a(colour.w)
+		u(texcoord.x), v(texcoord.y)
 	{}
 
 	Vertex() {}
@@ -152,14 +152,11 @@ static Entity *make_cube(Entity *parent, const std::string &name) {
 		glm::vec3(0.0f, -1.0f, 0.0f),
 	};
 
-	/* Colours for each face. */
-	static glm::vec4 cube_colours[] = {
-		glm::vec4(1.0f, 0.0f, 0.0f, 1.0f),
-		glm::vec4(0.0f, 1.0f, 0.0f, 1.0f),
-		glm::vec4(0.0f, 0.0f, 1.0f, 1.0f),
-		glm::vec4(1.0f, 1.0f, 0.0f, 1.0f),
-		glm::vec4(0.0f, 1.0f, 1.0f, 1.0f),
-		glm::vec4(1.0f, 0.0f, 1.0f, 1.0f),
+	/* Texture coordinates for each face. */
+	static glm::vec2 cube_texcoords[] = {
+		glm::vec2(0.0f, 0.0f), glm::vec2(1.0f, 0.0f),
+		glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 1.0f),
+		glm::vec2(0.0f, 1.0f), glm::vec2(0.0f, 0.0f),
 	};
 
 	GPUBufferPtr buffer = g_engine->gpu()->create_buffer(
@@ -174,7 +171,7 @@ static Entity *make_cube(Entity *parent, const std::string &name) {
 			new(&data[i]) Vertex(
 				cube_vertices[cube_indices[i]],
 				cube_normals[i / 6],
-				cube_colours[i / 6]);
+				cube_texcoords[i % 6]);
 		}
 	}
 
@@ -203,7 +200,10 @@ static Entity *make_plane(Entity *parent, const std::string &name) {
 	static glm::vec3 plane_normal(0.0f, 0.0f, 1.0f);
 
 	/* Plane colour. */
-	static glm::vec4 plane_colour(1.0f, 1.0f, 1.0f, 1.0f);
+	static glm::vec2 plane_texcoords[] = {
+		glm::vec2(0.0f, 0.0f), glm::vec2(1.0f, 0.0f),
+		glm::vec2(1.0f, 1.0f), glm::vec2(0.0f, 1.0f),
+	};
 
 	GPUBufferPtr buffer = g_engine->gpu()->create_buffer(
 		GPUBuffer::kVertexBuffer,
@@ -213,12 +213,12 @@ static Entity *make_plane(Entity *parent, const std::string &name) {
 	{
 		GPUBufferMapper<Vertex> data(buffer, GPUBuffer::kMapInvalidate, GPUBuffer::kWriteAccess);
 
-		new(&data[0]) Vertex(plane_vertices[0], plane_normal, plane_colour);
-		new(&data[1]) Vertex(plane_vertices[1], plane_normal, plane_colour);
-		new(&data[2]) Vertex(plane_vertices[2], plane_normal, plane_colour);
-		new(&data[3]) Vertex(plane_vertices[2], plane_normal, plane_colour);
-		new(&data[4]) Vertex(plane_vertices[3], plane_normal, plane_colour);
-		new(&data[5]) Vertex(plane_vertices[0], plane_normal, plane_colour);
+		new(&data[0]) Vertex(plane_vertices[0], plane_normal, plane_texcoords[0]);
+		new(&data[1]) Vertex(plane_vertices[1], plane_normal, plane_texcoords[1]);
+		new(&data[2]) Vertex(plane_vertices[2], plane_normal, plane_texcoords[2]);
+		new(&data[3]) Vertex(plane_vertices[2], plane_normal, plane_texcoords[2]);
+		new(&data[4]) Vertex(plane_vertices[3], plane_normal, plane_texcoords[3]);
+		new(&data[5]) Vertex(plane_vertices[0], plane_normal, plane_texcoords[0]);
 	}
 
 	VertexDataPtr vertices = g_engine->gpu()->create_vertex_data(6);
@@ -261,17 +261,25 @@ int main(int argc, char **argv) {
 		VertexAttribute::kNormalSemantic, 0,
 		VertexAttribute::kFloatType, 3, 0, offsetof(Vertex, nx));
 	test_vertex_format->add_attribute(
-		VertexAttribute::kDiffuseSemantic, 0,
-		VertexAttribute::kFloatType, 4, 0, offsetof(Vertex, r));
+		VertexAttribute::kTexCoordSemantic, 0,
+		VertexAttribute::kFloatType, 2, 0, offsetof(Vertex, u));
 	test_vertex_format->finalize();
 
 	Texture2D *texture = new Texture2D(1024, 1024);
 	{
-		std::unique_ptr<char []> buf(new char[1024 * 1024 * 4]);
-		memset(buf.get(), 0xff, 1024 * 1024 * 4);
+		std::unique_ptr<uint32_t []> buf(new uint32_t[1024 * 1024]);
+		for(size_t i = 0; i < 1024; i++) {
+			for(size_t j = 0; j < 1024; j++) {
+				if(i >= 256 && i < 768 && j >= 256 && j < 768) {
+					buf[(i * 1024) + j] = 0xffff0000;
+				} else {
+					buf[(i * 1024) + j] = 0xffffffff;
+				}
+			}
+		}
 		texture->update(buf.get());
 	}
-
+	g_engine->gpu()->bind_texture(0, texture->gpu());
 
 	World *world = engine.create_world();
 

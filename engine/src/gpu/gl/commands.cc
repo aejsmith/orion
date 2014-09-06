@@ -8,6 +8,7 @@
 #include "gl.h"
 #include "pipeline.h"
 #include "program.h"
+#include "texture.h"
 #include "vertex_data.h"
 
 #include "core/window.h"
@@ -17,6 +18,14 @@
 void GLGPUInterface::bind_pipeline(const GPUPipelinePtr &_pipeline) {
 	GLPipeline *pipeline = static_cast<GLPipeline *>(_pipeline.get());
 	pipeline->bind();
+}
+
+/** Bind a texture.
+ * @param index		Texture unit index to bind to.
+ * @param _texture	Texture to bind. */
+void GLGPUInterface::bind_texture(unsigned index, const GPUTexturePtr &_texture) {
+	GLTexture *texture = static_cast<GLTexture *>(_texture.get());
+	texture->bind(index);
 }
 
 /** Bind a uniform buffer.
