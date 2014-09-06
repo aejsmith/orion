@@ -22,7 +22,7 @@ public:
 
 	void update(const Rect &area, const void *data, unsigned mip, unsigned layer) override;
 	void update(const Box &area, const void *data, unsigned mip) override;
-	void generate_mips() override;
+	void generate_mipmap() override;
 
 	~GLTexture();
 private:

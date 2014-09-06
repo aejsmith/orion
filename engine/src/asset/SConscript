@@ -1,6 +1,7 @@
 sources = map(File, [
     'asset.cc',
     'asset_manager.cc',
+    'texture.cc',
 ])
 
 Return('sources')

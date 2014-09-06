@@ -6,6 +6,7 @@
 
 #include "asset/asset_loader.h"
 #include "asset/asset_manager.h"
+#include "asset/texture.h"
 
 #include "core/engine.h"
 
@@ -243,7 +244,6 @@ int main(int argc, char **argv) {
 	config.display_height = 900;
 	config.display_fullscreen = false;
 	config.display_vsync = false;
-	//config.asset_stores.push_back(std::make_tuple("game", "fs", "game/assets"));
 
 	Engine engine(config);
 
@@ -265,8 +265,13 @@ int main(int argc, char **argv) {
 		VertexAttribute::kFloatType, 4, 0, offsetof(Vertex, r));
 	test_vertex_format->finalize();
 
-	GPUTexture2DDesc desc = { 1024, 1024, PixelFormat::kRGBA8, 0, 0 };
-	GPUTexturePtr texture = g_engine->gpu()->create_texture(desc);
+	Texture2D *texture = new Texture2D(1024, 1024);
+	{
+		std::unique_ptr<char []> buf(new char[1024 * 1024 * 4]);
+		memset(buf.get(), 0xff, 1024 * 1024 * 4);
+		texture->update(buf.get());
+	}
+
 
 	World *world = engine.create_world();
 

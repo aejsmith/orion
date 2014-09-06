@@ -33,7 +33,7 @@ GPUTexture::GPUTexture(const GPUTexture2DDesc &desc) :
 	m_type(kTexture2D),
 	m_width(desc.width),
 	m_height(desc.height),
-	m_depth(0),
+	m_depth(1),
 	m_format(desc.format),
 	m_mips(clamp_mip_levels(desc.mips, desc.width, desc.height, 0)),
 	m_flags(desc.flags)

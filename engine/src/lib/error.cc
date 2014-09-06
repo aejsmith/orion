@@ -27,7 +27,7 @@ void __orion_abort(const char *file, int line, const char *fmt, ...) {
 	va_list args;
 
 	va_start(args, fmt);
-	std::string str = "Fatal Error: " + util::format(fmt, args);
+	std::string str = util::format("Fatal Error (at %s:%d): ", file, line) + util::format(fmt, args);
 	va_end(args);
 
 	if(g_engine && g_engine->log()) {

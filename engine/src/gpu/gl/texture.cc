@@ -145,7 +145,7 @@ void GLTexture::update(const Box &area, const void *data, unsigned mip) {
 }
 
 /** Generate mipmap images. */
-void GLTexture::generate_mips() {
+void GLTexture::generate_mipmap() {
 	orion_assert(m_flags & kAutoMipmap);
 
 	bind_for_modification();

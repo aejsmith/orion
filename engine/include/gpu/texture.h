@@ -71,12 +71,10 @@ public:
 
 	/** Texture behaviour flags. */
 	enum : uint32_t {
-		/** Texture will be updated frequently. */
-		kDynamic = (1 << 0),
 		/** Texture will have its mipmap automatically generated. */
-		kAutoMipmap = (1 << 1),
+		kAutoMipmap = (1 << 0),
 		/** Texture will be used as a render target. */
-		kRenderTarget = (1 << 2),
+		kRenderTarget = (1 << 1),
 	};
 public:
 	/** Update 2D texture area.
@@ -100,7 +98,7 @@ public:
 	 * mipmap images based on level 0. The texture must have the kAutoMipmap
 	 * flag set.
 	 */
-	virtual void generate_mips() = 0;
+	virtual void generate_mipmap() = 0;
 
 	/** @return		Type of the texture. */
 	Type type() const { return m_type; }
