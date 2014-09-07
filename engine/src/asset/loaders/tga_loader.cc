@@ -13,6 +13,8 @@
 
 #include "core/engine.h"
 
+#include <memory>
+
 /** TGA image file header. */
 struct TGAHeader {
 	uint8_t id_length;
