@@ -12,7 +12,7 @@
  * Create a 2D texture.
  *
  * Creates a new 2D texture. The default arguments give the texture a format of
- * PixelFormat::kRGB8, and a full mipmap pyramid which can be automatically
+ * PixelFormat::kR8G8B8A8, and a full mipmap pyramid which can be automatically
  * updated.
  *
  * @param width		Width of the texture.

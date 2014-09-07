@@ -40,7 +40,7 @@ public:
 	Texture2D(
 		uint32_t width,
 		uint32_t height,
-		PixelFormat format = PixelFormat::kRGBA8,
+		PixelFormat format = PixelFormat::kR8G8B8A8,
 		unsigned mips = 0,
 		uint32_t flags = GPUTexture::kAutoMipmap);
 

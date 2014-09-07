@@ -58,7 +58,7 @@ Asset *TGALoader::load(DataStream *stream, rapidjson::Value &attributes, const c
 	/* Determine image properties. */
 	uint32_t width = header.width;
 	uint32_t height = header.height;
-	PixelFormat format = (header.depth == 32) ? PixelFormat::kRGBA8 : PixelFormat::kRGB8;
+	PixelFormat format = (header.depth == 32) ? PixelFormat::kB8G8R8A8 : PixelFormat::kB8G8R8;
 
 	/* Read in the data, which is after the ID and colour map. */
 	size_t size = width * height * (header.depth / 8);
