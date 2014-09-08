@@ -19,7 +19,7 @@ GPUBuffer::GPUBuffer(Type type, Usage usage, size_t size) :
 
 /** Destroy the buffer. */
 GPUBuffer::~GPUBuffer() {
-	orion_check(!m_mapped, "Destroying buffer which is still mapped");
+	orionCheck(!m_mapped, "Destroying buffer which is still mapped");
 }
 
 /**
@@ -34,12 +34,12 @@ GPUBuffer::~GPUBuffer() {
  * @param buf		Buffer containing data to write.
  */
 void GPUBuffer::write(size_t offset, size_t size, const void *buf) {
-	orion_check(!m_mapped, "Call to write() while buffer mapped");
-	orion_check((offset + size) <= m_size,
+	orionCheck(!m_mapped, "Call to write() while buffer mapped");
+	orionCheck((offset + size) <= m_size,
 		"Write outside buffer bounds (total: %zu, offset: %zu, size: %zu)",
 		m_size, offset, size);
 
-	write_impl(offset, size, buf);
+	writeImpl(offset, size, buf);
 }
 
 /**
@@ -62,26 +62,26 @@ void GPUBuffer::write(size_t offset, size_t size, const void *buf) {
  * @return		Pointer to mapped buffer.
  */
 void *GPUBuffer::map(size_t offset, size_t size, uint32_t flags, uint32_t access) {
-	orion_check(!m_mapped, "Cannot create multiple buffer mappings");
-	orion_check((offset + size) <= m_size,
+	orionCheck(!m_mapped, "Cannot create multiple buffer mappings");
+	orionCheck((offset + size) <= m_size,
 		"Map outside buffer bounds (total: %zu, offset: %zu, size: %zu)",
 		m_size, offset, size);
-	orion_assert(!((flags & kMapInvalidate) && (flags & kMapInvalidateBuffer)));
+	orionAssert(!((flags & kMapInvalidate) && (flags & kMapInvalidateBuffer)));
 
 	/* Convert invalidate range to invalidate buffer if the whole buffer is
 	 * specified. */
 	if(flags & kMapInvalidate && offset == 0 && size == m_size)
 		flags = (flags & ~kMapInvalidate) | kMapInvalidateBuffer;
 
-	void *ret = map_impl(offset, size, flags, access);
+	void *ret = mapImpl(offset, size, flags, access);
 	m_mapped = true;
 	return ret;
 }
 
 /** Unmap the previous mapping created for the buffer with map(). */
 void GPUBuffer::unmap() {
-	orion_check(m_mapped, "Unmapping buffer which is not currently mapped");
+	orionCheck(m_mapped, "Unmapping buffer which is not currently mapped");
 
-	unmap_impl();
+	unmapImpl();
 	m_mapped = false;
 }

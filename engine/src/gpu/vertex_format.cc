@@ -12,10 +12,10 @@ VertexFormat::VertexFormat() : m_finalized(false) {}
 /** Add a buffer.
  * @see			VertexBufferDesc.
  * @param index		Index of the buffer to add. */
-void VertexFormat::add_buffer(unsigned index, size_t stride) {
-	orion_assert(stride);
-	orion_assert(!m_finalized);
-	orion_check(!buffer(index), "Adding duplicate buffer %u", index);
+void VertexFormat::addBuffer(unsigned index, size_t stride) {
+	orionAssert(stride);
+	orionAssert(!m_finalized);
+	orionCheck(!buffer(index), "Adding duplicate buffer %u", index);
 
 	if(index >= m_buffers.size())
 		m_buffers.resize(index + 1);
@@ -34,7 +34,7 @@ void VertexFormat::add_buffer(unsigned index, size_t stride) {
  *
  * @see			VertexAttribute.
  */
-void VertexFormat::add_attribute(
+void VertexFormat::addAttribute(
 	VertexAttribute::Semantic semantic,
 	unsigned index,
 	VertexAttribute::Type type,
@@ -42,7 +42,7 @@ void VertexFormat::add_attribute(
 	unsigned buffer,
 	size_t offset)
 {
-	orion_assert(!m_finalized);
+	orionAssert(!m_finalized);
 
 	VertexAttribute attribute;
 	attribute.semantic = semantic;
@@ -54,15 +54,15 @@ void VertexFormat::add_attribute(
 
 	const VertexBufferDesc *desc = this->buffer(buffer);
 
-	orion_check(desc, "Attribute references unknown buffer %u", buffer);
-	orion_check((offset + attribute.size()) <= desc->stride,
+	orionCheck(desc, "Attribute references unknown buffer %u", buffer);
+	orionCheck((offset + attribute.size()) <= desc->stride,
 		"Attribute position exceeds buffer stride (offset: %u, size: %u, stride: %u)",
 		offset, attribute.size(), desc->stride);
-	orion_check(count >= 1 && count <= 4,
+	orionCheck(count >= 1 && count <= 4,
 		"Unsupported attribute vector size %u", count);
 
 	for(const VertexAttribute &exist : m_attributes) {
-		orion_check(exist.semantic != semantic || exist.index != index,
+		orionCheck(exist.semantic != semantic || exist.index != index,
 			"Adding duplicate attribute (semantic: %d, index: %u)",
 			semantic, index);
 	}
@@ -72,7 +72,7 @@ void VertexFormat::add_attribute(
 
 /** Finalize the format descriptor. */
 void VertexFormat::finalize() {
-	finalize_impl();
+	finalizeImpl();
 	m_finalized = true;
 }
 
@@ -89,7 +89,7 @@ const VertexBufferDesc *VertexFormat::buffer(unsigned index) const {
  * @param semantic	Attribute semantic.
  * @param index		Attribute index.
  * @return		Pointer to attribute if found, null if not. */
-const VertexAttribute *VertexFormat::find_attribute(
+const VertexAttribute *VertexFormat::findAttribute(
 	VertexAttribute::Semantic semantic,
 	unsigned index) const
 {

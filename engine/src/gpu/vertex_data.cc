@@ -29,10 +29,10 @@ VertexData::VertexData(size_t count) :
  *
  * @param format	Vertex format descriptor.
  */
-void VertexData::set_format(const VertexFormatPtr &format) {
-	orion_assert(!m_finalized);
-	orion_assert(!m_format);
-	orion_assert(format->finalized());
+void VertexData::setFormat(const VertexFormatPtr &format) {
+	orionAssert(!m_finalized);
+	orionAssert(!m_format);
+	orionAssert(format->finalized());
 
 	m_format = format;
 }
@@ -48,31 +48,31 @@ void VertexData::set_format(const VertexFormatPtr &format) {
  * @param index		Index to add buffer at.
  * @param buffer	Buffer to add.
  */
-void VertexData::set_buffer(unsigned index, const GPUBufferPtr &buffer) {
-	orion_assert(!m_finalized);
-	orion_assert(m_format);
-	orion_assert(buffer->type() == GPUBuffer::kVertexBuffer);
+void VertexData::setBuffer(unsigned index, const GPUBufferPtr &buffer) {
+	orionAssert(!m_finalized);
+	orionAssert(m_format);
+	orionAssert(buffer->type() == GPUBuffer::kVertexBuffer);
 
 	const VertexBufferDesc *desc = m_format->buffer(index);
-	orion_check(desc, "Format has no buffer at index %u", index);
-	orion_assert(buffer->size() == (m_count * desc->stride));
+	orionCheck(desc, "Format has no buffer at index %u", index);
+	orionAssert(buffer->size() == (m_count * desc->stride));
 
 	m_buffers.insert(m_buffers.begin() + index, buffer);
 }
 
 /** Finalize the vertex data object. */
 void VertexData::finalize() {
-	orion_assert(m_format);
+	orionAssert(m_format);
 
 	/* Each buffer specified by the format must be bound. */
 	for(size_t i = 0; i < m_format->buffers().size(); i++) {
 		if(m_format->buffer(i)) {
-			orion_check(
+			orionCheck(
 				i < m_buffers.size() && m_buffers[i],
 				"Format requires buffer %u but no buffer bound", i);
 		}
 	}
 
-	finalize_impl();
+	finalizeImpl();
 	m_finalized = true;
 }

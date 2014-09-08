@@ -11,7 +11,7 @@
 /** Called when the asset reference count reaches 0. */
 void Asset::released() {
 	if(managed())
-		g_engine->assets()->unregister_asset(this);
+		g_engine->assets()->unregisterAsset(this);
 
 	delete this;
 }

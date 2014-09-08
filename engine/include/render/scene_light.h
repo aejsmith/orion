@@ -15,11 +15,11 @@ struct LightUniforms {
 	float direction[3];
 	float intensity;
 	float colour[3];
-	float cos_cutoff;
+	float cosCutoff;
 	float range;
-	float attenuation_constant;
-	float attenuation_linear;
-	float attenuation_exp;
+	float attenuationConstant;
+	float attenuationLinear;
+	float attenuationExp;
 };
 
 /** Renderer representation of a light source. */
@@ -36,12 +36,12 @@ public:
 	explicit SceneLight(Type type);
 	~SceneLight();
 
-	void set_direction(const glm::vec3 &direction);
-	void set_colour(const glm::vec3 &colour);
-	void set_intensity(float intensity);
-	void set_cutoff(float cutoff);
-	void set_range(float range);
-	void set_attenuation(float constant, float linear, float exp);
+	void setDirection(const glm::vec3 &direction);
+	void setColour(const glm::vec3 &colour);
+	void setIntensity(float intensity);
+	void setCutoff(float cutoff);
+	void setRange(float range);
+	void setAttenuation(float constant, float linear, float exp);
 
 	/** @return		Type of the light. */
 	Type type() const { return m_type; }
@@ -58,15 +58,15 @@ public:
 	/** @return		Range of the light (point/spot). */
 	float range() const { return m_range; }
 	/** @return		Constant attenuation factor (point/spot). */
-	float attenuation_constant() const { return m_attenuation_constant; }
+	float attenuationConstant() const { return m_attenuationConstant; }
 	/** @return		Linear attenuation factor (point/spot). */
-	float attenuation_linear() const { return m_attenuation_linear; }
+	float attenuationLinear() const { return m_attenuationLinear; }
 	/** @return		Exponential attenuation factor (point/spot). */
-	float attenuation_exp() const { return m_attenuation_exp; }
+	float attenuationExp() const { return m_attenuationExp; }
 
 	GPUBufferPtr uniforms();
 private:
-	void set_position(const glm::vec3 &position);
+	void setPosition(const glm::vec3 &position);
 private:
 	Type m_type;			/**< Type of the light. */
 
@@ -76,9 +76,9 @@ private:
 	float m_intensity;		/**< Diffuse intensity. */
 	float m_cutoff;			/**< Angle of effect (spot). */
 	float m_range;			/**< Range of the light (point/spot). */
-	float m_attenuation_constant;	/**< Constant attenuation factor (point/spot). */
-	float m_attenuation_linear;	/**< Linear attenuation factor (point/spot). */
-	float m_attenuation_exp;	/**< Exponential attenuation factor (point/spot). */
+	float m_attenuationConstant;	/**< Constant attenuation factor (point/spot). */
+	float m_attenuationLinear;	/**< Linear attenuation factor (point/spot). */
+	float m_attenuationExp;		/**< Exponential attenuation factor (point/spot). */
 
 	/** Uniform buffer containing lighting parameters. */
 	DynamicUniformBuffer<LightUniforms> m_uniforms;

@@ -15,21 +15,21 @@
  * @param gpu		GPU interface. */
 Window::Window(const EngineConfiguration &config, GPUInterface *gpu) :
 	RenderTarget(kWindowPriority),
-	m_size(config.display_width, config.display_height)
+	m_size(config.displayWidth, config.displayHeight)
 {
 	uint32_t flags = 0;
 
-	if(config.display_fullscreen)
+	if(config.displayFullscreen)
 		flags |= SDL_WINDOW_FULLSCREEN;
-	if(config.graphics_api == EngineConfiguration::kGLGraphicsAPI)
+	if(config.graphicsAPI == EngineConfiguration::kGLGraphicsAPI)
 		flags |= SDL_WINDOW_OPENGL;
 
 	m_window = SDL_CreateWindow(config.title.c_str(),
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		config.display_width, config.display_height,
+		config.displayWidth, config.displayHeight,
 		flags);
 	if(!m_window)
-		orion_abort("Failed to create main window: %s", SDL_GetError());
+		orionAbort("Failed to create main window: %s", SDL_GetError());
 
 	/* Initialize the GPU interface properly. */
 	gpu->init(m_window);
@@ -42,6 +42,6 @@ Window::~Window() {
 
 /** Set the window title.
  * @param title		Title of the window. */
-void Window::set_title(const std::string &title) {
+void Window::setTitle(const std::string &title) {
 	SDL_SetWindowTitle(m_window, title.c_str());
 }

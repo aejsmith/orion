@@ -43,8 +43,8 @@ public:
 		unsigned mips = 0,
 		uint32_t flags = GPUTexture::kAutoMipmap);
 
-	void update(const void *data, bool update_mipmap = true);
-	void update(const Rect &area, const void *data, bool update_mipmap = true);
+	void update(const void *data, bool updateMipmap = true);
+	void update(const Rect &area, const void *data, bool updateMipmap = true);
 	void update(unsigned mip, const Rect &area, const void *data);
 
 	/** @return		Width of the texture. */

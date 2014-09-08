@@ -27,15 +27,15 @@
  */
 CameraComponent::CameraComponent(Entity *entity) :
 	Component(Component::kCameraType, entity),
-	m_render_target(g_engine->window()),
+	m_renderTarget(g_engine->window()),
 	m_viewport(0.0f, 0.0f, 1.0f, 1.0f)
 {
 	/* Initialize the scene view with a default projection and a viewport
 	 * matching the main window. Its transformation will be set when our
 	 * transformed() function is called. */
 	perspective();
-	update_viewport();
-	set_rendering_path(RendererParams::kDeferredPath);
+	updateViewport();
+	setRenderingPath(RendererParams::kDeferredPath);
 }
 
 /** Destroy the camera. */
@@ -43,15 +43,15 @@ CameraComponent::~CameraComponent() {}
 
 /** Set the render target.
  * @param target	New render target. */
-void CameraComponent::set_render_target(RenderTarget *target) {
-	if(active_in_world())
-		m_render_target->remove_camera(this);
+void CameraComponent::setRenderTarget(RenderTarget *target) {
+	if(activeInWorld())
+		m_renderTarget->removeCamera(this);
 
-	m_render_target = target;
-	update_viewport();
+	m_renderTarget = target;
+	updateViewport();
 
-	if(active_in_world())
-		m_render_target->add_camera(this);
+	if(activeInWorld())
+		m_renderTarget->addCamera(this);
 }
 
 /**
@@ -64,9 +64,9 @@ void CameraComponent::set_render_target(RenderTarget *target) {
  *
  * @param viewport	Normalized viewport rectangle.
  */
-void CameraComponent::set_viewport(const Rect &viewport) {
+void CameraComponent::setViewport(const Rect &viewport) {
 	m_viewport = viewport;
-	update_viewport();
+	updateViewport();
 }
 
 /**
@@ -77,43 +77,43 @@ void CameraComponent::set_viewport(const Rect &viewport) {
  *
  * @param path		Rendering path to use.
  */
-void CameraComponent::set_rendering_path(RendererParams::Path path) {
+void CameraComponent::setRenderingPath(RendererParams::Path path) {
 	// FIXME: Fall back if unsupported.
-	m_renderer_params.path = path;
+	m_rendererParams.path = path;
 }
 
 /** Render the scene from the camera to its render target. */
 void CameraComponent::render() {
 	SceneRenderer *renderer = SceneRenderer::create(
 		entity()->world()->scene(),
-		m_render_target,
-		m_renderer_params);
+		m_renderTarget,
+		m_rendererParams);
 
-	renderer->render(&m_scene_view);
+	renderer->render(&m_sceneView);
 }
 
 /** Update the viewport. */
-void CameraComponent::update_viewport() {
+void CameraComponent::updateViewport() {
 	/* Calculate real viewport size based on render target dimensions. */
-	glm::ivec2 size = m_render_target->size();
+	glm::ivec2 size = m_renderTarget->size();
 	int32_t x = m_viewport.x * static_cast<float>(size.x);
 	int32_t y = m_viewport.y * static_cast<float>(size.y);
 	int32_t width = m_viewport.width * static_cast<float>(size.x);
 	int32_t height = m_viewport.height * static_cast<float>(size.y);
-	m_scene_view.set_viewport(IntRect(x, y, width, height));
+	m_sceneView.setViewport(IntRect(x, y, width, height));
 }
 
 /** Called when the camera transformation is changed. */
 void CameraComponent::transformed() {
-	m_scene_view.set_transform(entity()->position(), entity()->orientation());
+	m_sceneView.setTransform(entity()->position(), entity()->orientation());
 }
 
 /** Called when the camera becomes active in the world. */
 void CameraComponent::activated() {
-	m_render_target->add_camera(this);
+	m_renderTarget->addCamera(this);
 }
 
 /** Called when the camera becomes inactive in the world. */
 void CameraComponent::deactivated() {
-	m_render_target->remove_camera(this);
+	m_renderTarget->removeCamera(this);
 }

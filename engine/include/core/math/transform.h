@@ -23,9 +23,9 @@ public:
 	Transform &operator =(const Transform &other);
 
 	void set(const glm::vec3 &position, const glm::quat &orientation, const glm::vec3 &scale);
-	void set_position(const glm::vec3 &position);
-	void set_orientation(const glm::quat &orientation);
-	void set_scale(const glm::vec3 &scale);
+	void setPosition(const glm::vec3 &position);
+	void setOrientation(const glm::quat &orientation);
+	void setScale(const glm::vec3 &scale);
 
 	/** @return		Current position. */
 	const glm::vec3 &position() const { return m_position; }
@@ -35,7 +35,7 @@ public:
 	const glm::vec3 &scale() const { return m_scale; }
 
 	const glm::mat4 &matrix() const;
-	glm::mat4 inverse_matrix() const;
+	glm::mat4 inverseMatrix() const;
 private:
 	glm::vec3 m_position;			/**< Position. */
 	glm::quat m_orientation;		/**< Orientation. */
@@ -45,7 +45,7 @@ private:
 	 * @note		Mutable to allow updating cached versions in
 	 *			const accessors. */
 	mutable glm::mat4 m_matrix;		/**< Precalculated transformation matrix. */
-	mutable bool m_matrix_outdated;		/**< Whether the matrix need updating. */
+	mutable bool m_matrixOutdated;		/**< Whether the matrix need updating. */
 };
 
 /** Initialize an identity transformation. */
@@ -54,7 +54,7 @@ inline Transform::Transform() :
 	m_orientation(1.0f, 0.0f, 0.0f, 0.0f),
 	m_scale(1.0f),
 	m_matrix(1.0f),
-	m_matrix_outdated(false)
+	m_matrixOutdated(false)
 {}
 
 /** Initialize a transformation.
@@ -65,7 +65,7 @@ inline Transform::Transform(const glm::vec3 &position, const glm::quat &orientat
 	m_position(position),
 	m_orientation(orientation),
 	m_scale(scale),
-	m_matrix_outdated(true)
+	m_matrixOutdated(true)
 {}
 
 /** Copy a transformation.
@@ -75,7 +75,7 @@ inline Transform::Transform(const Transform &other) :
 	m_orientation(other.m_orientation),
 	m_scale(other.m_scale),
 	m_matrix(other.m_matrix),
-	m_matrix_outdated(other.m_matrix_outdated)
+	m_matrixOutdated(other.m_matrixOutdated)
 {}
 
 /** Assign a transformation.
@@ -84,8 +84,8 @@ inline Transform &Transform::operator =(const Transform &other) {
 	m_position = other.m_position;
 	m_orientation = other.m_orientation;
 	m_scale = other.m_scale;
-	m_matrix_outdated = other.m_matrix_outdated;
-	if(!m_matrix_outdated)
+	m_matrixOutdated = other.m_matrixOutdated;
+	if(!m_matrixOutdated)
 		m_matrix = other.m_matrix;
 
 	return *this;
@@ -99,26 +99,26 @@ inline void Transform::set(const glm::vec3 &position, const glm::quat &orientati
 	m_position = position;
 	m_orientation = orientation;
 	m_scale = scale;
-	m_matrix_outdated = true;
+	m_matrixOutdated = true;
 }
 
 /** Set the position.
  * @param position	New position. */
-inline void Transform::set_position(const glm::vec3 &position) {
+inline void Transform::setPosition(const glm::vec3 &position) {
 	m_position = position;
-	m_matrix_outdated = true;
+	m_matrixOutdated = true;
 }
 
 /** Set the orientation.
  * @param orientation	New orientation. */
-inline void Transform::set_orientation(const glm::quat &orientation) {
+inline void Transform::setOrientation(const glm::quat &orientation) {
 	m_orientation = orientation;
-	m_matrix_outdated = true;
+	m_matrixOutdated = true;
 }
 
 /** Set the scale.
  * @param scale		New scale. */
-inline void Transform::set_scale(const glm::vec3 &scale) {
+inline void Transform::setScale(const glm::vec3 &scale) {
 	m_scale = scale;
-	m_matrix_outdated = true;
+	m_matrixOutdated = true;
 }

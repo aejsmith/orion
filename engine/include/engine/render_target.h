@@ -46,8 +46,8 @@ public:
 	/** @return		Size of the render target (in pixels). */
 	virtual glm::ivec2 size() const = 0;
 
-	void add_camera(CameraComponent *camera);
-	void remove_camera(CameraComponent *camera);
+	void addCamera(CameraComponent *camera);
+	void removeCamera(CameraComponent *camera);
 
 	/** @return		Rendering priority. */
 	unsigned priority() const { return m_priority; }

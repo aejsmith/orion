@@ -17,7 +17,7 @@
  * stage. Before a pipeline object can be used for rendering it must be
  * finalized, after which it becomes immutable. A pipeline object has an API-
  * specific implementation, therefore instances must be created via
- * GPUInterface::create_pipeline().
+ * GPUInterface::createPipeline().
  *
  * @todo		Modern APIs (DX12, Metal, Mantle) have the concept of
  *			a pipeline state object that bundle up programs along
@@ -32,7 +32,7 @@
  */
 class GPUPipeline : public GPUResource {
 public:
-	void set_program(GPUProgram::Type stage, const GPUProgramPtr &program);
+	void setProgram(GPUProgram::Type stage, const GPUProgramPtr &program);
 	void finalize();
 
 	/** Get the program for a stage.
@@ -46,12 +46,12 @@ protected:
 	GPUPipeline();
 
 	/** Called when the object is being finalized. */
-	virtual void finalize_impl() {}
+	virtual void finalizeImpl() {}
 protected:
 	ProgramArray m_programs;	/**< Array of programs for each stage. */
 	bool m_finalized;		/**< Whether the state has been finalized. */
 
-	/* For the default implementation of create_pipeline(). */
+	/* For the default implementation of createPipeline(). */
 	friend class GPUInterface;
 };
 

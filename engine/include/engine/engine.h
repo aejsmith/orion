@@ -35,13 +35,13 @@ public:
 	std::string title;
 
 	/** Graphics API to use. */
-	GraphicsAPI graphics_api;
+	GraphicsAPI graphicsAPI;
 
 	/** Display parameters. */
-	uint32_t display_width;		/**< Screen width. */
-	uint32_t display_height;	/**< Screen height. */
-	bool display_fullscreen;	/**< Whether the window should be fullscreen. */
-	bool display_vsync;		/**< Whether to synchronize updates with vertical retrace. */
+	uint32_t displayWidth;		/**< Screen width. */
+	uint32_t displayHeight;		/**< Screen height. */
+	bool displayFullscreen;		/**< Whether the window should be fullscreen. */
+	bool displayVsync;		/**< Whether to synchronize updates with vertical retrace. */
 };
 
 /** Main class of the engine. */
@@ -75,7 +75,7 @@ public:
 	 * World management.
 	 */
 
-	World *create_world();
+	World *createWorld();
 
 	/** @return		Active game world. */
 	World *world() const { return m_world; }
@@ -84,19 +84,16 @@ public:
 	 * Rendering loop.
 	 */
 
-	void add_render_target(RenderTarget *target);
-	void remove_render_target(RenderTarget *target);
-private:
-	/** Type of a list of render targets. */
-	typedef std::list<RenderTarget *> RenderTargetList;
+	void addRenderTarget(RenderTarget *target);
+	void removeRenderTarget(RenderTarget *target);
 private:
 	/**
 	 * Main loop functions.
 	 */
 
-	bool poll_events();
+	bool pollEvents();
 	void tick();
-	void render_all_targets();
+	void renderAllTargets();
 private:
 	/** Engine configuration. */
 	EngineConfiguration m_config;
@@ -112,11 +109,11 @@ private:
 	World *m_world;
 
 	/** List of render targets. */
-	RenderTargetList m_render_targets;
+	std::list<RenderTarget *> m_renderTargets;
 
 	/** Timing information. */
-	uint32_t m_last_tick;		/**< Last tick time. */
-	uint32_t m_last_fps;		/**< Last FPS value. */
+	uint32_t m_lastTick;		/**< Last tick time. */
+	uint32_t m_lastFPS;		/**< Last FPS value. */
 	uint32_t m_frames;		/**< Number of frames rendered since last FPS update. */
 };
 

@@ -12,7 +12,7 @@
 struct ViewUniforms {
 	float view[16];
 	float projection[16];
-	float view_projection[16];
+	float viewProjection[16];
 	float position[3], _pad;
 };
 
@@ -28,9 +28,9 @@ public:
 	SceneView();
 	~SceneView();
 
-	void set_transform(const glm::vec3 &position, const glm::quat &orientation);
-	void perspective(float fovx, float znear, float zfar);
-	void set_viewport(const IntRect &viewport);
+	void setTransform(const glm::vec3 &position, const glm::quat &orientation);
+	void perspective(float fov, float zNear, float zFar);
+	void setViewport(const IntRect &viewport);
 
 	/** @return		Current position. */
 	const glm::vec3 &position() const { return m_position; }
@@ -40,11 +40,11 @@ public:
 	const glm::mat4 &view();
 
 	/** @return		Horizontal field of view. */
-	float fovx() const { return m_fovx; }
+	float fov() const { return m_fov; }
 	/** @return		Near clipping plane. */
-	float znear() const { return m_znear; }
+	float zNear() const { return m_zNear; }
 	/** @return		Far clipping plane. */
-	float zfar() const { return m_zfar; }
+	float zFar() const { return m_zFar; }
 
 	/** @return		Viewport rectangle. */
 	const IntRect &viewport() const { return m_viewport; }
@@ -58,13 +58,13 @@ private:
 	glm::vec3 m_position;		/**< View position. */
 	glm::quat m_orientation;	/**< View orientation. */
 	glm::mat4 m_view;		/**< World-to-view matrix. */
-	bool m_view_outdated;		/**< Whether the view matrix needs updating. */
+	bool m_viewOutdated;		/**< Whether the view matrix needs updating. */
 
-	float m_fovx;			/**< Horizontal field of view. */
-	float m_znear;			/**< Near clipping plane. */
-	float m_zfar;			/**< Far clipping plane. */
+	float m_fov;			/**< Horizontal field of view. */
+	float m_zNear;			/**< Near clipping plane. */
+	float m_zFar;			/**< Far clipping plane. */
 	glm::mat4 m_projection;		/**< View-to-projection matrix. */
-	bool m_projection_outdated;	/**< Whether the projection matrix needs updating. */
+	bool m_projectionOutdated;	/**< Whether the projection matrix needs updating. */
 
 	IntRect m_viewport;		/**< Viewport rectangle in pixels. */
 	float m_aspect;			/**< Aspect ratio. */

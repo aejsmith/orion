@@ -23,29 +23,29 @@ SceneLight::~SceneLight() {}
 
 /** Set the direction of the light.
  * @param direction	New light direction. */
-void SceneLight::set_direction(const glm::vec3 &direction) {
+void SceneLight::setDirection(const glm::vec3 &direction) {
 	m_direction = glm::normalize(direction);
 	m_uniforms.invalidate();
 }
 
 /** Set the colour of the light.
  * @param colour	New light colour. */
-void SceneLight::set_colour(const glm::vec3 &colour) {
+void SceneLight::setColour(const glm::vec3 &colour) {
 	m_colour = colour;
 	m_uniforms.invalidate();
 }
 
 /** Set the intensity of the light.
  * @param intensity	New light intensity. */
-void SceneLight::set_intensity(float intensity) {
+void SceneLight::setIntensity(float intensity) {
 	m_intensity = intensity;
 	m_uniforms.invalidate();
 }
 
 /** Set the cutoff angle (for spot lights).
  * @param cutoff	New cutoff angle. Must be <= 45 degrees. */
-void SceneLight::set_cutoff(float cutoff) {
-	orion_check(cutoff <= 45.0f, "Cutoff angle must be <= 45");
+void SceneLight::setCutoff(float cutoff) {
+	orionCheck(cutoff <= 45.0f, "Cutoff angle must be <= 45");
 
 	m_cutoff = cutoff;
 	m_uniforms.invalidate();
@@ -53,7 +53,7 @@ void SceneLight::set_cutoff(float cutoff) {
 
 /** Set the range of the light (for point/spot lights).
  * @param range		Range of the light. */
-void SceneLight::set_range(float range) {
+void SceneLight::setRange(float range) {
 	m_range = range;
 	m_uniforms.invalidate();
 }
@@ -62,16 +62,16 @@ void SceneLight::set_range(float range) {
  * @param constant	Constant attenuation factor.
  * @param linear	Linear attenuation factor.
  * @param exp		Exponentional attenuation factor. */
-void SceneLight::set_attenuation(float constant, float linear, float exp) {
-	m_attenuation_constant = constant;
-	m_attenuation_linear = linear;
-	m_attenuation_exp = exp;
+void SceneLight::setAttenuation(float constant, float linear, float exp) {
+	m_attenuationConstant = constant;
+	m_attenuationLinear = linear;
+	m_attenuationExp = exp;
 	m_uniforms.invalidate();
 }
 
 /** Set the light position (private function called from Scene).
  * @param position	New light position. */
-void SceneLight::set_position(const glm::vec3 &position) {
+void SceneLight::setPosition(const glm::vec3 &position) {
 	m_position = position;
 	m_uniforms.invalidate();
 }
@@ -86,12 +86,12 @@ GPUBufferPtr SceneLight::uniforms() {
 		uniforms->type = m_type;
 		uniforms->intensity = m_intensity;
 		uniforms->range = m_range;
-		uniforms->attenuation_constant = m_attenuation_constant;
-		uniforms->attenuation_linear = m_attenuation_linear;
-		uniforms->attenuation_exp = m_attenuation_exp;
+		uniforms->attenuationConstant = m_attenuationConstant;
+		uniforms->attenuationLinear = m_attenuationLinear;
+		uniforms->attenuationExp = m_attenuationExp;
 
 		/* Precompute cosine of cutoff angle to avoid having to
 		 * calculate it for every pixel. */
-		uniforms->cos_cutoff = cosf(glm::radians(m_cutoff));
+		uniforms->cosCutoff = cosf(glm::radians(m_cutoff));
 	});
 }

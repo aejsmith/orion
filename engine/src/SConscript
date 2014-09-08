@@ -23,8 +23,8 @@ def gen_version_cc(target, source, env):
     version = vcs.revision_id()
 
     f = open(str(target[0]), 'w')
-    f.write('const char *g_version_string = "%s";\n' % (version))
-    f.write('const char *g_version_timestamp = "%s";\n' % (timestamp))
+    f.write('const char *g_versionString = "%s";\n' % (version))
+    f.write('const char *g_versionTimestamp = "%s";\n' % (timestamp))
     f.close()
 AlwaysBuild(env.Command('version.cc', [], env.Action(gen_version_cc, None)))
 

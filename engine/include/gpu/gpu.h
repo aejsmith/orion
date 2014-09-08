@@ -42,31 +42,31 @@ public:
 	/** Create a GPU buffer.
 	 * @see			GPUBuffer::GPUBuffer().
 	 * @return		Pointer to created buffer. */
-	virtual GPUBufferPtr create_buffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) = 0;
+	virtual GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) = 0;
 
 	/** Create a vertex format descriptor.
 	 * @return		Pointer to created vertex format descriptor. */
-	virtual VertexFormatPtr create_vertex_format() {
+	virtual VertexFormatPtr createVertexFormat() {
 		return VertexFormatPtr(new VertexFormat);
 	}
 
 	/** Create a vertex data object.
 	 * @see			VertexData::VertexData().
 	 * @return		Pointer to created vertex data object. */
-	virtual VertexDataPtr create_vertex_data(size_t vertices) {
+	virtual VertexDataPtr createVertexData(size_t vertices) {
 		return VertexDataPtr(new VertexData(vertices));
 	}
 
 	/** Create an index data object.
 	 * @see			IndexData::IndexData().
 	 * @return		Pointer to created index data object. */
-	virtual IndexDataPtr create_index_data(const GPUBufferPtr &buffer, IndexData::Type type, size_t count) {
+	virtual IndexDataPtr createIndexData(const GPUBufferPtr &buffer, IndexData::Type type, size_t count) {
 		return IndexDataPtr(new IndexData(buffer, type, count));
 	}
 
 	/** Create a pipeline object.
 	 * @return		Pointer to created pipeline. */
-	virtual GPUPipelinePtr create_pipeline() {
+	virtual GPUPipelinePtr createPipeline() {
 		return GPUPipelinePtr(new GPUPipeline());
 	}
 
@@ -76,27 +76,27 @@ public:
 	 * @param path		Path to the program source.
 	 * @param type		Type of the program.
 	 * @return		Pointer to created program. */
-	virtual GPUProgramPtr load_program(const char *path, GPUProgram::Type type) = 0;
+	virtual GPUProgramPtr loadProgram(const char *path, GPUProgram::Type type) = 0;
 
 	/** Create a 2D texture.
 	 * @param desc		Descriptor containing texture parameters.
 	 * @return		Pointer to created texture. */
-	virtual GPUTexturePtr create_texture(const GPUTexture2DDesc &desc) = 0;
+	virtual GPUTexturePtr createTexture(const GPUTexture2DDesc &desc) = 0;
 
 	/** Create a 2D array texture.
 	 * @param desc		Descriptor containing texture parameters.
 	 * @return		Pointer to created texture. */
-	virtual GPUTexturePtr create_texture(const GPUTexture2DArrayDesc &desc) = 0;
+	virtual GPUTexturePtr createTexture(const GPUTexture2DArrayDesc &desc) = 0;
 
 	/** Create a cube texture.
 	 * @param desc		Descriptor containing texture parameters.
 	 * @return		Pointer to created texture. */
-	virtual GPUTexturePtr create_texture(const GPUTextureCubeDesc &desc) = 0;
+	virtual GPUTexturePtr createTexture(const GPUTextureCubeDesc &desc) = 0;
 
 	/** Create a 3D texture.
 	 * @param desc		Descriptor containing texture parameters.
 	 * @return		Pointer to created texture. */
-	virtual GPUTexturePtr create_texture(const GPUTexture3DDesc &desc) = 0;
+	virtual GPUTexturePtr createTexture(const GPUTexture3DDesc &desc) = 0;
 
 	/**
 	 * State methods.
@@ -104,17 +104,17 @@ public:
 
 	/** Bind a pipeline for rendering.
 	 * @param pipeline	Pipeline to use. */
-	virtual void bind_pipeline(const GPUPipelinePtr &pipeline) = 0;
+	virtual void bindPipeline(const GPUPipelinePtr &pipeline) = 0;
 
 	/** Bind a texture.
 	 * @param index		Texture unit index to bind to.
 	 * @param texture	Texture to bind. */
-	virtual void bind_texture(unsigned index, const GPUTexturePtr &texture) = 0;
+	virtual void bindTexture(unsigned index, const GPUTexturePtr &texture) = 0;
 
 	/** Bind a uniform buffer.
 	 * @param index		Uniform block index to bind to.
 	 * @param buffer	Buffer to bind. */
-	virtual void bind_uniform_buffer(unsigned index, const GPUBufferPtr &buffer) = 0;
+	virtual void bindUniformBuffer(unsigned index, const GPUBufferPtr &buffer) = 0;
 
 	/**
 	 * Set the blending mode.
@@ -126,13 +126,13 @@ public:
 	 * blending.
 	 *
 	 * @param func		Blending function.
-	 * @param source_factor	Source blend factor.
-	 * @param dest_factor	Destination factor.
+	 * @param sourceFactor	Source blend factor.
+	 * @param destFactor	Destination factor.
 	 */
-	virtual void set_blend_mode(
+	virtual void setBlendMode(
 		BlendFunc func = BlendFunc::kAdd,
-		BlendFactor source_factor = BlendFactor::kOne,
-		BlendFactor dest_factor = BlendFactor::kZero) = 0;
+		BlendFactor sourceFactor = BlendFactor::kOne,
+		BlendFactor destFactor = BlendFactor::kZero) = 0;
 
 	/**
 	 * Set the depth testing mode.
@@ -141,11 +141,11 @@ public:
 	 * to less than or equal, and enables writes to the depth buffer.
 	 *
 	 * @param func		Depth comparison function.
-	 * @param enable_write	Whether to enable depth writes.
+	 * @param enableWrite	Whether to enable depth writes.
 	 */
-	virtual void set_depth_mode(
+	virtual void setDepthMode(
 		ComparisonFunc func = ComparisonFunc::kLessOrEqual,
-		bool enable_write = true) = 0;
+		bool enableWrite = true) = 0;
 
 	/**
 	 * Frame methods.
@@ -153,7 +153,7 @@ public:
 
 	/** End a frame and present it on screen.
 	 * @param vsync		Whether to wait for vertical sync. */
-	virtual void end_frame(bool vsync) {}
+	virtual void endFrame(bool vsync) {}
 
 	/**
 	 * Rendering methods.

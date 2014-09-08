@@ -10,7 +10,7 @@
 layout(std140) uniform ViewUniforms {
 	mat4 view;
 	mat4 projection;
-	mat4 view_projection;
+	mat4 viewProjection;
 	vec3 position;
 } view;
 
@@ -20,11 +20,11 @@ layout(std140) uniform LightUniforms {
 	vec3 direction;
 	float intensity;
 	vec3 colour;
-	float cos_cutoff;
+	float cosCutoff;
 	float range;
-	float attenuation_constant;
-	float attenuation_linear;
-	float attenuation_exp;
+	float attenuationConstant;
+	float attenuationLinear;
+	float attenuationExp;
 } light;
 
 // FIXME: Define these somewhere to match SceneLight types.
@@ -34,22 +34,22 @@ const int kPointLight = 2;
 const int kSpotLight = 3;
 
 // FIXME: Put these somewhere.
-const float mat_shininess = 32.0;
-const vec3 mat_specular = vec3(0.5, 0.5, 0.5);
+const float matShininess = 32.0;
+const vec3 matSpecular = vec3(0.5, 0.5, 0.5);
 
-uniform sampler2D diffuse_texture;
+uniform sampler2D diffuseTexture;
 
-layout(location = 0) in vec3 vtx_position;
-layout(location = 1) in vec3 vtx_normal;
-layout(location = 2) in vec2 vtx_texcoord;
+layout(location = 0) in vec3 vtxPosition;
+layout(location = 1) in vec3 vtxNormal;
+layout(location = 2) in vec2 vtxTexcoord;
 
-layout(location = 0) out vec4 frag_colour;
+layout(location = 0) out vec4 fragColour;
 
 /** Calculate the lighting contribution of a light.
  * @param direction	Direction from the light to the fragment. */
-vec4 calc_light(vec3 direction) {
-	vec4 total_factor = vec4(0.0);
-	vec3 normal = normalize(vtx_normal);
+vec4 calcLight(vec3 direction) {
+	vec4 totalFactor = vec4(0.0);
+	vec3 normal = normalize(vtxNormal);
 
 	/* Calculate the cosine of the angle between the normal and the light
 	 * direction. If the surface is facing away from the light this will
@@ -57,64 +57,64 @@ vec4 calc_light(vec3 direction) {
 	float angle = dot(normal, -direction);
 	if(angle > 0.0) {
 		/* Calculate the diffuse contribution. */
-		total_factor += vec4(light.colour, 1.0) * light.intensity * angle;
+		totalFactor += vec4(light.colour, 1.0) * light.intensity * angle;
 
 		/* Do specular reflection using Blinn-Phong. Calculate the
 		 * cosine of the angle between the normal and the half vector. */
-		vec3 half_vector = normalize(direction - (vtx_position - view.position));
-		float specular_angle = dot(normal, half_vector);
-		if(specular_angle > 0.0) {
-			total_factor +=
+		vec3 halfVactor = normalize(direction - (vtxPosition - view.position));
+		float specularAngle = dot(normal, halfVactor);
+		if(specularAngle > 0.0) {
+			totalFactor +=
 				vec4(light.colour, 1.0) *
-				pow(specular_angle, mat_shininess) *
-				vec4(mat_specular, 1.0);
+				pow(specularAngle, matShininess) *
+				vec4(matSpecular, 1.0);
 		}
 	}
 
-	return total_factor;
+	return totalFactor;
 }
 
 /** Calculate the lighting contribution of an ambient light. */
-vec4 ambient_light_factor() {
+vec4 ambientLightFactor() {
 	return vec4(light.colour * light.intensity, 1.0);
 }
 
 /** Calculate the lighting contribution of a directional light. */
-vec4 directional_light_factor() {
-	return calc_light(light.direction);
+vec4 directionalLightFactor() {
+	return calcLight(light.direction);
 }
 
 /** Calculate the lighting contribution of a point light. */
-vec4 point_light_factor() {
+vec4 pointLightFactor() {
 	/* Calculate distance to light and direction to the fragment. */
-	vec3 light_to_vertex = vtx_position - light.position;
-	float distance = length(light_to_vertex);
-	vec3 direction = normalize(light_to_vertex);
+	vec3 lightToVertex = vtxPosition - light.position;
+	float distance = length(lightToVertex);
+	vec3 direction = normalize(lightToVertex);
 
 	/* Ignore lights out of range. */
 	if(distance > light.range)
 		return vec4(0.0);
 
 	/* Calculate the basic light factor. */
-	vec4 light_factor = calc_light(direction);
+	vec4 lightFactor = calcLight(direction);
 
 	/* Apply attenuation. */
 	float attenuation =
-		light.attenuation_constant +
-		(light.attenuation_linear * distance) +
-		(light.attenuation_exp * distance * distance);
+		light.attenuationConstant +
+		(light.attenuationLinear * distance) +
+		(light.attenuationExp * distance * distance);
 
-	return light_factor / attenuation;
+	return lightFactor / attenuation;
 }
 
 /** Calculate the lighting contribution of a spot light. */
-vec4 spot_light_factor() {
-	vec3 light_to_vertex = normalize(vtx_position - light.position);
-	float spot_factor = dot(light_to_vertex, light.direction);
+vec4 spotLightFactor() {
+	vec3 lightToVertex = normalize(vtxPosition - light.position);
+	float spotFactor = dot(lightToVertex, light.direction);
 
-	if(spot_factor > light.cos_cutoff) {
+	if(spotFactor > light.cosCutoff) {
 		/* Same as point light calculation, with cone edge softened. */
-		return point_light_factor() * (1.0 - (1.0 - spot_factor) * (1.0 / (1.0 - light.cos_cutoff)));
+		return pointLightFactor() * (1.0 - (1.0 - spotFactor) * (1.0 / (1.0 - light.cosCutoff)));
 	} else {
 		return vec4(0.0);
 	}
@@ -122,22 +122,22 @@ vec4 spot_light_factor() {
 
 void main() {
 	/* Determine the light factor for our light source. */
-	vec4 light_factor = vec4(0.0);
+	vec4 lightFactor = vec4(0.0);
 	switch(light.type) {
 	case kAmbientLight:
-		light_factor = ambient_light_factor();
+		lightFactor = ambientLightFactor();
 		break;
 	case kDirectionalLight:
-		light_factor = directional_light_factor();
+		lightFactor = directionalLightFactor();
 		break;
 	case kPointLight:
-		light_factor = point_light_factor();
+		lightFactor = pointLightFactor();
 		break;
 	case kSpotLight:
-		light_factor = spot_light_factor();
+		lightFactor = spotLightFactor();
 		break;
 	}
 
-	vec4 texel = texture(diffuse_texture, vtx_texcoord);
-	frag_colour = texel * light_factor;
+	vec4 texel = texture(diffuseTexture, vtxTexcoord);
+	fragColour = texel * lightFactor;
 }

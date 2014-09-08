@@ -37,26 +37,26 @@ void LogManager::write(LogLevel level, const char *file, int line, const char *f
 	struct tm local;
 	localtime_r(&t, &local);
 
-	char time_str[20];
-	strftime(time_str, 20, "%Y-%m-%d %H:%M:%S", &local);
+	char timeString[20];
+	strftime(timeString, 20, "%Y-%m-%d %H:%M:%S", &local);
 
-	const char *level_str = "";
+	const char *levelString = "";
 	switch(level) {
 	case LogLevel::kDebug:
-		level_str = "\033[1;30m";
+		levelString = "\033[1;30m";
 		break;
 	case LogLevel::kInfo:
-		level_str = "\033[1;34m";
+		levelString = "\033[1;34m";
 		break;
 	case LogLevel::kWarning:
-		level_str = "\033[1;33m";
+		levelString = "\033[1;33m";
 		break;
 	case LogLevel::kError:
-		level_str = "\033[1;31m";
+		levelString = "\033[1;31m";
 		break;
 	}
 
 	fprintf((level < LogLevel::kError) ? stdout : stderr,
 		"%s%s \033[0m%s\n",
-		level_str, time_str, msg.c_str());
+		levelString, timeString, msg.c_str());
 }

@@ -25,7 +25,7 @@ GLProgram::GLProgram(const char *path, Type type) :
 {
 	std::ifstream stream(path);
 	if(stream.fail())
-		orion_abort("GL: Program `%s' not found", path);
+		orionAbort("GL: Program `%s' not found", path);
 
 	std::string source = std::string(
 		std::istreambuf_iterator<char>(stream),
@@ -33,9 +33,9 @@ GLProgram::GLProgram(const char *path, Type type) :
 
 	/* Compile the shader. */
 	const GLchar *buf = source.c_str();
-	m_program = glCreateShaderProgramv(gl::convert_program_type(type), 1, &buf);
+	m_program = glCreateShaderProgramv(gl::convertProgramType(type), 1, &buf);
 	if(!m_program)
-		orion_abort("GL: Failed to create program object");
+		orionAbort("GL: Failed to create program object");
 
 	/* Check whether it succeeded. glCreateShaderProgramv() appends the
 	 * compiler log to the program info log if compilation fails, so this
@@ -46,10 +46,10 @@ GLProgram::GLProgram(const char *path, Type type) :
 		glGetProgramiv(m_program, GL_INFO_LOG_LENGTH, &result);
 		std::unique_ptr<char[]> log(new char[result]);
 		glGetProgramInfoLog(m_program, result, &result, log.get());
-		orion_log(LogLevel::kDebug, "Compiler log:\n%s", log.get());
+		orionLog(LogLevel::kDebug, "Compiler log:\n%s", log.get());
 
 		glDeleteProgram(m_program);
-		orion_abort("GL: Failed to compile program `%s'", path);
+		orionAbort("GL: Failed to compile program `%s'", path);
 	}
 }
 
@@ -61,30 +61,30 @@ GLProgram::~GLProgram() {
 /** Bind a uniform block in the program.
  * @param name		Name of uniform block.
  * @param index		Uniform buffer binding point index. */
-void GLProgram::bind_uniforms(const char *name, unsigned index) {
-	GLuint block_index = glGetUniformBlockIndex(m_program, name);
-	if(block_index == GL_INVALID_INDEX)
-		orion_abort("GL: Unknown uniform block '%s'", name);
+void GLProgram::bindUniforms(const char *name, unsigned index) {
+	GLuint blockIndex = glGetUniformBlockIndex(m_program, name);
+	if(blockIndex == GL_INVALID_INDEX)
+		orionAbort("GL: Unknown uniform block '%s'", name);
 
-	glUniformBlockBinding(m_program, block_index, index);
+	glUniformBlockBinding(m_program, blockIndex, index);
 }
 
 /** Bind a sampler in the program.
  * @param name		Name of sampler.
  * @param index		Texture unit index. */
-void GLProgram::bind_texture(const char *name, unsigned index) {
-	GLint location = glGetUniformLocation(m_program, name);
-	if(location < 0)
-		orion_abort("GL: Unknown sampler uniform name '%s'", name);
+void GLProgram::bindTexture(const char *name, unsigned index) {
+	GLint uniformLocation = glGetUniformLocation(m_program, name);
+	if(uniformLocation < 0)
+		orionAbort("GL: Unknown sampler uniform name '%s'", name);
 
-	glProgramUniform1i(m_program, location, index);
+	glProgramUniform1i(m_program, uniformLocation, index);
 }
 
 /** Load a GPU program.
  * @param path		Path to the program source.
  * @param type		Type of the program.
  * @return		Pointer to created program. */
-GPUProgramPtr GLGPUInterface::load_program(const char *path, GPUProgram::Type type) {
+GPUProgramPtr GLGPUInterface::loadProgram(const char *path, GPUProgram::Type type) {
 	GPUProgram *program = new GLProgram(path, type);
 	return GPUProgramPtr(program);
 }

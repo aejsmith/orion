@@ -20,29 +20,29 @@ RendererComponent::RendererComponent(Entity *entity) :
 RendererComponent::~RendererComponent() {
 	/* At this point the entities are not added to the renderer, so just
 	 * delete them all. */
-	while(!m_scene_entities.empty()) {
-		SceneEntity *scene_entity = m_scene_entities.front();
-		m_scene_entities.pop_front();
-		delete scene_entity;
+	while(!m_sceneEntities.empty()) {
+		SceneEntity *sceneEntity = m_sceneEntities.front();
+		m_sceneEntities.pop_front();
+		delete sceneEntity;
 	}
 }
 
 /** Called when the entity's transformation is updated. */
 void RendererComponent::transformed() {
 	/* Update all scene entity transformations. */
-	if(active_in_world()) {
+	if(activeInWorld()) {
 		Scene *scene = entity()->world()->scene();
-		for(SceneEntity *scene_entity : m_scene_entities)
-			scene->transform_entity(scene_entity, entity()->world_transform());
+		for(SceneEntity *sceneEntity : m_sceneEntities)
+			scene->transformEntity(sceneEntity, entity()->worldTransform());
 	}
 }
 
 /** Called when the component becomes active in the world. */
 void RendererComponent::activated() {
 	/* Create the scene entities if we haven't already. */
-	if(m_scene_entities.empty()) {
-		create_scene_entities(m_scene_entities);
-		orion_assert(!m_scene_entities.empty());
+	if(m_sceneEntities.empty()) {
+		createSceneEntities(m_sceneEntities);
+		orionAssert(!m_sceneEntities.empty());
 
 		/* Set initial transformations. */
 		RendererComponent::transformed();
@@ -50,13 +50,13 @@ void RendererComponent::activated() {
 
 	/* Add them to the renderer. */
 	Scene *scene = entity()->world()->scene();
-	for(SceneEntity *scene_entity : m_scene_entities)
-		scene->add_entity(scene_entity, entity()->world_transform());
+	for(SceneEntity *sceneEntity : m_sceneEntities)
+		scene->addEntity(sceneEntity, entity()->worldTransform());
 }
 
 /** Called when the component becomes inactive in the world. */
 void RendererComponent::deactivated() {
 	Scene *scene = entity()->world()->scene();
-	for(SceneEntity *scene_entity : m_scene_entities)
-		scene->remove_entity(scene_entity);
+	for(SceneEntity *sceneEntity : m_sceneEntities)
+		scene->removeEntity(sceneEntity);
 }

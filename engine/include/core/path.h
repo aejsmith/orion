@@ -95,7 +95,7 @@ public:
 	 * @return		Path formed by concatenating the two paths.
 	 *			Neither of the input path strings are modified. */
 	Path operator /(const Path &path) const {
-		if(path.is_absolute()) {
+		if(path.isAbsolute()) {
 			return path;
 		} else {
 			return Path(*this) /= path;
@@ -106,14 +106,14 @@ public:
 	 * Queries.
 	 */
 
-	bool is_root() const;
-	bool is_absolute_root() const;
-	bool is_relative() const;
-	bool is_absolute() const;
-	Path directory_name() const;
-	Path file_name() const;
-	std::string base_file_name() const;
-	std::string extension(bool keep_dot = false) const;
+	bool isRoot() const;
+	bool isAbsoluteRoot() const;
+	bool isRelative() const;
+	bool isAbsolute() const;
+	Path directoryName() const;
+	Path fileName() const;
+	std::string baseFileName() const;
+	std::string extension(bool keepDot = false) const;
 private:
 	static void normalize(const char *path, size_t length, std::string &output);
 private:

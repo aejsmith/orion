@@ -19,7 +19,7 @@ Entity::Entity(const std::string &name, World *world) :
 	m_world(world),
 	m_parent(nullptr),
 	m_active(false),
-	m_active_in_world(false)
+	m_activeInWorld(false)
 {
 	m_components.fill(nullptr);
 }
@@ -34,7 +34,7 @@ Entity::~Entity() {}
  * also be deleted.
  */
 void Entity::destroy() {
-	set_active(false);
+	setActive(false);
 
 	while(!m_children.empty()) {
 		/* The child's destroy() function removes it from the list. */
@@ -61,13 +61,13 @@ void Entity::destroy() {
  *
  * @param active	Whether the entity is active.
  */
-void Entity::set_active(bool active) {
+void Entity::setActive(bool active) {
 	m_active = active;
 	if(m_active) {
-		if((!m_parent || m_parent->m_active_in_world) && !m_active_in_world)
+		if((!m_parent || m_parent->m_activeInWorld) && !m_activeInWorld)
 			activated();
 	} else {
-		if(m_active_in_world)
+		if(m_activeInWorld)
 			deactivated();
 	}
 }
@@ -83,7 +83,7 @@ void Entity::set_active(bool active) {
  *
  * @return		Pointer to created entity.
  */
-Entity *Entity::create_child(const std::string &name) {
+Entity *Entity::createChild(const std::string &name) {
 	Entity *entity = new Entity(name, m_world);
 
 	entity->m_parent = this;
@@ -97,8 +97,8 @@ Entity *Entity::create_child(const std::string &name) {
 
 /** Add a component to the entity (internal method).
  * @param component	Component to add. */
-void Entity::add_component(Component *component) {
-	orion_check(!m_components[component->type()],
+void Entity::addComponent(Component *component) {
+	orionCheck(!m_components[component->type()],
 		"Component of type %d already registered",
 		component->type());
 
@@ -113,8 +113,8 @@ void Entity::add_component(Component *component) {
 
 /** Remove a component from the entity (internal method).
  * @param component	Component to remove. */
-void Entity::remove_component(Component *component) {
-	orion_assert(m_components[component->type()] == component);
+void Entity::removeComponent(Component *component) {
+	orionAssert(m_components[component->type()] == component);
 	m_components[component->type()] = nullptr;
 }
 
@@ -127,15 +127,15 @@ void Entity::remove_component(Component *component) {
  *
  * @param pos		New position relative to parent.
  */
-void Entity::set_position(const glm::vec3 &pos) {
-	m_transform.set_position(pos);
+void Entity::setPosition(const glm::vec3 &pos) {
+	m_transform.setPosition(pos);
 	transformed();
 }
 
 /** Translate the position of the entity.
  * @param vec		Vector to move by. */
 void Entity::translate(const glm::vec3 &vec) {
-	m_transform.set_position(m_transform.position() + vec);
+	m_transform.setPosition(m_transform.position() + vec);
 	transformed();
 }
 
@@ -148,8 +148,8 @@ void Entity::translate(const glm::vec3 &vec) {
  *
  * @param pos		New position relative to parent.
  */
-void Entity::set_orientation(const glm::quat &orientation) {
-	m_transform.set_orientation(orientation);
+void Entity::setOrientation(const glm::quat &orientation) {
+	m_transform.setOrientation(orientation);
 	transformed();
 }
 
@@ -165,7 +165,7 @@ void Entity::rotate(float angle, const glm::vec3 &axis) {
 void Entity::rotate(const glm::quat &rotation) {
 	/* The order of this is important, quaternion multiplication is not
 	 * commutative. */
-	m_transform.set_orientation(rotation * m_transform.orientation());
+	m_transform.setOrientation(rotation * m_transform.orientation());
 	transformed();
 }
 
@@ -178,8 +178,8 @@ void Entity::rotate(const glm::quat &rotation) {
  *
  * @param scale		New scale relative to parent.
  */
-void Entity::set_scale(const glm::vec3 &scale) {
-	m_transform.set_scale(scale);
+void Entity::setScale(const glm::vec3 &scale) {
+	m_transform.setScale(scale);
 	transformed();
 }
 
@@ -192,10 +192,10 @@ void Entity::tick(float dt) {
 	// dt would be time since activation.
 
 	/* Tick all components. */
-	visit_active_components([dt](Component *c) { c->tick(dt); });
+	visitActiveComponents([dt](Component *c) { c->tick(dt); });
 
 	/* Tick all children. */
-	visit_active_children([dt](Entity *e) { e->tick(dt); });
+	visitActiveChildren([dt](Entity *e) { e->tick(dt); });
 }
 
 /** Called when the transformation has been updated. */
@@ -206,38 +206,38 @@ void Entity::transformed() {
 
 	/* Recalculate absolute transformations. */
 	if(m_parent) {
-		glm::vec3 parent_position = m_parent->world_position();
-		glm::quat parent_orientation = m_parent->world_orientation();
-		glm::vec3 parent_scale = m_parent->world_scale();
+		glm::vec3 parentPosition = m_parent->worldPosition();
+		glm::quat parentOrientation = m_parent->worldOrientation();
+		glm::vec3 parentScale = m_parent->worldScale();
 
 		/* Our position must take the parent's orientation and scale
 		 * into account. */
-		position = (parent_orientation * (parent_scale * position)) + parent_position;
-		orientation = parent_orientation * orientation;
-		scale = parent_scale * scale;
+		position = (parentOrientation * (parentScale * position)) + parentPosition;
+		orientation = parentOrientation * orientation;
+		scale = parentScale * scale;
 	}
 
-	m_world_transform.set(position, orientation, scale);
+	m_worldTransform.set(position, orientation, scale);
 
 	/* Let components know about the transformation. */
-	visit_components([](Component *c) { c->transformed(); });
+	visitComponents([](Component *c) { c->transformed(); });
 
 	/* Visit children and recalculate their transformations. */
-	visit_children([](Entity *e) { e->transformed(); });
+	visitChildren([](Entity *e) { e->transformed(); });
 }
 
 /** Called when the entity is activated. */
 void Entity::activated() {
-	m_active_in_world = true;
+	m_activeInWorld = true;
 
-	visit_active_components([](Component *c) { c->activated(); });
-	visit_active_children([](Entity *e) { e->activated(); });
+	visitActiveComponents([](Component *c) { c->activated(); });
+	visitActiveChildren([](Entity *e) { e->activated(); });
 }
 
 /** Called when the entity is deactivated. */
 void Entity::deactivated() {
-	m_active_in_world = false;
+	m_activeInWorld = false;
 
-	visit_active_children([](Entity *e) { e->deactivated(); });
-	visit_active_components([](Component *c) { c->deactivated(); });
+	visitActiveChildren([](Entity *e) { e->deactivated(); });
+	visitActiveComponents([](Component *c) { c->deactivated(); });
 }

@@ -29,5 +29,5 @@ public:
  * @param level		Message log level.
  * @param fmt		Message format string.
  * @param ...		Arguments to substitute into format string. */
-#define orion_log(level, fmt, ...) \
+#define orionLog(level, fmt, ...) \
 	g_engine->log()->write(level, __FILE__, __LINE__, fmt, ##__VA_ARGS__)

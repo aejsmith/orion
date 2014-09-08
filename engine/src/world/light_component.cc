@@ -19,11 +19,11 @@ static const glm::vec3 kDefaultDirection = glm::vec3(0.0f, 0.0f, -1.0f);
  * @param type		SceneLight type. */
 LightComponent::LightComponent(Entity *entity, SceneLight::Type type) :
 	Component(Component::kLightType, entity),
-	m_scene_light(type)
+	m_sceneLight(type)
 {
 	/* Set default colour/intensity. */
-	set_colour(glm::vec3(1.0f, 1.0f, 1.0f));
-	set_intensity(0.8f);
+	setColour(glm::vec3(1.0f, 1.0f, 1.0f));
+	setIntensity(0.8f);
 }
 
 /** Initialize an ambient light component.
@@ -44,8 +44,8 @@ PointLightComponent::PointLightComponent(Entity *entity) :
 	LightComponent(entity, SceneLight::kPointLight)
 {
 	/* Set default parameters. */
-	set_range(100.0f);
-	set_attenuation(1.0f, 0.045f, 0.0075f);
+	setRange(100.0f);
+	setAttenuation(1.0f, 0.045f, 0.0075f);
 }
 
 /** Initialize a spot light component.
@@ -54,9 +54,9 @@ SpotLightComponent::SpotLightComponent(Entity *entity) :
 	LightComponent(entity, SceneLight::kSpotLight)
 {
 	/* Set default parameters. */
-	set_range(50.0f);
-	set_attenuation(1.0f, 0.09f, 0.032f);
-	set_cutoff(20.0f);
+	setRange(50.0f);
+	setAttenuation(1.0f, 0.09f, 0.032f);
+	setCutoff(20.0f);
 }
 
 /** Destroy the light. */
@@ -71,7 +71,7 @@ LightComponent::~LightComponent() {}
  *
  * @param direction	New light direction.
  */
-void LightComponent::set_direction(const glm::vec3 &direction) {
+void LightComponent::setDirection(const glm::vec3 &direction) {
 	glm::quat q;
 
 	/* Calculate the quaternion that rotates the default direction vector
@@ -88,7 +88,7 @@ void LightComponent::set_direction(const glm::vec3 &direction) {
 			glm::cross(kDefaultDirection, normalized));
 	}
 
-	entity()->set_orientation(glm::normalize(q));
+	entity()->setOrientation(glm::normalize(q));
 }
 
 /** @return		Current light direction. */
@@ -102,20 +102,20 @@ glm::vec3 LightComponent::direction() const {
 void LightComponent::transformed() {
 	/* Update SceneLight's direction vector. Here we want to set the
 	 * absolute direction. */
-	glm::vec3 direction = entity()->world_orientation() * kDefaultDirection;
-	m_scene_light.set_direction(direction);
+	glm::vec3 direction = entity()->worldOrientation() * kDefaultDirection;
+	m_sceneLight.setDirection(direction);
 
 	/* Scene manager needs to know the light has moved. */
-	if(active_in_world())
-		entity()->world()->scene()->transform_light(&m_scene_light, entity()->position());
+	if(activeInWorld())
+		entity()->world()->scene()->transformLight(&m_sceneLight, entity()->position());
 }
 
 /** Called when the component becomes active in the world. */
 void LightComponent::activated() {
-	entity()->world()->scene()->add_light(&m_scene_light, entity()->position());
+	entity()->world()->scene()->addLight(&m_sceneLight, entity()->position());
 }
 
 /** Called when the component becomes inactive in the world. */
 void LightComponent::deactivated() {
-	entity()->world()->scene()->remove_light(&m_scene_light);
+	entity()->world()->scene()->removeLight(&m_sceneLight);
 }

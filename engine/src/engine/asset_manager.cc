@@ -31,11 +31,11 @@
 /** Initialize the asset manager. */
 AssetManager::AssetManager() {
 	/* Register asset search paths. */
-	m_search_paths.insert(std::make_pair("engine", "engine/assets"));
-	m_search_paths.insert(std::make_pair("game", "game/assets"));
+	m_searchPaths.insert(std::make_pair("engine", "engine/assets"));
+	m_searchPaths.insert(std::make_pair("game", "game/assets"));
 
 	/* Register asset loaders. */
-	register_loader(new TGALoader);
+	registerLoader(new TGALoader);
 }
 
 /** Destroy the asset manager. */
@@ -56,25 +56,25 @@ AssetManager::~AssetManager() {
  */
 AssetPtr AssetManager::load(const Path &path) {
 	/* Look up the path in the cache of known assets. */
-	Asset *exist = lookup_asset(path);
+	Asset *exist = lookupAsset(path);
 	if(exist)
 		return AssetPtr(exist);
 	
 	/* Turn the asset path into a filesystem path. */
-	auto search_path = m_search_paths.find(path.subset(0, 1).str());
-	if(search_path == m_search_paths.end()) {
-		orion_log(LogLevel::kError, "Could not find asset '%s'", path.c_str());
+	auto searchPath = m_searchPaths.find(path.subset(0, 1).str());
+	if(searchPath == m_searchPaths.end()) {
+		orionLog(LogLevel::kError, "Could not find asset '%s'", path.c_str());
 		return nullptr;
 	}
 
-	Path fs_path = Path(search_path->second) / path.subset(1);
-	Path directory_path = fs_path.directory_name();
-	std::string asset_name = fs_path.base_file_name();
+	Path fsPath = Path(searchPath->second) / path.subset(1);
+	Path directoryPath = fsPath.directoryName();
+	std::string assetName = fsPath.baseFileName();
 
 	/* Open the directory. */
-	std::unique_ptr<Directory> directory(g_engine->filesystem()->open_directory(directory_path));
+	std::unique_ptr<Directory> directory(g_engine->filesystem()->openDirectory(directoryPath));
 	if(!directory) {
-		orion_log(LogLevel::kError, "Could not find asset '%s'", path.c_str());
+		orionLog(LogLevel::kError, "Could not find asset '%s'", path.c_str());
 		return nullptr;
 	}
 
@@ -87,45 +87,45 @@ AssetPtr AssetManager::load(const Path &path) {
 		if(entry.type != FileType::kFile)
 			continue;
 
-		if(entry.name.base_file_name() == asset_name) {
-			std::string entry_ext = entry.name.extension();
-			Path file_path = directory_path / entry.name;
+		if(entry.name.baseFileName() == assetName) {
+			std::string entryExt = entry.name.extension();
+			Path filePath = directoryPath / entry.name;
 
-			if(entry_ext == "metadata") {
-				metadata.reset(g_engine->filesystem()->open_file(file_path));
+			if(entryExt == "metadata") {
+				metadata.reset(g_engine->filesystem()->openFile(filePath));
 				if(!metadata) {
-					orion_log(LogLevel::kError, "Could not open '%s'", file_path.c_str());
+					orionLog(LogLevel::kError, "Could not open '%s'", filePath.c_str());
 					return nullptr;
 				}
-			} else if(entry_ext.length()) {
+			} else if(entryExt.length()) {
 				if(data) {
-					orion_log(LogLevel::kError,
+					orionLog(LogLevel::kError,
 						"Asset '%s' has multiple data streams",
 						path.c_str());
 					return nullptr;
 				}
 
-				data.reset(g_engine->filesystem()->open_file(file_path));
+				data.reset(g_engine->filesystem()->openFile(filePath));
 				if(!data) {
-					orion_log(LogLevel::kError, "Could not open '%s'", file_path.c_str());
+					orionLog(LogLevel::kError, "Could not open '%s'", filePath.c_str());
 					return nullptr;
 				}
 
-				type = entry_ext;
+				type = entryExt;
 			}
 		}
 	}
 
 	/* Succeeded if we have at least a data stream. */
 	if(!data) {
-		orion_log(LogLevel::kError, "Could not find asset '%s'", path.c_str());
+		orionLog(LogLevel::kError, "Could not find asset '%s'", path.c_str());
 		return nullptr;
 	}
 
 	/* Look for a loader for the asset. */
-	AssetLoader *loader = lookup_loader(type);
+	AssetLoader *loader = lookupLoader(type);
 	if(!loader) {
-		orion_log(LogLevel::kError,
+		orionLog(LogLevel::kError,
 			"Cannot load asset '%s' with unknown file type '%s'",
 			path.c_str(), type.c_str());
 		return nullptr;
@@ -139,14 +139,14 @@ AssetPtr AssetManager::load(const Path &path) {
 		std::unique_ptr<char[]> buf(new char[metadata->size() + 1]);
 		buf[metadata->size()] = 0;
 		if(!metadata->read(buf.get(), metadata->size())) {
-			orion_log(LogLevel::kError, "Failed to read asset '%s' metadata", path.c_str());
+			orionLog(LogLevel::kError, "Failed to read asset '%s' metadata", path.c_str());
 			return nullptr;
 		}
 
 		attributes.Parse(buf.get());
 		if(attributes.HasParseError()) {
 			const char *msg = rapidjson::GetParseError_En(attributes.GetParseError());
-			orion_log(LogLevel::kError,
+			orionLog(LogLevel::kError,
 				"Parse error in '%s' metadata (at %zu): %s",
 				path.c_str(), attributes.GetErrorOffset(), msg);
 			return nullptr;
@@ -164,23 +164,23 @@ AssetPtr AssetManager::load(const Path &path) {
 	asset->m_path = path.str();
 	m_assets.insert(std::make_pair(path.str(), asset));
 
-	orion_log(LogLevel::kDebug, "Loaded asset '%s' with file type '%s'", path.c_str(), type.c_str());
+	orionLog(LogLevel::kDebug, "Loaded asset '%s' with file type '%s'", path.c_str(), type.c_str());
 	return AssetPtr(asset);
 }
 
 /** Look up an asset in the cache.
  * @param path		Path to the asset.
  * @return		Pointer to asset if found, null if not. */
-Asset *AssetManager::lookup_asset(const Path &path) const {
+Asset *AssetManager::lookupAsset(const Path &path) const {
 	auto ret = m_assets.find(path.str());
 	return (ret != m_assets.end()) ? ret->second : nullptr;
 }
 
 /** Unregister an asset that is about to be destroyed.
  * @param asset		Asset to unregister. */
-void AssetManager::unregister_asset(Asset *asset) {
+void AssetManager::unregisterAsset(Asset *asset) {
 	size_t ret = m_assets.erase(asset->path());
-	orion_check(ret, "Destroying asset '%s' which is not in the cache", asset->path().c_str());
+	orionCheck(ret, "Destroying asset '%s' which is not in the cache", asset->path().c_str());
 }
 
 /**
@@ -191,9 +191,9 @@ void AssetManager::unregister_asset(Asset *asset) {
  *
  * @param loader	Loader to register.
  */
-void AssetManager::register_loader(AssetLoader *loader) {
+void AssetManager::registerLoader(AssetLoader *loader) {
 	auto ret = m_loaders.insert(std::make_pair(loader->type(), loader));
-	orion_check(ret.second, "Registering asset loader '%s' that already exists", loader->type());
+	orionCheck(ret.second, "Registering asset loader '%s' that already exists", loader->type());
 }
 
 /**
@@ -204,15 +204,15 @@ void AssetManager::register_loader(AssetLoader *loader) {
  *
  * @param loader	Loader to unregister.
  */
-void AssetManager::unregister_loader(AssetLoader *loader) {
+void AssetManager::unregisterLoader(AssetLoader *loader) {
 	size_t ret = m_loaders.erase(loader->type());
-	orion_check(ret, "Unregistering asset loader '%s' that does not exist", loader->type());
+	orionCheck(ret, "Unregistering asset loader '%s' that does not exist", loader->type());
 }
 
 /** Look up an asset loader by type.
  * @param type		File type string.
  * @return		Pointer to loader if found, null if not. */
-AssetLoader *AssetManager::lookup_loader(const std::string &type) const {
+AssetLoader *AssetManager::lookupLoader(const std::string &type) const {
 	auto ret = m_loaders.find(type);
 	return (ret != m_loaders.end()) ? ret->second : nullptr;
 }

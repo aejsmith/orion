@@ -44,8 +44,8 @@ protected:
 	 *
 	 * @param entities	List to populate.
 	 */
-	virtual void create_scene_entities(SceneEntityList &entities) = 0;
+	virtual void createSceneEntities(SceneEntityList &entities) = 0;
 private:
 	/** List of scene entities. */
-	SceneEntityList m_scene_entities;
+	SceneEntityList m_sceneEntities;
 };

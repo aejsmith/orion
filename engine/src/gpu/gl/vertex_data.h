@@ -18,12 +18,12 @@ public:
 
 	/** Get the VAO ID.
 	 * @return		VAO ID. */
-	GLuint vao() const { return m_vao; }
+	GLuint array() const { return m_array; }
 
-	static bool map_attribute(VertexAttribute::Semantic semantic, unsigned index, GLuint *gl);
+	static bool mapAttribute(VertexAttribute::Semantic semantic, unsigned index, GLuint *gl);
 protected:
-	void finalize_impl() override;
+	void finalizeImpl() override;
 private:
-	GLuint m_vao;			/**< Vertex array object. */
-	GPUBufferPtr m_bound_indices;	/**< Currently bound index buffer. */
+	GLuint m_array;			/**< Vertex array object. */
+	GPUBufferPtr m_boundIndices;	/**< Currently bound index buffer. */
 };

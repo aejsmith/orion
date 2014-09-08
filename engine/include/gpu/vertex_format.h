@@ -101,8 +101,8 @@ inline size_t VertexAttribute::size(Type type, size_t count) {
  *
  * Usage of this class should be as follows:
  *
- *  1. Add buffer descriptions with add_buffer().
- *  2. Add attribute descriptions with add_attribute().
+ *  1. Add buffer descriptions with addBuffer().
+ *  2. Add attribute descriptions with addAttribute().
  *  3. Finalize the object with finalize().
  *
  * The last step allows the API-specific implementation to compile any
@@ -110,7 +110,7 @@ inline size_t VertexAttribute::size(Type type, size_t count) {
  * be finalized before it is assigned to a VertexData object.
  *
  * Since this class may have an API-specific implementation, instances must be
- * created with GPUInterface::create_vertex_format().
+ * created with GPUInterface::createVertexFormat().
  */
 class VertexFormat : public GPUResource {
 public:
@@ -120,8 +120,8 @@ public:
 	/** Type of the attribute list. */
 	typedef std::list<VertexAttribute> AttributeList;
 public:
-	void add_buffer(unsigned index, size_t stride);
-	void add_attribute(
+	void addBuffer(unsigned index, size_t stride);
+	void addAttribute(
 		VertexAttribute::Semantic semantic,
 		unsigned index,
 		VertexAttribute::Type type,
@@ -132,7 +132,7 @@ public:
 	virtual void finalize();
 
 	const VertexBufferDesc *buffer(unsigned index) const;
-	const VertexAttribute *find_attribute(VertexAttribute::Semantic semantic, unsigned index) const;
+	const VertexAttribute *findAttribute(VertexAttribute::Semantic semantic, unsigned index) const;
 
 	/** @return		Array of buffer descriptors. */
 	const BufferArray &buffers() const { return m_buffers; }
@@ -144,13 +144,13 @@ protected:
 	VertexFormat();
 
 	/** Called when the object is being finalized. */
-	virtual void finalize_impl() {}
+	virtual void finalizeImpl() {}
 protected:
 	BufferArray m_buffers;		/**< Array of buffer descriptors. */
 	AttributeList m_attributes;	/**< List of all attributes. */
 	bool m_finalized;		/**< Whether the descriptor is finalized. */
 
-	/* For the default implementation of create_vertex_format(). */
+	/* For the default implementation of createVertexFormat(). */
 	friend class GPUInterface;
 };
 

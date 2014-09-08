@@ -23,12 +23,12 @@ public:
 
 	void update(const Rect &area, const void *data, unsigned mip, unsigned layer) override;
 	void update(const Box &area, const void *data, unsigned mip) override;
-	void generate_mipmap() override;
+	void generateMipmap() override;
 
 	void bind(unsigned index);
 private:
-	void bind_for_modification();
+	void bindForModification();
 private:
 	GLuint m_texture;		/**< GL texture handle. */
-	GLenum m_gl_target;		/**< Target for the texture. */
+	GLenum m_glTarget;		/**< Target for the texture. */
 };

@@ -21,21 +21,21 @@ class Entity;
  * to which they are attached, which can be overridden by derived classes to
  * implement their behaviour.
  *
- * Components should always be created through Entity::create_component(). This
+ * Components should always be created through Entity::createComponent(). This
  * constructs the component and handles attaching it to the entity. They should
  * only be destroyed by calling destroy(). The function call sequence for
  * creating a component is:
  *
  *   Entity::create_component()
  *    |-> constructors
- *    |-> Entity::add_component()
+ *    |-> Entity::addComponent()
  *    |-> Component::transformed()
  *
  * The call sequence for destroying a component is:
  *
  *   Component::destroy()
  *    |-> Component::deactivated() (if currently active)
- *    |-> Entity::remove_component()
+ *    |-> Entity::removeComponent()
  *    |-> destructors
  *
  * As can be seen, this ensures that the hook functions are called when the
@@ -55,7 +55,7 @@ public:
 	};
 public:
 	void destroy();
-	void set_active(bool active);
+	void setActive(bool active);
 
 	/** @return		Type ID of the component. */
 	Type type() const { return m_type; }
@@ -64,7 +64,7 @@ public:
 	/** @return		Whether the component is active. */
 	bool active() const { return m_active; }
 
-	bool active_in_world() const;
+	bool activeInWorld() const;
 
 	/**
 	 * Hook functions.

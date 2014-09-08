@@ -57,10 +57,10 @@ Path Path::subset(size_t index, size_t count) const {
  * @param path		Path to append. If this is an absolute path, it
  *			will entirely replace the current path. */
 Path &Path::operator /=(const Path &path) {
-	if(path.is_absolute()) {
+	if(path.isAbsolute()) {
 		m_path = path.m_path;
 		return *this;
-	} else if(path.is_root()) {
+	} else if(path.isRoot()) {
 		return *this;
 	}
 
@@ -69,10 +69,10 @@ Path &Path::operator /=(const Path &path) {
 		m_path += '/';
 		m_path += copy;
 	} else {
-		if(is_root()) {
+		if(isRoot()) {
 			m_path = path.m_path;
 		} else {
-			if(!is_absolute_root())
+			if(!isAbsoluteRoot())
 				m_path += '/';
 			m_path += path.m_path;
 		}
@@ -82,22 +82,22 @@ Path &Path::operator /=(const Path &path) {
 }
 
 /** @return		Whether the path refers to the engine root. */
-bool Path::is_root() const {
+bool Path::isRoot() const {
 	return m_path.length() == 1 && m_path[0] == '.';
 }
 
 /** @return		Whether the path refers to the absolute FS root. */
-bool Path::is_absolute_root() const {
+bool Path::isAbsoluteRoot() const {
 	return m_path.length() == 1 && m_path[0] == '/';
 }
 
 /** @return		Whether the path is a relative path. */
-bool Path::is_relative() const {
+bool Path::isRelative() const {
 	return m_path[0] != '/';
 }
 
 /** @return		Whether the path is an absolute path. */
-bool Path::is_absolute() const {
+bool Path::isAbsolute() const {
 	return m_path[0] == '/';
 }
 
@@ -110,7 +110,7 @@ bool Path::is_absolute() const {
  *
  * @return		Directory name portion of the path.
  */
-Path Path::directory_name() const {
+Path Path::directoryName() const {
 	size_t pos = m_path.rfind('/');
 
 	if(pos == std::string::npos) {
@@ -131,7 +131,7 @@ Path Path::directory_name() const {
  *
  * @return		File name portion of the path.
  */
-Path Path::file_name() const {
+Path Path::fileName() const {
 	size_t pos = m_path.rfind('/');
 
 	if(pos == std::string::npos || (pos == 0 && m_path.length() == 1)) {
@@ -150,8 +150,8 @@ Path Path::file_name() const {
  *
  * @return		Base file name.
  */
-std::string Path::base_file_name() const {
-	Path file = file_name();
+std::string Path::baseFileName() const {
+	Path file = fileName();
 	size_t pos = file.m_path.rfind('.');
 
 	if(pos == 0 || pos == std::string::npos) {
@@ -162,16 +162,16 @@ std::string Path::base_file_name() const {
 }
 
 /** Return the extension of the file name, if any.
- * @param keep_dot	Whether to keep the '.' at the start of the extension.
+ * @param keepDot	Whether to keep the '.' at the start of the extension.
  * @return		File name extension, or an empty string if no extension. */
-std::string Path::extension(bool keep_dot) const {
-	Path file = file_name();
+std::string Path::extension(bool keepDot) const {
+	Path file = fileName();
 	size_t pos = file.m_path.rfind('.');
 
 	if(pos == 0 || pos == std::string::npos) {
 		return std::string();
 	} else {
-		return file.m_path.substr((keep_dot) ? pos : pos + 1);
+		return file.m_path.substr((keepDot) ? pos : pos + 1);
 	}
 }
 
@@ -193,30 +193,30 @@ void Path::normalize(const char *path, size_t length, std::string &output) {
 
 	output.reserve(length);
 
-	bool seen_slash = false;
-	bool seen_dot = false;
+	bool seenSlash = false;
+	bool seenDot = false;
 
 	for(size_t pos = 0; pos < length; pos++) {
 		char ch = path[pos];
 
 		if(ch == '/') {
-			if(seen_dot) {
-				seen_dot = false;
-			} else if(!seen_slash) {
+			if(seenDot) {
+				seenDot = false;
+			} else if(!seenSlash) {
 				output.push_back('/');
 			}
 
-			seen_slash = true;
-		} else if(ch == '.' && (seen_slash || pos == 0)) {
-			seen_dot = true;
-			seen_slash = false;
+			seenSlash = true;
+		} else if(ch == '.' && (seenSlash || pos == 0)) {
+			seenDot = true;
+			seenSlash = false;
 		} else {
-			if(seen_dot) {
+			if(seenDot) {
 				output.push_back('.');
-				seen_dot = false;
+				seenDot = false;
 			}
 
-			seen_slash = false;
+			seenSlash = false;
 
 			output.push_back(ch);
 		}

@@ -10,10 +10,10 @@
  * @param config	Engine configuration.
  * @return		Pointer to created GPU interface. */
 GPUInterface *GPUInterface::create(const EngineConfiguration &config) {
-	switch(config.graphics_api) {
+	switch(config.graphicsAPI) {
 	case EngineConfiguration::kGLGraphicsAPI:
 		return new GLGPUInterface;
 	default:
-		orion_abort("Configuration specifies unknown graphics API");
+		orionAbort("Configuration specifies unknown graphics API");
 	}
 }

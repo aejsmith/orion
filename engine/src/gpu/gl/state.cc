@@ -14,150 +14,150 @@
  * entries here.
  */
 GLState::GLState() :
-	swap_interval(0),
-	clear_colour(0.0f, 0.0f, 0.0f, 0.0f),
-	clear_depth(1.0f),
-	clear_stencil(0.0f),
-	blend_enabled(false),
-	blend_equation(GL_FUNC_ADD),
-	blend_source_factor(GL_ONE),
-	blend_dest_factor(GL_ZERO),
-	depth_test_enabled(false),
-	depth_write_enabled(true),
-	depth_func(GL_LESS),
-	bound_vao(0),
-	bound_pipeline(0),
-	active_texture(0),
-	texture_units(nullptr)
+	swapInterval(0),
+	clearColour(0.0f, 0.0f, 0.0f, 0.0f),
+	clearDepth(1.0f),
+	clearStencil(0.0f),
+	blendEnabled(false),
+	blendEquation(GL_FUNC_ADD),
+	blendSourceFactor(GL_ONE),
+	blendDestFactor(GL_ZERO),
+	depthTestEnabled(false),
+	depthWriteEnabled(true),
+	depthFunc(GL_LESS),
+	boundVertexArray(0),
+	boundPipeline(0),
+	activeTexture(0),
+	textureUnits(nullptr)
 {}
 
 /** Destroy the GL state. */
 GLState::~GLState() {
-	if(this->texture_units)
-		delete[] this->texture_units;
+	if(this->textureUnits)
+		delete[] this->textureUnits;
 }
 
 /** Allocate arrays dependent on GL implementation capabilities.
  * @param features	GL features description. */
-void GLState::init_resources(GLFeatures &features) {
-	this->texture_units = new TextureUnit[features.max_texture_units];
+void GLState::initResources(GLFeatures &features) {
+	this->textureUnits = new TextureUnit[features.maxTextureUnits];
 }
 
 /** Set the current swap interval.
  * @param interval	Interval to set (passed to SDL_GL_SetSwapInterval). */
-void GLState::set_swap_interval(int interval) {
-	if(interval != this->swap_interval) {
+void GLState::setSwapInterval(int interval) {
+	if(interval != this->swapInterval) {
 		SDL_GL_SetSwapInterval(interval);
-		this->swap_interval = interval;
+		this->swapInterval = interval;
 	}
 }
 
 /** Set the colour clear value.
  * @param colour	Colour clear value. */
-void GLState::set_clear_colour(const glm::vec4 &colour) {
-	if(colour != this->clear_colour) {
+void GLState::setClearColour(const glm::vec4 &colour) {
+	if(colour != this->clearColour) {
 		glClearColor(colour.r, colour.g, colour.b, colour.a);
-		this->clear_colour = colour;
+		this->clearColour = colour;
 	}
 }
 
 /** Set the depth clear value.
  * @param depth		Depth clear value. */
-void GLState::set_clear_depth(float depth) {
-	if(depth != this->clear_depth) {
+void GLState::setClearDepth(float depth) {
+	if(depth != this->clearDepth) {
 		glClearDepth(depth);
-		this->clear_depth = depth;
+		this->clearDepth = depth;
 	}
 }
 
 /** Set the stencil clear value.
  * @param stencil	Stencil clear value. */
-void GLState::set_clear_stencil(uint32_t stencil) {
-	if(stencil != this->clear_stencil) {
+void GLState::setClearStencil(uint32_t stencil) {
+	if(stencil != this->clearStencil) {
 		glClearStencil(stencil);
-		this->clear_stencil = stencil;
+		this->clearStencil = stencil;
 	}
 }
 
 /** Set whether blending is enabled.
  * @param enable	Whether to enable blending. */
-void GLState::enable_blend(bool enable) {
-	if(enable != this->blend_enabled) {
+void GLState::enableBlend(bool enable) {
+	if(enable != this->blendEnabled) {
 		if(enable) {
 			glEnable(GL_BLEND);
 		} else {
 			glDisable(GL_BLEND);
 		}
 
-		this->blend_enabled = enable;
+		this->blendEnabled = enable;
 	}
 }
 
 /** Set the blend equation.
  * @param equation	Blending equation. */
-void GLState::set_blend_equation(GLenum equation) {
-	if(equation != this->blend_equation) {
+void GLState::setBlendEquation(GLenum equation) {
+	if(equation != this->blendEquation) {
 		glBlendEquation(equation);
-		this->blend_equation = equation;
+		this->blendEquation = equation;
 	}
 }
 
 /** Set the blending factors.
- * @param source_factor	Source factor.
- * @param dest_factor	Destination factor. */
-void GLState::set_blend_func(GLenum source_factor, GLenum dest_factor) {
-	if(source_factor != this->blend_source_factor || dest_factor != this->blend_dest_factor) {
-		glBlendFunc(source_factor, dest_factor);
-		this->blend_source_factor = source_factor;
-		this->blend_dest_factor = dest_factor;
+ * @param sourceFactor	Source factor.
+ * @param destFactor	Destination factor. */
+void GLState::setBlendFunc(GLenum sourceFactor, GLenum destFactor) {
+	if(sourceFactor != this->blendSourceFactor || destFactor != this->blendDestFactor) {
+		glBlendFunc(sourceFactor, destFactor);
+		this->blendSourceFactor = sourceFactor;
+		this->blendDestFactor = destFactor;
 	}
 }
 
 /** Set whether the depth test is enabled.
  * @param enable	Whether to enable the depth test. */
-void GLState::enable_depth_test(bool enable) {
-	if(enable != this->depth_test_enabled) {
+void GLState::enableDepthTest(bool enable) {
+	if(enable != this->depthTestEnabled) {
 		if(enable) {
 			glEnable(GL_DEPTH_TEST);
 		} else {
 			glDisable(GL_DEPTH_TEST);
 		}
 
-		this->depth_test_enabled = enable;
+		this->depthTestEnabled = enable;
 	}
 }
 
 /** Set whether depth buffer writes are enabled.
  * @param enable	Whether to enable depth buffer writes. */
-void GLState::enable_depth_write(bool enable) {
-	if(enable != this->depth_write_enabled) {
+void GLState::enableDepthWrite(bool enable) {
+	if(enable != this->depthWriteEnabled) {
 		glDepthMask(enable);
-		this->depth_write_enabled = enable;
+		this->depthWriteEnabled = enable;
 	}
 }
 
 /** Set the depth comparison function.
  * @param func		Depth comparison function. */
-void GLState::set_depth_func(GLenum func) {
-	if(func != this->depth_func) {
+void GLState::setDepthFunc(GLenum func) {
+	if(func != this->depthFunc) {
 		glDepthFunc(func);
-		this->depth_func = func;
+		this->depthFunc = func;
 	}
 }
 
 /** Bind a VAO.
- * @param vao		VAO to bind. */
-void GLState::bind_vao(GLuint vao) {
-	if(vao != this->bound_vao) {
-		glBindVertexArray(vao);
-		this->bound_vao = vao;
+ * @param array		VAO to bind. */
+void GLState::bindVertexArray(GLuint array) {
+	if(array != this->boundVertexArray) {
+		glBindVertexArray(array);
+		this->boundVertexArray = array;
 	}
 }
 
 /** Bind a buffer.
  * @param target	Target to bind buffer to.
  * @param buffer	Buffer to bind. */
-void GLState::bind_buffer(GLenum target, GLuint buffer) {
+void GLState::bindBuffer(GLenum target, GLuint buffer) {
 	if(target == GL_ELEMENT_ARRAY_BUFFER) {
 		/* Since the element array buffer binding is part of VAO state,
 		 * make sure we are on the default VAO. All element array buffer
@@ -165,12 +165,12 @@ void GLState::bind_buffer(GLenum target, GLuint buffer) {
 		 * on the default VAO so that we don't affect the per-object
 		 * VAOs and so that we can keep track of the currently bound
 		 * buffer more easily. */
-		bind_vao(g_opengl->default_vao);
+		bindVertexArray(g_opengl->defaultVertexArray);
 	}
 
-	if(this->bound_buffers[target] != buffer) {
+	if(this->boundBuffers[target] != buffer) {
 		glBindBuffer(target, buffer);
-		this->bound_buffers[target] = buffer;
+		this->boundBuffers[target] = buffer;
 	}
 }
 
@@ -178,20 +178,20 @@ void GLState::bind_buffer(GLenum target, GLuint buffer) {
  * @param target	Target to bind buffer to.
  * @param index		Binding point index.
  * @param buffer	Buffer to bind. */
-void GLState::bind_buffer_base(GLenum target, GLuint index, GLuint buffer) {
+void GLState::bindBufferBase(GLenum target, GLuint index, GLuint buffer) {
 	/* Brain damaged API design alert! glBindBufferBase also binds to the
 	 * generic buffer binding point. */
 	// TODO: Cache these
 	glBindBufferBase(target, index, buffer);
-	this->bound_buffers[target] = buffer;
+	this->boundBuffers[target] = buffer;
 }
 
 /** Bind a program pipeline.
  * @param pipeline	Pipeline object to bind. */
-void GLState::bind_pipeline(GLuint pipeline) {
-	if(this->bound_pipeline != pipeline) {
+void GLState::bindPipeline(GLuint pipeline) {
+	if(this->boundPipeline != pipeline) {
 		glBindProgramPipeline(pipeline);
-		this->bound_pipeline = pipeline;
+		this->boundPipeline = pipeline;
 	}
 }
 
@@ -209,22 +209,22 @@ void GLState::bind_pipeline(GLuint pipeline) {
  * @param target	Texture target to bind.
  * @param texture	Texture object to bind.
  */
-void GLState::bind_texture(unsigned unit, GLenum target, GLuint texture) {
-	if(this->active_texture != unit) {
+void GLState::bindTexture(unsigned unit, GLenum target, GLuint texture) {
+	if(this->activeTexture != unit) {
 		glActiveTexture(GL_TEXTURE0 + unit);
-		this->active_texture = unit;
+		this->activeTexture = unit;
 	}
 
-	TextureUnit &unit_state = this->texture_units[unit];
-	if(unit_state.target != target || unit_state.texture != texture) {
-		if(unit_state.target != target && unit_state.texture != 0) {
+	TextureUnit &unitState = this->textureUnits[unit];
+	if(unitState.target != target || unitState.texture != texture) {
+		if(unitState.target != target && unitState.texture != 0) {
 			/* Unbind the texture currently bound so that we don't
 			 * have multiple textures bound to different targets. */
-			glBindTexture(unit_state.target, 0);
+			glBindTexture(unitState.target, 0);
 		}
 
 		glBindTexture(target, texture);
-		unit_state.target = target;
-		unit_state.texture = texture;
+		unitState.target = target;
+		unitState.texture = texture;
 	}
 }

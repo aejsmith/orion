@@ -34,7 +34,7 @@ public:
 		if(!m_valid) {
 			/* Create the uniform buffer if it does not exist. */
 			if(!m_buffer) {
-				m_buffer = g_engine->gpu()->create_buffer(
+				m_buffer = g_engine->gpu()->createBuffer(
 					GPUBuffer::kUniformBuffer,
 					GPUBuffer::kDynamicDrawUsage,
 					sizeof(Uniforms));

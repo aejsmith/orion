@@ -53,7 +53,7 @@ struct GPUTexture3DDesc {
  * This class stores texture data on the GPU. In most cases you should not use
  * this directly, rather you should use the texture asset classes. Since this
  * class has an API-specific implementation, instances must be created with
- * GPUInterface::create_texture().
+ * GPUInterface::createTexture().
  */
 class GPUTexture : public GPUResource {
 public:
@@ -94,7 +94,7 @@ public:
 	 * mipmap images based on level 0. The texture must have the kAutoMipmap
 	 * flag set.
 	 */
-	virtual void generate_mipmap() = 0;
+	virtual void generateMipmap() = 0;
 
 	/** @return		Type of the texture. */
 	Type type() const { return m_type; }

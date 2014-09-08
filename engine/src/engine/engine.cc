@@ -25,22 +25,22 @@ Engine *g_engine = nullptr;
 Engine::Engine(const EngineConfiguration &config) :
 	m_config(config),
 	m_world(nullptr),
-	m_last_tick(0),
-	m_last_fps(0),
+	m_lastTick(0),
+	m_lastFPS(0),
 	m_frames(0)
 {
-	orion_assert(!g_engine);
+	orionAssert(!g_engine);
 	g_engine = this;
 
 	/* Initialize the log. */
 	m_log = new LogManager;
-	orion_log(LogLevel::kInfo, "Orion revision %s built at %s", g_version_string, g_version_timestamp);
+	orionLog(LogLevel::kInfo, "Orion revision %s built at %s", g_versionString, g_versionTimestamp);
 
 	if(SDL_Init(SDL_INIT_EVERYTHING) != 0)
-		orion_abort("Failed to initialize SDL: %s", SDL_GetError());
+		orionAbort("Failed to initialize SDL: %s", SDL_GetError());
 
 	/* Initialize platform systems. */
-	m_filesystem = platform::create_filesystem();
+	m_filesystem = platform::createFilesystem();
 
 	/* Create the GPU interface, then create the main window which properly
 	 * initializes the GPU interface. */
@@ -74,21 +74,21 @@ void Engine::shutdown() {
 /** Run the engine main loop. */
 void Engine::run() {
 	while(true) {
-		if(!poll_events())
+		if(!pollEvents())
 			return;
 
 		tick();
-		render_all_targets();
+		renderAllTargets();
 
 		/* Present the final rendered frame. */
-		m_gpu->end_frame(m_config.display_vsync);
+		m_gpu->endFrame(m_config.displayVsync);
 		m_frames++;
 	}
 }
 
 /** Poll for pending SDL events.
  * @return		Whether to continue executing. */
-bool Engine::poll_events() {
+bool Engine::pollEvents() {
 	SDL_Event event;
 
 	while(SDL_PollEvent(&event)) {
@@ -110,29 +110,29 @@ bool Engine::poll_events() {
 void Engine::tick() {
 	uint32_t tick = SDL_GetTicks();
 
-	if(m_last_tick && tick != m_last_tick) {
+	if(m_lastTick && tick != m_lastTick) {
 		/* Update the world. */
-		float dt = static_cast<float>(tick - m_last_tick) / 1000.0f;
+		float dt = static_cast<float>(tick - m_lastTick) / 1000.0f;
 		m_world->tick(dt);
 	}
 
-	m_last_tick = tick;
+	m_lastTick = tick;
 
 	/* Update FPS counter. */
-	if(!m_last_fps || (tick - m_last_fps) > 1000) {
-		unsigned fps = (m_last_fps)
-			? static_cast<float>(m_frames) / (static_cast<float>(tick - m_last_fps) / 1000.0f)
+	if(!m_lastFPS || (tick - m_lastFPS) > 1000) {
+		unsigned fps = (m_lastFPS)
+			? static_cast<float>(m_frames) / (static_cast<float>(tick - m_lastFPS) / 1000.0f)
 			: 0;
 
-		m_window->set_title(m_config.title + " [FPS: " + std::to_string(fps) + "]");
-		m_last_fps = tick;
+		m_window->setTitle(m_config.title + " [FPS: " + std::to_string(fps) + "]");
+		m_lastFPS = tick;
 		m_frames = 0;
 	}
 }
 
 /** Render all render targets. */
-void Engine::render_all_targets() {
-	for(RenderTarget *target : m_render_targets) {
+void Engine::renderAllTargets() {
+	for(RenderTarget *target : m_renderTargets) {
 		// FIXME: Where does this go? Clear settings should go in
 		// SceneView, need a rect constraint to clear to only clear
 		// viewport.
@@ -147,7 +147,7 @@ void Engine::render_all_targets() {
 
 /** Create a world and make it the active world.
  * @return		Created world. */
-World *Engine::create_world() {
+World *Engine::createWorld() {
 	if(m_world)
 		delete m_world;
 
@@ -164,22 +164,22 @@ World *Engine::create_world() {
  *
  * @param target	Render target to add.
  */
-void Engine::add_render_target(RenderTarget *target) {
+void Engine::addRenderTarget(RenderTarget *target) {
 	/* List is sorted by priority. */
-	for(auto it = m_render_targets.begin(); it != m_render_targets.end(); ++it) {
+	for(auto it = m_renderTargets.begin(); it != m_renderTargets.end(); ++it) {
 		RenderTarget *exist = *it;
 		if(target->priority() < exist->priority()) {
-			m_render_targets.insert(it, target);
+			m_renderTargets.insert(it, target);
 			return;
 		}
 	}
 
 	/* Insertion point not found, add at end. */
-	m_render_targets.push_back(target);
+	m_renderTargets.push_back(target);
 }
 
 /** Remove a render target from the main rendering loop.
  * @param target	Render target to remove. */
-void Engine::remove_render_target(RenderTarget *target) {
-	m_render_targets.remove(target);
+void Engine::removeRenderTarget(RenderTarget *target) {
+	m_renderTargets.remove(target);
 }

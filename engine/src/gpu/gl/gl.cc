@@ -18,15 +18,15 @@ static const int kGLMajorVersion = 3;
 static const int kGLMinorVersion = 3;
 
 /** Required OpenGL extensions. */
-static const char *required_gl_extensions[] = {
+static const char *g_requiredGLExtensions[] = {
 	"GL_ARB_separate_shader_objects",
 	"GL_ARB_texture_storage",
 };
 
 /** Initialize the GPU interface. */
 GLGPUInterface::GLGPUInterface() :
-	default_vao(0),
-	m_sdl_context(nullptr)
+	defaultVertexArray(0),
+	m_sdlContext(nullptr)
 {
 	g_opengl = this;
 
@@ -64,8 +64,8 @@ GLGPUInterface::GLGPUInterface() :
 
 /** Shut down the GPU interface. */
 GLGPUInterface::~GLGPUInterface() {
-	if(m_sdl_context)
-		SDL_GL_DeleteContext(m_sdl_context);
+	if(m_sdlContext)
+		SDL_GL_DeleteContext(m_sdlContext);
 
 	g_opengl = nullptr;
 }
@@ -73,28 +73,28 @@ GLGPUInterface::~GLGPUInterface() {
 /** Initialize the GPU interface.
  * @param window	Created SDL window. */
 void GLGPUInterface::init(SDL_Window *window) {
-	m_sdl_context = SDL_GL_CreateContext(window);
-	if(!m_sdl_context)
-		orion_abort("Failed to create GL context: %s", SDL_GetError());
+	m_sdlContext = SDL_GL_CreateContext(window);
+	if(!m_sdlContext)
+		orionAbort("Failed to create GL context: %s", SDL_GetError());
 
 	SDL_GL_SetSwapInterval(0);
 
 	glewExperimental = GL_TRUE;
 	if(glewInit() != GLEW_OK)
-		orion_abort("Failed to initialize GLEW");
+		orionAbort("Failed to initialize GLEW");
 
 	/* Initialize the features table and check requirements. */
-	init_features();
-	this->state.init_resources(this->features);
+	initFeatures();
+	this->state.initResources(this->features);
 
 	/* Populate the pixel format table. */
-	init_pixel_formats();
+	initPixelFormats();
 
 	#if ORION_GL_DEBUG
 		/* Hook up debug output if supported. */
 		if(this->features["GL_ARB_debug_output"]) {
 			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-			glDebugMessageCallback((GLDEBUGPROC)debug_callback, nullptr);
+			glDebugMessageCallback((GLDEBUGPROC)debugCallback, nullptr);
 			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE,
 				GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr,
 				ORION_GL_DEBUG_NOTIFICATIONS);
@@ -102,8 +102,8 @@ void GLGPUInterface::init(SDL_Window *window) {
 	#endif
 
 	/* Create the default VAO. */
-	glGenVertexArrays(1, &this->default_vao);
-	this->state.bind_vao(this->default_vao);
+	glGenVertexArrays(1, &this->defaultVertexArray);
+	this->state.bindVertexArray(this->defaultVertexArray);
 
 	/* Set up some default state. FIXME */
 	glEnable(GL_CULL_FACE);
@@ -113,20 +113,20 @@ void GLGPUInterface::init(SDL_Window *window) {
 }
 
 /** Detect GL features and check requirements. */
-void GLGPUInterface::init_features() {
+void GLGPUInterface::initFeatures() {
 	GLFeatures &features = this->features;
 
 	/* Log some OpenGL details. */
-	orion_log(LogLevel::kInfo, "OpenGL vendor:   %s", glGetString(GL_VENDOR));
-	orion_log(LogLevel::kInfo, "OpenGL renderer: %s", glGetString(GL_RENDERER));
-	orion_log(LogLevel::kInfo, "OpenGL version:  %s", glGetString(GL_VERSION));
+	orionLog(LogLevel::kInfo, "OpenGL vendor:   %s", glGetString(GL_VENDOR));
+	orionLog(LogLevel::kInfo, "OpenGL renderer: %s", glGetString(GL_RENDERER));
+	orionLog(LogLevel::kInfo, "OpenGL version:  %s", glGetString(GL_VERSION));
 
 	/* Check whether the version number is high enough. */
 	GLint major = 0, minor = 0;
 	glGetIntegerv(GL_MAJOR_VERSION, &major);
 	glGetIntegerv(GL_MINOR_VERSION, &minor);
 	if(major < kGLMajorVersion || (major == kGLMajorVersion && minor < kGLMinorVersion))
-		orion_abort("OpenGL version %d.%d is required", kGLMajorVersion, kGLMinorVersion);
+		orionAbort("OpenGL version %d.%d is required", kGLMajorVersion, kGLMinorVersion);
 
 	/* Query supported extensions. */
 	GLint count = 0;
@@ -137,26 +137,26 @@ void GLGPUInterface::init_features() {
 	}
 
 	/* Print out a (sorted) list of the extensions found. */
-	orion_log(LogLevel::kDebug, "OpenGL extensions:");
+	orionLog(LogLevel::kDebug, "OpenGL extensions:");
 	for(const std::string &extension : features.extensions)
-		orion_log(LogLevel::kDebug, " %s", extension.c_str());
+		orionLog(LogLevel::kDebug, " %s", extension.c_str());
 
 	/* Check for required extensions. */
-	for(size_t i = 0; i < util::array_size(required_gl_extensions); i++) {
-		if(!this->features[required_gl_extensions[i]]) {
-			orion_abort(
+	for(size_t i = 0; i < util::arraySize(g_requiredGLExtensions); i++) {
+		if(!this->features[g_requiredGLExtensions[i]]) {
+			orionAbort(
 				"Required OpenGL extension '%s' is not supported",
-				required_gl_extensions[i]);
+				g_requiredGLExtensions[i]);
 		}
 	}
 
 	/* Cache some GL information. */
-	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &features.max_texture_units);
+	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &features.maxTextureUnits);
 }
 
 /** Initialize the supported pixel format conversion table. */
-void GLGPUInterface::init_pixel_formats() {
-	PixelFormatArray &f = this->pixel_formats;
+void GLGPUInterface::initPixelFormats() {
+	PixelFormatArray &f = this->pixelFormats;
 
 	/* TODO: For now this is a static table. We should identify the formats
 	 * that are actually supported, and have an engine generic table of
@@ -192,7 +192,7 @@ void GLGPUInterface::init_pixel_formats() {
  * @param length	Length of the message.
  * @param message	Message text.
  * @param param		User-defined parameter (unused). */
-GLEWAPIENTRY void GLGPUInterface::debug_callback(
+GLEWAPIENTRY void GLGPUInterface::debugCallback(
 	GLenum source,
 	GLenum type,
 	GLuint id,
@@ -201,41 +201,41 @@ GLEWAPIENTRY void GLGPUInterface::debug_callback(
 	const GLchar *message,
 	const GLvoid *param)
 {
-	const char *source_str = "OTHER";
+	const char *sourceString = "OTHER";
 	switch(source) {
 	case GL_DEBUG_SOURCE_API:
-		source_str = "API";
+		sourceString = "API";
 		break;
 	case GL_DEBUG_SOURCE_SHADER_COMPILER:
-		source_str = "SHADER_COMPILER";
+		sourceString = "SHADER_COMPILER";
 		break;
 	case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
-		source_str = "WINDOW_SYSTEM";
+		sourceString = "WINDOW_SYSTEM";
 		break;
 	case GL_DEBUG_SOURCE_THIRD_PARTY:
-		source_str = "THIRD_PARTY";
+		sourceString = "THIRD_PARTY";
 		break;
 	case GL_DEBUG_SOURCE_APPLICATION:
-		source_str = "APPLICATION";
+		sourceString = "APPLICATION";
 		break;
 	}
 
-	const char *type_str = "OTHER";
+	const char *typeString = "OTHER";
 	switch(type) {
 	case GL_DEBUG_TYPE_ERROR:
-		type_str = "ERROR";
+		typeString = "ERROR";
 		break;
 	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-		type_str = "DEPRECATED_BEHAVIOR";
+		typeString = "DEPRECATED_BEHAVIOR";
 		break;
 	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-		type_str = "UNDEFINED_BEHAVIOR";
+		typeString = "UNDEFINED_BEHAVIOR";
 		break;
 	case GL_DEBUG_TYPE_PERFORMANCE:
-		type_str = "PERFORMANCE";
+		typeString = "PERFORMANCE";
 		break;
 	case GL_DEBUG_TYPE_PORTABILITY:
-		type_str = "PORTABILITY";
+		typeString = "PORTABILITY";
 		break;
 	}
 
@@ -250,11 +250,11 @@ GLEWAPIENTRY void GLGPUInterface::debug_callback(
 		break;
 	}
 
-	orion_log(level, "GL [source = %s, type = %s]:", source_str, type_str);
-	orion_log(level, "%s", message);
+	orionLog(level, "GL [source = %s, type = %s]:", sourceString, typeString);
+	orionLog(level, "%s", message);
 
 	if(severity == GL_DEBUG_SEVERITY_HIGH)
-		orion_abort("GL driver error (see log for details)");
+		orionAbort("GL driver error (see log for details)");
 }
 
 #endif /* ORION_GL_DEBUG */

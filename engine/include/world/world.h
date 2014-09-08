@@ -33,7 +33,7 @@ public:
 	 * Entity management.
 	 */
 
-	Entity *create_entity(const std::string &name);
+	Entity *createEntity(const std::string &name);
 
 	/** @return		Root entity of the world. */
 	Entity *root() { return m_root; }

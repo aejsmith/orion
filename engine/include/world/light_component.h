@@ -22,13 +22,13 @@ public:
 public:
 	~LightComponent();
 
-	void set_colour(const glm::vec3 &colour);
-	void set_intensity(float intensity);
+	void setColour(const glm::vec3 &colour);
+	void setIntensity(float intensity);
 
 	/** @return		Colour that the light emits. */
-	const glm::vec3 &colour() const { return m_scene_light.colour(); }
+	const glm::vec3 &colour() const { return m_sceneLight.colour(); }
 	/** @return		Diffuse intensity. */
-	float intensity() const { return m_scene_light.intensity(); }
+	float intensity() const { return m_sceneLight.intensity(); }
 protected:
 	LightComponent(Entity *entity, SceneLight::Type type);
 
@@ -40,26 +40,26 @@ protected:
 	 * Methods made public by derived classes that require them.
 	 */
 
-	void set_direction(const glm::vec3 &direction);
-	void set_cutoff(float cutoff);
-	void set_range(float range);
-	void set_attenuation(float constant, float linear, float exp);
+	void setDirection(const glm::vec3 &direction);
+	void setCutoff(float cutoff);
+	void setRange(float range);
+	void setAttenuation(float constant, float linear, float exp);
 
 	glm::vec3 direction() const;
 
 	/** @return		Angle of effect. */
-	float cutoff() const { return m_scene_light.cutoff(); }
+	float cutoff() const { return m_sceneLight.cutoff(); }
 	/** @return		Range of the light. */
-	float range() const { return m_scene_light.range(); }
+	float range() const { return m_sceneLight.range(); }
 	/** @return		Constant attenuation factor. */
-	float attenuation_constant() const { return m_scene_light.attenuation_constant(); }
+	float attenuationConstant() const { return m_sceneLight.attenuationConstant(); }
 	/** @return		Linear attenuation factor. */
-	float attenuation_linear() const { return m_scene_light.attenuation_linear(); }
+	float attenuationLinear() const { return m_sceneLight.attenuationLinear(); }
 	/** @return		Exponential attenuation factor. */
-	float attenuation_exp() const { return m_scene_light.attenuation_exp(); }
+	float attenuationExp() const { return m_sceneLight.attenuationExp(); }
 protected:
 	/** Scene light implementing this light. */
-	SceneLight m_scene_light;
+	SceneLight m_sceneLight;
 };
 
 /**
@@ -91,7 +91,7 @@ class DirectionalLightComponent : public LightComponent {
 public:
 	explicit DirectionalLightComponent(Entity *entity);
 
-	using LightComponent::set_direction;
+	using LightComponent::setDirection;
 	using LightComponent::direction;
 };
 
@@ -106,12 +106,12 @@ class PointLightComponent : public LightComponent {
 public:
 	explicit PointLightComponent(Entity *entity);
 
-	using LightComponent::set_range;
-	using LightComponent::set_attenuation;
+	using LightComponent::setRange;
+	using LightComponent::setAttenuation;
 	using LightComponent::range;
-	using LightComponent::attenuation_constant;
-	using LightComponent::attenuation_linear;
-	using LightComponent::attenuation_exp;
+	using LightComponent::attenuationConstant;
+	using LightComponent::attenuationLinear;
+	using LightComponent::attenuationExp;
 };
 
 /**
@@ -128,46 +128,46 @@ class SpotLightComponent : public LightComponent {
 public:
 	explicit SpotLightComponent(Entity *entity);
 
-	using LightComponent::set_direction;
-	using LightComponent::set_cutoff;
-	using LightComponent::set_range;
-	using LightComponent::set_attenuation;
+	using LightComponent::setDirection;
+	using LightComponent::setCutoff;
+	using LightComponent::setRange;
+	using LightComponent::setAttenuation;
 	using LightComponent::direction;
 	using LightComponent::cutoff;
 	using LightComponent::range;
-	using LightComponent::attenuation_constant;
-	using LightComponent::attenuation_linear;
-	using LightComponent::attenuation_exp;
+	using LightComponent::attenuationConstant;
+	using LightComponent::attenuationLinear;
+	using LightComponent::attenuationExp;
 };
 
 /** Set the colour of the light.
  * @param colour	New light colour. */
-inline void LightComponent::set_colour(const glm::vec3 &colour) {
-	m_scene_light.set_colour(colour);
+inline void LightComponent::setColour(const glm::vec3 &colour) {
+	m_sceneLight.setColour(colour);
 }
 
 /** Set the intensity of the light.
  * @param intensity	New light intensity. */
-inline void LightComponent::set_intensity(float intensity) {
-	m_scene_light.set_intensity(intensity);
+inline void LightComponent::setIntensity(float intensity) {
+	m_sceneLight.setIntensity(intensity);
 }
 
 /** Set the cutoff angle.
  * @param cutoff	New cutoff angle. Must be <= 45 degrees. */
-inline void LightComponent::set_cutoff(float cutoff) {
-	m_scene_light.set_cutoff(cutoff);
+inline void LightComponent::setCutoff(float cutoff) {
+	m_sceneLight.setCutoff(cutoff);
 }
 
 /** Set the range of the light.
  * @param range		Range of the light. */
-inline void LightComponent::set_range(float range) {
-	m_scene_light.set_range(range);
+inline void LightComponent::setRange(float range) {
+	m_sceneLight.setRange(range);
 }
 
 /** Set the attenuation factors.
  * @param constant	Constant attenuation factor.
  * @param linear	Linear attenuation factor.
  * @param exp		Exponentional attenuation factor. */
-inline void LightComponent::set_attenuation(float constant, float linear, float exp) {
-	m_scene_light.set_attenuation(constant, linear, exp);
+inline void LightComponent::setAttenuation(float constant, float linear, float exp) {
+	m_sceneLight.setAttenuation(constant, linear, exp);
 }

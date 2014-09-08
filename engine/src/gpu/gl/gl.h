@@ -32,7 +32,7 @@ struct GLFeatures {
 	std::set<std::string> extensions;
 
 	/** Cached glGet* parameters. */
-	GLint max_texture_units;	/**< GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS */
+	GLint maxTextureUnits;		/**< GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS */
 public:
 	/** Check whether an extension is supported.
 	 * @param extension	Extension to check for.
@@ -44,12 +44,12 @@ public:
 
 /** Structure mapping PixelFormat to GL types. */
 struct GLPixelFormat {
-	GLenum internal_format;		/**< Internal texture format. */
+	GLenum internalFormat;		/**< Internal texture format. */
 	GLenum format;			/**< Pixel data format. */
 	GLenum type;			/**< Pixel data type. */
 public:
 	GLPixelFormat(GLenum i = GL_NONE, GLenum f = GL_NONE, GLenum t = GL_NONE) :
-		internal_format(i),
+		internalFormat(i),
 		format(f),
 		type(t)
 	{}
@@ -70,22 +70,22 @@ public:
 	 * GPU interface methods.
 	 */
 
-	GPUBufferPtr create_buffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) override;
-	VertexDataPtr create_vertex_data(size_t vertices) override;
-	GPUPipelinePtr create_pipeline() override;
-	GPUProgramPtr load_program(const char *path, GPUProgram::Type type) override;
-	GPUTexturePtr create_texture(const GPUTexture2DDesc &desc) override;
-	GPUTexturePtr create_texture(const GPUTexture2DArrayDesc &desc) override;
-	GPUTexturePtr create_texture(const GPUTextureCubeDesc &desc) override;
-	GPUTexturePtr create_texture(const GPUTexture3DDesc &desc) override;
+	GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) override;
+	VertexDataPtr createVertexData(size_t vertices) override;
+	GPUPipelinePtr createPipeline() override;
+	GPUProgramPtr loadProgram(const char *path, GPUProgram::Type type) override;
+	GPUTexturePtr createTexture(const GPUTexture2DDesc &desc) override;
+	GPUTexturePtr createTexture(const GPUTexture2DArrayDesc &desc) override;
+	GPUTexturePtr createTexture(const GPUTextureCubeDesc &desc) override;
+	GPUTexturePtr createTexture(const GPUTexture3DDesc &desc) override;
 
-	void bind_pipeline(const GPUPipelinePtr &pipeline) override;
-	void bind_texture(unsigned index, const GPUTexturePtr &texture) override;
-	void bind_uniform_buffer(unsigned index, const GPUBufferPtr &buffer) override;
-	void set_blend_mode(BlendFunc func, BlendFactor source_factor, BlendFactor dest_factor) override;
-	void set_depth_mode(ComparisonFunc func, bool enable_write) override;
+	void bindPipeline(const GPUPipelinePtr &pipeline) override;
+	void bindTexture(unsigned index, const GPUTexturePtr &texture) override;
+	void bindUniformBuffer(unsigned index, const GPUBufferPtr &buffer) override;
+	void setBlendMode(BlendFunc func, BlendFactor sourceFactor, BlendFactor destFactor) override;
+	void setDepthMode(ComparisonFunc func, bool enableWrite) override;
 
-	void end_frame(bool vsync) override;
+	void endFrame(bool vsync) override;
 
 	void clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil) override;
 	void draw(PrimitiveType type, const VertexDataPtr &vertices, const IndexDataPtr &indices) override;
@@ -93,16 +93,16 @@ public:
 	/** GL feature information. */
 	GLFeatures features;
 	/** Mapping of engine pixel formats to GL types. */
-	PixelFormatArray pixel_formats;
+	PixelFormatArray pixelFormats;
 	/** Cached GL state. */
 	GLState state;
 	/** Default VAO when no object-specific VAO is in use. */
-	GLuint default_vao;
+	GLuint defaultVertexArray;
 private:
-	void init_features();
-	void init_pixel_formats();
+	void initFeatures();
+	void initPixelFormats();
 
-	static GLEWAPIENTRY void debug_callback(
+	static GLEWAPIENTRY void debugCallback(
 		GLenum source,
 		GLenum type,
 		GLuint id,
@@ -111,7 +111,7 @@ private:
 		const GLchar *message,
 		const GLvoid *param);
 private:
-	SDL_GLContext m_sdl_context;	/**< SDL GL context. */
+	SDL_GLContext m_sdlContext;	/**< SDL GL context. */
 };
 
 extern GLGPUInterface *g_opengl;
@@ -126,7 +126,7 @@ namespace gl {
  * @param type		Attribute type.
  * @param gl		GL type.
  * @return		Whether type is supported. */
-static inline GLenum convert_attribute_type(VertexAttribute::Type type) {
+static inline GLenum convertAttributeType(VertexAttribute::Type type) {
 	switch(type) {
 	case VertexAttribute::kByteType:
 		return GL_BYTE;
@@ -152,7 +152,7 @@ static inline GLenum convert_attribute_type(VertexAttribute::Type type) {
 /** Convert a blend function to a GL blend equation.
  * @param func		Function to convert.
  * @return		OpenGL blend equation. */
-static inline GLenum convert_blend_func(BlendFunc func) {
+static inline GLenum convertBlendFunc(BlendFunc func) {
 	switch(func) {
 	case BlendFunc::kAdd:
 		return GL_FUNC_ADD;
@@ -172,7 +172,7 @@ static inline GLenum convert_blend_func(BlendFunc func) {
 /** Convert a blend factor to a GL blend factor.
  * @param func		Function to convert.
  * @return		OpenGL blend equation. */
-static inline GLenum convert_blend_factor(BlendFactor factor) {
+static inline GLenum convertBlendFactor(BlendFactor factor) {
 	switch(factor) {
 	case BlendFactor::kZero:
 		return GL_ZERO;
@@ -202,7 +202,7 @@ static inline GLenum convert_blend_factor(BlendFactor factor) {
 /** Convert a buffer type to a GL buffer target.
  * @param type		Buffer type.
  * @return		GL buffer target. */
-static inline GLenum convert_buffer_type(GPUBuffer::Type type) {
+static inline GLenum convertBufferType(GPUBuffer::Type type) {
 	switch(type) {
 	case GPUBuffer::kVertexBuffer:
 		return GL_ARRAY_BUFFER;
@@ -218,7 +218,7 @@ static inline GLenum convert_buffer_type(GPUBuffer::Type type) {
 /** Convert a buffer usage hint to a GL usage hint.
  * @param usage		Usage hint.
  * @return		OpenGL usage hint value. */
-static inline GLenum convert_buffer_usage(GPUBuffer::Usage usage) {
+static inline GLenum convertBufferUsage(GPUBuffer::Usage usage) {
 	switch(usage) {
 	case GPUBuffer::kStreamDrawUsage:
 		return GL_STREAM_DRAW;
@@ -246,7 +246,7 @@ static inline GLenum convert_buffer_usage(GPUBuffer::Usage usage) {
 /** Convert a comparison function to a GL comparison function.
  * @param func		Function to convert.
  * @return		GL comparison function. */
-static inline GLenum convert_comparison_func(ComparisonFunc func) {
+static inline GLenum convertComparisonFunc(ComparisonFunc func) {
 	switch(func) {
 	case ComparisonFunc::kAlways:
 		return GL_ALWAYS;
@@ -272,7 +272,7 @@ static inline GLenum convert_comparison_func(ComparisonFunc func) {
 /** Convert an index data type to a GL data type.
  * @param type		Type to convert.
  * @return		GL data type. */
-static inline GLenum convert_index_type(IndexData::Type type) {
+static inline GLenum convertIndexType(IndexData::Type type) {
 	switch(type) {
 	case IndexData::kUnsignedByteType:
 		return GL_UNSIGNED_BYTE;
@@ -288,7 +288,7 @@ static inline GLenum convert_index_type(IndexData::Type type) {
 /** Convert a primitive type to a GL primitive type.
  * @param type		Type to convert.
  * @return		GL primitive type. */
-static inline GLenum convert_primitive_type(PrimitiveType type) {
+static inline GLenum convertPrimitiveType(PrimitiveType type) {
 	switch(type) {
 	case PrimitiveType::kTriangleList:
 		return GL_TRIANGLES;
@@ -306,7 +306,7 @@ static inline GLenum convert_primitive_type(PrimitiveType type) {
 /** Convert a program type to a GL shader type.
  * @param type		Type to convert.
  * @return		Converted GL type. */
-static inline GLenum convert_program_type(GPUProgram::Type type) {
+static inline GLenum convertProgramType(GPUProgram::Type type) {
 	switch(type) {
 	case GPUProgram::kVertexProgram:
 		return GL_VERTEX_SHADER;
@@ -320,7 +320,7 @@ static inline GLenum convert_program_type(GPUProgram::Type type) {
 /** Convert a program type to a GL bitfield type.
  * @param type		Type to convert.
  * @return		Converted GL bitfield type. */
-static inline GLbitfield convert_program_type_bitfield(GPUProgram::Type type) {
+static inline GLbitfield convertProgramTypeBitfield(GPUProgram::Type type) {
 	switch(type) {
 	case GPUProgram::kVertexProgram:
 		return GL_VERTEX_SHADER_BIT;

@@ -16,7 +16,7 @@ namespace util {
 /** Get the size of an array.
  * @param array		Array to get size of. */
 template <typename T, size_t N>
-constexpr size_t array_size(T (&array)[N]) {
+constexpr size_t arraySize(T (&array)[N]) {
 	return N;
 }
 
@@ -25,7 +25,7 @@ constexpr size_t array_size(T (&array)[N]) {
  * @param nearest	Boundary to round up to.
  * @return		Rounded value. */
 template <typename T, typename U>
-inline T round_up(T val, const U &nearest) {
+inline T roundUp(T val, const U &nearest) {
 	/* When nearest is a power of 2, this is optimised to be equivalent
 	 * to the following:
 	 *  if(val & (nearest - 1)) {
@@ -47,7 +47,7 @@ inline T round_up(T val, const U &nearest) {
  * @param nearest	Boundary to round down to.
  * @return		Rounded value. */
 template <typename T, typename U>
-inline T round_down(T val, const U &nearest) {
+inline T roundDown(T val, const U &nearest) {
 	/* Same as above. */
 	if(val % (nearest))
 		val -= val % (nearest);
@@ -59,7 +59,7 @@ inline T round_down(T val, const U &nearest) {
  * @param val		Value to check.
  * @return		Whether value is a power of 2. */
 template <typename T>
-inline bool is_pow2(T val) {
+inline bool isPow2(T val) {
 	return ((val) && ((val) & ((val) - 1)) == 0);
 }
 

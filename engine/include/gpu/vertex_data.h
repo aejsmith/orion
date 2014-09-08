@@ -19,8 +19,8 @@
  *
  * Usage of this class should be as follows:
  *
- *  1. Set vertex format with set_format().
- *  2. Set buffers with set_buffer().
+ *  1. Set vertex format with setFormat().
+ *  2. Set buffers with setBuffer().
  *  3. Finalize the object with finalize().
  *
  * The final step allows the API-specific implementation to compile it's own
@@ -28,12 +28,12 @@
  * VAO).
  *
  * Since this class may have an API-specific implementation, instances must be
- * created with GPUInterface::create_vertex_data().
+ * created with GPUInterface::createVertexData().
  */
 class VertexData : public GPUResource {
 public:
-	void set_format(const VertexFormatPtr &format);
-	void set_buffer(unsigned index, const GPUBufferPtr &buffer);
+	void setFormat(const VertexFormatPtr &format);
+	void setBuffer(unsigned index, const GPUBufferPtr &buffer);
 
 	void finalize();
 
@@ -59,14 +59,14 @@ protected:
 	explicit VertexData(size_t count);
 
 	/** Called when the object is being finalized. */
-	virtual void finalize_impl() {}
+	virtual void finalizeImpl() {}
 protected:
 	size_t m_count;			/**< Vertex count. */
 	VertexFormatPtr m_format;	/**< Vertex format. */
 	GPUBufferArray m_buffers;	/**< Vector of vertex buffers. */
 	bool m_finalized;		/**< Whether the object has been finalized. */
 
-	/* For the default implementation of create_vertex_data(). */
+	/* For the default implementation of createVertexData(). */
 	friend class GPUInterface;
 };
 

@@ -52,13 +52,13 @@ public:
 	 * Other methods.
 	 */
 
-	void register_loader(AssetLoader *loader);
-	void unregister_loader(AssetLoader *loader);
+	void registerLoader(AssetLoader *loader);
+	void unregisterLoader(AssetLoader *loader);
 private:
-	Asset *lookup_asset(const Path &path) const;
-	void unregister_asset(Asset *asset);
+	Asset *lookupAsset(const Path &path) const;
+	void unregisterAsset(Asset *asset);
 
-	AssetLoader *lookup_loader(const std::string &type) const;
+	AssetLoader *lookupLoader(const std::string &type) const;
 private:
 	/**
 	 * Map of known assets.
@@ -72,9 +72,8 @@ private:
 
 	/** Registered asset loaders. */
 	std::map<std::string, AssetLoader *> m_loaders;
-
 	/** Asset search paths. */
-	std::map<std::string, std::string> m_search_paths;
+	std::map<std::string, std::string> m_searchPaths;
 
 	friend class Asset;
 };

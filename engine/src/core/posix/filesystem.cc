@@ -49,11 +49,11 @@ private:
 /** POSIX filesystem interface. */
 class POSIXFilesystem : public Filesystem {
 public:
-	File *open_file(const Path &path, unsigned mode = File::kRead) override;
-	Directory *open_directory(const Path &path) override;
+	File *openFile(const Path &path, unsigned mode = File::kRead) override;
+	Directory *openDirectory(const Path &path) override;
 
 	bool exists(const Path &path) override;
-	bool is_type(const Path &path, FileType type) override;
+	bool isType(const Path &path, FileType type) override;
 };
 
 /** Initialize the file.
@@ -189,7 +189,7 @@ bool POSIXDirectory::next(Entry &entry) {
  * @param path		Path to file to open.
  * @param mode		Mode to open file with (combination of File::Mode flags).
  * @return		Pointer to opened file, or null on failure. */
-File *POSIXFilesystem::open_file(const Path &path, unsigned mode) {
+File *POSIXFilesystem::openFile(const Path &path, unsigned mode) {
 	int flags = 0;
 
 	if(mode & File::kRead)
@@ -207,7 +207,7 @@ File *POSIXFilesystem::open_file(const Path &path, unsigned mode) {
 /** Open a directory.
  * @param path		Path to directory.
  * @return		Pointer to opened directory, or null on failure. */
-Directory *POSIXFilesystem::open_directory(const Path &path) {
+Directory *POSIXFilesystem::openDirectory(const Path &path) {
 	DIR *dir = opendir(path.c_str());
 	if(!dir)
 		return nullptr;
@@ -227,7 +227,7 @@ bool POSIXFilesystem::exists(const Path &path) {
  * @param path		Path to check.
  * @param type		Type to check for.
  * @return		Whether the path exists and is the specified type. */
-bool POSIXFilesystem::is_type(const Path &path, FileType type) {
+bool POSIXFilesystem::isType(const Path &path, FileType type) {
 	struct stat st;
 	if(stat(path.c_str(), &st) != 0)
 		return false;
@@ -244,7 +244,7 @@ bool POSIXFilesystem::is_type(const Path &path, FileType type) {
 
 /** Initialize the platform filesystem interface.
  * @return		Pointer to Filesystem object. */
-Filesystem *platform::create_filesystem() {
+Filesystem *platform::createFilesystem() {
 	/* Switch to the engine base directory. SDL_GetBasePath returns the
 	 * binary directory, the base directory is above that. */
 	char *base_path = SDL_GetBasePath();

@@ -21,10 +21,10 @@ Component::~Component() {}
 
 /** Destroy the component. */
 void Component::destroy() {
-	set_active(false);
+	setActive(false);
 
 	/* Remove from the parent. */
-	m_entity->remove_component(this);
+	m_entity->removeComponent(this);
 
 	delete this;
 }
@@ -37,15 +37,15 @@ void Component::destroy() {
  *
  * @param active	Whether the component should be active.
  */
-void Component::set_active(bool active) {
-	bool was_active = active_in_world();
+void Component::setActive(bool active) {
+	bool wasActive = activeInWorld();
 
 	m_active = active;
 	if(m_active) {
-		if(!was_active && m_entity->active_in_world())
+		if(!wasActive && m_entity->activeInWorld())
 			activated();
 	} else {
-		if(was_active)
+		if(wasActive)
 			deactivated();
 	}
 }
@@ -59,6 +59,6 @@ void Component::set_active(bool active) {
  *
  * @return		Whether the component is really active.
  */
-bool Component::active_in_world() const {
-	return (m_active && m_entity->active_in_world());
+bool Component::activeInWorld() const {
+	return (m_active && m_entity->activeInWorld());
 }

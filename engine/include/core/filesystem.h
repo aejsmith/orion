@@ -92,12 +92,12 @@ public:
 	 * @param mode		Mode to open file with (combination of
 	 *			File::Mode flags, defaults to kRead).
 	 * @return		Pointer to opened file, or null on failure. */
-	virtual File *open_file(const Path &path, unsigned mode = File::kRead) = 0;
+	virtual File *openFile(const Path &path, unsigned mode = File::kRead) = 0;
 
 	/** Open a directory.
 	 * @param path		Path to directory to open.
 	 * @return		Pointer to opened directory, or null on failure. */
-	virtual Directory *open_directory(const Path &path) = 0;
+	virtual Directory *openDirectory(const Path &path) = 0;
 
 	/** Check if a path exists.
 	 * @param path		Path to check.
@@ -108,7 +108,7 @@ public:
 	 * @param path		Path to check.
 	 * @param type		Type to check for.
 	 * @return		Whether the path exists and is the specified type. */
-	virtual bool is_type(const Path &path, FileType type) = 0;
+	virtual bool isType(const Path &path, FileType type) = 0;
 protected:
 	Filesystem() {}
 };
@@ -117,6 +117,6 @@ namespace platform {
 
 /** Initialize the platform filesystem interface.
  * @return		Pointer to Filesystem object. */
-extern Filesystem *create_filesystem();
+extern Filesystem *createFilesystem();
 
 }

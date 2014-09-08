@@ -27,26 +27,26 @@
  * @param vertices	Total number of vertices. */
 GLVertexData::GLVertexData(size_t vertices) :
 	VertexData(vertices),
-	m_vao(GL_NONE),
-	m_bound_indices(nullptr)
+	m_array(GL_NONE),
+	m_boundIndices(nullptr)
 {}
 
 /** Destroy the vertex data object. */
 GLVertexData::~GLVertexData() {
-	if(m_vao != GL_NONE) {
-		if(g_opengl->state.bound_vao == m_vao)
-			g_opengl->state.bind_vao(g_opengl->default_vao);
+	if(m_array != GL_NONE) {
+		if(g_opengl->state.boundVertexArray == m_array)
+			g_opengl->state.bindVertexArray(g_opengl->defaultVertexArray);
 
-		glDeleteVertexArrays(1, &m_vao);
+		glDeleteVertexArrays(1, &m_array);
 	}
 }
 
 /** Bind the VAO for rendering.
  * @param indices	Index buffer being used for rendering. */
 void GLVertexData::bind(const GPUBufferPtr &indices) {
-	orion_assert(m_finalized);
+	orionAssert(m_finalized);
 
-	g_opengl->state.bind_vao(m_vao);
+	g_opengl->state.bindVertexArray(m_array);
 
 	/* As described at the top of the file, the index buffer binding is
 	 * part of VAO state. If the index buffer being used for rendering is
@@ -57,7 +57,7 @@ void GLVertexData::bind(const GPUBufferPtr &indices) {
 	 * set here to affect the global GLState. Additionally, GLState has a
 	 * special case to switch back to the default VAO if changing the index
 	 * buffer binding. */
-	if(unlikely(indices != m_bound_indices)) {
+	if(unlikely(indices != m_boundIndices)) {
 		if(indices) {
 			GLBuffer *buffer = static_cast<GLBuffer *>(indices.get());
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer->buffer());
@@ -65,25 +65,25 @@ void GLVertexData::bind(const GPUBufferPtr &indices) {
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		}
 
-		m_bound_indices = indices;
+		m_boundIndices = indices;
 	}
 }
 
 /** Bind the VAO for rendering. */
-void GLVertexData::finalize_impl() {
-	glGenVertexArrays(1, &m_vao);
-	g_opengl->state.bind_vao(m_vao);
+void GLVertexData::finalizeImpl() {
+	glGenVertexArrays(1, &m_array);
+	g_opengl->state.bindVertexArray(m_array);
 
 	for(const VertexAttribute &attribute : m_format->attributes()) {
 		GLuint index;
-		if(!map_attribute(attribute.semantic, attribute.index, &index)) {
-			orion_abort(
+		if(!mapAttribute(attribute.semantic, attribute.index, &index)) {
+			orionAbort(
 				"GL: Cannot map attribute (semantic: %d, index: %u)",
 				attribute.semantic, attribute.index);
 		}
 
 		/* FIXME: Check if type is supported. */
-		GLenum type = gl::convert_attribute_type(attribute.type);
+		GLenum type = gl::convertAttributeType(attribute.type);
 		void *offset = reinterpret_cast<void *>(static_cast<uintptr_t>(attribute.offset));
 
 		const VertexBufferDesc *desc = m_format->buffer(attribute.buffer);
@@ -100,7 +100,7 @@ void GLVertexData::finalize_impl() {
  * @param index		Attribute index.
  * @param gl		Where to store GL attribute index.
  * @return		Whether mapped successfully. */
-bool GLVertexData::map_attribute(VertexAttribute::Semantic semantic, unsigned index, GLuint *gl) {
+bool GLVertexData::mapAttribute(VertexAttribute::Semantic semantic, unsigned index, GLuint *gl) {
 	/* TODO: Make use of all supported hardware attributes rather than the
 	 * minimum of 16. Also, this is a somewhat arbitrary division for now,
 	 * may need tweaking based on future requirements (e.g. probably don't
@@ -144,7 +144,7 @@ bool GLVertexData::map_attribute(VertexAttribute::Semantic semantic, unsigned in
 /** Create a vertex data object.
  * @see			VertexData::VertexData().
  * @return		Pointer to created vertex data object. */
-VertexDataPtr GLGPUInterface::create_vertex_data(size_t vertices) {
+VertexDataPtr GLGPUInterface::createVertexData(size_t vertices) {
 	VertexData *data = new GLVertexData(vertices);
 	return VertexDataPtr(data);
 }

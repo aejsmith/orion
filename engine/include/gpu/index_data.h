@@ -14,7 +14,7 @@
  * This class holds a buffer containing index data and information about the
  * format of that buffer. It is used to provide indices into vertex data to be
  * used for rendering. Since this class may have an API-specific implementation,
- * instances must be created with GPUInterface::create_index_data().
+ * instances must be created with GPUInterface::createIndexData().
  */
 class IndexData : public GPUResource {
 public:
@@ -32,12 +32,12 @@ public:
 	/** @return		Number of indices. */
 	size_t count() const { return m_count; }
 	/** @return		Size of a single index element. */
-	size_t element_size() const { return element_size(m_type); }
+	size_t elementSize() const { return elementSize(m_type); }
 
 	/** Get the size of a buffer element of a certain type.
 	 * @param type		Type of buffer element.
 	 * @return		Size of element. */
-	static size_t element_size(Type type) {
+	static size_t elementSize(Type type) {
 		switch(type) {
 		case kUnsignedByteType:
 			return 1;
@@ -56,7 +56,7 @@ protected:
 	Type m_type;			/**< Type of index elements. */
 	size_t m_count;			/**< Number of indices. */
 
-	/* For the default implementation of create_index_data(). */
+	/* For the default implementation of createIndexData(). */
 	friend class GPUInterface;
 };
 

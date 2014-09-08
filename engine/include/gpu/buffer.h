@@ -14,7 +14,7 @@
  * This class encapsulates a buffer in GPU memory. There are multiple buffer
  * types, the type of the buffer must be declared at creation time. The
  * implementation of the class is API-specific, therefore instances must be
- * created with GPUInterface::create_buffer().
+ * created with GPUInterface::createBuffer().
  */
 class GPUBuffer : public GPUResource {
 public:
@@ -92,13 +92,13 @@ protected:
 	GPUBuffer(Type type, Usage usage, size_t size);
 
 	/** API-specific implementation of write(). */
-	virtual void write_impl(size_t offset, size_t size, const void *buf) = 0;
+	virtual void writeImpl(size_t offset, size_t size, const void *buf) = 0;
 
 	/** API-specific implementation of map(). */
-	virtual void *map_impl(size_t offset, size_t size, uint32_t flags, uint32_t access) = 0;
+	virtual void *mapImpl(size_t offset, size_t size, uint32_t flags, uint32_t access) = 0;
 
 	/** API-specific implementation of unmap(). */
-	virtual void unmap_impl() = 0;
+	virtual void unmapImpl() = 0;
 protected:
 	Type m_type;			/**< Type of the buffer */
 	Usage m_usage;			/**< Buffer usage hint. */

@@ -15,17 +15,17 @@ public:
 	~GLBuffer();
 
 	void bind() const;
-	void bind_indexed(unsigned index) const;
+	void bindIndexed(unsigned index) const;
 
 	/** Get the buffer ID.
 	 * @return		Buffer ID. */
 	GLuint buffer() const { return m_buffer; }
 protected:
-	void write_impl(size_t offset, size_t size, const void *buf) override;
-	void *map_impl(size_t offset, size_t size, uint32_t flags, uint32_t access) override;
-	void unmap_impl() override;
+	void writeImpl(size_t offset, size_t size, const void *buf) override;
+	void *mapImpl(size_t offset, size_t size, uint32_t flags, uint32_t access) override;
+	void unmapImpl() override;
 private:
 	GLuint m_buffer;		/**< Buffer object ID. */
-	GLenum m_gl_target;		/**< GL target. */
-	GLenum m_gl_usage;		/**< GL usage. */
+	GLenum m_glTarget;		/**< GL target. */
+	GLenum m_glUsage;		/**< GL usage. */
 };

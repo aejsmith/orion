@@ -14,7 +14,7 @@ SceneEntity::~SceneEntity() {}
 
 /** Private function called from Scene to set the transformation.
  * @param transform	New transformation. */
-void SceneEntity::set_transform(const Transform &transform) {
+void SceneEntity::setTransform(const Transform &transform) {
 	m_transform = transform;
 	m_uniforms.invalidate();
 }

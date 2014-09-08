@@ -16,14 +16,14 @@
 template <typename Desc>
 GLTexture::GLTexture(const Desc &desc, GLenum target) :
 	GPUTexture(desc),
-	m_gl_target(target)
+	m_glTarget(target)
 {
 	/* Create the texture and bind it for the per-type constructor to use. */
 	glGenTextures(1, &m_texture);
-	bind_for_modification();
+	bindForModification();
 
 	/* Specify maximum mipmap level. */
-	glTexParameteri(m_gl_target, GL_TEXTURE_MAX_LEVEL, m_mips);
+	glTexParameteri(m_glTarget, GL_TEXTURE_MAX_LEVEL, m_mips);
 }
 
 /** Initialize the texture as a 2D texture.
@@ -35,7 +35,7 @@ GLTexture::GLTexture(const GPUTexture2DDesc &desc) :
 	glTexStorage2D(
 		GL_TEXTURE_2D,
 		m_mips,
-		g_opengl->pixel_formats[m_format].internal_format,
+		g_opengl->pixelFormats[m_format].internalFormat,
 		m_width, m_height);
 }
 
@@ -47,7 +47,7 @@ GLTexture::GLTexture(const GPUTexture2DArrayDesc &desc) :
 	glTexStorage3D(
 		GL_TEXTURE_2D_ARRAY,
 		m_mips,
-		g_opengl->pixel_formats[m_format].internal_format,
+		g_opengl->pixelFormats[m_format].internalFormat,
 		m_width, m_height, m_depth);
 }
 
@@ -59,7 +59,7 @@ GLTexture::GLTexture(const GPUTextureCubeDesc &desc) :
 	glTexStorage2D(
 		GL_TEXTURE_CUBE_MAP,
 		m_mips,
-		g_opengl->pixel_formats[m_format].internal_format,
+		g_opengl->pixelFormats[m_format].internalFormat,
 		m_width, m_height);
 }
 
@@ -71,7 +71,7 @@ GLTexture::GLTexture(const GPUTexture3DDesc &desc) :
 	glTexStorage3D(
 		GL_TEXTURE_3D,
 		m_mips,
-		g_opengl->pixel_formats[m_format].internal_format,
+		g_opengl->pixelFormats[m_format].internalFormat,
 		m_width, m_height, m_depth);
 }
 
@@ -83,16 +83,16 @@ GLTexture::~GLTexture() {
 /** Bind the texture to a specific texture unit.
  * @param index		Texture unit index to bind to. */
 void GLTexture::bind(unsigned index) {
-	g_opengl->state.bind_texture(index, m_gl_target, m_texture);
+	g_opengl->state.bindTexture(index, m_glTarget, m_texture);
 }
 
 /** Bind the texture for modification. */
-void GLTexture::bind_for_modification() {
+void GLTexture::bindForModification() {
 	/* We reserve the last available texture unit to bind textures to when
 	 * modifying them, rather than when using them for rendering. */
-	g_opengl->state.bind_texture(
-		g_opengl->features.max_texture_units - 1,
-		m_gl_target,
+	g_opengl->state.bindTexture(
+		g_opengl->features.maxTextureUnits - 1,
+		m_glTarget,
 		m_texture);
 }
 
@@ -102,31 +102,31 @@ void GLTexture::bind_for_modification() {
  * @param layer		Array layer/cube face.
  * @param mip		Mipmap level. */
 void GLTexture::update(const Rect &area, const void *data, unsigned mip, unsigned layer) {
-	orion_assert(m_type == kTexture2D || m_type == kTexture2DArray || m_type == kTextureCube);
-	orion_assert(mip < m_mips);
-	orion_assert(layer < m_depth);
+	orionAssert(m_type == kTexture2D || m_type == kTexture2DArray || m_type == kTextureCube);
+	orionAssert(mip < m_mips);
+	orionAssert(layer < m_depth);
 
-	bind_for_modification();
+	bindForModification();
 
 	if(m_type == kTexture2DArray) {
 		glTexSubImage3D(
-			m_gl_target, 
+			m_glTarget, 
 			mip,
 			area.x, area.y, layer, area.width, area.height, 1,
-			g_opengl->pixel_formats[m_format].format,
-			g_opengl->pixel_formats[m_format].type,
+			g_opengl->pixelFormats[m_format].format,
+			g_opengl->pixelFormats[m_format].type,
 			data);
 	} else {
 		GLenum target = (m_type == kTextureCube)
 			? GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer
-			: m_gl_target;
+			: m_glTarget;
 
 		glTexSubImage2D(
 			target, 
 			mip,
 			area.x, area.y, area.width, area.height,
-			g_opengl->pixel_formats[m_format].format,
-			g_opengl->pixel_formats[m_format].type,
+			g_opengl->pixelFormats[m_format].format,
+			g_opengl->pixelFormats[m_format].type,
 			data);
 	}
 }
@@ -136,26 +136,26 @@ void GLTexture::update(const Rect &area, const void *data, unsigned mip, unsigne
  * @param data		Data to update with.
  * @param mip		Mipmap level. */
 void GLTexture::update(const Box &area, const void *data, unsigned mip) {
-	orion_assert(m_type == kTexture3D);
-	orion_assert(mip < m_mips);
+	orionAssert(m_type == kTexture3D);
+	orionAssert(mip < m_mips);
 
-	bind_for_modification();
+	bindForModification();
 
 	glTexSubImage3D(
-		m_gl_target, 
+		m_glTarget, 
 		mip,
 		area.x, area.y, area.z, area.width, area.height, area.depth,
-		g_opengl->pixel_formats[m_format].format,
-		g_opengl->pixel_formats[m_format].type,
+		g_opengl->pixelFormats[m_format].format,
+		g_opengl->pixelFormats[m_format].type,
 		data);
 }
 
 /** Generate mipmap images. */
-void GLTexture::generate_mipmap() {
-	orion_assert(m_flags & kAutoMipmap);
+void GLTexture::generateMipmap() {
+	orionAssert(m_flags & kAutoMipmap);
 
-	bind_for_modification();
-	glGenerateMipmap(m_gl_target);
+	bindForModification();
+	glGenerateMipmap(m_glTarget);
 }
 
 /**
@@ -165,7 +165,7 @@ void GLTexture::generate_mipmap() {
 /** Create a 2D texture.
  * @param desc		Descriptor containing texture parameters.
  * @return		Pointer to created texture. */
-GPUTexturePtr GLGPUInterface::create_texture(const GPUTexture2DDesc &desc) {
+GPUTexturePtr GLGPUInterface::createTexture(const GPUTexture2DDesc &desc) {
 	GPUTexture *texture = new GLTexture(desc);
 	return GPUTexturePtr(texture);
 }
@@ -173,7 +173,7 @@ GPUTexturePtr GLGPUInterface::create_texture(const GPUTexture2DDesc &desc) {
 /** Create a 2D array texture.
  * @param desc		Descriptor containing texture parameters.
  * @return		Pointer to created texture. */
-GPUTexturePtr GLGPUInterface::create_texture(const GPUTexture2DArrayDesc &desc) {
+GPUTexturePtr GLGPUInterface::createTexture(const GPUTexture2DArrayDesc &desc) {
 	GPUTexture *texture = new GLTexture(desc);
 	return GPUTexturePtr(texture);
 }
@@ -181,7 +181,7 @@ GPUTexturePtr GLGPUInterface::create_texture(const GPUTexture2DArrayDesc &desc) 
 /** Create a cube texture.
  * @param desc		Descriptor containing texture parameters.
  * @return		Pointer to created texture. */
-GPUTexturePtr GLGPUInterface::create_texture(const GPUTextureCubeDesc &desc) {
+GPUTexturePtr GLGPUInterface::createTexture(const GPUTextureCubeDesc &desc) {
 	GPUTexture *texture = new GLTexture(desc);
 	return GPUTexturePtr(texture);
 }
@@ -189,7 +189,7 @@ GPUTexturePtr GLGPUInterface::create_texture(const GPUTextureCubeDesc &desc) {
 /** Create a 3D texture.
  * @param desc		Descriptor containing texture parameters.
  * @return		Pointer to created texture. */
-GPUTexturePtr GLGPUInterface::create_texture(const GPUTexture3DDesc &desc) {
+GPUTexturePtr GLGPUInterface::createTexture(const GPUTexture3DDesc &desc) {
 	GPUTexture *texture = new GLTexture(desc);
 	return GPUTexturePtr(texture);
 }

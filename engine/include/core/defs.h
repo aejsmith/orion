@@ -40,14 +40,14 @@
  * Engine version definitions.
  */
 
-extern const char *g_version_string;
-extern const char *g_version_timestamp;
+extern const char *g_versionString;
+extern const char *g_versionTimestamp;
 
 /**
  * Error handling definitions.
  */
 
-extern void __orion_abort(const char *file, int line, const char *fmt, ...) NORETURN;
+extern void __orionAbort(const char *file, int line, const char *fmt, ...) NORETURN;
 
 /**
  * Signal that an unrecoverable error has occurred.
@@ -61,8 +61,8 @@ extern void __orion_abort(const char *file, int line, const char *fmt, ...) NORE
  * @param fmt		Error message format string.
  * @param ...		Arguments to substitute into format.
  */
-#define orion_abort(fmt, ...) \
-	__orion_abort(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define orionAbort(fmt, ...) \
+	__orionAbort(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
 /**
  * Check that a condition is true.
@@ -72,10 +72,10 @@ extern void __orion_abort(const char *file, int line, const char *fmt, ...) NORE
  *
  * @param cond		Condition to check.
  */
-#define orion_assert(cond) \
+#define orionAssert(cond) \
 	do { \
 		if(unlikely(!(cond))) \
-			__orion_abort(__FILE__, __LINE__, "Assertion failed: %s", #cond); \
+			__orionAbort(__FILE__, __LINE__, "Assertion failed: %s", #cond); \
 	} while(0)
 
 /**
@@ -88,10 +88,10 @@ extern void __orion_abort(const char *file, int line, const char *fmt, ...) NORE
  * @param fmt		Error message format string.
  * @param ...		Arguments to substitute into format.
  */
-#define orion_check(cond, fmt, ...) \
+#define orionCheck(cond, fmt, ...) \
 	do { \
 		if(unlikely(!(cond))) \
-			__orion_abort(__FILE__, __LINE__, fmt, ##__VA_ARGS__); \
+			__orionAbort(__FILE__, __LINE__, fmt, ##__VA_ARGS__); \
 	} while(0)
 
 /**

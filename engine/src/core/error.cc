@@ -23,7 +23,7 @@
  * @param fmt		Format string for error message.
  * @param ...		Arguments to substitute into format string.
  */
-void __orion_abort(const char *file, int line, const char *fmt, ...) {
+void __orionAbort(const char *file, int line, const char *fmt, ...) {
 	va_list args;
 
 	va_start(args, fmt);

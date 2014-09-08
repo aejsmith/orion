@@ -15,7 +15,7 @@ World::World() {
 
 	/* Create the root entity. */
 	m_root = new Entity("root", this);
-	m_root->set_active(true);
+	m_root->setActive(true);
 }
 
 /** Destroy the world. */
@@ -41,6 +41,6 @@ void World::tick(float dt) {
  *
  * @return		Pointer to created entity.
  */
-Entity *World::create_entity(const std::string &name) {
-	return m_root->create_child(name);
+Entity *World::createEntity(const std::string &name) {
+	return m_root->createChild(name);
 }

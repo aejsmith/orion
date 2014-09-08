@@ -43,7 +43,7 @@ public:
 protected:
 	SceneEntity();
 private:
-	void set_transform(const Transform &transform);
+	void setTransform(const Transform &transform);
 private:
 	Transform m_transform;		/**< Transformation of the entity. */
 

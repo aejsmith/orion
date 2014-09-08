@@ -27,28 +27,28 @@ struct GLState {
 	class BufferBindings {
 	public:
 		BufferBindings() :
-			m_array_buffer(0),
-			m_element_array_buffer(0),
-			m_uniform_buffer(0)
+			m_arrayBuffer(0),
+			m_elementArrayBuffer(0),
+			m_uniformBuffer(0)
 		{}
 
 		/** @return		Current binding for the specified target. */
 		GLuint &operator [](GLenum target) {
 			switch(target) {
 			case GL_ARRAY_BUFFER:
-				return m_array_buffer;
+				return m_arrayBuffer;
 			case GL_ELEMENT_ARRAY_BUFFER:
-				return m_element_array_buffer;
+				return m_elementArrayBuffer;
 			case GL_UNIFORM_BUFFER:
-				return m_uniform_buffer;
+				return m_uniformBuffer;
 			default:
 				unreachable();
 			}
 		}
 	private:
-		GLuint m_array_buffer;
-		GLuint m_element_array_buffer;
-		GLuint m_uniform_buffer;
+		GLuint m_arrayBuffer;
+		GLuint m_elementArrayBuffer;
+		GLuint m_uniformBuffer;
 	};
 
 	/** Structure holding texture unit state. */
@@ -59,53 +59,53 @@ struct GLState {
 		TextureUnit() : target(GL_NONE), texture(0) {}
 	};
 public:
-	int swap_interval;		/**< Current swap interval. */
+	int swapInterval;		/**< Current swap interval. */
 
 	/** Clear state. */
-	glm::vec4 clear_colour;
-	float clear_depth;
-	uint32_t clear_stencil;
+	glm::vec4 clearColour;
+	float clearDepth;
+	uint32_t clearStencil;
 
 	/** Blending state. */
-	bool blend_enabled;
-	GLenum blend_equation;
-	GLenum blend_source_factor;
-	GLenum blend_dest_factor;
+	bool blendEnabled;
+	GLenum blendEquation;
+	GLenum blendSourceFactor;
+	GLenum blendDestFactor;
 
 	/** Depth testing state. */
-	bool depth_test_enabled;
-	bool depth_write_enabled;
-	GLenum depth_func;
+	bool depthTestEnabled;
+	bool depthWriteEnabled;
+	GLenum depthFunc;
 
 	/** Object bindings. */
-	GLuint bound_vao;
-	BufferBindings bound_buffers;
-	GLuint bound_pipeline;
-	unsigned active_texture;
-	TextureUnit *texture_units;
+	GLuint boundVertexArray;
+	BufferBindings boundBuffers;
+	GLuint boundPipeline;
+	unsigned activeTexture;
+	TextureUnit *textureUnits;
 public:
 	GLState();
 	~GLState();
 
-	void init_resources(GLFeatures &features);
+	void initResources(GLFeatures &features);
 
-	void set_swap_interval(int interval);
+	void setSwapInterval(int interval);
 
-	void set_clear_colour(const glm::vec4 &colour);
-	void set_clear_depth(float depth);
-	void set_clear_stencil(uint32_t stencil);
+	void setClearColour(const glm::vec4 &colour);
+	void setClearDepth(float depth);
+	void setClearStencil(uint32_t stencil);
 
-	void enable_blend(bool enable);
-	void set_blend_equation(GLenum equation);
-	void set_blend_func(GLenum source_factor, GLenum dest_factor);
+	void enableBlend(bool enable);
+	void setBlendEquation(GLenum equation);
+	void setBlendFunc(GLenum sourceFactor, GLenum destFactor);
 
-	void enable_depth_test(bool enable);
-	void enable_depth_write(bool enable);
-	void set_depth_func(GLenum func);
+	void enableDepthTest(bool enable);
+	void enableDepthWrite(bool enable);
+	void setDepthFunc(GLenum func);
 
-	void bind_vao(GLuint vao);
-	void bind_buffer(GLenum target, GLuint buffer);
-	void bind_buffer_base(GLenum target, GLuint index, GLuint buffer);
-	void bind_pipeline(GLuint pipeline);
-	void bind_texture(unsigned unit, GLenum target, GLuint texture);
+	void bindVertexArray(GLuint array);
+	void bindBuffer(GLenum target, GLuint buffer);
+	void bindBufferBase(GLenum target, GLuint index, GLuint buffer);
+	void bindPipeline(GLuint pipeline);
+	void bindTexture(unsigned unit, GLenum target, GLuint texture);
 };

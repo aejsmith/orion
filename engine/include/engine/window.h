@@ -20,7 +20,7 @@ public:
 	Window(const EngineConfiguration &config, GPUInterface *gpu);
 	~Window();
 
-	void set_title(const std::string &title);
+	void setTitle(const std::string &title);
 
 	/** @return		SDL window. */
 	SDL_Window *sdl() const { return m_window; }

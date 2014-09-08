@@ -37,12 +37,12 @@ public:
 	 *			OS X (fuck you Apple, update your OpenGL
 	 *			implementation!). If they ever get round to
 	 *			updating it, this can go. Same applies for
-	 *			bind_texture().
+	 *			bindTexture().
 	 *
 	 * @param name		Name of uniform block.
 	 * @param index		Uniform buffer binding point index.
 	 */
-	virtual void bind_uniforms(const char *name, unsigned index) = 0;
+	virtual void bindUniforms(const char *name, unsigned index) = 0;
 
 	/**
 	 * Bind a sampler in the program.
@@ -53,7 +53,7 @@ public:
 	 * @param name		Name of sampler.
 	 * @param index		Texture unit index.
 	 */
-	virtual void bind_texture(const char *name, unsigned index) = 0;
+	virtual void bindTexture(const char *name, unsigned index) = 0;
 
 	/** @return		Type of the program. */
 	Type type() const { return m_type; }
