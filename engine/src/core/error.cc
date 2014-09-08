@@ -4,8 +4,6 @@
  * @brief		Error handling functions.
  */
 
-#include "core/utility.h"
-
 #include "engine/engine.h"
 
 #include <SDL.h>

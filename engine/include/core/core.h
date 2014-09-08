@@ -12,3 +12,4 @@
 
 #include "core/log.h"
 #include "core/math.h"
+#include "core/utility.h"

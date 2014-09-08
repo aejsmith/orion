@@ -4,9 +4,6 @@
  * @brief		Main entry point of the engine.
  */
 
-#include "core/path.h"
-#include "core/utility.h"
-
 #include "engine/asset_manager.h"
 #include "engine/engine.h"
 #include "engine/texture.h"
