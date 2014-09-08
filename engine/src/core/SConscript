@@ -1,6 +1,7 @@
 import os
 
 sources = map(File, [
+    'engine_global.cc',
     'error.cc',
     'log.cc',
     'path.cc',

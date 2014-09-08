@@ -15,7 +15,7 @@
 #include "forward_renderer.h"
 
 // Temporary until we have proper shader/material management.
-static GPUPipelinePtr g_lightingPipeline;
+static GlobalGPUResource<GPUPipeline> g_lightingPipeline;
 
 /** Initialize the scene renderer.
  * @param scene		Scene to render.
@@ -38,7 +38,7 @@ ForwardRenderer::ForwardRenderer(Scene *scene, RenderTarget *target, const Rende
 		fragProgram->bindUniforms("LightUniforms", ShaderUniforms::kLightUniforms);
 		fragProgram->bindTexture("diffuseTexture", 0);
 
-		g_lightingPipeline = g_engine->gpu()->createPipeline();
+		g_lightingPipeline() = g_engine->gpu()->createPipeline();
 		g_lightingPipeline->setProgram(GPUProgram::kVertexProgram, vertexProgram);
 		g_lightingPipeline->setProgram(GPUProgram::kFragmentProgram, fragProgram);
 		g_lightingPipeline->finalize();
