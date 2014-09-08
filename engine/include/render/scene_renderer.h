@@ -4,10 +4,9 @@
  * @brief		Scene renderer class.
  */
 
-#ifndef ORION_RENDER_SCENE_RENDERER_H
-#define ORION_RENDER_SCENE_RENDERER_H
+#pragma once
 
-#include "core/defs.h"
+#include "core/core.h"
 
 class RenderTarget;
 class Scene;
@@ -43,5 +42,3 @@ protected:
 	RenderTarget *m_target;		/**< Render target. */
 	RendererParams m_params;	/**< Renderer parameters. */
 };
-
-#endif /* ORION_RENDER_SCENE_RENDERER_H */

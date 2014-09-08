@@ -6,7 +6,7 @@
 
 #include "gl.h"
 
-#include "lib/utility.h"
+#include "core/utility.h"
 
 /** Global GL GPU interface. */
 GLGPUInterface *g_opengl = nullptr;

@@ -4,10 +4,9 @@
  * @brief		GPU interface class.
  */
 
-#ifndef ORION_GPU_GPU_H
-#define ORION_GPU_GPU_H
+#pragma once
 
-#include "core/engine.h"
+#include "engine/engine.h"
 
 #include "gpu/buffer.h"
 #include "gpu/index_data.h"
@@ -175,5 +174,3 @@ public:
 protected:
 	GPUInterface() {}
 };
-
-#endif /* ORION_GPU_GPU_H */

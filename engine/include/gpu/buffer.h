@@ -4,8 +4,7 @@
  * @brief		GPU buffer class.
  */
 
-#ifndef ORION_GPU_BUFFER_H
-#define ORION_GPU_BUFFER_H
+#pragma once
 
 #include "gpu/defs.h"
 
@@ -161,5 +160,3 @@ private:
 	/** Pointer to mapping. */
 	T *m_mapping;
 };
-
-#endif /* ORION_GPU_BUFFER_H */

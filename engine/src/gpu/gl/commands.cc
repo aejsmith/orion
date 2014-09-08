@@ -11,7 +11,7 @@
 #include "texture.h"
 #include "vertex_data.h"
 
-#include "core/window.h"
+#include "engine/window.h"
 
 /** Bind a pipeline for rendering.
  * @param _pipeline	Pipeline to use. */

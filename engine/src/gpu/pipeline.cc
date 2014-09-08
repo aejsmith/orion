@@ -4,8 +4,6 @@
  * @brief		Rendering pipeline object.
  */
 
-#include "core/engine.h"
-
 #include "gpu/pipeline.h"
 
 /** Initialize the pipeline. */

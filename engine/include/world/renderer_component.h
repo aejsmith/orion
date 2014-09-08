@@ -4,8 +4,7 @@
  * @brief		Renderer base component.
  */
 
-#ifndef ORION_WORLD_RENDERER_COMPONENT_H
-#define ORION_WORLD_RENDERER_COMPONENT_H
+#pragma once
 
 #include "render/scene_entity.h"
 
@@ -50,5 +49,3 @@ private:
 	/** List of scene entities. */
 	SceneEntityList m_scene_entities;
 };
-
-#endif /* ORION_WORLD_RENDERER_COMPONENT_H */

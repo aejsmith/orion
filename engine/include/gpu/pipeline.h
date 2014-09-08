@@ -4,8 +4,7 @@
  * @brief		Rendering pipeline object.
  */
 
-#ifndef ORION_GPU_PIPELINE_H
-#define ORION_GPU_PIPELINE_H
+#pragma once
 
 #include "gpu/program.h"
 
@@ -58,5 +57,3 @@ protected:
 
 /** Type of a pipeline object pointer. */
 typedef GPUResourcePtr<GPUPipeline> GPUPipelinePtr;
-
-#endif /* ORION_GPU_PIPELINE_H */

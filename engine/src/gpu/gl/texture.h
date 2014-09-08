@@ -4,8 +4,7 @@
  * @brief		GL texture implementation.
  */
 
-#ifndef ORION_GPU_GL_TEXTURE_H
-#define ORION_GPU_GL_TEXTURE_H
+#pragma once
 
 #include "gpu/texture.h"
 
@@ -33,5 +32,3 @@ private:
 	GLuint m_texture;		/**< GL texture handle. */
 	GLenum m_gl_target;		/**< Target for the texture. */
 };
-
-#endif /* ORION_GPU_GL_TEXTURE_H */

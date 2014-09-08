@@ -4,8 +4,7 @@
  * @brief		OpenGL program implementation.
  */
 
-#ifndef ORION_GPU_GL_PROGRAM_H
-#define ORION_GPU_GL_PROGRAM_H
+#pragma once
 
 #include "gl.h"
 
@@ -24,5 +23,3 @@ public:
 private:
 	GLuint m_program;		/**< Program object ID. */
 };
-
-#endif /* ORION_GPU_GL_PROGRAM_H */

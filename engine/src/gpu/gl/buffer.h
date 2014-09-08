@@ -4,8 +4,7 @@
  * @brief		OpenGL buffer implementation.
  */
 
-#ifndef ORION_GPU_GL_BUFFER_H
-#define ORION_GPU_GL_BUFFER_H
+#pragma once
 
 #include "gl.h"
 
@@ -30,5 +29,3 @@ private:
 	GLenum m_gl_target;		/**< GL target. */
 	GLenum m_gl_usage;		/**< GL usage. */
 };
-
-#endif /* ORION_GPU_GL_BUFFER_H */

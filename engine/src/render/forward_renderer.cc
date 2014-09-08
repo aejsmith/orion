@@ -4,8 +4,6 @@
  * @brief		Forward rendering scene renderer.
  */
 
-#include "core/engine.h"
-
 #include "gpu/pipeline.h"
 
 #include "render/scene.h"

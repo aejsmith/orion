@@ -4,8 +4,7 @@
  * @brief		Index data class.
  */
 
-#ifndef ORION_GPU_INDEX_DATA_H
-#define ORION_GPU_INDEX_DATA_H
+#pragma once
 
 #include "gpu/buffer.h"
 
@@ -63,5 +62,3 @@ protected:
 
 /** Shared pointer to IndexData. */
 typedef GPUResourcePtr<IndexData> IndexDataPtr;
-
-#endif /* ORION_GPU_INDEX_DATA_H */

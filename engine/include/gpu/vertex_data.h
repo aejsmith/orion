@@ -4,8 +4,7 @@
  * @brief		Vertex data class.
  */
 
-#ifndef ORION_GPU_VERTEX_DATA_H
-#define ORION_GPU_VERTEX_DATA_H
+#pragma once
 
 #include "gpu/buffer.h"
 #include "gpu/vertex_format.h"
@@ -73,5 +72,3 @@ protected:
 
 /** Shared pointer to VertexData. */
 typedef GPUResourcePtr<VertexData> VertexDataPtr;
-
-#endif /* ORION_GPU_VERTEX_DATA_H */

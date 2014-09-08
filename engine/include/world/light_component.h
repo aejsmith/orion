@@ -4,8 +4,7 @@
  * @brief		Light component classes.
  */
 
-#ifndef ORION_WORLD_LIGHT_COMPONENT_H
-#define ORION_WORLD_LIGHT_COMPONENT_H
+#pragma once
 
 #include "render/scene_light.h"
 
@@ -172,5 +171,3 @@ inline void LightComponent::set_range(float range) {
 inline void LightComponent::set_attenuation(float constant, float linear, float exp) {
 	m_scene_light.set_attenuation(constant, linear, exp);
 }
-
-#endif /* ORION_WORLD_LIGHT_COMPONENT_H */

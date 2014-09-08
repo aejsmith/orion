@@ -4,10 +4,9 @@
  * @brief		Scene management.
  */
 
-#ifndef ORION_RENDER_SCENE_H
-#define ORION_RENDER_SCENE_H
+#pragma once
 
-#include "core/defs.h"
+#include "core/core.h"
 
 #include "render/scene_entity.h"
 
@@ -53,5 +52,3 @@ private:
 	/** List of registered lights. */
 	std::list<SceneLight *> m_lights;
 };
-
-#endif /* ORION_RENDER_SCENE_H */

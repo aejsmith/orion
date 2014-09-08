@@ -4,12 +4,9 @@
  * @brief		Scene entity base class.
  */
 
-#ifndef ORION_RENDER_SCENE_ENTITY_H
-#define ORION_RENDER_SCENE_ENTITY_H
+#pragma once
 
 #include "gpu/uniform_buffer.h"
-
-#include "math/transform.h"
 
 class Scene;
 
@@ -55,5 +52,3 @@ private:
 
 	friend class Scene;
 };
-
-#endif /* ORION_RENDER_SCENE_ENTITY_H */

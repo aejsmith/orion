@@ -4,10 +4,9 @@
  * @brief		Shader system definitions.
  */
 
-#ifndef ORION_SHADER_DEFS_H
-#define ORION_SHADER_DEFS_H
+#pragma once
 
-#include "core/defs.h"
+#include "core/core.h"
 
 /**
  * Standard uniform buffer binding point indices.
@@ -31,5 +30,3 @@ namespace ShaderUniforms {
 		kCustomUniformsEnd = 15,
 	};
 }
-
-#endif /* ORION_SHADER_DEFS_H */

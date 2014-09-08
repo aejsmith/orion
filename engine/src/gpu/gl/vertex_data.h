@@ -4,8 +4,7 @@
  * @brief		GL vertex data implementation.
  */
 
-#ifndef ORION_GPU_GL_VERTEX_DATA_H
-#define ORION_GPU_GL_VERTEX_DATA_H
+#pragma once
 
 #include "buffer.h"
 
@@ -28,5 +27,3 @@ private:
 	GLuint m_vao;			/**< Vertex array object. */
 	GPUBufferPtr m_bound_indices;	/**< Currently bound index buffer. */
 };
-
-#endif /* ORION_GPU_GL_VERTEX_DATA_H */

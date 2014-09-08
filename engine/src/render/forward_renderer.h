@@ -4,8 +4,7 @@
  * @brief		Forward rendering scene renderer.
  */
 
-#ifndef ORION_RENDER_FORWARD_RENDERER_H
-#define ORION_RENDER_FORWARD_RENDERER_H
+#pragma once
 
 #include "render/scene_renderer.h"
 
@@ -16,5 +15,3 @@ public:
 
 	void render(SceneView *view) override;
 };
-
-#endif /* ORION_RENDER_FORWARD_RENDERER_H */

@@ -4,10 +4,9 @@
  * @brief		GPU interface global definitions.
  */
 
-#ifndef ORION_GPU_DEFS_H
-#define ORION_GPU_DEFS_H
+#pragma once
 
-#include "lib/refcounted.h"
+#include "core/refcounted.h"
 
 /** Possible primitive types. */
 enum class PrimitiveType {
@@ -111,5 +110,3 @@ protected:
 
 /** Type of a GPU resource pointer. */
 template <typename T> using GPUResourcePtr = ReferencePtr<T>;
-
-#endif /* ORION_GPU_DEFS_H */

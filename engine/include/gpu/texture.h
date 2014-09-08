@@ -4,15 +4,11 @@
  * @brief		GPU texture class.
  */
 
-#ifndef ORION_GPU_TEXTURE_H
-#define ORION_GPU_TEXTURE_H
+#pragma once
+
+#include "core/pixel_format.h"
 
 #include "gpu/defs.h"
-
-#include "lib/pixel_format.h"
-
-#include "math/box.h"
-#include "math/rect.h"
 
 /** 2D texture descriptor. */
 struct GPUTexture2DDesc {
@@ -131,5 +127,3 @@ protected:
 
 /** Type of a pointer to a texture. */
 typedef GPUResourcePtr<GPUTexture> GPUTexturePtr;
-
-#endif /* ORION_GPU_TEXTURE_H */

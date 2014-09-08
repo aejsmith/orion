@@ -4,9 +4,4 @@
  * @brief		
  */
 
-#ifndef 
-#define 
-
-
-
-#endif /*  */
+#pragma once

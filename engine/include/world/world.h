@@ -4,8 +4,7 @@
  * @brief		World class.
  */
 
-#ifndef ORION_WORLD_WORLD_H
-#define ORION_WORLD_WORLD_H
+#pragma once
 
 #include "world/entity.h"
 
@@ -42,5 +41,3 @@ private:
 	Entity *m_root;			/**< Root of the entity hierarchy. */
 	Scene *m_scene;			/**< Scene manager. */
 };
-
-#endif /* ORION_WORLD_WORLD_H */

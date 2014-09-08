@@ -4,8 +4,7 @@
  * @brief		OpenGL pipeline implementation.
  */
 
-#ifndef ORION_GPU_GL_PIPELINE_H
-#define ORION_GPU_GL_PIPELINE_H
+#pragma once
 
 #include "gl.h"
 
@@ -25,5 +24,3 @@ protected:
 private:
 	GLuint m_pipeline;		/**< Pipeline object ID. */
 };
-
-#endif /* ORION_GPU_GL_PIPELINE_H */

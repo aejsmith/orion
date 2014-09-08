@@ -4,8 +4,7 @@
  * @brief		Scene light class.
  */
 
-#ifndef ORION_RENDER_SCENE_LIGHT_H
-#define ORION_RENDER_SCENE_LIGHT_H
+#pragma once
 
 #include "gpu/uniform_buffer.h"
 
@@ -86,5 +85,3 @@ private:
 
 	friend class Scene;
 };
-
-#endif /* ORION_RENDER_SCENE_LIGHT_H */

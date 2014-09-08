@@ -4,10 +4,7 @@
  * @brief		World entity class.
  */
 
-#ifndef ORION_WORLD_ENTITY_H
-#define ORION_WORLD_ENTITY_H
-
-#include "math/transform.h"
+#pragma once
 
 #include "world/component.h"
 
@@ -220,5 +217,3 @@ inline void Entity::visit_active_components(Func func) {
 			func(component);
 	}
 }
-
-#endif /* ORION_WORLD_ENTITY_H */

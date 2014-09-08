@@ -4,8 +4,7 @@
  * @brief		Behaviour component.
  */
 
-#ifndef ORION_WORLD_BEHAVIOUR_H
-#define ORION_WORLD_BEHAVIOUR_H
+#pragma once
 
 #include "world/component.h"
 
@@ -24,5 +23,3 @@ protected:
 	BehaviourComponent(Entity *entity) : Component(Component::kBehaviourType, entity) {}
 	~BehaviourComponent() {}
 };
-
-#endif /* ORION_WORLD_BEHAVIOUR_H */

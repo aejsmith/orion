@@ -4,8 +4,7 @@
  * @brief		OpenGL GPU interface implementation.
  */
 
-#ifndef ORION_GPU_GL_GL_H
-#define ORION_GPU_GL_GL_H
+#pragma once
 
 #include "state.h"
 
@@ -333,5 +332,3 @@ static inline GLbitfield convert_program_type_bitfield(GPUProgram::Type type) {
 }
 
 }
-
-#endif /* ORION_GPU_GL_GL_H */

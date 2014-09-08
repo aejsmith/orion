@@ -4,10 +4,9 @@
  * @brief		OpenGL state management.
  */
 
-#ifndef ORION_GPU_GL_STATE_H
-#define ORION_GPU_GL_STATE_H
+#pragma once
 
-#include "core/defs.h"
+#include "core/core.h"
 
 #include <GL/glew.h>
 
@@ -110,5 +109,3 @@ public:
 	void bind_pipeline(GLuint pipeline);
 	void bind_texture(unsigned unit, GLenum target, GLuint texture);
 };
-
-#endif /* ORION_GPU_GL_STATE_H */

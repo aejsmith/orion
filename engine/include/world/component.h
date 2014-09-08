@@ -4,12 +4,9 @@
  * @brief		Component class.
  */
 
-#ifndef ORION_WORLD_COMPONENT_H
-#define ORION_WORLD_COMPONENT_H
+#pragma once
 
-#include "core/defs.h"
-
-#include "lib/noncopyable.h"
+#include "core/core.h"
 
 class Entity;
 
@@ -109,5 +106,3 @@ private:
 /** Declare a component type. */
 #define ORION_COMPONENT(type) \
 	static const Component::Type kComponentTypeID = (type)
-
-#endif /* ORION_WORLD_COMPONENT_H */

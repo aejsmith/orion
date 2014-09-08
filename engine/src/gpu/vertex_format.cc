@@ -4,8 +4,6 @@
  * @brief		Vertex format class.
  */
 
-#include "core/engine.h"
-
 #include "gpu/vertex_format.h"
 
 /** Initialize a vertex format descriptor. */

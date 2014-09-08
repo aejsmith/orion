@@ -1,0 +1,14 @@
+sources = map(File, [
+    'asset.cc',
+    'asset_manager.cc',
+    'engine.cc',
+    'render_target.cc',
+    'texture.cc',
+    'window.cc',
+])
+
+sources += SConscript(dirs = [
+    'loaders',
+])
+
+Return('sources')

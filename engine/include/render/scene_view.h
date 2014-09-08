@@ -4,12 +4,9 @@
  * @brief		Scene view class.
  */
 
-#ifndef ORION_RENDER_SCENE_VIEW_H
-#define ORION_RENDER_SCENE_VIEW_H
+#pragma once
 
 #include "gpu/uniform_buffer.h"
-
-#include "math/rect.h"
 
 /** Per-view uniform buffer structure. */
 struct ViewUniforms {
@@ -75,5 +72,3 @@ private:
 	/** Uniform buffer containing per-view parameters. */
 	DynamicUniformBuffer<ViewUniforms> m_uniforms;
 };
-
-#endif /* ORION_RENDER_SCENE_VIEW_H */

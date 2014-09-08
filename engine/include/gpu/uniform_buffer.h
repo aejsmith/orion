@@ -4,8 +4,7 @@
  * @brief		Uniform buffer helper classes.
  */
 
-#ifndef ORION_GPU_UNIFORM_BUFFER_H
-#define ORION_GPU_UNIFORM_BUFFER_H
+#pragma once
 
 #include "gpu/gpu.h"
 
@@ -59,5 +58,3 @@ private:
 	GPUBufferPtr m_buffer;		/**< Uniform buffer. */
 	bool m_valid;			/**< Whether the buffer contents are valid. */
 };
-
-#endif /* ORION_GPU_UNIFORM_BUFFER_H */

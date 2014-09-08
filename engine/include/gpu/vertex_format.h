@@ -4,8 +4,7 @@
  * @brief		Vertex format class.
  */
 
-#ifndef ORION_GPU_VERTEX_FORMAT_H
-#define ORION_GPU_VERTEX_FORMAT_H
+#pragma once
 
 #include "gpu/defs.h"
 
@@ -157,5 +156,3 @@ protected:
 
 /** Shared pointer to VertexFormat. */
 typedef GPUResourcePtr<VertexFormat> VertexFormatPtr;
-
-#endif /* ORION_GPU_VERTEX_FORMAT_H */

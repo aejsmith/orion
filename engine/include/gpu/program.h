@@ -12,8 +12,7 @@
  *			the GLSL loader and return a GLGPUProgram.
  */
 
-#ifndef ORION_GPU_PROGRAM_H
-#define ORION_GPU_PROGRAM_H
+#pragma once
 
 #include "gpu/defs.h"
 
@@ -68,5 +67,3 @@ private:
 
 /** Type of a GPU program pointer. */
 typedef GPUResourcePtr<GPUProgram> GPUProgramPtr;
-
-#endif /* ORION_GPU_PROGRAM_H */

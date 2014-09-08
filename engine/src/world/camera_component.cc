@@ -7,10 +7,9 @@
  *			is resized (add listeners to RenderTarget).
  */
 
-#include "core/engine.h"
-#include "core/window.h"
+#include "engine/render_target.h"
+#include "engine/window.h"
 
-#include "render/render_target.h"
 #include "render/scene_view.h"
 
 #include "world/camera_component.h"

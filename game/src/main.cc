@@ -4,15 +4,14 @@
  * @brief		Main entry point of the engine.
  */
 
-#include "asset/asset_manager.h"
-#include "asset/texture.h"
+#include "core/path.h"
+#include "core/utility.h"
 
-#include "core/engine.h"
+#include "engine/asset_manager.h"
+#include "engine/engine.h"
+#include "engine/texture.h"
 
 #include "gpu/gpu.h"
-
-#include "lib/path.h"
-#include "lib/utility.h"
 
 #include "render/scene_entity.h"
 #include "render/scene_view.h"

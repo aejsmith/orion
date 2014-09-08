@@ -5,11 +5,9 @@ import vcs
 Import('env')
 
 sources = util.flatten(SConscript(dirs = [
-    'asset',
     'core',
+    'engine',
     'gpu',
-    'lib',
-    'math',
     'render',
     'shader',
     'world',

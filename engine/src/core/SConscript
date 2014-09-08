@@ -1,6 +1,17 @@
+import os
+
 sources = map(File, [
-    'engine.cc',
-    'window.cc',
+    'error.cc',
+    'log.cc',
+    'path.cc',
+    'refcounted.cc',
+    'utility.cc',
 ])
+
+sources += SConscript(dirs = [
+    'math',
+])
+
+sources += SConscript(dirs = [os.name])
 
 Return('sources')
