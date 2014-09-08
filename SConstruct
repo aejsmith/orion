@@ -16,9 +16,13 @@ if not ARGUMENTS.get('V'):
     env['RANLIBCOMSTR'] = ' RANLIB $TARGET'
 
 env['CCFLAGS'] += [
+    # Optimization/debugging flags.
+    '-O2', '-g',
+
+    # Warning flags.
     '-Wall', '-Wextra', '-Wno-variadic-macros', '-Wno-unused-parameter',
     '-Wwrite-strings', '-Wmissing-declarations', '-Wredundant-decls',
-    '-Wno-format', '-Wno-unused-function', '-g', '-Wno-comment',
+    '-Wno-format', '-Wno-unused-function', '-Wno-comment',
     '-Wno-unused-private-field',
 ]
 
