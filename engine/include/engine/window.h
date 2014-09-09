@@ -6,13 +6,11 @@
 
 #pragma once
 
-#include "engine/engine.h"
 #include "engine/render_target.h"
-
-#include <string>
 
 class GPUInterface;
 
+struct EngineConfiguration;
 struct SDL_Window;
 
 /** Engine main window class. */

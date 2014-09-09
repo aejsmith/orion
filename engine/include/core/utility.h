@@ -9,7 +9,6 @@
 #include "core/core.h"
 
 #include <cstdarg>
-#include <string>
 
 namespace util {
 

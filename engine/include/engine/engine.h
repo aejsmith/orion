@@ -9,7 +9,6 @@
 #include "core/core.h"
 
 #include <list>
-#include <string>
 
 class RenderTarget;
 class World;

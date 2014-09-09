@@ -20,7 +20,6 @@
 
 #include "engine/asset_loader.h"
 #include "engine/asset_manager.h"
-#include "engine/engine.h"
 
 #include <rapidjson/error/en.h>
 

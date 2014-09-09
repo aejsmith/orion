@@ -23,7 +23,6 @@
 #include "core/path.h"
 
 #include <algorithm>
-#include <string>
 
 /** Filesystem entry type enumeration. */
 enum class FileType {

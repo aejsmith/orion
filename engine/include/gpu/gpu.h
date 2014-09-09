@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include "engine/engine.h"
-
 #include "gpu/buffer.h"
 #include "gpu/index_data.h"
 #include "gpu/pipeline.h"
@@ -15,6 +13,7 @@
 #include "gpu/texture.h"
 #include "gpu/vertex_data.h"
 
+struct EngineConfiguration;
 struct SDL_Window;
 
 /**

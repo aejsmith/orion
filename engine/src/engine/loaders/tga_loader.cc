@@ -9,7 +9,6 @@
 
 #include "tga_loader.h"
 
-#include "engine/engine.h"
 #include "engine/texture.h"
 
 #include <memory>

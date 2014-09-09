@@ -6,7 +6,6 @@
 
 #include "engine/asset.h"
 #include "engine/asset_manager.h"
-#include "engine/engine.h"
 
 /** Called when the asset reference count reaches 0. */
 void Asset::released() {

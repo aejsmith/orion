@@ -11,7 +11,6 @@
 #include <algorithm>
 #include <array>
 #include <list>
-#include <string>
 
 class World;
 

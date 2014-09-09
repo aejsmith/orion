@@ -4,7 +4,7 @@
  * @brief		Error handling functions.
  */
 
-#include "engine/engine.h"
+#include "core/core.h"
 
 #include <SDL.h>
 

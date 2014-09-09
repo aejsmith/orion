@@ -4,6 +4,8 @@
  * @brief		GPU interface.
  */
 
+#include "engine/engine.h"
+
 #include "gl/gl.h"
 
 /** Global GPU interface instance. */

@@ -8,8 +8,6 @@
 
 #include "core/refcounted.h"
 
-#include <string>
-
 /**
  * Base class of all assets.
  *

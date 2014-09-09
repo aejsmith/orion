@@ -11,7 +11,6 @@
 #include "engine/asset.h"
 
 #include <map>
-#include <string>
 #include <type_traits>
 
 class AssetLoader;

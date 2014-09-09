@@ -9,7 +9,6 @@
 #include "core/core.h"
 
 #include <algorithm>
-#include <string>
 
 /**
  * Class representing a path.

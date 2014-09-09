@@ -4,6 +4,7 @@
  * @brief		Engine main window class.
  */
 
+#include "engine/engine.h"
 #include "engine/window.h"
 
 #include "gpu/gpu.h"
