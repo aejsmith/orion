@@ -8,6 +8,7 @@
 
 #include "engine/asset_manager.h"
 #include "engine/engine.h"
+#include "engine/game.h"
 #include "engine/window.h"
 
 #include "gpu/gpu.h"
@@ -32,12 +33,12 @@ Engine::Engine(const EngineConfiguration &config) :
 	orionAssert(!g_engine);
 	g_engine = this;
 
+	if(SDL_Init(SDL_INIT_EVERYTHING) != 0)
+		orionAbort("Failed to initialize SDL: %s", SDL_GetError());
+
 	/* Initialize the log. */
 	g_logManager() = new LogManager;
 	orionLog(LogLevel::kInfo, "Orion revision %s built at %s", g_versionString, g_versionTimestamp);
-
-	if(SDL_Init(SDL_INIT_EVERYTHING) != 0)
-		orionAbort("Failed to initialize SDL: %s", SDL_GetError());
 
 	/* Initialize platform systems. */
 	g_filesystem() = platform::createFilesystem();
@@ -49,6 +50,9 @@ Engine::Engine(const EngineConfiguration &config) :
 
 	/* Initialize other global systems. */
 	g_assetManager() = new AssetManager;
+
+	/* Create the game instance. */
+	m_game = game::createGame();
 }
 
 /** Shut down the engine. */
@@ -56,11 +60,13 @@ Engine::~Engine() {
 	if(m_world)
 		delete m_world;
 
+	/* Shut down the game. */
+	delete m_game;
+
 	/* Shut down global systems. */
 	EngineGlobalBase::destroyAll();
 
 	SDL_Quit();
-
 	g_engine = nullptr;
 }
 

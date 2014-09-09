@@ -1,11 +1,12 @@
 /**
  * @file
  * @copyright		2014 Alex Smith
- * @brief		Main entry point of the engine.
+ * @brief		Test game.
  */
 
 #include "engine/asset_manager.h"
 #include "engine/engine.h"
+#include "engine/game.h"
 #include "engine/texture.h"
 
 #include "gpu/gpu.h"
@@ -80,9 +81,26 @@ public:
 	}
 };
 
-static VertexFormatPtr testVertexFormat;
+/**
+ * Game code.
+ */
 
-static Entity *makeCube(Entity *parent, const std::string &name) {
+/** Game class. */
+class TestGame : public Game {
+public:
+	TestGame();
+private:
+	Entity *makeCube(Entity *parent, const std::string &name);
+	Entity *makePlane(Entity *parent, const std::string &name);
+private:
+	World *m_world;			/**< Game world. */
+
+	/** Rendering resources. */
+	Texture2DPtr m_texture;
+	VertexFormatPtr m_vertexFormat;
+};
+
+Entity *TestGame::makeCube(Entity *parent, const std::string &name) {
 	/* Indices into the below arrays for each face. */
 	static size_t cubeIndices[] = {
 		/* Front face. */
@@ -145,7 +163,7 @@ static Entity *makeCube(Entity *parent, const std::string &name) {
 	}
 
 	VertexDataPtr vertices = g_gpu->createVertexData(util::arraySize(cubeIndices));
-	vertices->setFormat(testVertexFormat);
+	vertices->setFormat(m_vertexFormat);
 	vertices->setBuffer(0, buffer);
 	vertices->finalize();
 
@@ -156,7 +174,7 @@ static Entity *makeCube(Entity *parent, const std::string &name) {
 	return entity;
 }
 
-static Entity *makePlane(Entity *parent, const std::string &name) {
+Entity *TestGame::makePlane(Entity *parent, const std::string &name) {
 	/* Vertices of the plane. */
 	static glm::vec3 planeVertices[] = {
 		glm::vec3(-1.0f, -1.0f, 0.0f),
@@ -191,7 +209,7 @@ static Entity *makePlane(Entity *parent, const std::string &name) {
 	}
 
 	VertexDataPtr vertices = g_gpu->createVertexData(6);
-	vertices->setFormat(testVertexFormat);
+	vertices->setFormat(m_vertexFormat);
 	vertices->setBuffer(0, buffer);
 	vertices->finalize();
 
@@ -202,73 +220,74 @@ static Entity *makePlane(Entity *parent, const std::string &name) {
 	return entity;
 }
 
-/** Main function of the engine.
- * @param argc		Argument count.
- * @param argv		Argument array. */
-int main(int argc, char **argv) {
-	EngineConfiguration config;
-	config.title = "Orion";
-	config.graphicsAPI = EngineConfiguration::kGLGraphicsAPI;
-	config.displayWidth = 1440;
-	config.displayHeight = 900;
-	config.displayFullscreen = false;
-	config.displayVsync = false;
+/** Initialize the game world. */
+TestGame::TestGame() {
+	m_texture = g_assetManager->load<Texture2D>("game/textures/test");
+	orionLog(LogLevel::kDebug, "Got asset %p", m_texture.get());
+	g_gpu->bindTexture(0, m_texture->gpu());
 
-	Engine engine(config);
-
-	Texture2DPtr texture = g_assetManager->load<Texture2D>("game/textures/test");
-	orionLog(LogLevel::kDebug, "Got asset %p", texture.get());
-	g_gpu->bindTexture(0, texture->gpu());
-
-	testVertexFormat = g_gpu->createVertexFormat();
-	testVertexFormat->addBuffer(0, sizeof(Vertex));
-	testVertexFormat->addAttribute(
+	m_vertexFormat = g_gpu->createVertexFormat();
+	m_vertexFormat->addBuffer(0, sizeof(Vertex));
+	m_vertexFormat->addAttribute(
 		VertexAttribute::kPositionSemantic, 0,
 		VertexAttribute::kFloatType, 3, 0, offsetof(Vertex, x));
-	testVertexFormat->addAttribute(
+	m_vertexFormat->addAttribute(
 		VertexAttribute::kNormalSemantic, 0,
 		VertexAttribute::kFloatType, 3, 0, offsetof(Vertex, nx));
-	testVertexFormat->addAttribute(
+	m_vertexFormat->addAttribute(
 		VertexAttribute::kTexCoordSemantic, 0,
 		VertexAttribute::kFloatType, 2, 0, offsetof(Vertex, u));
-	testVertexFormat->finalize();
+	m_vertexFormat->finalize();
 
-	World *world = engine.createWorld();
+	m_world = g_engine->createWorld();
 
-	AmbientLightComponent *ambientLight = world->root()->createComponent<AmbientLightComponent>();
+	AmbientLightComponent *ambientLight = m_world->root()->createComponent<AmbientLightComponent>();
 	ambientLight->setIntensity(0.1f);
 	ambientLight->setActive(true);
 
-	Entity *floor = makePlane(world->root(), "floor");
+	Entity *floor = makePlane(m_world->root(), "floor");
 	floor->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	floor->setScale(glm::vec3(3.0f, 7.5f, 1.0f));
 	floor->setActive(true);
 
-	Entity *cube = makeCube(world->root(), "cube");
+	Entity *cube = makeCube(m_world->root(), "cube");
 	cube->setPosition(glm::vec3(0.0f, 0.5f, -4.0f));
 	cube->rotate(45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 	cube->setActive(true);
 	CustomBehaviour *behaviour = cube->createComponent<CustomBehaviour>();
 	behaviour->setActive(true);
 
-	Entity *camEntity = world->createEntity("camera");
+	Entity *camEntity = m_world->createEntity("camera");
 	camEntity->setPosition(glm::vec3(0.0f, 1.5f, 0.0f));
 	camEntity->setActive(true);
 	CameraComponent *camera = camEntity->createComponent<CameraComponent>();
 	camera->perspective(90.0f, 0.1f, 1000.0f);
 	camera->setActive(true);
 
-	Entity *lightEntity = world->createEntity("light");
+	Entity *lightEntity = m_world->createEntity("light");
 	lightEntity->setPosition(glm::vec3(0.0f, 2.0f, -2.0f));
 	lightEntity->setActive(true);
 	PointLightComponent *pointLight = lightEntity->createComponent<PointLightComponent>();
 	pointLight->setActive(true);
+}
 
-	engine.run();
+/**
+ * Game code interface.
+ */
 
-	/* FIXME: This is somewhat a hack for now. We have a problem with
-	 * destruction of global objects, in particular GPU resource pointers.
-	 * These are effectively destroyed when m_gpu is deleted above, but
-	 * their destructors will be called after this, leading to crashes. */
-	_Exit(0);
+/** Get the engine configuration.
+ * @param config	Engine configuration to fill in. */
+void game::engineConfiguration(EngineConfiguration &config) {
+	config.title = "Orion";
+	config.graphicsAPI = EngineConfiguration::kGLGraphicsAPI;
+	config.displayWidth = 1440;
+	config.displayHeight = 900;
+	config.displayFullscreen = false;
+	config.displayVsync = false;
+}
+
+/** Create the Game instance.
+ * @return		Created Game instance. */
+Game *game::createGame() {
+	return new TestGame;
 }

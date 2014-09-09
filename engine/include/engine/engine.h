@@ -10,6 +10,7 @@
 
 #include <list>
 
+class Game;
 class RenderTarget;
 class World;
 
@@ -48,6 +49,8 @@ public:
 
 	/** @return		Engine configuration. */
 	const EngineConfiguration &config() const { return m_config; }
+	/** @return		Game instance. */
+	Game *game() const { return m_game; }
 
 	/**
 	 * World management.
@@ -73,11 +76,9 @@ private:
 	void tick();
 	void renderAllTargets();
 private:
-	/** Engine configuration. */
-	EngineConfiguration m_config;
-
-	/** Active game world. */
-	World *m_world;
+	EngineConfiguration m_config;	/**< Engine configuration. */
+	Game *m_game;			/**< Game instance. */
+	World *m_world;			/**< Active game world. */
 
 	/** List of render targets. */
 	std::list<RenderTarget *> m_renderTargets;
