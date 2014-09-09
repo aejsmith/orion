@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright		2014 Alex Smith
- * @brief		Engine main class/header.
+ * @brief		Engine main class.
  */
 
 #pragma once
@@ -11,12 +11,7 @@
 #include <list>
 #include <string>
 
-class AssetManager;
-class Filesystem;
-class GPUInterface;
-class LogManager;
 class RenderTarget;
-class Window;
 class World;
 
 /** Engine configuration.
@@ -50,26 +45,10 @@ public:
 	Engine(const EngineConfiguration &config);
 	~Engine();
 
-	void shutdown();
 	void run();
 
 	/** @return		Engine configuration. */
 	const EngineConfiguration &config() const { return m_config; }
-
-	/**
-	 * Global resources.
-	 */
-
-	/** @return		Asset manager. */
-	AssetManager *assets() const { return m_assets; }
-	/** @return		Filesystem interface. */
-	Filesystem *filesystem() const { return m_filesystem; }
-	/** @return		GPU interface. */
-	GPUInterface *gpu() const { return m_gpu; }
-	/** @return		Log manager. */
-	LogManager *log() const { return m_log; }
-	/** @return		Engine main window. */
-	Window *window() const { return m_window; }
 
 	/**
 	 * World management.
@@ -97,13 +76,6 @@ private:
 private:
 	/** Engine configuration. */
 	EngineConfiguration m_config;
-
-	/** Global resources. */
-	AssetManager *m_assets;		/**< Asset manager. */
-	Filesystem *m_filesystem;	/**< Filesystem interface. */
-	GPUInterface *m_gpu;		/**< GPU interface. */
-	LogManager *m_log;		/**< Log manager. */
-	Window *m_window;		/**< Main window. */
 
 	/** Active game world. */
 	World *m_world;

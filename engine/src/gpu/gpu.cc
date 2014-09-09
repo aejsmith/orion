@@ -6,6 +6,9 @@
 
 #include "gl/gl.h"
 
+/** Global GPU interface instance. */
+EngineGlobal<GPUInterface> g_gpu;
+
 /** Create the GPU interface.
  * @param config	Engine configuration.
  * @return		Pointer to created GPU interface. */

@@ -27,7 +27,7 @@
  */
 CameraComponent::CameraComponent(Entity *entity) :
 	Component(Component::kCameraType, entity),
-	m_renderTarget(g_engine->window()),
+	m_renderTarget(g_mainWindow),
 	m_viewport(0.0f, 0.0f, 1.0f, 1.0f)
 {
 	/* Initialize the scene view with a default projection and a viewport

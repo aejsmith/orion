@@ -10,6 +10,9 @@
 
 #include <SDL.h>
 
+/** Engine main window. */
+EngineGlobal<Window> g_mainWindow;
+
 /** Create the main window.
  * @param config	Engine configuration structure.
  * @param gpu		GPU interface. */
@@ -24,24 +27,25 @@ Window::Window(const EngineConfiguration &config, GPUInterface *gpu) :
 	if(config.graphicsAPI == EngineConfiguration::kGLGraphicsAPI)
 		flags |= SDL_WINDOW_OPENGL;
 
-	m_window = SDL_CreateWindow(config.title.c_str(),
+	m_sdlWindow = SDL_CreateWindow(
+		config.title.c_str(),
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		config.displayWidth, config.displayHeight,
 		flags);
-	if(!m_window)
+	if(!m_sdlWindow)
 		orionAbort("Failed to create main window: %s", SDL_GetError());
 
 	/* Initialize the GPU interface properly. */
-	gpu->init(m_window);
+	gpu->init(m_sdlWindow);
 }
 
 /** Destroy the window. */
 Window::~Window() {
-	SDL_DestroyWindow(m_window);
+	SDL_DestroyWindow(m_sdlWindow);
 }
 
 /** Set the window title.
  * @param title		Title of the window. */
 void Window::setTitle(const std::string &title) {
-	SDL_SetWindowTitle(m_window, title.c_str());
+	SDL_SetWindowTitle(m_sdlWindow, title.c_str());
 }

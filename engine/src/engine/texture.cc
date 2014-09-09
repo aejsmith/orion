@@ -29,7 +29,7 @@ Texture2D::Texture2D(uint32_t width, uint32_t height, PixelFormat format, unsign
 	desc.mips = mips;
 	desc.flags = flags;
 
-	m_gpu = g_engine->gpu()->createTexture(desc);
+	m_gpu = g_gpu->createTexture(desc);
 }
 
 /**

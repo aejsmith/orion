@@ -3,6 +3,7 @@ import os
 sources = map(File, [
     'engine_global.cc',
     'error.cc',
+    'filesystem.cc',
     'log.cc',
     'path.cc',
     'refcounted.cc',

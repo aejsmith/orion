@@ -77,3 +77,5 @@ private:
 
 	friend class Asset;
 };
+
+extern EngineGlobal<AssetManager> g_assetManager;

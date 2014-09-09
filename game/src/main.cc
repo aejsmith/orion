@@ -46,7 +46,7 @@ public:
 	{}
 
 	void render() {
-		g_engine->gpu()->draw(PrimitiveType::kTriangleList, m_vertices, m_indices);
+		g_gpu->draw(PrimitiveType::kTriangleList, m_vertices, m_indices);
 	}
 private:
 	VertexDataPtr m_vertices;
@@ -128,7 +128,7 @@ static Entity *makeCube(Entity *parent, const std::string &name) {
 		glm::vec2(0.0f, 1.0f), glm::vec2(0.0f, 0.0f),
 	};
 
-	GPUBufferPtr buffer = g_engine->gpu()->createBuffer(
+	GPUBufferPtr buffer = g_gpu->createBuffer(
 		GPUBuffer::kVertexBuffer,
 		GPUBuffer::kStaticDrawUsage,
 		util::arraySize(cubeIndices) * sizeof(Vertex));
@@ -144,7 +144,7 @@ static Entity *makeCube(Entity *parent, const std::string &name) {
 		}
 	}
 
-	VertexDataPtr vertices = g_engine->gpu()->createVertexData(util::arraySize(cubeIndices));
+	VertexDataPtr vertices = g_gpu->createVertexData(util::arraySize(cubeIndices));
 	vertices->setFormat(testVertexFormat);
 	vertices->setBuffer(0, buffer);
 	vertices->finalize();
@@ -174,7 +174,7 @@ static Entity *makePlane(Entity *parent, const std::string &name) {
 		glm::vec2(1.0f, 1.0f), glm::vec2(0.0f, 1.0f),
 	};
 
-	GPUBufferPtr buffer = g_engine->gpu()->createBuffer(
+	GPUBufferPtr buffer = g_gpu->createBuffer(
 		GPUBuffer::kVertexBuffer,
 		GPUBuffer::kStaticDrawUsage,
 		6 * sizeof(Vertex));
@@ -190,7 +190,7 @@ static Entity *makePlane(Entity *parent, const std::string &name) {
 		new(&data[5]) Vertex(planeVertices[0], planeNormal, planeTexcoords[0]);
 	}
 
-	VertexDataPtr vertices = g_engine->gpu()->createVertexData(6);
+	VertexDataPtr vertices = g_gpu->createVertexData(6);
 	vertices->setFormat(testVertexFormat);
 	vertices->setBuffer(0, buffer);
 	vertices->finalize();
@@ -216,11 +216,11 @@ int main(int argc, char **argv) {
 
 	Engine engine(config);
 
-	Texture2DPtr texture = g_engine->assets()->load<Texture2D>("game/textures/test");
+	Texture2DPtr texture = g_assetManager->load<Texture2D>("game/textures/test");
 	orionLog(LogLevel::kDebug, "Got asset %p", texture.get());
-	g_engine->gpu()->bindTexture(0, texture->gpu());
+	g_gpu->bindTexture(0, texture->gpu());
 
-	testVertexFormat = g_engine->gpu()->createVertexFormat();
+	testVertexFormat = g_gpu->createVertexFormat();
 	testVertexFormat->addBuffer(0, sizeof(Vertex));
 	testVertexFormat->addAttribute(
 		VertexAttribute::kPositionSemantic, 0,

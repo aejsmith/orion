@@ -28,8 +28,8 @@ void __orionAbort(const char *file, int line, const char *fmt, ...) {
 	std::string str = util::format("Fatal Error (at %s:%d): ", file, line) + util::format(fmt, args);
 	va_end(args);
 
-	if(g_engine && g_engine->log()) {
-		g_engine->log()->write(LogLevel::kError, file, line, "%s", str.c_str());
+	if(g_logManager) {
+		g_logManager->write(LogLevel::kError, file, line, "%s", str.c_str());
 	} else {
 		fprintf(stderr, "%s\n", str.c_str());
 	}
@@ -39,12 +39,8 @@ void __orionAbort(const char *file, int line, const char *fmt, ...) {
 		 * debugger. */
 		abort();
 	#else
-		/* Shut down the engine and display an error message. */
-		if(g_engine)
-			g_engine->shutdown();
-
 		/* This works even when SDL is not initialized. */
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal Error", str.c_str(), NULL);
-		exit(EXIT_FAILURE);
+		_Exit(EXIT_FAILURE);
 	#endif
 }

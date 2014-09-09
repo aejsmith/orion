@@ -33,42 +33,35 @@ Engine::Engine(const EngineConfiguration &config) :
 	g_engine = this;
 
 	/* Initialize the log. */
-	m_log = new LogManager;
+	g_logManager() = new LogManager;
 	orionLog(LogLevel::kInfo, "Orion revision %s built at %s", g_versionString, g_versionTimestamp);
 
 	if(SDL_Init(SDL_INIT_EVERYTHING) != 0)
 		orionAbort("Failed to initialize SDL: %s", SDL_GetError());
 
 	/* Initialize platform systems. */
-	m_filesystem = platform::createFilesystem();
+	g_filesystem() = platform::createFilesystem();
 
 	/* Create the GPU interface, then create the main window which properly
 	 * initializes the GPU interface. */
-	m_gpu = GPUInterface::create(config);
-	m_window = new Window(config, m_gpu);
+	g_gpu() = GPUInterface::create(config);
+	g_mainWindow() = new Window(config, g_gpu);
 
 	/* Initialize other global systems. */
-	m_assets = new AssetManager;
+	g_assetManager() = new AssetManager;
 }
 
 /** Shut down the engine. */
 Engine::~Engine() {
-	shutdown();
-	g_engine = nullptr;
-}
-
-/** Shut down the engine. */
-void Engine::shutdown() {
 	if(m_world)
 		delete m_world;
 
-	delete m_assets;
-	delete m_gpu;
-	delete m_window;
-	delete m_filesystem;
-	delete m_log;
+	/* Shut down global systems. */
+	EngineGlobalBase::destroyAll();
 
 	SDL_Quit();
+
+	g_engine = nullptr;
 }
 
 /** Run the engine main loop. */
@@ -81,7 +74,7 @@ void Engine::run() {
 		renderAllTargets();
 
 		/* Present the final rendered frame. */
-		m_gpu->endFrame(m_config.displayVsync);
+		g_gpu->endFrame(m_config.displayVsync);
 		m_frames++;
 	}
 }
@@ -124,7 +117,7 @@ void Engine::tick() {
 			? static_cast<float>(m_frames) / (static_cast<float>(tick - m_lastFPS) / 1000.0f)
 			: 0;
 
-		m_window->setTitle(m_config.title + " [FPS: " + std::to_string(fps) + "]");
+		g_mainWindow->setTitle(m_config.title + " [FPS: " + std::to_string(fps) + "]");
 		m_lastFPS = tick;
 		m_frames = 0;
 	}
@@ -136,7 +129,7 @@ void Engine::renderAllTargets() {
 		// FIXME: Where does this go? Clear settings should go in
 		// SceneView, need a rect constraint to clear to only clear
 		// viewport.
-		m_gpu->clear(
+		g_gpu->clear(
 			RenderBuffer::kColourBuffer | RenderBuffer::kDepthBuffer | RenderBuffer::kStencilBuffer,
 			glm::vec4(0.0, 0.0, 0.0, 1.0), 1.0, 0);
 

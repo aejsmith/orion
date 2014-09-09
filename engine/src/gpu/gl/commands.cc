@@ -73,7 +73,7 @@ void GLGPUInterface::setDepthMode(ComparisonFunc func, bool enableWrite) {
  * @param vsync		Whether to wait for vertical sync. */
 void GLGPUInterface::endFrame(bool vsync) {
 	g_opengl->state.setSwapInterval(vsync);
-	SDL_GL_SwapWindow(g_engine->window()->sdl());
+	SDL_GL_SwapWindow(g_mainWindow->sdlWindow());
 }
 
 /** Clear rendering buffers.

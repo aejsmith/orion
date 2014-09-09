@@ -174,3 +174,5 @@ public:
 protected:
 	GPUInterface() {}
 };
+
+extern EngineGlobal<GPUInterface> g_gpu;

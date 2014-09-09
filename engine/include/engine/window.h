@@ -12,6 +12,7 @@
 #include <string>
 
 class GPUInterface;
+
 struct SDL_Window;
 
 /** Engine main window class. */
@@ -23,10 +24,12 @@ public:
 	void setTitle(const std::string &title);
 
 	/** @return		SDL window. */
-	SDL_Window *sdl() const { return m_window; }
+	SDL_Window *sdlWindow() const { return m_sdlWindow; }
 	/** @return		Size of the window (in pixels). */
 	glm::ivec2 size() const override { return m_size; }
 private:
-	SDL_Window *m_window;		/**< SDL window. */
+	SDL_Window *m_sdlWindow;	/**< SDL window. */
 	glm::ivec2 m_size;		/**< Size of the window. */
 };
+
+extern EngineGlobal<Window> g_mainWindow;
