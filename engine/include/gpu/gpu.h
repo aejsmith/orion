@@ -159,7 +159,7 @@ public:
 	 */
 
 	/** Clear rendering buffers.
-	 * @param buffers	Buffers to clear (bitmask of RenderBuffer values).
+	 * @param buffers	Buffers to clear (bitmask of ClearBuffer values).
 	 * @param colour	Colour to clear to.
 	 * @param depth		Depth value to clear to.
 	 * @param stencil	Stencil value to clear to. */

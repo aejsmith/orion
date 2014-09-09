@@ -18,7 +18,7 @@
  */
 class BehaviourComponent : public Component {
 public:
-	ORION_COMPONENT(Component::kBehaviourType);
+	DECLARE_COMPONENT(Component::kBehaviourType);
 protected:
 	BehaviourComponent(Entity *entity) : Component(Component::kBehaviourType, entity) {}
 	~BehaviourComponent() {}

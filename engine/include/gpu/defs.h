@@ -20,8 +20,8 @@ enum class PrimitiveType {
 	kPointList,
 };
 
-/** Render buffer definitions. */
-namespace RenderBuffer {
+/** Buffers to clear. */
+namespace ClearBuffer {
 	enum {
 		/** Colour buffer. */
 		kColourBuffer = (1 << 0),

@@ -104,5 +104,5 @@ private:
 };
 
 /** Declare a component type. */
-#define ORION_COMPONENT(type) \
+#define DECLARE_COMPONENT(type) \
 	static const Component::Type kComponentTypeID = (type)

@@ -77,24 +77,24 @@ void GLGPUInterface::endFrame(bool vsync) {
 }
 
 /** Clear rendering buffers.
- * @param buffers	Buffers to clear (bitmask of RenderBuffer values).
+ * @param buffers	Buffers to clear (bitmask of ClearBuffer values).
  * @param colour	Colour to clear to.
  * @param depth		Depth value to clear to.
  * @param stencil	Stencil value to clear to. */
 void GLGPUInterface::clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil) {
 	GLbitfield mask = 0;
 
-	if(buffers & RenderBuffer::kColourBuffer) {
+	if(buffers & ClearBuffer::kColourBuffer) {
 		g_opengl->state.setClearColour(colour);
 		mask |= GL_COLOR_BUFFER_BIT;
 	}
 
-	if(buffers & RenderBuffer::kDepthBuffer) {
+	if(buffers & ClearBuffer::kDepthBuffer) {
 		g_opengl->state.setClearDepth(depth);
 		mask |= GL_DEPTH_BUFFER_BIT;
 	}
 
-	if(buffers & RenderBuffer::kStencilBuffer) {
+	if(buffers & ClearBuffer::kStencilBuffer) {
 		g_opengl->state.setClearStencil(stencil);
 		mask |= GL_STENCIL_BUFFER_BIT;
 	}

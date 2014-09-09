@@ -21,7 +21,7 @@
  */
 class RendererComponent : public Component {
 public:
-	ORION_COMPONENT(Component::kRendererType);
+	DECLARE_COMPONENT(Component::kRendererType);
 public:
 	~RendererComponent();
 protected:

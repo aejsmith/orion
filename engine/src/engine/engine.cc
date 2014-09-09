@@ -136,7 +136,7 @@ void Engine::renderAllTargets() {
 		// SceneView, need a rect constraint to clear to only clear
 		// viewport.
 		g_gpu->clear(
-			RenderBuffer::kColourBuffer | RenderBuffer::kDepthBuffer | RenderBuffer::kStencilBuffer,
+			ClearBuffer::kColourBuffer | ClearBuffer::kDepthBuffer | ClearBuffer::kStencilBuffer,
 			glm::vec4(0.0, 0.0, 0.0, 1.0), 1.0, 0);
 
 		for(CameraComponent *camera : target->cameras())

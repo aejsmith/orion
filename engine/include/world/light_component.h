@@ -18,7 +18,7 @@
  */
 class LightComponent : public Component {
 public:
-	ORION_COMPONENT(Component::kLightType);
+	DECLARE_COMPONENT(Component::kLightType);
 public:
 	~LightComponent();
 

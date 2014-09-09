@@ -14,7 +14,7 @@
 /** A view into the world from which the scene will be rendered. */
 class CameraComponent : public Component {
 public:
-	ORION_COMPONENT(Component::kCameraType);
+	DECLARE_COMPONENT(Component::kCameraType);
 public:
 	explicit CameraComponent(Entity *entity);
 
