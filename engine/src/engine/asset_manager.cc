@@ -25,6 +25,7 @@
 
 #include <memory>
 
+#include "loaders/material_loader.h"
 #include "loaders/tga_loader.h"
 
 /** Global asset manager instance. */
@@ -37,6 +38,7 @@ AssetManager::AssetManager() {
 	m_searchPaths.insert(std::make_pair("game", "game/assets"));
 
 	/* Register asset loaders. */
+	//registerLoader(new MaterialLoader);
 	registerLoader(new TGALoader);
 }
 
@@ -132,6 +134,10 @@ AssetPtr AssetManager::load(const Path &path) {
 			path.c_str(), type.c_str());
 		return nullptr;
 	}
+
+	/* See documentation for dataIsMetadata(). */
+	if(loader->dataIsMetadata())
+		metadata = std::move(data);
 
 	/* Create a metadata JSON stream. If we don't have a metadata stream
 	 * from the filesystem, we'll just leave it empty so the loader sees

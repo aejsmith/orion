@@ -13,7 +13,6 @@
 /** Base texture asset class. */
 class TextureBase : public Asset {
 public:
-	/** Destroy the texture. */
 	~TextureBase() {}
 
 	/** @return		GPU texture implementing this texture. */

@@ -29,9 +29,6 @@ struct TGAHeader {
 	uint8_t imageDescriptor;
 } PACKED;
 
-/** Initialize the loader. */
-TGALoader::TGALoader() : AssetLoader("tga") {}
-
 /** Load a TGA file.
  * @param stream	Stream containing asset data.
  * @param attributes	Attributes specified in metadata.

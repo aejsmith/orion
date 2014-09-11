@@ -1,20 +1,20 @@
 /**
  * @file
  * @copyright		2014 Alex Smith
- * @brief		TGA texture loader.
+ * @brief		Material loader class.
  */
 
 #pragma once
 
 #include "engine/asset_loader.h"
 
-/** TGA texture loader class. */
-class TGALoader : public AssetLoader {
+/** Material loader class. */
+class MaterialLoader : public AssetLoader {
 public:
-	TGALoader() {}
+	MaterialLoader() {}
 
 	/** @return		File type (extension) that this loader is for. */
-	const char *type() const override { return "tga"; }
+	const char *type() const override { return "material"; }
 
 	Asset *load(DataStream *stream, rapidjson::Value &attributes, const char *path) override;
 };
