@@ -6,6 +6,8 @@
 
 #include "render/scene_entity.h"
 
+IMPLEMENT_UNIFORM_STRUCT(EntityUniforms);
+
 /** Initialize the entity. */
 SceneEntity::SceneEntity() {}
 
@@ -23,7 +25,7 @@ void SceneEntity::setTransform(const Transform &transform) {
  * @return		Uniform buffer containing entity parameters. */
 GPUBufferPtr SceneEntity::uniforms() {
 	return m_uniforms.get([this](const GPUBufferMapper<EntityUniforms> &uniforms) {
-		memcpy(&uniforms->transform, glm::value_ptr(m_transform.matrix()), sizeof(uniforms->transform));
-		memcpy(&uniforms->position, glm::value_ptr(m_transform.position()), sizeof(uniforms->position));
+		uniforms->transform = m_transform.matrix();
+		uniforms->position = m_transform.position();
 	});
 }

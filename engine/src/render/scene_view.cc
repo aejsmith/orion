@@ -9,6 +9,8 @@
 #include "render/scene.h"
 #include "render/scene_view.h"
 
+IMPLEMENT_UNIFORM_STRUCT(ViewUniforms);
+
 /**
  * Initialize the scene view.
  *
@@ -103,12 +105,9 @@ GPUBufferPtr SceneView::uniforms() {
 		view();
 		projection();
 
-		/* Calculate combined view-projection matrix. */
-		glm::mat4 viewProjection = m_projection * m_view;
-
-		memcpy(&uniforms->view, glm::value_ptr(m_view), sizeof(uniforms->view));
-		memcpy(&uniforms->projection, glm::value_ptr(m_projection), sizeof(uniforms->projection));
-		memcpy(&uniforms->viewProjection, glm::value_ptr(viewProjection), sizeof(uniforms->viewProjection));
-		memcpy(&uniforms->position, glm::value_ptr(m_position), sizeof(uniforms->position));
+		uniforms->view = m_view;
+		uniforms->projection = m_projection;
+		uniforms->viewProjection = m_projection * m_view;
+		uniforms->position = m_position;
 	});
 }

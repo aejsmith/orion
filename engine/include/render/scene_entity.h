@@ -6,15 +6,15 @@
 
 #pragma once
 
-#include "gpu/uniform_buffer.h"
+#include "render/uniform_buffer.h"
 
 class Scene;
 
 /** Per-entity uniform buffer structure. */
-struct EntityUniforms {
-	float transform[16];
-	float position[3], _pad1;
-};
+UNIFORM_STRUCT_BEGIN(EntityUniforms)
+	UNIFORM_STRUCT_MEMBER(glm::mat4, transform);
+	UNIFORM_STRUCT_MEMBER(glm::vec3, position);
+UNIFORM_STRUCT_END;
 
 /**
  * Base class for a scene entity.

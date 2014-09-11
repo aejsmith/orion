@@ -6,6 +6,8 @@
 
 #include "render/scene_light.h"
 
+IMPLEMENT_UNIFORM_STRUCT(LightUniforms);
+
 /**
  * Construct the light.
  *
@@ -80,9 +82,9 @@ void SceneLight::setPosition(const glm::vec3 &position) {
  * @return		Light uniform buffer. */
 GPUBufferPtr SceneLight::uniforms() {
 	return m_uniforms.get([this](const GPUBufferMapper<LightUniforms> &uniforms) {
-		memcpy(&uniforms->position, glm::value_ptr(m_position), sizeof(uniforms->position));
-		memcpy(&uniforms->direction, glm::value_ptr(m_direction), sizeof(uniforms->direction));
-		memcpy(&uniforms->colour, glm::value_ptr(m_colour), sizeof(uniforms->colour));
+		uniforms->position = m_position;
+		uniforms->direction = m_direction;
+		uniforms->colour = m_colour;
 		uniforms->type = m_type;
 		uniforms->intensity = m_intensity;
 		uniforms->range = m_range;

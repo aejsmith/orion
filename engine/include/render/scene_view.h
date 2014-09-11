@@ -6,15 +6,15 @@
 
 #pragma once
 
-#include "gpu/uniform_buffer.h"
+#include "render/uniform_buffer.h"
 
 /** Per-view uniform buffer structure. */
-struct ViewUniforms {
-	float view[16];
-	float projection[16];
-	float viewProjection[16];
-	float position[3], _pad;
-};
+UNIFORM_STRUCT_BEGIN(ViewUniforms)
+	UNIFORM_STRUCT_MEMBER(glm::mat4, view);
+	UNIFORM_STRUCT_MEMBER(glm::mat4, projection);
+	UNIFORM_STRUCT_MEMBER(glm::mat4, viewProjection);
+	UNIFORM_STRUCT_MEMBER(glm::vec3, position);
+UNIFORM_STRUCT_END;
 
 /**
  * A view into a scene.

@@ -6,21 +6,21 @@
 
 #pragma once
 
-#include "gpu/uniform_buffer.h"
+#include "render/uniform_buffer.h"
 
 /** Per-light uniform buffer structure. */
-struct LightUniforms {
-	float position[3];
-	int type;
-	float direction[3];
-	float intensity;
-	float colour[3];
-	float cosCutoff;
-	float range;
-	float attenuationConstant;
-	float attenuationLinear;
-	float attenuationExp;
-};
+UNIFORM_STRUCT_BEGIN(LightUniforms)
+	UNIFORM_STRUCT_MEMBER(glm::vec3, position);
+	UNIFORM_STRUCT_MEMBER(int32_t, type);
+	UNIFORM_STRUCT_MEMBER(glm::vec3, direction);
+	UNIFORM_STRUCT_MEMBER(float, intensity);
+	UNIFORM_STRUCT_MEMBER(glm::vec3, colour);
+	UNIFORM_STRUCT_MEMBER(float, cosCutoff);
+	UNIFORM_STRUCT_MEMBER(float, range);
+	UNIFORM_STRUCT_MEMBER(float, attenuationConstant);
+	UNIFORM_STRUCT_MEMBER(float, attenuationLinear);
+	UNIFORM_STRUCT_MEMBER(float, attenuationExp);
+UNIFORM_STRUCT_END;
 
 /** Renderer representation of a light source. */
 class SceneLight {
