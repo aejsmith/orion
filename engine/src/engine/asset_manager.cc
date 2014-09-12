@@ -25,9 +25,6 @@
 
 #include <memory>
 
-#include "loaders/material_loader.h"
-#include "loaders/tga_loader.h"
-
 /** Global asset manager instance. */
 EngineGlobal<AssetManager> g_assetManager;
 
@@ -36,15 +33,11 @@ AssetManager::AssetManager() {
 	/* Register asset search paths. */
 	m_searchPaths.insert(std::make_pair("engine", "engine/assets"));
 	m_searchPaths.insert(std::make_pair("game", "game/assets"));
-
-	/* Register asset loaders. */
-	//registerLoader(new MaterialLoader);
-	registerLoader(new TGALoader);
 }
 
 /** Destroy the asset manager. */
 AssetManager::~AssetManager() {
-	// TODO: Destroy assets and still registered loaders.
+	// TODO: Destroy assets.
 }
 
 /**
@@ -127,7 +120,7 @@ AssetPtr AssetManager::load(const Path &path) {
 	}
 
 	/* Look for a loader for the asset. */
-	AssetLoader *loader = lookupLoader(type);
+	AssetLoader *loader = AssetLoader::lookup(type);
 	if(!loader) {
 		orionLog(LogLevel::kError,
 			"Cannot load asset '%s' with unknown file type '%s'",
@@ -189,38 +182,4 @@ Asset *AssetManager::lookupAsset(const Path &path) const {
 void AssetManager::unregisterAsset(Asset *asset) {
 	size_t ret = m_assets.erase(asset->path());
 	orionCheck(ret, "Destroying asset '%s' which is not in the cache", asset->path().c_str());
-}
-
-/**
- * Register an asset loader.
- *
- * Registers an asset loader. The loader becomes owned by the manager, if the
- * engine is shutdown while the loader is still registered, it will be deleted.
- *
- * @param loader	Loader to register.
- */
-void AssetManager::registerLoader(AssetLoader *loader) {
-	auto ret = m_loaders.insert(std::make_pair(loader->type(), loader));
-	orionCheck(ret.second, "Registering asset loader '%s' that already exists", loader->type());
-}
-
-/**
- * Unregister an asset loader.
- *
- * Unregisters an asset loader. The loader will not be deleted, this must be
- * done manually.
- *
- * @param loader	Loader to unregister.
- */
-void AssetManager::unregisterLoader(AssetLoader *loader) {
-	size_t ret = m_loaders.erase(loader->type());
-	orionCheck(ret, "Unregistering asset loader '%s' that does not exist", loader->type());
-}
-
-/** Look up an asset loader by type.
- * @param type		File type string.
- * @return		Pointer to loader if found, null if not. */
-AssetLoader *AssetManager::lookupLoader(const std::string &type) const {
-	auto ret = m_loaders.find(type);
-	return (ret != m_loaders.end()) ? ret->second : nullptr;
 }

@@ -26,10 +26,6 @@ public:
 	AssetManager();
 	~AssetManager();
 
-	/**
-	 * Main asset methods.
-	 */
-
 	AssetPtr load(const Path &path);
 
 	/** Load an asset of a certain type.
@@ -46,18 +42,9 @@ public:
 		AssetPtr asset = load(path);
 		return TypedAssetPtr<AssetType>(dynamic_cast<AssetType *>(asset.get()));
 	}
-	
-	/**
-	 * Other methods.
-	 */
-
-	void registerLoader(AssetLoader *loader);
-	void unregisterLoader(AssetLoader *loader);
 private:
 	Asset *lookupAsset(const Path &path) const;
 	void unregisterAsset(Asset *asset);
-
-	AssetLoader *lookupLoader(const std::string &type) const;
 private:
 	/**
 	 * Map of known assets.
@@ -69,8 +56,6 @@ private:
 	 */
 	std::map<std::string, Asset *> m_assets;
 
-	/** Registered asset loaders. */
-	std::map<std::string, AssetLoader *> m_loaders;
 	/** Asset search paths. */
 	std::map<std::string, std::string> m_searchPaths;
 

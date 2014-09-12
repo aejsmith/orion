@@ -7,11 +7,19 @@
  *			packed pixel formats).
  */
 
-#include "tga_loader.h"
-
+#include "engine/asset_loader.h"
 #include "engine/texture.h"
 
 #include <memory>
+
+/** TGA texture loader class. */
+class TGALoader : public AssetLoader {
+public:
+	TGALoader() : AssetLoader("tga") {}
+	Asset *load(DataStream *stream, rapidjson::Value &attributes, const char *path) const override;
+private:
+	static TGALoader m_instance;
+};
 
 /** TGA image file header. */
 struct TGAHeader {
@@ -29,12 +37,15 @@ struct TGAHeader {
 	uint8_t imageDescriptor;
 } PACKED;
 
+/** TGA loader instance. */
+TGALoader TGALoader::m_instance;
+
 /** Load a TGA file.
  * @param stream	Stream containing asset data.
  * @param attributes	Attributes specified in metadata.
  * @param path		Path to asset.
  * @return		Pointer to loaded asset, null on failure. */
-Asset *TGALoader::load(DataStream *stream, rapidjson::Value &attributes, const char *path) {
+Asset *TGALoader::load(DataStream *stream, rapidjson::Value &attributes, const char *path) const {
 	TGAHeader header;
 	if(!stream->read(reinterpret_cast<char *>(&header), sizeof(header), 0)) {
 		orionLog(LogLevel::kError, "Failed to read asset '%s' data", path);

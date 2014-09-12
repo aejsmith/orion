@@ -15,10 +15,10 @@
 /** Class which loads asset data. */
 class AssetLoader {
 public:
-	virtual ~AssetLoader() {}
+	virtual ~AssetLoader();
 
-	/** @return		File type (extension) that this loader is for. */
-	virtual const char *type() const = 0;
+	/* @return		File type (extension) that this loader is for. */
+	const char *type() const { return m_type; }
 
 	/**
 	 * Whether the asset data file should be treated as metadata.
@@ -43,7 +43,16 @@ public:
 	 * @param path		Path to asset (supplied so that useful error
 	 *			messages can be logged).
 	 * @return		Pointer to loaded asset, null on failure. */
-	virtual Asset *load(DataStream *stream, rapidjson::Value &attributes, const char *path) = 0;
+	virtual Asset *load(DataStream *stream, rapidjson::Value &attributes, const char *path) const = 0;
+
+	static AssetLoader *lookup(const std::string &type);
 protected:
-	AssetLoader() {}
+	explicit AssetLoader(const char *type);
+private:
+	/** Type of the asset loader map. */
+	typedef std::map<std::string, AssetLoader *> LoaderMap;
+private:
+	const char *m_type;		/**< File type that this loader is for. */
+
+	static LoaderMap &loaderMap();
 };

@@ -4,5 +4,4 @@ sources = map(File, [
     'test_game.cc',
 ])
 
-game = env.Library('game', sources)
-Return('game')
+Return('sources')
