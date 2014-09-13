@@ -99,7 +99,7 @@ void UniformBufferBase::getMember(const UniformStruct::Member *member, void *val
 void UniformBufferBase::getMember(const char *name, ShaderParameterType type, void *value) const {
 	const UniformStruct::Member *member = m_uniformStruct.lookupMember(name);
 	orionCheck(member, "Member '%s' in uniform struct '%s' not found", name, m_uniformStruct.name);
-	orionCheck(member->type, "Member '%s' in uniform struct '%s' incorrect type", name, m_uniformStruct.name);
+	orionCheck(member->type == type, "Member '%s' in uniform struct '%s' incorrect type", name, m_uniformStruct.name);
 
 	getMember(member, value);
 }
@@ -119,7 +119,7 @@ void UniformBufferBase::setMember(const UniformStruct::Member *member, const voi
 void UniformBufferBase::setMember(const char *name, ShaderParameterType type, const void *value) {
 	const UniformStruct::Member *member = m_uniformStruct.lookupMember(name);
 	orionCheck(member, "Member '%s' in uniform struct '%s' not found", name, m_uniformStruct.name);
-	orionCheck(member->type, "Member '%s' in uniform struct '%s' incorrect type", name, m_uniformStruct.name);
+	orionCheck(member->type == type, "Member '%s' in uniform struct '%s' incorrect type", name, m_uniformStruct.name);
 
 	setMember(member, value);
 }

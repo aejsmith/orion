@@ -250,7 +250,9 @@ Filesystem *platform::createFilesystem() {
 	char *base_path = SDL_GetBasePath();
 	std::string path(base_path);
 	path += "..";
-	chdir(path.c_str());
+	int ret = chdir(path.c_str());
+	if(ret != 0)
+		orionAbort("Failed to change to engine directory '%s'", path.c_str());
 	SDL_free(base_path);
 
 	return new POSIXFilesystem;
