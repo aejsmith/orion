@@ -39,7 +39,8 @@ public:
 	/** @return		Current scale. */
 	const glm::vec3 &scale() const { return m_transform.scale(); }
 
-	GPUBufferPtr uniforms();
+	/** @return		GPU buffer containing entity uniforms. */
+	GPUBufferPtr uniforms() const { return m_uniforms.gpu(); }
 protected:
 	SceneEntity();
 private:
@@ -48,7 +49,7 @@ private:
 	Transform m_transform;		/**< Transformation of the entity. */
 
 	/** Uniform buffer containing per-entity parameters. */
-	DynamicUniformBuffer<EntityUniforms> m_uniforms;
+	UniformBuffer<EntityUniforms> m_uniforms;
 
 	friend class Scene;
 };

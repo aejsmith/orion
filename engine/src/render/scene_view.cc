@@ -33,8 +33,9 @@ void SceneView::setTransform(const glm::vec3 &position, const glm::quat &orienta
 	m_position = position;
 	m_orientation = orientation;
 
+	m_uniforms->position = m_position;
+
 	m_viewOutdated = true;
-	m_uniforms.invalidate();
 }
 
 /** Set a perspective projection.
@@ -47,7 +48,6 @@ void SceneView::perspective(float fov, float zNear, float zFar) {
 	m_zFar = zFar;
 
 	m_projectionOutdated = true;
-	m_uniforms.invalidate();
 }
 
 /** Set the viewport.
@@ -62,7 +62,6 @@ void SceneView::setViewport(const IntRect &viewport) {
 		m_aspect = aspect;
 
 		m_projectionOutdated = true;
-		m_uniforms.invalidate();
 	}
 }
 
@@ -76,6 +75,7 @@ const glm::mat4 &SceneView::view() {
 		glm::mat4 orientation = glm::mat4_cast(glm::inverse(m_orientation));
 
 		m_view = orientation * position;
+		m_uniforms->view = m_view;
 		m_viewOutdated = false;
 	}
 
@@ -91,6 +91,7 @@ const glm::mat4 &SceneView::projection() {
 		float verticalFOV = 2.0f * atanf(tanf(fov * 0.5f) / m_aspect);
 
 		m_projection = glm::perspective(verticalFOV, m_aspect, m_zNear, m_zFar);
+		m_uniforms->projection = m_projection;
 		m_projectionOutdated = false;
 	}
 
@@ -100,14 +101,14 @@ const glm::mat4 &SceneView::projection() {
 /** Get the uniform buffer containing view parameters.
  * @return		Pointer to buffer containing view parameters. */
 GPUBufferPtr SceneView::uniforms() {
-	return m_uniforms.get([this](const GPUBufferMapper<ViewUniforms> &uniforms) {
-		/* Ensure view and projection are up to date. */
+	/* Ensure view and projection are up to date. */
+	bool wasOutdated = m_viewOutdated || m_projectionOutdated;
+	if(m_viewOutdated)
 		view();
+	if(m_projectionOutdated)
 		projection();
+	if(wasOutdated)
+		m_uniforms->viewProjection = m_projection * m_view;
 
-		uniforms->view = m_view;
-		uniforms->projection = m_projection;
-		uniforms->viewProjection = m_projection * m_view;
-		uniforms->position = m_position;
-	});
+	return m_uniforms.gpu();
 }

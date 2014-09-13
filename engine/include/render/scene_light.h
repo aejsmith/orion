@@ -64,7 +64,8 @@ public:
 	/** @return		Exponential attenuation factor (point/spot). */
 	float attenuationExp() const { return m_attenuationExp; }
 
-	GPUBufferPtr uniforms();
+	/** @return		GPU buffer containing light uniforms. */
+	GPUBufferPtr uniforms() const { return m_uniforms.gpu(); }
 private:
 	void setPosition(const glm::vec3 &position);
 private:
@@ -81,7 +82,7 @@ private:
 	float m_attenuationExp;		/**< Exponential attenuation factor (point/spot). */
 
 	/** Uniform buffer containing lighting parameters. */
-	DynamicUniformBuffer<LightUniforms> m_uniforms;
+	UniformBuffer<LightUniforms> m_uniforms;
 
 	friend class Scene;
 };

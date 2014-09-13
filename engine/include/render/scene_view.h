@@ -70,5 +70,5 @@ private:
 	float m_aspect;			/**< Aspect ratio. */
 
 	/** Uniform buffer containing per-view parameters. */
-	DynamicUniformBuffer<ViewUniforms> m_uniforms;
+	UniformBuffer<ViewUniforms> m_uniforms;
 };

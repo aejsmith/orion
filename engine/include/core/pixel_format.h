@@ -47,9 +47,9 @@ struct PixelFormat {
 		kNumFormats,
 	};
 
-	PixelFormat() : m_value(kUnknown) {}
-	PixelFormat(Impl value) : m_value(value) {}
-	operator Impl() const { return m_value; }
+	constexpr PixelFormat() : m_value(kUnknown) {}
+	constexpr PixelFormat(Impl value) : m_value(value) {}
+	constexpr operator Impl() const { return m_value; }
 private:
 	Impl m_value;
 };

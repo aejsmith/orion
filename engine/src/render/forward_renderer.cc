@@ -6,11 +6,10 @@
 
 #include "gpu/pipeline.h"
 
+#include "render/defs.h"
 #include "render/scene.h"
 #include "render/scene_light.h"
 #include "render/scene_view.h"
-
-#include "shader/defs.h"
 
 #include "forward_renderer.h"
 
@@ -28,14 +27,14 @@ ForwardRenderer::ForwardRenderer(Scene *scene, RenderTarget *target, const Rende
 		GPUProgramPtr vertexProgram = g_gpu->loadProgram(
 			"engine/assets/shaders/forward_light_vtx.glsl",
 			GPUProgram::kVertexProgram);
-		vertexProgram->bindUniforms("EntityUniforms", ShaderUniforms::kEntityUniforms);
-		vertexProgram->bindUniforms("ViewUniforms", ShaderUniforms::kViewUniforms);
+		vertexProgram->bindUniforms("EntityUniforms", UniformSlots::kEntityUniforms);
+		vertexProgram->bindUniforms("ViewUniforms", UniformSlots::kViewUniforms);
 
 		GPUProgramPtr fragProgram = g_gpu->loadProgram(
 			"engine/assets/shaders/forward_light_frag.glsl",
 			GPUProgram::kFragmentProgram);
-		fragProgram->bindUniforms("ViewUniforms", ShaderUniforms::kViewUniforms);
-		fragProgram->bindUniforms("LightUniforms", ShaderUniforms::kLightUniforms);
+		fragProgram->bindUniforms("ViewUniforms", UniformSlots::kViewUniforms);
+		fragProgram->bindUniforms("LightUniforms", UniformSlots::kLightUniforms);
 		fragProgram->bindTexture("diffuseTexture", 0);
 
 		g_lightingPipeline() = g_gpu->createPipeline();
@@ -57,7 +56,7 @@ void ForwardRenderer::render(SceneView *view) {
 	m_scene->visitVisibleLights(view, [&lights](SceneLight *l) { lights.push_back(l); });
 
 	/* Set view and scene uniforms once per frame. */
-	g_gpu->bindUniformBuffer(ShaderUniforms::kViewUniforms, view->uniforms());
+	g_gpu->bindUniformBuffer(UniformSlots::kViewUniforms, view->uniforms());
 
 	// Temporary.
 	g_gpu->bindPipeline(g_lightingPipeline);
@@ -71,10 +70,10 @@ void ForwardRenderer::render(SceneView *view) {
 	/* Render all visible entities for each light to accumulate the lighting
 	 * contributions. */
 	for(SceneLight *light : lights) {
-		g_gpu->bindUniformBuffer(ShaderUniforms::kLightUniforms, light->uniforms());
+		g_gpu->bindUniformBuffer(UniformSlots::kLightUniforms, light->uniforms());
 
 		for(SceneEntity *entity : entities) {
-			g_gpu->bindUniformBuffer(ShaderUniforms::kEntityUniforms, entity->uniforms());
+			g_gpu->bindUniformBuffer(UniformSlots::kEntityUniforms, entity->uniforms());
 			entity->render();
 		}
 

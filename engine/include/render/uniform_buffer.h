@@ -1,150 +1,14 @@
 /**
  * @file
  * @copyright		2014 Alex Smith
- * @brief		Uniform buffer helper classes.
+ * @brief		Uniform buffer classes.
  */
 
 #pragma once
 
 #include "gpu/gpu.h"
 
-/**
- * Class maintaining a dynamically updated uniform buffer.
- *
- * This is a helper class for an object which contains a dynamically updated
- * uniform buffer. It only updates the uniform buffer when it is actually
- * needed. Whenever the data in the uniform buffer becomes outdated, the derived
- * class should call invalidate(), and the next time get() is called the buffer
- * will be updated. The entire previous buffer content is thrown away as
- * performing a partial update can cause a GPU synchronization.
- *
- * @tparam Uniforms	Type of the uniform structure.
- */
-template <typename Uniforms>
-class DynamicUniformBuffer {
-public:
-	DynamicUniformBuffer() : m_valid(false) {}
-
-	/** Get uniform buffer for the object, updating if necessary.
-	 * @param updater	Function to update the buffer if required.
-	 *			The entire buffer is invalidated when this is
-	 *			called so must be recreated from scratch.
-	 * @return		Pointer to uniform buffer for the object. */
-	template<typename Func> GPUBufferPtr get(Func func) {
-		if(!m_valid) {
-			/* Create the uniform buffer if it does not exist. */
-			if(!m_buffer) {
-				m_buffer = g_gpu->createBuffer(
-					GPUBuffer::kUniformBuffer,
-					GPUBuffer::kDynamicDrawUsage,
-					sizeof(Uniforms));
-			}
-
-			GPUBufferMapper<Uniforms> uniforms(
-				m_buffer,
-				GPUBuffer::kMapInvalidate,
-				GPUBuffer::kWriteAccess);
-
-			func(uniforms);
-			m_valid = true;
-		}
-
-		return m_buffer;
-	}
-
-	/** Mark the uniforms as invalid. */
-	void invalidate() { m_valid = false; }
-private:
-	GPUBufferPtr m_buffer;		/**< Uniform buffer. */
-	bool m_valid;			/**< Whether the buffer contents are valid. */
-};
-
-/**
- * Uniform structure member type information.
- */
-
-/** Enumeration of uniform types. */
-enum class UniformType {
-	kIntType,			/**< Signed 32-bit integer. */
-	kUnsignedIntType,		/**< Unsigned 32-bit integer. */
-	kFloatType,			/**< Single-precision floating point. */
-};
-
-/** Structure providing information about a uniform type. */
-template <typename T>
-struct UniformTypeInfo;
-
-template <>
-struct UniformTypeInfo<int32_t> {
-	static const UniformType kBaseType = UniformType::kIntType;
-	static const size_t kRows = 1;
-	static const size_t kColumns = 1;
-	static const size_t kAlignment = 4;
-};
-
-template <>
-struct UniformTypeInfo<uint32_t> {
-	static const UniformType kBaseType = UniformType::kUnsignedIntType;
-	static const size_t kRows = 1;
-	static const size_t kColumns = 1;
-	static const size_t kAlignment = 4;
-};
-
-template <>
-struct UniformTypeInfo<float> {
-	static const UniformType kBaseType = UniformType::kFloatType;
-	static const size_t kRows = 1;
-	static const size_t kColumns = 1;
-	static const size_t kAlignment = 4;
-};
-
-template <typename T>
-struct UniformTypeInfo<glm::detail::tvec2<T, glm::highp>> {
-	static const UniformType kBaseType = UniformTypeInfo<T>::kBaseType;
-	static const size_t kRows = 1;
-	static const size_t kColumns = 2;
-	static const size_t kAlignment = 2 * UniformTypeInfo<T>::kAlignment;
-};
-
-template <typename T>
-struct UniformTypeInfo<glm::detail::tvec3<T, glm::highp>> {
-	static const UniformType kBaseType = UniformTypeInfo<T>::kBaseType;
-	static const size_t kRows = 1;
-	static const size_t kColumns = 3;
-	static const size_t kAlignment = 4 * UniformTypeInfo<T>::kAlignment;
-};
-
-template <typename T>
-struct UniformTypeInfo<glm::detail::tvec4<T, glm::highp>> {
-	static const UniformType kBaseType = UniformTypeInfo<T>::kBaseType;
-	static const size_t kRows = 1;
-	static const size_t kColumns = 4;
-	static const size_t kAlignment = 4 * UniformTypeInfo<T>::kAlignment;
-};
-
-template <typename T>
-struct UniformTypeInfo<glm::detail::tmat2x2<T, glm::highp>> {
-	static const UniformType kBaseType = UniformTypeInfo<T>::kBaseType;
-	static const size_t kRows = 2;
-	static const size_t kColumns = 2;
-	static const size_t kAlignment = UniformTypeInfo<glm::detail::tvec2<T, glm::highp>>::kAlignment;
-};
-
-template <typename T>
-struct UniformTypeInfo<glm::detail::tmat3x3<T, glm::highp>> {
-	static const UniformType kBaseType = UniformTypeInfo<T>::kBaseType;
-	static const size_t kRows = 3;
-	static const size_t kColumns = 3;
-	static const size_t kAlignment = UniformTypeInfo<glm::detail::tvec3<T, glm::highp>>::kAlignment;
-};
-
-template <typename T>
-struct UniformTypeInfo<glm::detail::tmat4x4<T, glm::highp>> {
-	static const UniformType kBaseType = UniformTypeInfo<T>::kBaseType;
-	static const size_t kRows = 4;
-	static const size_t kColumns = 4;
-	static const size_t kAlignment = UniformTypeInfo<glm::detail::tvec4<T, glm::highp>>::kAlignment;
-};
+#include "render/defs.h"
 
 /**
  * Uniform structure metadata.
@@ -154,11 +18,9 @@ struct UniformTypeInfo<glm::detail::tmat4x4<T, glm::highp>> {
 struct UniformStruct {
 	/** Information about a uniform structure member. */
 	struct Member {
-		const char *name;	/**< Name of the member. */
-		UniformType baseType;	/**< Base type. */
-		size_t rows;		/**< Rows (for matrix types). */
-		size_t columns;		/**< Columns (for matrix/vector types). */
-		size_t offset;		/**< Offset of the member. */
+		const char *name;		/**< Name of the member. */
+		ShaderParameterType type;	/**< Member type. */
+		size_t offset;			/**< Offset of the member. */
 	};
 
 	/** Type of the member variable array. */
@@ -167,9 +29,9 @@ struct UniformStruct {
 	/** Type of the member array initialization function. */
 	typedef void (*InitMembersFunc)(MemberArray &);
 public:
-	const char *name;		/**< Name of the structure. */
-	size_t size;			/**< Size of the structure. */
-	MemberArray members;		/**< Members of the structure. */
+	const char *name;			/**< Name of the structure. */
+	size_t size;				/**< Size of the structure. */
+	MemberArray members;			/**< Members of the structure. */
 public:
 	UniformStruct(const char *inName, size_t inSize, InitMembersFunc initFunc) :
 		name(inName),
@@ -177,6 +39,8 @@ public:
 	{
 		initFunc(this->members);
 	}
+
+	const Member *lookupMember(const char *name) const;
 };
 
 /**
@@ -198,19 +62,17 @@ public:
 #define UNIFORM_STRUCT_MEMBER(typeName, memberName) \
 			UniformStruct::Member _memberInfo = { \
 				#memberName, \
-				UniformTypeInfo<typeName>::kBaseType, \
-				UniformTypeInfo<typeName>::kRows, \
-				UniformTypeInfo<typeName>::kColumns, \
+				ShaderParameterTypeTraits<typeName>::kType, \
 				offsetof(UniformStructType, memberName), \
 			}; \
 			static_assert( \
-				(offsetof(UniformStructType, memberName) & (UniformTypeInfo<typeName>::kAlignment - 1)) == 0, \
+				(offsetof(UniformStructType, memberName) & (ShaderParameterTypeTraits<typeName>::kAlignment - 1)) == 0, \
 				"Uniform buffer member " #memberName " is misaligned"); \
 			_members.push_back(_memberInfo); \
 			_initMembers_##memberName(_members); \
 		} \
 		\
-		alignas(UniformTypeInfo<typeName>::kAlignment) typeName memberName; \
+		alignas(ShaderParameterTypeTraits<typeName>::kAlignment) typeName memberName; \
 		\
 		static void _initMembers_##memberName(UniformStruct::MemberArray &_members) {
 
@@ -222,4 +84,119 @@ public:
 /** Define uniform structure metadata.
  * @param structName	Name of the structure. */
 #define IMPLEMENT_UNIFORM_STRUCT(structName) \
-	const UniformStruct structName::kUniformStruct(#structName, sizeof(structName), structName::_initMembers)
+	const UniformStruct structName::kUniformStruct(#structName, sizeof(structName), structName::_initMembers);
+
+/**
+ * Uniform buffer helper classes.
+ */
+
+/**
+ * Uniform buffer wrapper class.
+ *
+ * This class maintains a uniform buffer. It uses uniform structure type
+ * information to be able to generically modify members. It also keeps a
+ * CPU-side shadow buffer to make it possible to read members and perform
+ * partial updates without causing GPU synchronizations.
+ */
+class UniformBufferBase {
+public:
+	UniformBufferBase(const UniformStruct &ustruct, GPUBuffer::Usage usage = GPUBuffer::kDynamicDrawUsage);
+	~UniformBufferBase();
+
+	/** @return		Uniform structure for this buffer. */
+	const UniformStruct &uniformStruct() const { return m_uniformStruct; }
+
+	GPUBufferPtr gpu() const;
+
+	/**
+	 * Member access.
+	 */
+
+	void getMember(const UniformStruct::Member *member, void *value) const;
+	void getMember(const char *name, ShaderParameterType type, void *value) const;
+	void setMember(const UniformStruct::Member *member, const void *value) const;
+	void setMember(const char *name, ShaderParameterType type, const void *value);
+
+	/** Get a member from the buffer.
+	 * @tparam T		Type of the member.
+	 * @param name		Name of the member to get.
+	 * @param value		Where to store member value. */
+	template <typename T> void getMember(const char *name, T &value) {
+		getMember(name, ShaderParameterTypeTraits<T>::kType, &value);
+	}
+
+	/** Set a member in the buffer.
+	 * @tparam T		Type of the member.
+	 * @param name		Name of the member to set.
+	 * @param value		Value to set to. */
+	template <typename T> void setMember(const char *name, const T &value) {
+		setMember(name, ShaderParameterTypeTraits<T>::kType, &value);
+	}
+protected:
+	const UniformStruct &m_uniformStruct;	/**< Uniform structure for the buffer. */
+	GPUBufferPtr m_gpuBuffer;		/**< GPU buffer. */
+	char *m_shadowBuffer;			/**< CPU shadow buffer. */
+	mutable bool m_dirty;			/**< Whether the buffer is dirty. */
+};
+
+/**
+ * Statically-typed uniform buffer.
+ *
+ * This class is a template version of UniformBufferBase which has a type
+ * defined at compile time. In addition to UniformBufferBase, it adds methods
+ * for direct access to the buffer contents.
+ *
+ * @tparam Struct	Uniform structure.
+ */
+template <typename Struct>
+class UniformBuffer : public UniformBufferBase {
+public:
+	/** Initialize the buffer.
+	 * @param usage		GPU buffer usage hint. */
+	explicit UniformBuffer(GPUBuffer::Usage usage = GPUBuffer::kDynamicDrawUsage) :
+		UniformBufferBase(Struct::kUniformStruct, usage)
+	{}
+
+	/** Access the buffer for reading.
+	 * @return		Pointer to the buffer for reading. */
+	const Struct *read() const {
+		return reinterpret_cast<const Struct *>(m_shadowBuffer);
+	}
+
+	/**
+	 * Access the buffer for writing.
+	 *
+	 * Accesses the buffer contents for writing. This accesses the CPU
+	 * shadow buffer, and sets a flag to indicate that the buffer content
+	 * is dirty. Pending modifications will be flushed next time the GPU
+	 * buffer is requested. Note that since the dirty flag is set only when
+	 * this function is called, you should not save the returned pointer,
+	 * across a call to gpu() as writes may not be flushed. For example:
+	 *
+	 *  MyUniforms *uniforms = m_uniforms.write();
+	 *  uniforms->foo = 42;
+	 *  g_gpu->bind_uniform_buffer(m_uniforms.gpu());
+	 *  uniforms->bar = 1234;
+	 *
+	 * After the above sequence, the final write may not be flushed by the
+	 * next call to gpu() unless something else calls write() inbetween.
+	 *
+	 * @return		Pointer to the buffer for writing.
+	 */
+	Struct *write() {
+		m_dirty = true;
+		return reinterpret_cast<Struct *>(m_shadowBuffer);
+	}
+
+	/**
+	 * Dereference operator.
+	 *
+	 * Since in most cases when accessing a uniform buffer we want to write
+	 * to it (the content of a uniform buffer is usually a mirror of some
+	 * engine-side data), we provide a dereference operator that is
+	 * equivalent to write() to make writing code look a bit neater.
+	 *
+	 * @return		Pointer to the buffer for writing.
+	 */
+	Struct *operator ->() { return write(); }
+};
