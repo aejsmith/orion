@@ -25,13 +25,13 @@ ForwardRenderer::ForwardRenderer(Scene *scene, RenderTarget *target, const Rende
 {
 	if(unlikely(!g_lightingPipeline)) {
 		GPUProgramPtr vertexProgram = g_gpu->loadProgram(
-			"engine/assets/shaders/forward_light_vtx.glsl",
+			"engine/shaders/forward_light_vtx.glsl",
 			GPUProgram::kVertexProgram);
 		vertexProgram->bindUniforms("EntityUniforms", UniformSlots::kEntityUniforms);
 		vertexProgram->bindUniforms("ViewUniforms", UniformSlots::kViewUniforms);
 
 		GPUProgramPtr fragProgram = g_gpu->loadProgram(
-			"engine/assets/shaders/forward_light_frag.glsl",
+			"engine/shaders/forward_light_frag.glsl",
 			GPUProgram::kFragmentProgram);
 		fragProgram->bindUniforms("ViewUniforms", UniformSlots::kViewUniforms);
 		fragProgram->bindUniforms("LightUniforms", UniformSlots::kLightUniforms);

@@ -93,7 +93,7 @@ void Material::setValue(const char *name, ShaderParameter::Type type, const void
 /** Asset loader for materials. */
 class MaterialLoader : public AssetLoader {
 public:
-	MaterialLoader() : AssetLoader("mat") {}
+	MaterialLoader() : AssetLoader("omt") {}
 	bool dataIsMetadata() const override { return true; }
 	AssetPtr load(DataStream *stream, rapidjson::Value &attributes, const char *path) const override;
 private:
