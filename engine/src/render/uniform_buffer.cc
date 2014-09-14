@@ -14,8 +14,8 @@
 /** Find a member in the structure by name.
  * @param name		Name of the member to find.
  * @return		Pointer to member if found, null if not. */
-const UniformStruct::Member *UniformStruct::lookupMember(const char *name) const {
-	for(const Member &member : this->members) {
+const UniformStructMember *UniformStruct::lookupMember(const char *name) const {
+	for(const UniformStructMember &member : this->members) {
 		if(strcmp(member.name, name) == 0)
 			return &member;
 	}
@@ -23,7 +23,7 @@ const UniformStruct::Member *UniformStruct::lookupMember(const char *name) const
 	return nullptr;
 }
 
-/** Create the buffer, with undefined content.
+/** Create the buffer, with zeroed content.
  * @param ustruct	Uniform structure type.
  * @param usage		GPU usage hint for the buffer. */
 UniformBufferBase::UniformBufferBase(const UniformStruct &ustruct, GPUBuffer::Usage usage) :
@@ -32,6 +32,7 @@ UniformBufferBase::UniformBufferBase(const UniformStruct &ustruct, GPUBuffer::Us
 {
 	m_gpuBuffer = g_gpu->createBuffer(GPUBuffer::kUniformBuffer, usage, m_uniformStruct.size);
 	m_shadowBuffer = new char[m_uniformStruct.size];
+	memset(m_shadowBuffer, 0, m_uniformStruct.size);
 }
 
 /** Destroy the buffer. */
@@ -57,69 +58,51 @@ GPUBufferPtr UniformBufferBase::gpu() const {
 	return m_gpuBuffer;
 }
 
-/** Get the size of a shader parameter type.
- * @param type		Type to get size of.
- * @return		Size of the type. */
-static inline size_t shaderParameterSize(ShaderParameterType type) {
-	switch(type) {
-	case ShaderParameterType::kInt:
-		return sizeof(int);
-	case ShaderParameterType::kUnsignedInt:
-		return sizeof(unsigned int);
-	case ShaderParameterType::kFloat:
-		return sizeof(float);
-	case ShaderParameterType::kVec2:
-		return sizeof(glm::vec2);
-	case ShaderParameterType::kVec3:
-		return sizeof(glm::vec3);
-	case ShaderParameterType::kVec4:
-		return sizeof(glm::vec4);
-	case ShaderParameterType::kMat2:
-		return sizeof(glm::mat2);
-	case ShaderParameterType::kMat3:
-		return sizeof(glm::mat3);
-	case ShaderParameterType::kMat4:
-		return sizeof(glm::mat4);
-	default:
-		orionAbort("Invalid parameter type %d passed to {get,set}Member", type);
-	}
-}
-
 /** Get the value of a member.
  * @param member	Details of the member to get.
- * @param value		Where to store member value. */
-void UniformBufferBase::getMember(const UniformStruct::Member *member, void *value) const {
-	memcpy(value, m_shadowBuffer + member->offset, shaderParameterSize(member->type));
+ * @param buf		Where to store member value. */
+void UniformBufferBase::readMember(const UniformStructMember *member, void *buf) const {
+	memcpy(buf, m_shadowBuffer + member->offset, ShaderParameter::size(member->type));
 }
 
 /** Get the value of member.
  * @param name		Name of the member to get.
  * @param type		Expected type of the member (checked with an assertion).
- * @param value		Where to store member value. */
-void UniformBufferBase::getMember(const char *name, ShaderParameterType type, void *value) const {
-	const UniformStruct::Member *member = m_uniformStruct.lookupMember(name);
-	orionCheck(member, "Member '%s' in uniform struct '%s' not found", name, m_uniformStruct.name);
-	orionCheck(member->type == type, "Member '%s' in uniform struct '%s' incorrect type", name, m_uniformStruct.name);
+ * @param buf		Where to store member value. */
+void UniformBufferBase::readMember(const char *name, ShaderParameter::Type type, void *buf) const {
+	const UniformStructMember *member = m_uniformStruct.lookupMember(name);
 
-	getMember(member, value);
+	orionCheck(member,
+		"Member '%s' in uniform struct '%s' not found",
+		name, m_uniformStruct.name);
+	orionCheck(member->type == type,
+		"Member '%s' in uniform struct '%s' incorrect type",
+		name, m_uniformStruct.name);
+
+	readMember(member, buf);
 }
 
 /** Set the value of a member.
  * @param member	Details of the member to set.
- * @param value		Buffer containing new member value. */
-void UniformBufferBase::setMember(const UniformStruct::Member *member, const void *value) const {
+ * @param buf		Buffer containing new member value. */
+void UniformBufferBase::writeMember(const UniformStructMember *member, const void *buf) const {
 	m_dirty = true;
-	memcpy(m_shadowBuffer + member->offset, value, shaderParameterSize(member->type));
+	memcpy(m_shadowBuffer + member->offset, buf, ShaderParameter::size(member->type));
 }
 
 /** Set the value of member.
  * @param name		Name of the member to set.
  * @param type		Expected type of the member (checked with an assertion).
- * @param value		Buffer containing new member value. */
-void UniformBufferBase::setMember(const char *name, ShaderParameterType type, const void *value) {
-	const UniformStruct::Member *member = m_uniformStruct.lookupMember(name);
-	orionCheck(member, "Member '%s' in uniform struct '%s' not found", name, m_uniformStruct.name);
-	orionCheck(member->type == type, "Member '%s' in uniform struct '%s' incorrect type", name, m_uniformStruct.name);
+ * @param buf		Buffer containing new member value. */
+void UniformBufferBase::writeMember(const char *name, ShaderParameter::Type type, const void *buf) {
+	const UniformStructMember *member = m_uniformStruct.lookupMember(name);
 
-	setMember(member, value);
+	orionCheck(member,
+		"Member '%s' in uniform struct '%s' not found",
+		name, m_uniformStruct.name);
+	orionCheck(member->type == type,
+		"Member '%s' in uniform struct '%s' incorrect type",
+		name, m_uniformStruct.name);
+
+	writeMember(member, buf);
 }

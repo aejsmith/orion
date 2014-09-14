@@ -43,7 +43,7 @@ public:
 	 * @param path		Path to asset (supplied so that useful error
 	 *			messages can be logged).
 	 * @return		Pointer to loaded asset, null on failure. */
-	virtual Asset *load(DataStream *stream, rapidjson::Value &attributes, const char *path) const = 0;
+	virtual AssetPtr load(DataStream *stream, rapidjson::Value &attributes, const char *path) const = 0;
 
 	static AssetLoader *lookup(const std::string &type);
 protected:

@@ -157,16 +157,16 @@ AssetPtr AssetManager::load(const Path &path) {
 	}
 
 	/* Create the asset. The loader should log an error if it fails. */
-	Asset *asset = loader->load(data.get(), attributes, path.c_str());
+	AssetPtr asset = loader->load(data.get(), attributes, path.c_str());
 	if(!asset)
 		return nullptr;
 
 	/* Mark the asset as managed and cache it. */
 	asset->m_path = path.str();
-	m_assets.insert(std::make_pair(path.str(), asset));
+	m_assets.insert(std::make_pair(path.str(), asset.get()));
 
 	orionLog(LogLevel::kDebug, "Loaded asset '%s' with file type '%s'", path.c_str(), type.c_str());
-	return AssetPtr(asset);
+	return asset;
 }
 
 /** Look up an asset in the cache.

@@ -32,7 +32,7 @@ public:
 	 * @tparam AssetType	Type of the asset to load.
 	 * @param path		Path to the asset.
 	 * @return		Pointer to asset, or null if asset could not be
-	 *			loaded. */
+	 *			loaded or is incorrect type. */
 	template <typename AssetType>
 	TypedAssetPtr<AssetType> load(const Path &path) {
 		static_assert(

@@ -6,7 +6,12 @@
 
 #pragma once
 
-#include "core/core.h"
+#include "core/refcounted.h"
+
+class Texture2D;
+class TextureBase;
+
+struct UniformStructMember;
 
 /**
  * Standard uniform buffer binding point indices.
@@ -55,24 +60,79 @@ namespace TextureSlots {
 }
 
 /**
- * Shader parameter type information.
+ * Shader parameter information.
  */
 
-/** Enumeration of shader parameter types. */
-enum class ShaderParameterType {
-	/** Types that can be used in uniform structures. */
-	kInt,				/**< Signed 32-bit integer. */
-	kUnsignedInt,			/**< Unsigned 32-bit integer. */
-	kFloat,				/**< Single-precision floating point. */
-	kVec2,				/**< 2 component floating point vector. */
-	kVec3,				/**< 3 component floating point vector. */
-	kVec4,				/**< 4 component floating point vector. */
-	kMat2,				/**< 2x2 floating point matrix. */
-	kMat3,				/**< 3x3 floating point matrix. */
-	kMat4,				/**< 4x4 floating point matrix. */
+/** Details of a shader parameter. */
+struct ShaderParameter {
+	/** Enumeration of parameter types. */
+	enum Type {
+		/** Basic types. */
+		kIntType,		/**< Signed 32-bit integer. */
+		kUnsignedIntType,	/**< Unsigned 32-bit integer. */
+		kFloatType,		/**< Single-precision floating point. */
+		kVec2Type,		/**< 2 component floating point vector. */
+		kVec3Type,		/**< 3 component floating point vector. */
+		kVec4Type,		/**< 4 component floating point vector. */
+		kMat2Type,		/**< 2x2 floating point matrix. */
+		kMat3Type,		/**< 3x3 floating point matrix. */
+		kMat4Type,		/**< 4x4 floating point matrix. */
 
-	/** Other types that cannot be used in uniform structures. */
-	kTexture,			/**< Texture. */
+		/** Special types (cannot be used in uniform structures). */
+		kTextureType,		/**< Texture. */
+	};
+
+	/** Parameter binding type. */
+	enum Binding {
+		kNoBinding,		/**< No automatic binding (extra parameter). */
+		kUniformBinding,	/**< Bind to a uniform struct member. */
+		kTextureBinding,	/**< Bind to a texture slot. */
+	};
+public:
+	const char *name;		/**< Parameter name. */
+	Type type;			/**< Parameter type. */
+	Binding binding;		/**< Binding type. */
+	unsigned index;			/**< Index into material parameter tables. */
+
+	/** Binding information. */
+	union {
+		/** Uniform struct member (kUniformParameterBinding). */
+		const UniformStructMember *uniformMember;
+		/** Texture slot (kTextureParameterBinding). */
+		unsigned textureSlot;
+	};
+public:
+	/** @return		Storage size of the parameter. */
+	size_t size() const { return size(this->type); }
+
+	/** Get the storage size for a shader parameter type.
+	 * @param type		Type to get size of. Only valid for basic types.
+	 * @return		Size of the type. */
+	static size_t size(Type type) {
+		switch(type) {
+		case kIntType:
+			return sizeof(int);
+		case kUnsignedIntType:
+			return sizeof(unsigned int);
+		case kFloatType:
+			return sizeof(float);
+		case kVec2Type:
+			return sizeof(glm::vec2);
+		case kVec3Type:
+			return sizeof(glm::vec3);
+		case kVec4Type:
+			return sizeof(glm::vec4);
+		case kMat2Type:
+			return sizeof(glm::mat2);
+		case kMat3Type:
+			return sizeof(glm::mat3);
+		case kMat4Type:
+			return sizeof(glm::mat4);
+		default:
+			/* Textures require special handling. */
+			return 0;
+		}
+	}
 };
 
 /**
@@ -89,54 +149,62 @@ struct ShaderParameterTypeTraits;
 
 template <>
 struct ShaderParameterTypeTraits<int32_t> {
-	static constexpr ShaderParameterType kType = ShaderParameterType::kInt;
+	static constexpr ShaderParameter::Type kType = ShaderParameter::kIntType;
 	static constexpr size_t kAlignment = 4;
 };
 
 template <>
 struct ShaderParameterTypeTraits<uint32_t> {
-	static constexpr ShaderParameterType kType = ShaderParameterType::kUnsignedInt;
+	static constexpr ShaderParameter::Type kType = ShaderParameter::kUnsignedIntType;
 	static constexpr size_t kAlignment = 4;
 };
 
 template <>
 struct ShaderParameterTypeTraits<float> {
-	static constexpr ShaderParameterType kType = ShaderParameterType::kFloat;
+	static constexpr ShaderParameter::Type kType = ShaderParameter::kFloatType;
 	static constexpr size_t kAlignment = 4;
 };
 
 template <>
 struct ShaderParameterTypeTraits<glm::vec2> {
-	static constexpr ShaderParameterType kType = ShaderParameterType::kVec2;
+	static constexpr ShaderParameter::Type kType = ShaderParameter::kVec2Type;
 	static constexpr size_t kAlignment = 8;
 };
 
 template <>
 struct ShaderParameterTypeTraits<glm::vec3> {
-	static constexpr ShaderParameterType kType = ShaderParameterType::kVec3;
+	static constexpr ShaderParameter::Type kType = ShaderParameter::kVec3Type;
 	static constexpr size_t kAlignment = 16;
 };
 
 template <>
 struct ShaderParameterTypeTraits<glm::vec4> {
-	static constexpr ShaderParameterType kType = ShaderParameterType::kVec4;
+	static constexpr ShaderParameter::Type kType = ShaderParameter::kVec4Type;
 	static constexpr size_t kAlignment = 16;
 };
 
 template <>
 struct ShaderParameterTypeTraits<glm::mat2> {
-	static constexpr ShaderParameterType kType = ShaderParameterType::kMat2;
+	static constexpr ShaderParameter::Type kType = ShaderParameter::kMat2Type;
 	static constexpr size_t kAlignment = 8;
 };
 
 template <>
 struct ShaderParameterTypeTraits<glm::mat3> {
-	static constexpr ShaderParameterType kType = ShaderParameterType::kMat3;
+	static constexpr ShaderParameter::Type kType = ShaderParameter::kMat3Type;
 	static constexpr size_t kAlignment = 16;
 };
 
 template <>
 struct ShaderParameterTypeTraits<glm::mat4> {
-	static constexpr ShaderParameterType kType = ShaderParameterType::kMat4;
+	static constexpr ShaderParameter::Type kType = ShaderParameter::kMat4Type;
 	static constexpr size_t kAlignment = 16;
+};
+
+/* Note: Texture2D is specifically left unimplemented here because at the moment
+ * we don't type parameters to a specific texture type, just generic types.
+ * Implementing Texture2D here makes Material::getValue unsafe. */
+template <>
+struct ShaderParameterTypeTraits<ReferencePtr<TextureBase>> {
+	static constexpr ShaderParameter::Type kType = ShaderParameter::kTextureType;
 };

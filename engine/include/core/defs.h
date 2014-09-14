@@ -20,6 +20,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <new>
 #include <string>
 
 /**

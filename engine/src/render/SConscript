@@ -5,6 +5,7 @@ sources = map(File, [
     'scene_light.cc',
     'scene_renderer.cc',
     'scene_view.cc',
+    'shader.cc',
     'uniform_buffer.cc',
 ])
 

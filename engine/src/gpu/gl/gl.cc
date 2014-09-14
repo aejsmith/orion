@@ -137,7 +137,7 @@ void GLGPUInterface::initFeatures() {
 	/* Print out a (sorted) list of the extensions found. */
 	orionLog(LogLevel::kDebug, "OpenGL extensions:");
 	for(const std::string &extension : features.extensions)
-		orionLog(LogLevel::kDebug, " %s", extension.c_str());
+		orionLog(LogLevel::kDebug, "  %s", extension.c_str());
 
 	/* Check for required extensions. */
 	for(size_t i = 0; i < util::arraySize(g_requiredGLExtensions); i++) {

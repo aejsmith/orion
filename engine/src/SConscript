@@ -9,6 +9,7 @@ sources = util.flatten(SConscript(dirs = [
     'engine',
     'gpu',
     'render',
+    'shaders',
     'world',
 ]))
 

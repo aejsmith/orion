@@ -7,6 +7,7 @@
 #include "engine/asset_manager.h"
 #include "engine/engine.h"
 #include "engine/game.h"
+#include "engine/material.h"
 #include "engine/texture.h"
 
 #include "gpu/gpu.h"
@@ -96,7 +97,7 @@ private:
 	World *m_world;			/**< Game world. */
 
 	/** Rendering resources. */
-	Texture2DPtr m_texture;
+	MaterialPtr m_material;
 	VertexFormatPtr m_vertexFormat;
 };
 
@@ -222,9 +223,9 @@ Entity *TestGame::makePlane(Entity *parent, const std::string &name) {
 
 /** Initialize the game world. */
 TestGame::TestGame() {
-	m_texture = g_assetManager->load<Texture2D>("game/textures/test");
-	orionLog(LogLevel::kDebug, "Got asset %p", m_texture.get());
-	g_gpu->bindTexture(0, m_texture->gpu());
+	m_material = g_assetManager->load<Material>("game/materials/test");
+	TextureBasePtr texture = m_material->value<TextureBasePtr>("diffuse");
+	g_gpu->bindTexture(0, texture->gpu());
 
 	m_vertexFormat = g_gpu->createVertexFormat();
 	m_vertexFormat->addBuffer(0, sizeof(Vertex));

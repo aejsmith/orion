@@ -14,17 +14,17 @@
  * Uniform structure metadata.
  */
 
+/** Information about a uniform structure member. */
+struct UniformStructMember {
+	const char *name;		/**< Name of the member. */
+	ShaderParameter::Type type;	/**< Member type. */
+	size_t offset;			/**< Offset of the member. */
+};
+
 /** Information about a uniform structure. */
 struct UniformStruct {
-	/** Information about a uniform structure member. */
-	struct Member {
-		const char *name;		/**< Name of the member. */
-		ShaderParameterType type;	/**< Member type. */
-		size_t offset;			/**< Offset of the member. */
-	};
-
 	/** Type of the member variable array. */
-	typedef std::vector<Member> MemberArray;
+	typedef std::vector<UniformStructMember> MemberArray;
 
 	/** Type of the member array initialization function. */
 	typedef void (*InitMembersFunc)(MemberArray &);
@@ -40,7 +40,7 @@ public:
 		initFunc(this->members);
 	}
 
-	const Member *lookupMember(const char *name) const;
+	const UniformStructMember *lookupMember(const char *name) const;
 };
 
 /**
@@ -60,7 +60,7 @@ public:
  * @param typeName	Type of the member.
  * @param memberName	Name of the member. */
 #define UNIFORM_STRUCT_MEMBER(typeName, memberName) \
-			UniformStruct::Member _memberInfo = { \
+			UniformStructMember _memberInfo = { \
 				#memberName, \
 				ShaderParameterTypeTraits<typeName>::kType, \
 				offsetof(UniformStructType, memberName), \
@@ -112,25 +112,27 @@ public:
 	 * Member access.
 	 */
 
-	void getMember(const UniformStruct::Member *member, void *value) const;
-	void getMember(const char *name, ShaderParameterType type, void *value) const;
-	void setMember(const UniformStruct::Member *member, const void *value) const;
-	void setMember(const char *name, ShaderParameterType type, const void *value);
+	void readMember(const UniformStructMember *member, void *buf) const;
+	void readMember(const char *name, ShaderParameter::Type type, void *buf) const;
+	void writeMember(const UniformStructMember *member, const void *buf) const;
+	void writeMember(const char *name, ShaderParameter::Type type, const void *buf);
 
 	/** Get a member from the buffer.
 	 * @tparam T		Type of the member.
 	 * @param name		Name of the member to get.
-	 * @param value		Where to store member value. */
-	template <typename T> void getMember(const char *name, T &value) {
-		getMember(name, ShaderParameterTypeTraits<T>::kType, &value);
+	 * @return		Member value. */
+	template <typename T> T readMember(const char *name) {
+		T ret;
+		readMember(name, ShaderParameterTypeTraits<T>::kType, std::addressof(ret));
+		return ret;
 	}
 
 	/** Set a member in the buffer.
 	 * @tparam T		Type of the member.
 	 * @param name		Name of the member to set.
 	 * @param value		Value to set to. */
-	template <typename T> void setMember(const char *name, const T &value) {
-		setMember(name, ShaderParameterTypeTraits<T>::kType, &value);
+	template <typename T> void writeMember(const char *name, const T &value) {
+		writeMember(name, ShaderParameterTypeTraits<T>::kType, std::addressof(value));
 	}
 protected:
 	const UniformStruct &m_uniformStruct;	/**< Uniform structure for the buffer. */
@@ -170,7 +172,7 @@ public:
 	 * shadow buffer, and sets a flag to indicate that the buffer content
 	 * is dirty. Pending modifications will be flushed next time the GPU
 	 * buffer is requested. Note that since the dirty flag is set only when
-	 * this function is called, you should not save the returned pointer,
+	 * this function is called, you should not save the returned pointer
 	 * across a call to gpu() as writes may not be flushed. For example:
 	 *
 	 *  MyUniforms *uniforms = m_uniforms.write();

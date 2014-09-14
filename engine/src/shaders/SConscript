@@ -1,0 +1,5 @@
+sources = map(File, [
+    'lighting.cc',
+])
+
+Return('sources')

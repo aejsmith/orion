@@ -16,7 +16,7 @@
 class TGALoader : public AssetLoader {
 public:
 	TGALoader() : AssetLoader("tga") {}
-	Asset *load(DataStream *stream, rapidjson::Value &attributes, const char *path) const override;
+	AssetPtr load(DataStream *stream, rapidjson::Value &attributes, const char *path) const override;
 private:
 	static TGALoader m_instance;
 };
@@ -45,7 +45,7 @@ TGALoader TGALoader::m_instance;
  * @param attributes	Attributes specified in metadata.
  * @param path		Path to asset.
  * @return		Pointer to loaded asset, null on failure. */
-Asset *TGALoader::load(DataStream *stream, rapidjson::Value &attributes, const char *path) const {
+AssetPtr TGALoader::load(DataStream *stream, rapidjson::Value &attributes, const char *path) const {
 	TGAHeader header;
 	if(!stream->read(reinterpret_cast<char *>(&header), sizeof(header), 0)) {
 		orionLog(LogLevel::kError, "Failed to read asset '%s' data", path);
@@ -78,8 +78,7 @@ Asset *TGALoader::load(DataStream *stream, rapidjson::Value &attributes, const c
 	}
 
 	/* Create the texture, with mipmaps. */
-	Texture2D *texture = new Texture2D(width, height, format);
+	Texture2DPtr texture(new Texture2D(width, height, format));
 	texture->update(buf.get());
-
 	return texture;
 }
