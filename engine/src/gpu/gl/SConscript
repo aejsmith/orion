@@ -3,7 +3,7 @@ sources = map(File, [
     'commands.cc',
     'gl.cc',
     'pipeline.cc',
-    'program.cc',
+    'shader.cc',
     'state.cc',
     'texture.cc',
     'vertex_data.cc',

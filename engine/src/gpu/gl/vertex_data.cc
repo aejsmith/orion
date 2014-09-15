@@ -12,10 +12,10 @@
  * with the VAO, and if the one being used for rendering is the same then we
  * don't rebind it.
  *
- * So that we don't tie a VAO to a specific program, we bind shader attributes
+ * So that we don't tie a VAO to a specific shader, we bind shader attributes
  * to attribute indices statically based on the semantic and index of the
  * attribute, rather than letting the linker assign attribute indices. This
- * allows us to use a single VAO with any program. GL implementations must
+ * allows us to use a single VAO with any shader. GL implementations must
  * support a minimum of 16 attribute indices, so we divide up this space
  * between the various attribute semantics.
  */

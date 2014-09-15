@@ -9,14 +9,12 @@
 /** Initialize the pipeline. */
 GPUPipeline::GPUPipeline() : m_finalized(false) {}
 
-/** Set the program to use for a stage.
- * @param stage		Stage to set for.
- * @param program	Program to set. Type must match stage. */
-void GPUPipeline::setProgram(GPUProgram::Type stage, const GPUProgramPtr &program) {
+/** Add a shader to the pipeline.
+ * @param shader	Shader to add. Any existing shader in the same stage
+ *			will be replaced. */
+void GPUPipeline::addShader(const GPUShaderPtr &shader) {
 	orionAssert(!m_finalized);
-	orionAssert(program->type() == stage);
-
-	m_programs[stage] = program;
+	m_shaders[shader->type()] = shader;
 }
 
 /** Finalize the pipeline. */
@@ -24,8 +22,8 @@ void GPUPipeline::finalize() {
 	m_finalized = true;
 
 	orionCheck(
-		m_programs[GPUProgram::kVertexProgram] && m_programs[GPUProgram::kFragmentProgram],
-		"A pipeline requires at least a vertex and a fragment program");
+		m_shaders[GPUShader::kVertexShader] && m_shaders[GPUShader::kFragmentShader],
+		"A pipeline requires at least a vertex and a fragment shader");
 
 	finalizeImpl();
 }

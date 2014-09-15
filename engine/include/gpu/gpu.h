@@ -9,7 +9,7 @@
 #include "gpu/buffer.h"
 #include "gpu/index_data.h"
 #include "gpu/pipeline.h"
-#include "gpu/program.h"
+#include "gpu/shader.h"
 #include "gpu/texture.h"
 #include "gpu/vertex_data.h"
 
@@ -69,13 +69,13 @@ public:
 		return GPUPipelinePtr(new GPUPipeline());
 	}
 
-	/** Load a GPU program.
+	/** Load a GPU shader.
 	 * @note	 	This is temporary until the resource system is
 	 *			implemented.
-	 * @param path		Path to the program source.
-	 * @param type		Type of the program.
-	 * @return		Pointer to created program. */
-	virtual GPUProgramPtr loadProgram(const char *path, GPUProgram::Type type) = 0;
+	 * @param path		Path to the shader source.
+	 * @param type		Type of the shader.
+	 * @return		Pointer to created shader. */
+	virtual GPUShaderPtr loadShader(const char *path, GPUShader::Type type) = 0;
 
 	/** Create a 2D texture.
 	 * @param desc		Descriptor containing texture parameters.

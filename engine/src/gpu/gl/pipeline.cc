@@ -6,7 +6,7 @@
 
 #include "gl.h"
 #include "pipeline.h"
-#include "program.h"
+#include "shader.h"
 
 /** Construct the pipeline object. */
 GLPipeline::GLPipeline() : m_pipeline(GL_NONE) {}
@@ -36,13 +36,13 @@ void GLPipeline::bind() {
 void GLPipeline::finalizeImpl() {
 	glGenProgramPipelines(1, &m_pipeline);
 
-	for(size_t i = 0; i < GPUProgram::kNumProgramTypes; i++) {
-		if(!m_programs[i])
+	for(size_t i = 0; i < GPUShader::kNumShaderTypes; i++) {
+		if(!m_shaders[i])
 			continue;
 
-		GLProgram *program = static_cast<GLProgram *>(m_programs[i].get());
-		GLbitfield stage = gl::convertProgramTypeBitfield(program->type());
-		glUseProgramStages(m_pipeline, stage, program->program());
+		GLShader *shader = static_cast<GLShader *>(m_shaders[i].get());
+		GLbitfield stage = gl::convertShaderTypeBitfield(shader->type());
+		glUseProgramStages(m_pipeline, stage, shader->program());
 	}
 }
 

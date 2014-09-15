@@ -73,7 +73,7 @@ public:
 	GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) override;
 	VertexDataPtr createVertexData(size_t vertices) override;
 	GPUPipelinePtr createPipeline() override;
-	GPUProgramPtr loadProgram(const char *path, GPUProgram::Type type) override;
+	GPUShaderPtr loadShader(const char *path, GPUShader::Type type) override;
 	GPUTexturePtr createTexture(const GPUTexture2DDesc &desc) override;
 	GPUTexturePtr createTexture(const GPUTexture2DArrayDesc &desc) override;
 	GPUTexturePtr createTexture(const GPUTextureCubeDesc &desc) override;
@@ -303,28 +303,28 @@ static inline GLenum convertPrimitiveType(PrimitiveType type) {
 	}
 }
 
-/** Convert a program type to a GL shader type.
+/** Convert a shader type to a GL shader type.
  * @param type		Type to convert.
  * @return		Converted GL type. */
-static inline GLenum convertProgramType(GPUProgram::Type type) {
+static inline GLenum convertShaderType(GPUShader::Type type) {
 	switch(type) {
-	case GPUProgram::kVertexProgram:
+	case GPUShader::kVertexShader:
 		return GL_VERTEX_SHADER;
-	case GPUProgram::kFragmentProgram:
+	case GPUShader::kFragmentShader:
 		return GL_FRAGMENT_SHADER;
 	default:
 		return 0;
 	}
 }
 
-/** Convert a program type to a GL bitfield type.
+/** Convert a shader type to a GL bitfield type.
  * @param type		Type to convert.
  * @return		Converted GL bitfield type. */
-static inline GLbitfield convertProgramTypeBitfield(GPUProgram::Type type) {
+static inline GLbitfield convertShaderTypeBitfield(GPUShader::Type type) {
 	switch(type) {
-	case GPUProgram::kVertexProgram:
+	case GPUShader::kVertexShader:
 		return GL_VERTEX_SHADER_BIT;
-	case GPUProgram::kFragmentProgram:
+	case GPUShader::kFragmentShader:
 		return GL_FRAGMENT_SHADER_BIT;
 	default:
 		return 0;

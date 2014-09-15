@@ -1,18 +1,18 @@
 /**
  * @file
  * @copyright		2014 Alex Smith
- * @brief		OpenGL program implementation.
+ * @brief		OpenGL shader implementation.
  */
 
 #pragma once
 
 #include "gl.h"
 
-/** OpenGL GPU program implementation. */
-class GLProgram : public GPUProgram {
+/** OpenGL GPU shader implementation. */
+class GLShader : public GPUShader {
 public:
-	GLProgram(const char *path, Type type);
-	~GLProgram();
+	GLShader(const char *path, Type type);
+	~GLShader();
 
 	void bindUniforms(const char *name, unsigned index) override;
 	void bindTexture(const char *name, unsigned index) override;
