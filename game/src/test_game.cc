@@ -224,7 +224,7 @@ Entity *TestGame::makePlane(Entity *parent, const std::string &name) {
 /** Initialize the game world. */
 TestGame::TestGame() {
 	m_material = g_assetManager->load<Material>("game/materials/test");
-	TextureBasePtr texture = m_material->value<TextureBasePtr>("diffuse");
+	TextureBasePtr texture = m_material->value<TextureBasePtr>("diffuseTexture");
 	g_gpu->bindTexture(0, texture->gpu());
 
 	m_vertexFormat = g_gpu->createVertexFormat();
@@ -281,8 +281,8 @@ TestGame::TestGame() {
 void game::engineConfiguration(EngineConfiguration &config) {
 	config.title = "Orion";
 	config.graphicsAPI = EngineConfiguration::kGLGraphicsAPI;
-	config.displayWidth = 1440;
-	config.displayHeight = 900;
+	config.displayWidth = 1024;
+	config.displayHeight = 600;
 	config.displayFullscreen = false;
 	config.displayVsync = false;
 }

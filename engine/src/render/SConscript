@@ -1,11 +1,13 @@
 sources = map(File, [
     'forward_renderer.cc',
+    'pass.cc',
     'scene.cc',
     'scene_entity.cc',
     'scene_light.cc',
     'scene_renderer.cc',
     'scene_view.cc',
     'shader.cc',
+    'shader_parameter.cc',
     'uniform_buffer.cc',
 ])
 

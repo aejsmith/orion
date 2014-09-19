@@ -6,14 +6,12 @@
 
 #pragma once
 
-#include "engine/asset.h"
 #include "engine/texture.h"
 
-#include "render/defs.h"
+#include "render/shader.h"
 
-#include <vector>
+#include <array>
 
-class Shader;
 class UniformBufferBase;
 
 /**
@@ -25,11 +23,11 @@ class UniformBufferBase;
  */
 class Material : public Asset {
 public:
-	explicit Material(const Shader *shader);
+	explicit Material(ShaderPtr shader);
 	~Material();
 
 	/** @return		Shader for the material. */
-	const Shader *shader() const { return m_shader; }
+	ShaderPtr shader() const { return m_shader; }
 
 	/**
 	 * Parameter value access.
@@ -56,20 +54,11 @@ public:
 		setValue(name, ShaderParameterTypeTraits<T>::kType, std::addressof(value));
 	}
 private:
-	const Shader *m_shader;		/**< Shader being used by the material. */
+	ShaderPtr m_shader;		/**< Shader being used by the material. */
 	UniformBufferBase *m_uniforms;	/**< Uniform buffer containing material parameters. */
 
-	/** Extra parameter values (indexed by ShaderParameter::index). */
-	std::vector<char *> m_values;
-
-	/**
-	 * Textures.
-	 *
-	 * Array of textures for the material, indexed by ShaderParameter::index.
-	 * We additionally store the source parameter structure to access its
-	 * binding information.
-	 */
-	std::vector<std::pair<const ShaderParameter *, TextureBasePtr>> m_textures;
+	/** Array of textures, indexed by slot. */
+	std::array<TextureBasePtr, TextureSlots::kMaterialTexturesEnd + 1> m_textures;
 };
 
 /** Type of a material pointer. */

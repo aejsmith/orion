@@ -69,14 +69,6 @@ public:
 		return GPUPipelinePtr(new GPUPipeline());
 	}
 
-	/** Load a GPU shader.
-	 * @note	 	This is temporary until the resource system is
-	 *			implemented.
-	 * @param path		Path to the shader source.
-	 * @param type		Type of the shader.
-	 * @return		Pointer to created shader. */
-	virtual GPUShaderPtr loadShader(const char *path, GPUShader::Type type) = 0;
-
 	/** Create a 2D texture.
 	 * @param desc		Descriptor containing texture parameters.
 	 * @return		Pointer to created texture. */
@@ -96,6 +88,25 @@ public:
 	 * @param desc		Descriptor containing texture parameters.
 	 * @return		Pointer to created texture. */
 	virtual GPUTexturePtr createTexture(const GPUTexture3DDesc &desc) = 0;
+
+	/**
+	 * Shader methods.
+	 */
+
+	/** Compile a GPU shader from GLSL source.
+	 * @note		In future I expect that this will exist only for
+	 * 			non-cooked builds (it may possibly even be moved
+	 *			out of GPUInterface). It would return a blob
+	 *			that can be passed to a different method. For
+	 *			GL this would be just the GLSL source with some
+	 *			preprocessing done, but for D3D and other APIs
+	 *			we can return a compiled blob. This would then
+	 *			be stored in the cooked Shader asset.
+	 * @param type		Type of the shader.
+	 * @param source	Shader source string.
+	 * @return		Pointer to created shader, null if compilation
+	 *			fails. */
+	virtual GPUShaderPtr compileShader(GPUShader::Type type, const std::string &source) = 0;
 
 	/**
 	 * State methods.

@@ -1,0 +1,14 @@
+{
+	"parameters": {
+		"shininess": "Float",
+		"specularColour": "Vec3",
+		"diffuseTexture": "Texture"
+	},
+	"passes": [
+		{
+			"type": "Forward",
+			"vertex": "engine/shaders/lighting/forward_vtx.glsl",
+			"fragment": "engine/shaders/lighting/forward_frag.glsl"
+		}
+	]
+}

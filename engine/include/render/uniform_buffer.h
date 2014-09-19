@@ -10,6 +10,8 @@
 
 #include "render/defs.h"
 
+#include <list>
+
 /**
  * Uniform structure metadata.
  */
@@ -23,24 +25,38 @@ struct UniformStructMember {
 
 /** Information about a uniform structure. */
 struct UniformStruct {
-	/** Type of the member variable array. */
-	typedef std::vector<UniformStructMember> MemberArray;
+	/** Type of the global uniform structure list. */
+	typedef std::list<UniformStruct *> StructList;
 
-	/** Type of the member array initialization function. */
-	typedef void (*InitMembersFunc)(MemberArray &);
+	/** Type of the member variable list. */
+	typedef std::list<UniformStructMember> MemberList;
+
+	/** Type of the member initialization function. */
+	typedef void (*InitMembersFunc)(UniformStruct *);
 public:
 	const char *name;			/**< Name of the structure. */
+	const char *instanceName;		/**< Instance name to use when declaring in shaders. */
+	unsigned slot;				/**< Uniform slot to bind to when used in shaders. */
 	size_t size;				/**< Size of the structure. */
-	MemberArray members;			/**< Members of the structure. */
+	MemberList members;			/**< Members of the structure. */
 public:
-	UniformStruct(const char *inName, size_t inSize, InitMembersFunc initFunc) :
+	/** Constructor for a dynamically built uniform structure. */
+	UniformStruct(const char *inName, const char *inInstance, unsigned inSlot) :
 		name(inName),
-		size(inSize)
-	{
-		initFunc(this->members);
-	}
+		instanceName(inInstance),
+		slot(inSlot),
+		size(0)
+	{}
+
+	UniformStruct(const char *inName, const char *inInstance, unsigned inSlot, size_t inSize, InitMembersFunc initFunc);
 
 	const UniformStructMember *lookupMember(const char *name) const;
+
+	const UniformStructMember *addMember(const char *name, ShaderParameter::Type type);
+	const UniformStructMember *addMember(const char *name, ShaderParameter::Type type, size_t offset);
+
+	static const StructList &structList();
+	static const UniformStruct *lookup(const std::string &name);
 };
 
 /**
@@ -54,27 +70,26 @@ public:
 		typedef structName UniformStructType; \
 		static const UniformStruct kUniformStruct; \
 		\
-		static void _initMembers(UniformStruct::MemberArray &_members) { \
+		static void _initMembers(UniformStruct *_struct) { \
 
 /** Declare a uniform structure member.
  * @param typeName	Type of the member.
  * @param memberName	Name of the member. */
 #define UNIFORM_STRUCT_MEMBER(typeName, memberName) \
-			UniformStructMember _memberInfo = { \
+			static_assert( \
+				(offsetof(UniformStructType, memberName) \
+					& (ShaderParameterTypeTraits<typeName>::kAlignment - 1)) == 0, \
+				"Uniform buffer member " #memberName " is misaligned"); \
+			_struct->addMember( \
 				#memberName, \
 				ShaderParameterTypeTraits<typeName>::kType, \
-				offsetof(UniformStructType, memberName), \
-			}; \
-			static_assert( \
-				(offsetof(UniformStructType, memberName) & (ShaderParameterTypeTraits<typeName>::kAlignment - 1)) == 0, \
-				"Uniform buffer member " #memberName " is misaligned"); \
-			_members.push_back(_memberInfo); \
-			_initMembers_##memberName(_members); \
+				offsetof(UniformStructType, memberName)); \
+			_initMembers_##memberName(_struct); \
 		} \
 		\
 		alignas(ShaderParameterTypeTraits<typeName>::kAlignment) typeName memberName; \
 		\
-		static void _initMembers_##memberName(UniformStruct::MemberArray &_members) {
+		static void _initMembers_##memberName(UniformStruct *_struct) {
 
 /** End a uniform buffer structure declaration. */
 #define UNIFORM_STRUCT_END \
@@ -82,9 +97,16 @@ public:
 	}
 
 /** Define uniform structure metadata.
- * @param structName	Name of the structure. */
-#define IMPLEMENT_UNIFORM_STRUCT(structName) \
-	const UniformStruct structName::kUniformStruct(#structName, sizeof(structName), structName::_initMembers);
+ * @param structName	Name of the structure.
+ * @param instanceName	Instance name to use when declaring in shaders.
+ * @param slot		Uniform slot to bind to when used in shaders. */
+#define IMPLEMENT_UNIFORM_STRUCT(structName, instanceName, slot) \
+	const UniformStruct structName::kUniformStruct( \
+		#structName, \
+		instanceName, \
+		slot, \
+		sizeof(structName), \
+		structName::_initMembers);
 
 /**
  * Uniform buffer helper classes.
@@ -148,21 +170,21 @@ protected:
  * defined at compile time. In addition to UniformBufferBase, it adds methods
  * for direct access to the buffer contents.
  *
- * @tparam Struct	Uniform structure.
+ * @tparam Uniforms	Uniform structure.
  */
-template <typename Struct>
+template <typename Uniforms>
 class UniformBuffer : public UniformBufferBase {
 public:
 	/** Initialize the buffer.
 	 * @param usage		GPU buffer usage hint. */
 	explicit UniformBuffer(GPUBuffer::Usage usage = GPUBuffer::kDynamicDrawUsage) :
-		UniformBufferBase(Struct::kUniformStruct, usage)
+		UniformBufferBase(Uniforms::kUniformStruct, usage)
 	{}
 
 	/** Access the buffer for reading.
 	 * @return		Pointer to the buffer for reading. */
-	const Struct *read() const {
-		return reinterpret_cast<const Struct *>(m_shadowBuffer);
+	const Uniforms *read() const {
+		return reinterpret_cast<const Uniforms *>(m_shadowBuffer);
 	}
 
 	/**
@@ -185,9 +207,9 @@ public:
 	 *
 	 * @return		Pointer to the buffer for writing.
 	 */
-	Struct *write() {
+	Uniforms *write() {
 		m_dirty = true;
-		return reinterpret_cast<Struct *>(m_shadowBuffer);
+		return reinterpret_cast<Uniforms *>(m_shadowBuffer);
 	}
 
 	/**
@@ -200,5 +222,5 @@ public:
 	 *
 	 * @return		Pointer to the buffer for writing.
 	 */
-	Struct *operator ->() { return write(); }
+	Uniforms *operator ->() { return write(); }
 };

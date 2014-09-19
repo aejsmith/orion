@@ -6,9 +6,7 @@
 
 #pragma once
 
-#include "core/core.h"
-
-#include <cstdarg>
+#include "core/defs.h"
 
 namespace util {
 

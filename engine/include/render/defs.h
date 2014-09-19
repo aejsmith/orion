@@ -8,59 +8,52 @@
 
 #include "core/refcounted.h"
 
-class Texture2D;
 class TextureBase;
 
 struct UniformStructMember;
 
 /**
- * Standard uniform buffer binding point indices.
+ * Standard uniform buffer binding points.
  *
- * We define a set of uniform buffer binding point indices for standard things
- * like per-entity/light/view uniforms. These will be bound automatically by
- * the renderer if they are used by a shader. Shader-specific uniform buffers
- * can be bound to indices in the custom range, and should be bound by shader
- * C++ code.
+ * We define a set of standard uniform buffer binding point indices so that the
+ * renderer can bind them once and have them automatically available to GPU
+ * shaders.
  */
 namespace UniformSlots {
 	enum {
 		/** Uniforms for the entity currently being rendered. */
-		kEntityUniforms = 0,
-		/** Uniforms for the light for the current pass. */
-		kLightUniforms = 1,
+		kEntityUniforms,
 		/** Uniforms for the view the scene is being rendered from. */
-		kViewUniforms = 2,
-
-		/** Custom (shader-specific) uniform block range. */
-		kCustomUniformsStart = 8,
-		kCustomUniformsEnd = 15,
+		kViewUniforms,
+		/** Uniforms for the light for the current pass. */
+		kLightUniforms,
+		/** Uniforms for the current material. */
+		kMaterialUniforms,
 	};
 }
 
 /**
- * Standard texture binding point indices.
+ * Standard texture binding points.
  *
- * Similarly to UniformSlots, we define a set of standard texture binding points
- * for use by shaders. Some of these refer to textures provided by the renderer,
- * e.g. G-Buffer textures, and are bound automatically. Shader texture
- * parameters are specified with an index and are automatically bound to the
- * textures specified in their materials.
+ * Similarly to UniformSlots, we define a set of standard texture binding point
+ * indices. A range is kept free for per-shader textures to be bound to, the
+ * others are for standard textures provided by the renderer, e.g. G-Buffer
+ * textures, and are bound automatically.
+ *
+ * @note		Keep shader-specific definitions first, the texture
+ *			array in Material is indexed by slot (size is
+ *			kCustomTextureEnd).
  */
 namespace TextureSlots {
 	enum {
-		/** Diffuse material texture. */
-		kDiffuseTexture = 0,
-		/** Normal map texture. */
-		kNormalTexture = 1,
-
-		/** Custom (shader-specific) texture range. */
-		kCustomTextureStart = 8,
-		kCustomTextureEnd = 15,
+		/** Shader-specific texture range. */
+		kMaterialTexturesStart = 0,
+		kMaterialTexturesEnd = 15,
 	};
 }
 
 /**
- * Shader parameter information.
+ * Shader definitions.
  */
 
 /** Details of a shader parameter. */
@@ -81,58 +74,26 @@ struct ShaderParameter {
 		/** Special types (cannot be used in uniform structures). */
 		kTextureType,		/**< Texture. */
 	};
-
-	/** Parameter binding type. */
-	enum Binding {
-		kNoBinding,		/**< No automatic binding (extra parameter). */
-		kUniformBinding,	/**< Bind to a uniform struct member. */
-		kTextureBinding,	/**< Bind to a texture slot. */
-	};
 public:
-	const char *name;		/**< Parameter name. */
 	Type type;			/**< Parameter type. */
-	Binding binding;		/**< Binding type. */
-	unsigned index;			/**< Index into material parameter tables. */
 
-	/** Binding information. */
 	union {
-		/** Uniform struct member (kUniformParameterBinding). */
+		/** For uniform parameters, the struct member for the parameter. */
 		const UniformStructMember *uniformMember;
-		/** Texture slot (kTextureParameterBinding). */
+		/** For texture parameters, the texture slot to bind to. */
 		unsigned textureSlot;
 	};
 public:
 	/** @return		Storage size of the parameter. */
 	size_t size() const { return size(this->type); }
+	/** @return		Alignment for this parameter type. */
+	size_t alignment() const { return alignment(this->type); }
+	/** @return		GLSL type for this parameter type. */
+	const char *glslType() const { return glslType(this->type); }
 
-	/** Get the storage size for a shader parameter type.
-	 * @param type		Type to get size of. Only valid for basic types.
-	 * @return		Size of the type. */
-	static size_t size(Type type) {
-		switch(type) {
-		case kIntType:
-			return sizeof(int);
-		case kUnsignedIntType:
-			return sizeof(unsigned int);
-		case kFloatType:
-			return sizeof(float);
-		case kVec2Type:
-			return sizeof(glm::vec2);
-		case kVec3Type:
-			return sizeof(glm::vec3);
-		case kVec4Type:
-			return sizeof(glm::vec4);
-		case kMat2Type:
-			return sizeof(glm::mat2);
-		case kMat3Type:
-			return sizeof(glm::mat3);
-		case kMat4Type:
-			return sizeof(glm::mat4);
-		default:
-			/* Textures require special handling. */
-			return 0;
-		}
-	}
+	static size_t size(Type type);
+	static size_t alignment(Type type);
+	static const char *glslType(Type type);
 };
 
 /**
@@ -201,9 +162,11 @@ struct ShaderParameterTypeTraits<glm::mat4> {
 	static constexpr size_t kAlignment = 16;
 };
 
-/* Note: Texture2D is specifically left unimplemented here because at the moment
- * we don't type parameters to a specific texture type, just generic types.
- * Implementing Texture2D here makes Material::getValue unsafe. */
+/**
+ * Texture2D is specifically left unimplemented here because at the moment we
+ * don't type parameters to a specific texture type, just generic types.
+ * Implementing Texture2D here makes Material::value() unsafe.
+ */
 template <>
 struct ShaderParameterTypeTraits<ReferencePtr<TextureBase>> {
 	static constexpr ShaderParameter::Type kType = ShaderParameter::kTextureType;

@@ -17,74 +17,154 @@
 #include <memory>
 #include <streambuf>
 
-/** Load a GL shader.
- * @param path		Path to shader.
- * @param type		Type of shader. */
-GLShader::GLShader(const char *path, Type type) :
-	GPUShader(type)
-{
-	std::ifstream stream(path);
-	if(stream.fail())
-		orionAbort("GL: Program `%s' not found", path);
+/** Target GLSL version. */
+static const char *kTargetGLSLVersion = "330 core";
 
-	std::string source = std::string(
-		std::istreambuf_iterator<char>(stream),
-		std::istreambuf_iterator<char>());
-
-	/* Compile the shader. */
-	const GLchar *buf = source.c_str();
-	m_program = glCreateShaderProgramv(gl::convertShaderType(type), 1, &buf);
-	if(!m_program)
-		orionAbort("GL: Failed to create program object");
-
-	/* Check whether it succeeded. glCreateShaderProgramv() appends the
-	 * compiler log to the program info log if compilation fails, so this
-	 * gets both compiler and linker errors. */
-	GLint result;
-	glGetProgramiv(m_program, GL_LINK_STATUS, &result);
-	if(result != GL_TRUE) {
-		glGetProgramiv(m_program, GL_INFO_LOG_LENGTH, &result);
-		std::unique_ptr<char[]> log(new char[result]);
-		glGetProgramInfoLog(m_program, result, &result, log.get());
-		orionLog(LogLevel::kDebug, "Compiler log:\n%s", log.get());
-
-		glDeleteProgram(m_program);
-		orionAbort("GL: Failed to compile program `%s'", path);
-	}
-}
+/** Initialize the shader.
+ * @param type		Type of shader.
+ * @param program	Linked program object. */
+GLShader::GLShader(Type type, GLuint program) :
+	GPUShader(type),
+	m_program(program)
+{}
 
 /** Destroy the shader. */
 GLShader::~GLShader() {
 	glDeleteProgram(m_program);
 }
 
+/** Query active uniform blocks in the program.
+ * @param list		Resource list to fill in. */
+void GLShader::queryUniformBlocks(ResourceList &list) {
+	GLint numBlocks = 0;
+	glGetProgramiv(m_program, GL_ACTIVE_UNIFORM_BLOCKS, &numBlocks);
+
+	for(GLint i = 0; i < numBlocks; i++) {
+		GLint nameLen = 0;
+		glGetActiveUniformBlockiv(m_program, i, GL_UNIFORM_BLOCK_NAME_LENGTH, &nameLen);
+
+		char name[nameLen + 1];
+		glGetActiveUniformBlockName(m_program, i, nameLen, &nameLen, &name[0]);
+		name[nameLen] = 0;
+
+		list.push_back({ std::string(name), static_cast<unsigned>(i) });
+	}
+}
+
+/** Query active texture samplers in the program.
+ * @param list		Resource list to fill in. */
+void GLShader::querySamplers(ResourceList &list) {
+	GLint numUniforms = 0;
+	glGetProgramiv(m_program, GL_ACTIVE_UNIFORMS, &numUniforms);
+
+	for(GLuint i = 0; i < static_cast<GLuint>(numUniforms); i++) {
+		/* This range includes uniforms in a uniform block. Skip them,
+		 * samplers cannot be specified in uniform blocks. */
+		GLint blockIndex = 0;
+		glGetActiveUniformsiv(m_program, 1, &i, GL_UNIFORM_BLOCK_INDEX, &blockIndex);
+		if(blockIndex >= 0)
+			continue;
+
+		/* Query the type to check if it's a sampler. */
+		GLint type = 0;
+		glGetActiveUniformsiv(m_program, 1, &i, GL_UNIFORM_TYPE, &type);
+		switch(type) {
+		case GL_SAMPLER_1D:
+		case GL_SAMPLER_2D:
+		case GL_SAMPLER_3D:
+		case GL_SAMPLER_CUBE:
+		case GL_SAMPLER_1D_SHADOW:
+		case GL_SAMPLER_2D_SHADOW:
+		case GL_SAMPLER_1D_ARRAY:
+		case GL_SAMPLER_2D_ARRAY:
+		case GL_SAMPLER_1D_ARRAY_SHADOW:
+		case GL_SAMPLER_2D_ARRAY_SHADOW:
+		case GL_SAMPLER_2D_MULTISAMPLE:
+		case GL_SAMPLER_2D_MULTISAMPLE_ARRAY:
+		case GL_SAMPLER_CUBE_SHADOW:
+			break;
+		default:
+			/* TODO: other sampler types? */
+			continue;
+		}
+
+		GLint nameLen;
+		glGetActiveUniformsiv(m_program, 1, &i, GL_UNIFORM_NAME_LENGTH, &nameLen);
+
+		char name[nameLen + 1];
+		glGetActiveUniformName(m_program, i, nameLen, &nameLen, &name[0]);
+		name[nameLen] = 0;
+
+		printf("sampler %s %d\n", name, i);
+		list.push_back({ std::string(name), static_cast<unsigned>(i) });
+	}
+}
+
 /** Bind a uniform block in the shader.
- * @param name		Name of uniform block.
- * @param index		Uniform buffer binding point index. */
-void GLShader::bindUniforms(const char *name, unsigned index) {
-	GLuint blockIndex = glGetUniformBlockIndex(m_program, name);
-	if(blockIndex == GL_INVALID_INDEX)
-		orionAbort("GL: Unknown uniform block '%s'", name);
-
-	glUniformBlockBinding(m_program, blockIndex, index);
+ * @param index		Index of uniform block.
+ * @param slot		Uniform buffer slot. */
+void GLShader::bindUniformBlock(unsigned index, unsigned slot) {
+	glUniformBlockBinding(m_program, index, slot);
 }
 
-/** Bind a sampler in the shader.
- * @param name		Name of sampler.
- * @param index		Texture unit index. */
-void GLShader::bindTexture(const char *name, unsigned index) {
-	GLint uniformLocation = glGetUniformLocation(m_program, name);
-	if(uniformLocation < 0)
-		orionAbort("GL: Unknown sampler uniform name '%s'", name);
-
-	glProgramUniform1i(m_program, uniformLocation, index);
+/** Bind a texture sampler in the shader.
+ * @param index		Index of sampler.
+ * @param slot		Texture slot. */
+void GLShader::bindSampler(unsigned index, unsigned slot) {
+	glProgramUniform1i(m_program, index, slot);
 }
 
-/** Load a GPU shader.
- * @param path		Path to the shader source.
+/** Compile a GPU shader.
  * @param type		Type of the shader.
+ * @param source	Shader source string.
  * @return		Pointer to created shader. */
-GPUShaderPtr GLGPUInterface::loadShader(const char *path, GPUShader::Type type) {
-	GPUShader *program = new GLShader(path, type);
-	return GPUShaderPtr(program);
+GPUShaderPtr GLGPUInterface::compileShader(GPUShader::Type type, const std::string &source) {
+	/* Add a version string at the start, and enable SSO. */
+	std::string preamble = util::format("#version %s\n", kTargetGLSLVersion);
+	preamble += "#extension GL_ARB_separate_shader_objects : enable\n";
+
+	if(type == GPUShader::kVertexShader) {
+		/* For some absurd reason SSO requires the gl_PerVertex block to
+		 * be redeclared. Do so here so we don't have to do it in every
+		 * shader. */
+		preamble += "out gl_PerVertex { vec4 gl_Position; };\n";
+
+		/* Insert attribute semantic definitions. TODO: Share this
+		 * information with VertexData::mapAttribute(). */
+		preamble += "#define kPositionSemantic 0\n";
+		preamble += "#define kNormalSemantic 2\n";
+		preamble += "#define kTexCoordSemantic 4\n";
+		preamble += "#define kDiffuseSemantic 14\n";
+		preamble += "#define kSpecularSemantic 15\n";
+	}
+
+	/* Compile the shader. */
+	const GLchar *strings[] = { preamble.c_str(), source.c_str() };
+	GLuint program = glCreateShaderProgramv(
+		gl::convertShaderType(type),
+		util::arraySize(strings),
+		strings);
+	if(!program) {
+		orionLog(LogLevel::kError, "GL: Failed to create program object");
+		return nullptr;
+	}
+
+	/* Check whether it succeeded. glCreateShaderProgramv() appends the
+	 * compiler log to the program info log if compilation fails, so this
+	 * gets both compiler and linker errors. */
+	GLint result;
+	glGetProgramiv(program, GL_LINK_STATUS, &result);
+	if(result != GL_TRUE) {
+		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &result);
+		std::unique_ptr<char[]> log(new char[result]);
+		glGetProgramInfoLog(program, result, &result, log.get());
+		glDeleteProgram(program);
+
+		orionLog(LogLevel::kError, "GL: Failed to compile shader");
+		orionLog(LogLevel::kInfo,  "GL: Compiler log:\n%s", log.get());
+		return nullptr;
+	}
+
+	GPUShader *shader = new GLShader(type, program);
+	return GPUShaderPtr(shader);
 }

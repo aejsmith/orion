@@ -6,69 +6,80 @@
 
 #pragma once
 
-#include "engine/texture.h"
+#include "engine/asset.h"
 
+#include "render/pass.h"
 #include "render/uniform_buffer.h"
 
+#include <array>
 #include <map>
+#include <vector>
+
+class Pass;
 
 /**
- * Shader class
+ * Shader class.
  *
  * This class implements the CPU side of a shader. A shader defines a set of
  * parameters, and a set of rendering passes required to achieve the desired
- * effect. A pass defines the actual GPU shaders that will be used. Materials
- * are assets which supply parameters to shaders.
+ * effect. A pass defines the actual GPU shaders that will be used and other
+ * bits of GPU state. Parameter values are supplied to shaders via Materials.
  *
- * There are 3 categories of shader parameters: uniforms, textures, and extra
- * parameters. Uniform parameters are ones which are passed directly to the
- * GPU shader code, these are automatically filled into the material's uniform
- * buffer. Texture parameters (obviously) specify a texture used by the shader,
- * these are specified with a texture slot index that the texture will be bound
- * to. Finally, extra parameters are ones used by the C++ shader code. Their
- * values are stored in Material and can be retrieved with Material::getValue().
+ * A shader can have uniform parameters, which are automatically filled into
+ * a uniform buffer and made available to GPU shaders in the kMaterialUniforms
+ * uniform buffer slot, and texture parameters, which are made available to GPU
+ * shaders in the specified texture slot.
  */
-class Shader : Noncopyable {
+class Shader : public Asset {
 public:
 	/** Type of the parameter map. */
 	typedef std::map<std::string, ShaderParameter> ParameterMap;
 public:
-	virtual ~Shader();
+	~Shader();
 
-	/** @return		Name of the shader. */
-	const char *name() const { return m_name; }
 	/** @return		Uniform structure used by the shader. */
 	const UniformStruct *uniformStruct() const { return m_uniformStruct; }
 	/** @return		Parameter map for the shader. */
 	const ParameterMap &parameters() const { return m_parameters; }
-	/** @return		Number of texture parameters. */
-	unsigned numTextureParameters() const { return m_nextTextureIndex; }
-	/** @return		Number of extra parameters. */
-	unsigned numExtraParameters() const { return m_nextExtraIndex; }
+
+	/** Get the number of passes of a certain type the shader has.
+	 * @param type		Type to get.
+	 * @return		Number of passes of the specified type. */
+	size_t numPasses(Pass::Type type) const {
+		return m_passes[type].size();
+	}
+
+	/** Get a pass.
+	 * @note		Does not check whether the pass exists, this
+	 *			must be done manually beforehand.
+	 * @param type		Type of the pass to get.
+	 * @param index		Index of the pass.
+	 * @return		Pointer to pass. */
+	const Pass *pass(Pass::Type type, unsigned index) const {
+		return m_passes[type][index];
+	}
 
 	const ShaderParameter *lookupParameter(const std::string &name) const;
-
-	static const Shader *lookup(const std::string &name);
-protected:
-	Shader(const char *name);
-	Shader(const char *name, const UniformStruct &ustruct, bool bindMembers = true);
-
-	void addUniformParameter(const char *name, const char *memberName = nullptr);
-	void addTextureParameter(const char *name, unsigned slot);
-	void addExtraParameter(const char *name, ShaderParameter::Type type);
-
-	/** Add an extra parameter to the shader.
-	 * @tparam T		Type of the parameter.
-	 * @param name		Name of the parameter. */
-	template <typename T> void addExtraParameter(const char *name) {
-		addExtraParameter(name, ShaderParameterTypeTraits<T>::kType);
-	}
 private:
-	void addParameter(const ShaderParameter &param);
+	Shader();
+
+	bool addParameter(const std::string &name, ShaderParameter::Type type);
+	bool addPass(Pass *pass);
 private:
-	const char *m_name;			/**< Name of the shader. */
-	const UniformStruct *m_uniformStruct;	/**< Uniform structure used by the shader. */
+	UniformStruct *m_uniformStruct;		/**< Uniform structure used by the shader. */
 	ParameterMap m_parameters;		/**< Map of registered parameters. */
-	unsigned m_nextTextureIndex;		/**< Next texture parameter index. */
-	unsigned m_nextExtraIndex;		/**< Next extra parameter index. */
+	unsigned m_nextTextureSlot;		/**< Next available texture slot. */
+
+	/**
+	 * Array of passes.
+	 *
+	 * Array for the different pass types, with a variable-sized array
+	 * within that for all passes of that type.
+	 */
+	std::array<std::vector<Pass *>, Pass::kNumTypes> m_passes;
+
+	friend class ShaderLoader;
 };
+
+/** Type of a shader pointer. */
+typedef TypedAssetPtr<Shader> ShaderPtr;

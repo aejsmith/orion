@@ -4,162 +4,63 @@
  * @brief		Shader class.
  */
 
+#include "engine/asset_loader.h"
+
+#include "render/pass.h"
 #include "render/shader.h"
 
-/** Type of the registered shader map. */
-typedef std::map<std::string, Shader *> RegisteredShaderMap;
-
-/** @return		Registered shader map. */
-static RegisteredShaderMap &registeredShaderMap() {
-	static RegisteredShaderMap shaders;
-	return shaders;
-}
-
-/**
- * Initialize the shader.
- *
- * Initialize the shader without a uniform structure. Derived constructors
- * should add the parameters used by the shader.
- *
- * @param name		Name of the shader.
- */
-Shader::Shader(const char *name) :
-	m_name(name),
+/** Initialize the shader. */
+Shader::Shader() :
 	m_uniformStruct(nullptr),
-	m_nextTextureIndex(0),
-	m_nextExtraIndex(0)
-{
-	/* Register the shader. */
-	RegisteredShaderMap &shaders = registeredShaderMap();
-	auto ret = shaders.insert(std::make_pair(m_name, this));
-	orionCheck(ret.second, "Registering shader '%s' that already exists", m_name);
-}
-
-/**
- * Initialize the shader.
- *
- * Initializes the shader. Derived constructors should add the parameters used
- * by the shader. The uniform structure parameter specifies the uniform
- * structure which will be used to pass material parameters to the GPU shaders.
- * Each material using this shader will have a uniform buffer created for it
- * that matches the layout of the specified structure.
- *
- * @param name		Name of the shader.
- * @param ustruct	Uniform structure for the shader.
- * @param bindMembers	Whether to bind all uniform struct members as shader
- *			parameters automatically (defaults to true).
- */
-Shader::Shader(const char *name, const UniformStruct &ustruct, bool bindMembers) :
-	Shader(name)
-{
-	m_uniformStruct = &ustruct;
-
-	if(bindMembers) {
-		for(const UniformStructMember &member : ustruct.members)
-			addUniformParameter(member.name);
-	}
-}
+	m_nextTextureSlot(0)
+{}
 
 /** Destroy the shader. */
 Shader::~Shader() {
-	/* Unregister the shader. */
-	RegisteredShaderMap &shaders = registeredShaderMap();
-	shaders.erase(m_name);
+	/* Delete all passes. */
+	for(size_t i = 0; i < m_passes.size(); i++) {
+		for(size_t j = 0; j < m_passes[i].size(); j++)
+			delete m_passes[i][j];
+	}
+
+	delete m_uniformStruct;
 }
 
-/** Look up a shader by name.
- * @param name		Name of the shader to look up.
- * @return		Pointer to shader if found, null if not. */
-const Shader *Shader::lookup(const std::string &name) {
-	RegisteredShaderMap &shaders = registeredShaderMap();
-	auto ret = shaders.find(name);
-	return (ret != shaders.end()) ? ret->second : nullptr;
-}
-
-/**
- * Parameter management.
- */
-
-/** Add a parameter to the parameter list.
- * @param param		Parameter to add. */
-void Shader::addParameter(const ShaderParameter &param) {
-	auto ret = m_parameters.insert(std::make_pair(param.name, param));
-	orionCheck(ret.second, "Adding duplicate parameter '%s' to '%s'", param.name, m_name);
-}
-
-/**
- * Add a uniform parameter.
- *
- * Adds a uniform parameter to the shader. Uniform parameters are bound to
- * a member in the shader's uniform structure, and have the type of the
- * specified member. The specified member will automatically be set in a
- * material's uniform buffer when the parameter is changed in the material.
- *
- * @param name		Name of the parameter to add.
- * @param memberName	Uniform structure member name to bind to. If null (the
- *			default), the same value specified for name will be
- *			used.
- */
-void Shader::addUniformParameter(const char *name, const char *memberName) {
-	orionCheck(m_uniformStruct, "Adding uniform parameter '%s' to '%s' without struct", name, m_name);
-
-	if(!memberName)
-		memberName = name;
-
-	const UniformStructMember *member = m_uniformStruct->lookupMember(memberName);
-	orionCheck(member, "Unknown uniform struct member '%s' in '%s'", memberName, m_name);
-
-	ShaderParameter param;
-	param.name = name;
-	param.type = member->type;
-	param.binding = ShaderParameter::kUniformBinding;
-	param.index = 0;
-	param.uniformMember = member;
-	addParameter(param);
-}
-
-/**
- * Add a texture parameter.
- *
- * Adds a texture parameter to the shader. Texture parameters are automatically
- * bound to the specified texture slot when rendering takes place using the
- * shader.
- *
- * @param name		Name of the parameter to add.
- * @param slot		Texture slot to bind to.
- */
-void Shader::addTextureParameter(const char *name, unsigned slot) {
-	ShaderParameter param;
-	param.name = name;
-	param.type = ShaderParameter::kTextureType;
-	param.binding = ShaderParameter::kTextureBinding;
-	param.index = m_nextTextureIndex++;
-	param.textureSlot = slot;
-	addParameter(param);
-}
-
-/**
- * Add an extra parameter to the shader.
- *
- * Adds an extra parameter to the shader. Extra parameter values are not
- * automatically copied to a uniform buffer or bound to a texture slot, their
- * usage is entirely up to C++ shader code.
- *
+/** Add a parameter to the shader.
  * @param name		Name of the parameter to add.
  * @param type		Type of the parameter.
- */
-void Shader::addExtraParameter(const char *name, ShaderParameter::Type type) {
-	/* Requires a bit of awkwardness to store a TexturePtr in the
-	 * Material::Value union, so I haven't bothered adding it until I need
-	 * it, if ever. */
-	orionCheck(type != ShaderParameter::kTextureType, "Extra texture parameters are not supported");
+ * @return		Whether added successfully. */
+bool Shader::addParameter(const std::string &name, ShaderParameter::Type type) {
+	auto ret = m_parameters.emplace(std::make_pair(name, ShaderParameter()));
+	if(!ret.second) {
+		orionLog(LogLevel::kError, "Adding duplicate parameter '%s'", name.c_str());
+		return false;
+	}
 
-	ShaderParameter param;
-	param.name = name;
+	ShaderParameter &param = ret.first->second;
 	param.type = type;
-	param.binding = ShaderParameter::kNoBinding;
-	param.index = m_nextExtraIndex++;
-	addParameter(param);
+
+	if(type == ShaderParameter::kTextureType) {
+		/* Assign a texture slot. */
+		if(m_nextTextureSlot > TextureSlots::kMaterialTexturesEnd) {
+			orionLog(LogLevel::kError, "Parameter '%s' exceeds maximum number of textures", name.c_str());
+			return false;
+		}
+
+		param.textureSlot = m_nextTextureSlot++;
+	} else {
+		/* Add a uniform struct member for it. Create struct if we don't
+		 * already have one. */
+		if(!m_uniformStruct)
+			m_uniformStruct = new UniformStruct("MaterialUniforms", nullptr, UniformSlots::kMaterialUniforms);
+
+		/* A bit nasty, UniformStructMember has a char * for name, not a
+		 * std::string, so we point to the name string in the map key.
+		 * This avoids storing multiple copies of the name string. */
+		param.uniformMember = m_uniformStruct->addMember(ret.first->first.c_str(), type);
+	}
+
+	return true;
 }
 
 /** Look up a parameter by name.
@@ -168,4 +69,206 @@ void Shader::addExtraParameter(const char *name, ShaderParameter::Type type) {
 const ShaderParameter *Shader::lookupParameter(const std::string &name) const {
 	auto it = m_parameters.find(name);
 	return (it != m_parameters.end()) ? &it->second : nullptr;
+}
+
+/** Add a pass to the shader.
+ * @param pass		Pass to add. Becomes owned by the shader, will be
+ *			deleted when the shader is destroyed.
+ * @return		Whether the pass was added successfully. */
+bool Shader::addPass(Pass *pass) {
+	switch(pass->type()) {
+	case Pass::kDeferredBasePass:
+	case Pass::kDeferredOutputPass:
+		if(m_passes[pass->type()].size() != 0) {
+			orionLog(LogLevel::kError, "Only one deferred base/output pass is allowed per shader");
+			return false;
+		}
+
+		break;
+	default:
+		break;
+	}
+
+	/* Finalize the pipeline. */
+	pass->finalize();
+
+	m_passes[pass->type()].push_back(pass);
+	return true;
+}
+
+/**
+ * Shader asset loader.
+ */
+
+/** Asset loader for shaders. */
+class ShaderLoader : public AssetLoader {
+public:
+	ShaderLoader() : AssetLoader("osh") {}
+	bool dataIsMetadata() const override { return true; }
+	AssetPtr load(DataStream *stream, rapidjson::Value &attributes, const char *path) const override;
+private:
+	static bool convertParameterType(const rapidjson::Value &value, ShaderParameter::Type &type);
+	static bool convertPassType(const rapidjson::Value &value, Pass::Type &type);
+	static bool loadStage(Pass *pass, GPUShader::Type stage, const rapidjson::Value &value);
+
+	static ShaderLoader m_instance;
+};
+
+/** Shader loader instance. */
+ShaderLoader ShaderLoader::m_instance;
+
+/** Load a shader asset.
+ * @param stream	Stream containing asset data.
+ * @param attributes	Attributes specified in metadata.
+ * @param path		Path to asset.
+ * @return		Pointer to loaded asset, null on failure. */
+AssetPtr ShaderLoader::load(DataStream *stream, rapidjson::Value &attributes, const char *path) const {
+	if(attributes.HasMember("parameters") && !attributes["parameters"].IsObject()) {
+		orionLog(LogLevel::kError, "Shader 'parameters' attribute is invalid");
+		return nullptr;
+	} else if(!attributes.HasMember("passes") || !attributes["passes"].IsArray()) {
+		orionLog(LogLevel::kError, "Shader 'passes' attribute is missing/invalid");
+		return nullptr;
+	}
+
+	ShaderPtr shader(new Shader());
+
+	/* Add parameters if there are any. */
+	if(attributes.HasMember("parameters")) {
+		const rapidjson::Value &params = attributes["parameters"];
+		for(auto it = params.MemberBegin(); it != params.MemberEnd(); ++it) {
+			const char *paramName = it->name.GetString();
+			if(strlen(paramName) == 0) {
+				orionLog(LogLevel::kError, "Shader parameter name is empty");
+				return nullptr;
+			}
+
+			ShaderParameter::Type paramType;
+			if(!convertParameterType(it->value, paramType))
+				return nullptr;
+
+			if(!shader->addParameter(paramName, paramType))
+				return nullptr;
+		}
+	}
+
+	/* Add passes. */
+	const rapidjson::Value &passes = attributes["passes"];
+	for(auto it = passes.Begin(); it != passes.End(); ++it) {
+		const rapidjson::Value &passDesc = *it;
+		if(!passDesc.IsObject()) {
+			orionLog(LogLevel::kError, "Shader pass descriptor must be an object");
+			return nullptr;
+		} else if(!passDesc.HasMember("type")) {
+			orionLog(LogLevel::kError, "Shader pass type is missing");
+			return nullptr;
+		}
+
+		Pass::Type passType;
+		if(!convertPassType(passDesc["type"], passType))
+			return nullptr;
+
+		std::unique_ptr<Pass> pass(new Pass(shader.get(), passType));
+
+		if(!passDesc.HasMember("vertex") || !passDesc.HasMember("fragment")) {
+			orionLog(LogLevel::kError, "Shader pass requires at least a vertex and fragment shader");
+			return nullptr;
+		}
+
+		if(!loadStage(pass.get(), GPUShader::kVertexShader, passDesc["vertex"]))
+			return nullptr;
+		if(!loadStage(pass.get(), GPUShader::kFragmentShader, passDesc["fragment"]))
+			return nullptr;
+
+		shader->addPass(pass.release());
+	}
+
+	return shader;
+}
+
+/** Convert a parameter type string.
+ * @param value		Parameter type value.
+ * @param type		Where to store converted type.
+ * @return		Whether the type was converted successfully. */
+bool ShaderLoader::convertParameterType(const rapidjson::Value &value, ShaderParameter::Type &type) {
+	if(!value.IsString()) {
+		orionLog(LogLevel::kError, "Shader parameter type should be a string");
+		return false;
+	}
+
+	if(strcmp(value.GetString(), "Int") == 0) {
+		type = ShaderParameter::kIntType;
+		return true;
+	} else if(strcmp(value.GetString(), "UnsignedInt") == 0) {
+		type = ShaderParameter::kUnsignedIntType;
+		return true;
+	} else if(strcmp(value.GetString(), "Float") == 0) {
+		type = ShaderParameter::kFloatType;
+		return true;
+	} else if(strcmp(value.GetString(), "Vec2") == 0) {
+		type = ShaderParameter::kVec2Type;
+		return true;
+	} else if(strcmp(value.GetString(), "Vec3") == 0) {
+		type = ShaderParameter::kVec3Type;
+		return true;
+	} else if(strcmp(value.GetString(), "Vec4") == 0) {
+		type = ShaderParameter::kVec4Type;
+		return true;
+	} else if(strcmp(value.GetString(), "Mat2") == 0) {
+		type = ShaderParameter::kMat2Type;
+		return true;
+	} else if(strcmp(value.GetString(), "Mat3") == 0) {
+		type = ShaderParameter::kMat3Type;
+		return true;
+	} else if(strcmp(value.GetString(), "Mat4") == 0) {
+		type = ShaderParameter::kMat4Type;
+		return true;
+	} else if(strcmp(value.GetString(), "Texture") == 0) {
+		type = ShaderParameter::kTextureType;
+		return true;
+	}
+
+	orionLog(LogLevel::kError, "Shader parameter type '%s' is invalid", value.GetString());
+	return false;
+}
+
+/** Convert a pass type string.
+ * @param value		Pass type value.
+ * @param type		Where to store converted type.
+ * @return		Whether the type was converted successfully. */
+bool ShaderLoader::convertPassType(const rapidjson::Value &value, Pass::Type &type) {
+	if(!value.IsString()) {
+		orionLog(LogLevel::kError, "Shader pass type should be a string");
+		return false;
+	}
+
+	if(strcmp(value.GetString(), "Basic") == 0) {
+		type = Pass::kBasicPass;
+		return true;
+	} else if(strcmp(value.GetString(), "Forward") == 0) {
+		type = Pass::kForwardPass;
+		return true;
+	} else if(strcmp(value.GetString(), "DeferredBase") == 0) {
+		type = Pass::kDeferredBasePass;
+		return true;
+	} else if(strcmp(value.GetString(), "DeferredOutput") == 0) {
+		type = Pass::kDeferredOutputPass;
+		return true;
+	}
+
+	orionLog(LogLevel::kError, "Shader pass type '%s' is invalid", value.GetString());
+	return false;
+}
+
+/** Load a stage in a pass.
+ * @param pass		Pass to load into.
+ * @param stage		Type of the stage to load.
+ * @param value		Value containing path string. */
+bool ShaderLoader::loadStage(Pass *pass, GPUShader::Type stage, const rapidjson::Value &value) {
+	if(!value.IsString()) {
+		orionLog(LogLevel::kError, "Shader pass stage should specify a path string");
+		return false;
+	}
+
+	return pass->loadStage(stage, value.GetString());
 }

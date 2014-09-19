@@ -4,43 +4,13 @@
  * @brief		Forward lighting fragment shader.
  */
 
-layout(std140) uniform ViewUniforms {
-	mat4 view;
-	mat4 projection;
-	mat4 viewProjection;
-	vec3 position;
-} view;
-
-layout(std140) uniform LightUniforms {
-	vec3 position;
-	int type;
-	vec3 direction;
-	float intensity;
-	vec3 colour;
-	float cosCutoff;
-	float range;
-	float attenuationConstant;
-	float attenuationLinear;
-	float attenuationExp;
-} light;
-
-// FIXME: Define these somewhere to match SceneLight types.
-const int kAmbientLight = 0;
-const int kDirectionalLight = 1;
-const int kPointLight = 2;
-const int kSpotLight = 3;
-
-// FIXME: Put these somewhere.
-const float matShininess = 32.0;
-const vec3 matSpecular = vec3(0.5, 0.5, 0.5);
-
-uniform sampler2D diffuseTexture;
-
 layout(location = 0) in vec3 vtxPosition;
 layout(location = 1) in vec3 vtxNormal;
-layout(location = 2) in vec2 vtxTexcoord;
+layout(location = 2) in vec2 vtxTexCoord;
 
 layout(location = 0) out vec4 fragColour;
+
+uniform sampler2D diffuseTexture;
 
 /** Calculate the lighting contribution of a light.
  * @param direction	Direction from the light to the fragment. */
@@ -63,8 +33,8 @@ vec4 calcLight(vec3 direction) {
 		if(specularAngle > 0.0) {
 			totalFactor +=
 				vec4(light.colour, 1.0) *
-				pow(specularAngle, matShininess) *
-				vec4(matSpecular, 1.0);
+				pow(specularAngle, shininess) *
+				vec4(specularColour, 1.0);
 		}
 	}
 
@@ -135,6 +105,6 @@ void main() {
 		break;
 	}
 
-	vec4 texel = texture(diffuseTexture, vtxTexcoord);
+	vec4 texel = texture(diffuseTexture, vtxTexCoord);
 	fragColour = texel * lightFactor;
 }

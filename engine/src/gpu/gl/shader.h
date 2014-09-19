@@ -11,11 +11,13 @@
 /** OpenGL GPU shader implementation. */
 class GLShader : public GPUShader {
 public:
-	GLShader(const char *path, Type type);
+	GLShader(Type type, GLuint program);
 	~GLShader();
 
-	void bindUniforms(const char *name, unsigned index) override;
-	void bindTexture(const char *name, unsigned index) override;
+	void queryUniformBlocks(ResourceList &list) override;
+	void querySamplers(ResourceList &list) override;
+	void bindUniformBlock(unsigned index, unsigned slot) override;
+	void bindSampler(unsigned index, unsigned slot) override;
 
 	/** Get the GL program object.
 	 * @return		GL program object ID. */

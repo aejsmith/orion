@@ -4,6 +4,10 @@ TODO list
 - Investigate depth pre-pass. It's not always a win, depends on scene content.
   Sorting the render list in front to back order is possibly enough.
 - Reload assets when changed (e.g. for shaders).
+- Asset loading error handling. Need some asset type specific error fallback.
+  Also, for materials, need to be more resilient to problems. For example, if
+  we have to fall back on an error shader, parameter setting will assert atm.
+  Maybe don't have a fallback for shader, and have a fallback material instead.
 - Object system: serialization, properties, functions, type information.
   Something like Qt's object system, for example. Once this is implemented, we
   can replace things like manual asset type strings and component type IDs.

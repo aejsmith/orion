@@ -105,6 +105,8 @@ bool GLVertexData::mapAttribute(VertexAttribute::Semantic semantic, unsigned ind
 	 * minimum of 16. Also, this is a somewhat arbitrary division for now,
 	 * may need tweaking based on future requirements (e.g. probably don't
 	 * need multiple positions). */
+
+	/* If changing this, make sure to update defines in shader.cc. */
 	switch(semantic) {
 	case VertexAttribute::kPositionSemantic:
 		if(index >= 2)

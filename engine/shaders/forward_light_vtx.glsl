@@ -1,6 +1,3 @@
-#version 330
-#extension GL_ARB_separate_shader_objects : enable
-
 /**
  * @file
  * @copyright		2014 Alex Smith
@@ -18,17 +15,13 @@ layout(std140) uniform ViewUniforms {
 	vec3 position;
 } view;
 
-layout(location = 0) in vec3 attrib_position;
-layout(location = 2) in vec3 attrib_normal;
-layout(location = 4) in vec2 attrib_texcoord;
+layout(location = kPositionSemantic) in vec3 attrib_position;
+layout(location = kNormalSemantic) in vec3 attrib_normal;
+layout(location = kTexCoordSemantic) in vec2 attrib_texcoord;
 
 layout(location = 0) out vec3 vtx_position;
 layout(location = 1) out vec3 vtx_normal;
 layout(location = 2) out vec2 vtx_texcoord;
-
-out gl_PerVertex {
-	vec4 gl_Position;
-};
 
 void main() {
 	vtx_position = vec3(entity.transform * vec4(attrib_position, 1.0));

@@ -19,16 +19,13 @@
  * specific implementation, therefore instances must be created via
  * GPUInterface::createPipeline().
  *
- * @todo		Modern APIs (DX12, Metal, Mantle) have the concept of
- *			a pipeline state object that bundle up shaders along
- *			with some bits of state like blend mode, output buffer
- *			format and vertex format, the goal being to avoid draw-
- *			time shader recompilation for different states. This
- *			should in future encapsulate this state as well. The
- *			main reason that I have not done this now is the need
- *			to keep vertex format, this would require us to have an
- *			individual pipeline for each shader/vertex format
- *			combination which is somewhat awkward to support.
+ * Modern APIs (DX12, Metal, Mantle) have the concept of pipeline state object
+ * that bundle up shaders along with some bits of state like blend mode, output
+ * buffer format and vertex format, the goal being to avoid draw-time shader
+ * recompilation for different states. Storing output buffer/vertex formats here
+ * would be quite awkward to manage and would add unnecessary overhead for APIs
+ * that do not need this. However, APIs that do can fairly easily cache created
+ * state objects for different formats in their implementation of this class.
  */
 class GPUPipeline : public GPUResource {
 public:

@@ -73,11 +73,12 @@ public:
 	GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) override;
 	VertexDataPtr createVertexData(size_t vertices) override;
 	GPUPipelinePtr createPipeline() override;
-	GPUShaderPtr loadShader(const char *path, GPUShader::Type type) override;
 	GPUTexturePtr createTexture(const GPUTexture2DDesc &desc) override;
 	GPUTexturePtr createTexture(const GPUTexture2DArrayDesc &desc) override;
 	GPUTexturePtr createTexture(const GPUTextureCubeDesc &desc) override;
 	GPUTexturePtr createTexture(const GPUTexture3DDesc &desc) override;
+
+	GPUShaderPtr compileShader(GPUShader::Type type, const std::string &source) override;
 
 	void bindPipeline(const GPUPipelinePtr &pipeline) override;
 	void bindTexture(unsigned index, const GPUTexturePtr &texture) override;

@@ -6,7 +6,7 @@
 
 #include "render/scene_entity.h"
 
-IMPLEMENT_UNIFORM_STRUCT(EntityUniforms);
+IMPLEMENT_UNIFORM_STRUCT(EntityUniforms, "entity", UniformSlots::kEntityUniforms);
 
 /** Initialize the entity. */
 SceneEntity::SceneEntity() {}

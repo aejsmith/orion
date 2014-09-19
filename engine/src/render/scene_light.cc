@@ -6,7 +6,7 @@
 
 #include "render/scene_light.h"
 
-IMPLEMENT_UNIFORM_STRUCT(LightUniforms);
+IMPLEMENT_UNIFORM_STRUCT(LightUniforms, "light", UniformSlots::kLightUniforms);
 
 /**
  * Construct the light.

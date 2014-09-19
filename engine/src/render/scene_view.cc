@@ -9,7 +9,7 @@
 #include "render/scene.h"
 #include "render/scene_view.h"
 
-IMPLEMENT_UNIFORM_STRUCT(ViewUniforms);
+IMPLEMENT_UNIFORM_STRUCT(ViewUniforms, "view", UniformSlots::kViewUniforms);
 
 /**
  * Initialize the scene view.
