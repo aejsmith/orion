@@ -26,6 +26,17 @@ Pass::Pass(Shader *parent, Type type) :
 /** Destroy the pass. */
 Pass::~Pass() {}
 
+/**
+ * Set pass draw state.
+ *
+ * Sets the draw state for this pass. Pass draw state is independent from the
+ * material, therefore can be set once for all entities/materials being drawn
+ * with this pass.
+ */
+void Pass::setDrawState() const {
+	g_gpu->bindPipeline(m_pipeline);
+}
+
 /** Add a uniform block declaration to a source string.
  * @param source	Source string to add to.
  * @param uniformStruct	Uniform structure to add. */

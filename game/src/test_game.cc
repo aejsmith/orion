@@ -42,12 +42,13 @@ public:
 
 class StaticMeshSceneEntity : public SceneEntity {
 public:
-	StaticMeshSceneEntity(VertexDataPtr vertices, IndexDataPtr indices) :
+	StaticMeshSceneEntity(Material *material, VertexDataPtr vertices, IndexDataPtr indices) :
+		SceneEntity(material),
 		m_vertices(vertices),
 		m_indices(indices)
 	{}
 
-	void render() {
+	void draw() {
 		g_gpu->draw(PrimitiveType::kTriangleList, m_vertices, m_indices);
 	}
 private:
@@ -57,10 +58,10 @@ private:
 
 class StaticMeshRendererComponent : public RendererComponent {
 public:
-	StaticMeshRendererComponent(Entity *entity, VertexDataPtr vertices, IndexDataPtr indices) :
+	StaticMeshRendererComponent(Entity *entity, Material *material, VertexDataPtr vertices, IndexDataPtr indices) :
 		RendererComponent(entity)
 	{
-		m_sceneEntity = new StaticMeshSceneEntity(vertices, indices);
+		m_sceneEntity = new StaticMeshSceneEntity(material, vertices, indices);
 	}
 
 	virtual void createSceneEntities(SceneEntityList &entities) override {
@@ -169,7 +170,7 @@ Entity *TestGame::makeCube(Entity *parent, const std::string &name) {
 	vertices->finalize();
 
 	Entity *entity = parent->createChild(name);
-	StaticMeshRendererComponent *renderer = entity->createComponent<StaticMeshRendererComponent>(vertices, nullptr);
+	StaticMeshRendererComponent *renderer = entity->createComponent<StaticMeshRendererComponent>(m_material, vertices, nullptr);
 	renderer->setActive(true);
 
 	return entity;
@@ -215,7 +216,7 @@ Entity *TestGame::makePlane(Entity *parent, const std::string &name) {
 	vertices->finalize();
 
 	Entity *entity = parent->createChild(name);
-	StaticMeshRendererComponent *renderer = entity->createComponent<StaticMeshRendererComponent>(vertices, nullptr);
+	StaticMeshRendererComponent *renderer = entity->createComponent<StaticMeshRendererComponent>(m_material, vertices, nullptr);
 	renderer->setActive(true);
 
 	return entity;
@@ -224,8 +225,6 @@ Entity *TestGame::makePlane(Entity *parent, const std::string &name) {
 /** Initialize the game world. */
 TestGame::TestGame() {
 	m_material = g_assetManager->load<Material>("game/materials/test");
-	TextureBasePtr texture = m_material->value<TextureBasePtr>("diffuseTexture");
-	g_gpu->bindTexture(0, texture->gpu());
 
 	m_vertexFormat = g_gpu->createVertexFormat();
 	m_vertexFormat->addBuffer(0, sizeof(Vertex));
@@ -281,8 +280,8 @@ TestGame::TestGame() {
 void game::engineConfiguration(EngineConfiguration &config) {
 	config.title = "Orion";
 	config.graphicsAPI = EngineConfiguration::kGLGraphicsAPI;
-	config.displayWidth = 1024;
-	config.displayHeight = 600;
+	config.displayWidth = 1440;
+	config.displayHeight = 900;
 	config.displayFullscreen = false;
 	config.displayVsync = false;
 }

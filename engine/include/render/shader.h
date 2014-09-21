@@ -15,7 +15,7 @@
 #include <map>
 #include <vector>
 
-class Pass;
+class Material;
 
 /**
  * Shader class.
@@ -42,6 +42,8 @@ public:
 	/** @return		Parameter map for the shader. */
 	const ParameterMap &parameters() const { return m_parameters; }
 
+	const ShaderParameter *lookupParameter(const std::string &name) const;
+
 	/** Get the number of passes of a certain type the shader has.
 	 * @param type		Type to get.
 	 * @return		Number of passes of the specified type. */
@@ -59,7 +61,7 @@ public:
 		return m_passes[type][index];
 	}
 
-	const ShaderParameter *lookupParameter(const std::string &name) const;
+	void setDrawState(Material *material) const;
 private:
 	Shader();
 

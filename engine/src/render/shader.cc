@@ -5,6 +5,7 @@
  */
 
 #include "engine/asset_loader.h"
+#include "engine/material.h"
 
 #include "render/pass.h"
 #include "render/shader.h"
@@ -24,6 +25,24 @@ Shader::~Shader() {
 	}
 
 	delete m_uniformStruct;
+}
+
+/** Set shader-wide draw state for a material.
+ * @param material	Material being rendered with. */
+void Shader::setDrawState(Material *material) const {
+	/* Set the uniform buffer if we have one. */
+	if(m_uniformStruct) {
+		UniformBufferBase *buffer = material->m_uniforms;
+		orionAssert(buffer);
+		g_gpu->bindUniformBuffer(UniformSlots::kMaterialUniforms, buffer->gpu());
+	}
+
+	/* Bind textures. */
+	const Material::TextureArray &textures = material->m_textures;
+	for(size_t i = 0; i < m_nextTextureSlot; i++) {
+		if(textures[i])
+			g_gpu->bindTexture(i, textures[i]->gpu());
+	}
 }
 
 /** Add a parameter to the shader.
@@ -181,6 +200,12 @@ AssetPtr ShaderLoader::load(DataStream *stream, rapidjson::Value &attributes, co
 			return nullptr;
 
 		shader->addPass(pass.release());
+	}
+
+	/* Sanity check. */
+	if((shader->numPasses(Pass::kDeferredBasePass) != 0) != (shader->numPasses(Pass::kDeferredOutputPass) != 0)) {
+		orionLog(LogLevel::kError, "Shader cannot have just one of deferred base and output passes");
+		return nullptr;
 	}
 
 	return shader;

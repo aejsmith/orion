@@ -55,6 +55,8 @@ public:
 	Type type() const { return m_type; }
 
 	bool loadStage(GPUShader::Type stage, const Path &path);
+
+	void setDrawState() const;
 private:
 	void finalize();
 private:

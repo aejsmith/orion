@@ -8,8 +8,11 @@
 
 IMPLEMENT_UNIFORM_STRUCT(EntityUniforms, "entity", UniformSlots::kEntityUniforms);
 
-/** Initialize the entity. */
-SceneEntity::SceneEntity() {}
+/** Initialize the entity.
+ * @param material	Material to use for rendering the entity. */
+SceneEntity::SceneEntity(Material *material) :
+	m_material(material)
+{}
 
 /** Destroy the entity. */
 SceneEntity::~SceneEntity() {}

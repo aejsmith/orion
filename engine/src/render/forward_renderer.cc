@@ -4,6 +4,8 @@
  * @brief		Forward rendering scene renderer.
  */
 
+#include "engine/material.h"
+
 #include "render/defs.h"
 #include "render/scene.h"
 #include "render/scene_light.h"
@@ -46,7 +48,12 @@ void ForwardRenderer::render(SceneView *view) {
 
 		for(SceneEntity *entity : entities) {
 			g_gpu->bindUniformBuffer(UniformSlots::kEntityUniforms, entity->uniforms());
-			entity->render();
+
+			Material *material = entity->material();
+			material->shader()->setDrawState(material);
+			material->shader()->pass(Pass::kForwardPass, 0)->setDrawState();
+
+			entity->draw();
 		}
 
 		/* After the first iteration, we want to blend the remaining

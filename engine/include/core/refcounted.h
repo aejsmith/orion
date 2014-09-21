@@ -140,6 +140,7 @@ public:
 
 	T &operator *() const { return *m_object; }
 	T *operator ->() const { return m_object; }
+	operator T*() const { return m_object; }
 
 	/** @return		Value of the pointer. */
 	T *get() const { return m_object; }

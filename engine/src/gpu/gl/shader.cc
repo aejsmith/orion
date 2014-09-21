@@ -95,7 +95,6 @@ void GLShader::querySamplers(ResourceList &list) {
 		glGetActiveUniformName(m_program, i, nameLen, &nameLen, &name[0]);
 		name[nameLen] = 0;
 
-		printf("sampler %s %d\n", name, i);
 		list.push_back({ std::string(name), static_cast<unsigned>(i) });
 	}
 }

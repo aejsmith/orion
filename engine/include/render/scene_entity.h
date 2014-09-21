@@ -8,6 +8,7 @@
 
 #include "render/uniform_buffer.h"
 
+class Material;
 class Scene;
 
 /** Per-entity uniform buffer structure. */
@@ -27,9 +28,6 @@ class SceneEntity {
 public:
 	virtual ~SceneEntity();
 
-	// Derpy hack to get things working
-	virtual void render() = 0;
-
 	/** @return		Current transformation. */
 	const Transform &transform() const { return m_transform; }
 	/** @return		Current position. */
@@ -38,15 +36,31 @@ public:
 	const glm::quat &orientation() const { return m_transform.orientation(); }
 	/** @return		Current scale. */
 	const glm::vec3 &scale() const { return m_transform.scale(); }
-
+	/** @return		Material for the entity. */
+	Material *material() const { return m_material; }
 	/** @return		GPU buffer containing entity uniforms. */
 	GPUBufferPtr uniforms() const { return m_uniforms.gpu(); }
+
+	/**
+	 * Draw the entity.
+	 *
+	 * Submit a GPU draw call for the entity. Shader/resource state for the
+	 * draw is already set prior to calling this.
+	 */
+	virtual void draw() = 0;
 protected:
-	SceneEntity();
+	explicit SceneEntity(Material *material);
 private:
 	void setTransform(const Transform &transform);
 private:
 	Transform m_transform;		/**< Transformation of the entity. */
+
+	/** Pointer to object material.
+	 * @note		Not held as a reference pointer as whatever
+	 *			created this SceneEntity is expected to hold
+	 *			a reference to the Material the lifetime of
+	 *			the entity. */
+	Material *m_material;
 
 	/** Uniform buffer containing per-entity parameters. */
 	UniformBuffer<EntityUniforms> m_uniforms;

@@ -54,11 +54,14 @@ public:
 		setValue(name, ShaderParameterTypeTraits<T>::kType, std::addressof(value));
 	}
 private:
+	/** Type of the texture array, indexed by slot. */
+	typedef std::array<TextureBasePtr, TextureSlots::kMaterialTexturesEnd + 1> TextureArray;
+private:
 	ShaderPtr m_shader;		/**< Shader being used by the material. */
 	UniformBufferBase *m_uniforms;	/**< Uniform buffer containing material parameters. */
+	TextureArray m_textures;	/**< Array of textures, indexed by slot. */
 
-	/** Array of textures, indexed by slot. */
-	std::array<TextureBasePtr, TextureSlots::kMaterialTexturesEnd + 1> m_textures;
+	friend class Shader;
 };
 
 /** Type of a material pointer. */
