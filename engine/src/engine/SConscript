@@ -5,6 +5,7 @@ sources = map(File, [
     'engine.cc',
     'main.cc',
     'material.cc',
+    'mesh.cc',
     'render_target.cc',
     'texture.cc',
     'window.cc',

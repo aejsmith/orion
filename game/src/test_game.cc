@@ -8,6 +8,7 @@
 #include "engine/engine.h"
 #include "engine/game.h"
 #include "engine/material.h"
+#include "engine/mesh.h"
 #include "engine/texture.h"
 
 #include "gpu/gpu.h"
@@ -26,50 +27,113 @@
  * Rendering test code.
  */
 
-struct Vertex {
-	float x, y, z, _pad1;
-	float nx, ny, nz, _pad2;
-	float u, v, _pad3, _pad4;
+/** Component which renders a mesh. */
+class MeshRendererComponent : public RendererComponent {
 public:
-	Vertex(const glm::vec3 &pos, const glm::vec3 &normal, const glm::vec2 &texcoord) :
-		x(pos.x), y(pos.y), z(pos.z),
-		nx(normal.x), ny(normal.y), nz(normal.z),
-		u(texcoord.x), v(texcoord.y)
+	MeshRendererComponent(Entity *entity, MeshPtr mesh);
+
+	/** @return		Mesh that this component renders. */
+	MeshPtr mesh() const { return m_mesh; }
+
+	MaterialPtr material(const std::string &name) const;
+	void setMaterial(const std::string &name, MaterialPtr material);
+protected:
+	virtual void createSceneEntities(SceneEntityList &entities) override;
+private:
+	MeshPtr m_mesh;			/**< Mesh to render. */
+
+	/** Array of materials. */
+	std::vector<MaterialPtr> m_materials;
+
+	friend class SubMeshSceneEntity;
+};
+
+/** Scene entity for rendering a SubMesh. */
+class SubMeshSceneEntity : public SceneEntity {
+public:
+	/** Initialize the scene entity.
+	 * @param mesh		Submesh to render.
+	 * @param parent	Parent mesh renderer. */
+	SubMeshSceneEntity(SubMesh *subMesh, MeshRendererComponent *parent) :
+		m_subMesh(subMesh),
+		m_parent(parent)
 	{}
 
-	Vertex() {}
-};
-
-class StaticMeshSceneEntity : public SceneEntity {
-public:
-	StaticMeshSceneEntity(Material *material, VertexDataPtr vertices, IndexDataPtr indices) :
-		SceneEntity(material),
-		m_vertices(vertices),
-		m_indices(indices)
-	{}
-
-	void draw() {
-		g_gpu->draw(PrimitiveType::kTriangleList, m_vertices, m_indices);
-	}
+	Material *material() const override;
+	void draw() const override;
 private:
-	VertexDataPtr m_vertices;
-	IndexDataPtr m_indices;
+	SubMesh *m_subMesh;		 /**< Submesh to render. */
+	MeshRendererComponent *m_parent; /**< Parent mesh renderer. */
 };
 
-class StaticMeshRendererComponent : public RendererComponent {
-public:
-	StaticMeshRendererComponent(Entity *entity, Material *material, VertexDataPtr vertices, IndexDataPtr indices) :
-		RendererComponent(entity)
-	{
-		m_sceneEntity = new StaticMeshSceneEntity(material, vertices, indices);
-	}
+/** Get the material for the entity.
+ * @return		Material for the entity. */
+Material *SubMeshSceneEntity::material() const {
+	return m_parent->m_materials[m_subMesh->material].get();
+}
 
-	virtual void createSceneEntities(SceneEntityList &entities) override {
-		entities.push_back(m_sceneEntity);
+/** Draw the entity. */
+void SubMeshSceneEntity::draw() const {
+	const VertexDataPtr &vertices = (m_subMesh->vertices)
+		? m_subMesh->vertices
+		: m_subMesh->parent()->sharedVertices;
+
+	g_gpu->draw(PrimitiveType::kTriangleList, vertices, m_subMesh->indices);
+}
+
+/** Initialize the mesh renderer.
+ * @param entity	Entity the component belongs to.
+ * @param mesh		Mesh to render. */
+MeshRendererComponent::MeshRendererComponent(Entity *entity, MeshPtr mesh) :
+	RendererComponent(entity),
+	m_mesh(mesh),
+	m_materials(mesh->numMaterials())
+{}
+
+/** Get the material with the specified name.
+ * @param name		Name of the material to get.
+ * @return		Pointer to material set. */
+MaterialPtr MeshRendererComponent::material(const std::string &name) const {
+	size_t index = 0;
+	bool ret = m_mesh->material(name, index);
+	orionCheck(ret, "Material slot '%s' not found", name.c_str());
+
+	return m_materials[index];
+}
+
+/**
+ * Set the material to use for part of this mesh.
+ *
+ * A mesh has one or more material slots defined which its submeshes refer to
+ * to get the material they will be rendered with. This function sets the
+ * material in the specified slot so that all submeshes using that slot will
+ * take on that material.
+ *
+ * @param name		Name of the material to set.
+ * @param material	Material to use.
+ */
+void MeshRendererComponent::setMaterial(const std::string &name, MaterialPtr material) {
+	size_t index = 0;
+	bool ret = m_mesh->material(name, index);
+	orionCheck(ret, "Material slot '%s' not found", name.c_str());
+
+	m_materials[index] = material;
+}
+
+/** Create scene entities.
+ * @param entities	List to populate. */
+void MeshRendererComponent::createSceneEntities(SceneEntityList &entities) {
+	// FIXME: This is a bit shit, should destroy them on deactivate and recreate each time
+	// also need to handle changes to mesh material/submesh count etc
+	for(size_t i = 0; i < m_mesh->numSubMeshes(); i++) {
+		SubMeshSceneEntity *entity = new SubMeshSceneEntity(m_mesh->subMesh(i), this);
+		entities.push_back(entity);
 	}
-private:
-	StaticMeshSceneEntity *m_sceneEntity;
-};
+}
+
+/**
+ * Game code.
+ */
 
 class CustomBehaviour : public BehaviourComponent {
 public:
@@ -83,25 +147,23 @@ public:
 	}
 };
 
-/**
- * Game code.
- */
-
 /** Game class. */
 class TestGame : public Game {
 public:
 	TestGame();
 private:
-	Entity *makeCube(Entity *parent, const std::string &name);
-	Entity *makePlane(Entity *parent, const std::string &name);
+	//Entity *makeCube(Entity *parent, const std::string &name);
+	//Entity *makePlane(Entity *parent, const std::string &name);
 private:
 	World *m_world;			/**< Game world. */
 
 	/** Rendering resources. */
-	MaterialPtr m_material;
-	VertexFormatPtr m_vertexFormat;
+	MaterialPtr m_cubeMaterial;
+	MeshPtr m_cubeMesh;
+	//VertexFormatPtr m_vertexFormat;
 };
 
+#if 0
 Entity *TestGame::makeCube(Entity *parent, const std::string &name) {
 	/* Indices into the below arrays for each face. */
 	static size_t cubeIndices[] = {
@@ -221,11 +283,14 @@ Entity *TestGame::makePlane(Entity *parent, const std::string &name) {
 
 	return entity;
 }
+#endif
 
 /** Initialize the game world. */
 TestGame::TestGame() {
-	m_material = g_assetManager->load<Material>("game/materials/test");
+	m_cubeMaterial = g_assetManager->load<Material>("game/materials/companion_cube");
+	m_cubeMesh = g_assetManager->load<Mesh>("game/models/companion_cube");
 
+#if 0
 	m_vertexFormat = g_gpu->createVertexFormat();
 	m_vertexFormat->addBuffer(0, sizeof(Vertex));
 	m_vertexFormat->addAttribute(
@@ -238,6 +303,7 @@ TestGame::TestGame() {
 		VertexAttribute::kTexCoordSemantic, 0,
 		VertexAttribute::kFloatType, 2, 0, offsetof(Vertex, u));
 	m_vertexFormat->finalize();
+#endif
 
 	m_world = g_engine->createWorld();
 
@@ -245,15 +311,20 @@ TestGame::TestGame() {
 	ambientLight->setIntensity(0.1f);
 	ambientLight->setActive(true);
 
-	Entity *floor = makePlane(m_world->root(), "floor");
-	floor->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-	floor->setScale(glm::vec3(3.0f, 7.5f, 1.0f));
-	floor->setActive(true);
+	//Entity *floor = makePlane(m_world->root(), "floor");
+	//floor->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	//floor->setScale(glm::vec3(3.0f, 7.5f, 1.0f));
+	//floor->setActive(true);
 
-	Entity *cube = makeCube(m_world->root(), "cube");
+	//Entity *cube = makeCube(m_world->root(), "cube");
+	Entity *cube = m_world->createEntity("cube");
 	cube->setPosition(glm::vec3(0.0f, 0.5f, -4.0f));
+	cube->setScale(glm::vec3(0.2f, 0.2f, 0.2f));
 	cube->rotate(45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 	cube->setActive(true);
+	MeshRendererComponent *renderer = cube->createComponent<MeshRendererComponent>(m_cubeMesh);
+	renderer->setMaterial("Material.004", m_cubeMaterial);
+	renderer->setActive(true);
 	CustomBehaviour *behaviour = cube->createComponent<CustomBehaviour>();
 	behaviour->setActive(true);
 
@@ -278,7 +349,7 @@ TestGame::TestGame() {
 /** Get the engine configuration.
  * @param config	Engine configuration to fill in. */
 void game::engineConfiguration(EngineConfiguration &config) {
-	config.title = "Orion";
+	config.title = "Cubes";
 	config.graphicsAPI = EngineConfiguration::kGLGraphicsAPI;
 	config.displayWidth = 1440;
 	config.displayHeight = 900;

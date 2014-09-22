@@ -1,5 +1,6 @@
 sources = map(File, [
     'material_loader.cc',
+    'obj_loader.cc',
     'shader_loader.cc',
     'tga_loader.cc',
 ])

@@ -53,6 +53,8 @@ public:
 	/** @return		Current stream offset. */
 	virtual uint64_t offset() const = 0;
 
+	bool readLine(std::string &line);
+
 	/**
 	 * Specific offset I/O.
 	 */

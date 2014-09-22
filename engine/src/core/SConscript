@@ -1,6 +1,7 @@
 import os
 
 sources = map(File, [
+    'data_stream.cc',
     'engine_global.cc',
     'error.cc',
     'filesystem.cc',
