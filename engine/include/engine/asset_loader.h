@@ -15,10 +15,11 @@
 /** Class which loads asset data. */
 class AssetLoader {
 public:
-	virtual ~AssetLoader();
+	virtual ~AssetLoader() {}
 
-	/* @return		File type (extension) that this loader is for. */
-	const char *type() const { return m_type; }
+	AssetPtr load(DataStream *data, DataStream *metadata, const char *path);
+protected:
+	AssetLoader() {}
 
 	/**
 	 * Whether the asset data file should be treated as metadata.
@@ -38,21 +39,38 @@ public:
 	virtual bool dataIsMetadata() const { return false; }
 
 	/** Load the asset.
-	 * @param stream	Stream containing asset data.
-	 * @param attributes	Attributes specified in metadata.
-	 * @param path		Path to asset (supplied so that useful error
-	 *			messages can be logged).
 	 * @return		Pointer to loaded asset, null on failure. */
-	virtual AssetPtr load(DataStream *stream, rapidjson::Value &attributes, const char *path) const = 0;
-
-	static AssetLoader *lookup(const std::string &type);
+	virtual AssetPtr load() = 0;
 protected:
-	explicit AssetLoader(const char *type);
-private:
-	/** Type of the asset loader map. */
-	typedef std::map<std::string, AssetLoader *> LoaderMap;
-private:
-	const char *m_type;		/**< File type that this loader is for. */
-
-	static LoaderMap &loaderMap();
+	DataStream *m_data;			/**< Asset data stream (if any). */
+	rapidjson::Document m_attributes;	/**< Asset attributes. */
+	const char *m_path;			/**< Asset path being loaded. */
 };
+
+/** Asset loader factory class. */
+class AssetLoaderFactory {
+public:
+	explicit AssetLoaderFactory(const char *type);
+	virtual ~AssetLoaderFactory();
+
+	static AssetLoader *create(const std::string &type);
+protected:
+	/** Create an asset loader of this type.
+	 * @return		Created asset loader. */
+	virtual AssetLoader *create() const = 0;
+private:
+	const char *m_type;		/**< File type that this factory is for. */
+};
+
+/** Implement an asset loader type.
+ * @param className	Loader class name.
+ * @param type		File type string. */
+#define IMPLEMENT_ASSET_LOADER(className, type) \
+	class className##Factory : public AssetLoaderFactory { \
+	public: \
+		className##Factory() : AssetLoaderFactory(type) {} \
+		AssetLoader *create() const override { return new className(); } \
+	private: \
+		static className##Factory m_instance; \
+	}; \
+	className##Factory className##Factory::m_instance

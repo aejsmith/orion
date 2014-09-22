@@ -10,56 +10,47 @@
 #include "engine/asset_loader.h"
 #include "engine/texture.h"
 
-#include <memory>
-
 /** TGA texture loader class. */
 class TGALoader : public AssetLoader {
 public:
-	TGALoader() : AssetLoader("tga") {}
-	AssetPtr load(DataStream *stream, rapidjson::Value &attributes, const char *path) const override;
+	AssetPtr load() override;
 private:
-	static TGALoader m_instance;
+	/** TGA image file header. */
+	struct Header {
+		uint8_t idLength;
+		uint8_t colourMapType;
+		uint8_t imageType;
+		uint16_t colourMapOrigin;
+		uint16_t colourMapLength;
+		uint8_t colourMapDepth;
+		uint16_t xOrigin;
+		uint16_t yOrigin;
+		uint16_t width;
+		uint16_t height;
+		uint8_t depth;
+		uint8_t imageDescriptor;
+	} PACKED;
 };
 
-/** TGA image file header. */
-struct TGAHeader {
-	uint8_t idLength;
-	uint8_t colourMapType;
-	uint8_t imageType;
-	uint16_t colourMapOrigin;
-	uint16_t colourMapLength;
-	uint8_t colourMapDepth;
-	uint16_t xOrigin;
-	uint16_t yOrigin;
-	uint16_t width;
-	uint16_t height;
-	uint8_t depth;
-	uint8_t imageDescriptor;
-} PACKED;
-
-/** TGA loader instance. */
-TGALoader TGALoader::m_instance;
+IMPLEMENT_ASSET_LOADER(TGALoader, "tga");
 
 /** Load a TGA file.
- * @param stream	Stream containing asset data.
- * @param attributes	Attributes specified in metadata.
- * @param path		Path to asset.
  * @return		Pointer to loaded asset, null on failure. */
-AssetPtr TGALoader::load(DataStream *stream, rapidjson::Value &attributes, const char *path) const {
-	TGAHeader header;
-	if(!stream->read(reinterpret_cast<char *>(&header), sizeof(header), 0)) {
-		orionLog(LogLevel::kError, "Failed to read asset '%s' data", path);
+AssetPtr TGALoader::load() {
+	Header header;
+	if(!m_data->read(reinterpret_cast<char *>(&header), sizeof(header), 0)) {
+		orionLog(LogLevel::kError, "%s: Failed to read asset data", m_path);
 		return nullptr;
 	}
 
 	/* Only support uncompressed RGB images for now. */
 	if(header.imageType != 2) {
-		orionLog(LogLevel::kError, "TGA texture '%s' has unsupported format", path);
+		orionLog(LogLevel::kError, "%s: Unsupported image format (%u)", m_path, header.imageType);
 		return nullptr;
 	}
 
 	if(header.depth != 24 && header.depth != 32) {
-		orionLog(LogLevel::kError, "TGA texture '%s' has unsupported depth", path);
+		orionLog(LogLevel::kError, "%s: Unsupported depth (%u)", m_path, header.depth);
 		return nullptr;
 	}
 
@@ -72,8 +63,8 @@ AssetPtr TGALoader::load(DataStream *stream, rapidjson::Value &attributes, const
 	size_t size = width * height * (header.depth / 8);
 	uint64_t offset = header.idLength + (header.colourMapLength * (header.colourMapDepth / 8));
 	std::unique_ptr<char []> buf(new char[size]);
-	if(!stream->read(buf.get(), size, offset)) {
-		orionLog(LogLevel::kError, "Failed to read asset '%s' data", path);
+	if(!m_data->read(buf.get(), size, offset)) {
+		orionLog(LogLevel::kError, "%s: Failed to read asset data", m_path);
 		return nullptr;
 	}
 

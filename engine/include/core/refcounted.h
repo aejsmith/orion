@@ -102,6 +102,12 @@ public:
 	/** Check whether the pointer is valid. */
 	explicit operator bool() const { return m_object != nullptr; }
 
+	/** Assign from a basic pointer, increasing the reference count. */
+	ReferencePtr &operator =(T *ptr) {
+		reset(ptr);
+		return *this;
+	}
+
 	/** Copy another pointer, increasing the reference count. */
 	ReferencePtr &operator =(const ReferencePtr &other) {
 		reset(other.m_object);
@@ -140,7 +146,7 @@ public:
 
 	T &operator *() const { return *m_object; }
 	T *operator ->() const { return m_object; }
-	operator T*() const { return m_object; }
+	operator T *() const { return m_object; }
 
 	/** @return		Value of the pointer. */
 	T *get() const { return m_object; }

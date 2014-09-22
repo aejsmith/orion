@@ -41,6 +41,8 @@ public:
 	const UniformStruct *uniformStruct() const { return m_uniformStruct; }
 	/** @return		Parameter map for the shader. */
 	const ParameterMap &parameters() const { return m_parameters; }
+	/** @return		Number of texture parameters. */
+	unsigned numTextures() const { return m_nextTextureSlot; }
 
 	const ShaderParameter *lookupParameter(const std::string &name) const;
 
@@ -65,8 +67,8 @@ public:
 private:
 	Shader();
 
-	bool addParameter(const std::string &name, ShaderParameter::Type type);
-	bool addPass(Pass *pass);
+	void addParameter(const std::string &name, ShaderParameter::Type type);
+	void addPass(Pass *pass);
 private:
 	UniformStruct *m_uniformStruct;		/**< Uniform structure used by the shader. */
 	ParameterMap m_parameters;		/**< Map of registered parameters. */

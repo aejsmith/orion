@@ -21,8 +21,6 @@
 #include "engine/asset_loader.h"
 #include "engine/asset_manager.h"
 
-#include <rapidjson/error/en.h>
-
 #include <memory>
 
 /** Global asset manager instance. */
@@ -91,7 +89,7 @@ AssetPtr AssetManager::load(const Path &path) {
 			if(entryExt == "metadata") {
 				metadata.reset(g_filesystem->openFile(filePath));
 				if(!metadata) {
-					orionLog(LogLevel::kError, "Could not open '%s'", filePath.c_str());
+					orionLog(LogLevel::kError, "Failed to open '%s'", filePath.c_str());
 					return nullptr;
 				}
 			} else if(entryExt.length()) {
@@ -104,7 +102,7 @@ AssetPtr AssetManager::load(const Path &path) {
 
 				data.reset(g_filesystem->openFile(filePath));
 				if(!data) {
-					orionLog(LogLevel::kError, "Could not open '%s'", filePath.c_str());
+					orionLog(LogLevel::kError, "Failed to open '%s'", filePath.c_str());
 					return nullptr;
 				}
 
@@ -120,44 +118,14 @@ AssetPtr AssetManager::load(const Path &path) {
 	}
 
 	/* Look for a loader for the asset. */
-	AssetLoader *loader = AssetLoader::lookup(type);
+	std::unique_ptr<AssetLoader> loader(AssetLoaderFactory::create(type));
 	if(!loader) {
-		orionLog(LogLevel::kError,
-			"Cannot load asset '%s' with unknown file type '%s'",
-			path.c_str(), type.c_str());
+		orionLog(LogLevel::kError, "%s: Unknown file type '%s'", path.c_str(), type.c_str());
 		return nullptr;
 	}
 
-	/* See documentation for dataIsMetadata(). */
-	if(loader->dataIsMetadata())
-		metadata = std::move(data);
-
-	/* Create a metadata JSON stream. If we don't have a metadata stream
-	 * from the filesystem, we'll just leave it empty so the loader sees
-	 * no attributes. */
-	rapidjson::Document attributes;
-	if(metadata && metadata->size()) {
-		std::unique_ptr<char[]> buf(new char[metadata->size() + 1]);
-		buf[metadata->size()] = 0;
-		if(!metadata->read(buf.get(), metadata->size())) {
-			orionLog(LogLevel::kError, "Failed to read asset '%s' metadata", path.c_str());
-			return nullptr;
-		}
-
-		attributes.Parse(buf.get());
-		if(attributes.HasParseError()) {
-			const char *msg = rapidjson::GetParseError_En(attributes.GetParseError());
-			orionLog(LogLevel::kError,
-				"Parse error in '%s' metadata (at %zu): %s",
-				path.c_str(), attributes.GetErrorOffset(), msg);
-			return nullptr;
-		}
-	} else {
-		attributes.SetObject();
-	}
-
 	/* Create the asset. The loader should log an error if it fails. */
-	AssetPtr asset = loader->load(data.get(), attributes, path.c_str());
+	AssetPtr asset = loader->load(data.get(), metadata.get(), path.c_str());
 	if(!asset)
 		return nullptr;
 
