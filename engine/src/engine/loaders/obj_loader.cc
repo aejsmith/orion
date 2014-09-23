@@ -6,60 +6,66 @@
  * @todo		This is hideously slow. readLine() reads individual
  *			characters at a time, and there's a metric fuckton of
  *			vector reallocations going on.
- * @todo		Make use of index buffers. Hash lookup for unique vertex
- *			combinations. If non-existant, add new to shared vertex
- *			buffer then index to that in submesh (do comparison on
- *			whether it results in a reduction in size).
  */
+
+#include "core/hash.h"
 
 #include "engine/asset_loader.h"
 #include "engine/mesh.h"
 
 #include "gpu/gpu.h"
 
-#include <sstream>
+#include "render/resources.h"
+#include "render/utility.h"
+#include "render/vertex.h"
+
+#include <unordered_map>
 
 /** Wavefront .obj mesh loader. */
 class OBJLoader : public AssetLoader {
 public:
-	OBJLoader();
-
-	AssetPtr load() override;
-private:
-	/** Vertex imported from a .obj file. */
-	struct Vertex {
-		float x, y, z, _pad1;
-		float nx, ny, nz, _pad2;
-		float u, v, _pad3, _pad4;
-	public:
-		Vertex(const glm::vec3 &pos, const glm::vec3 &normal, const glm::vec2 &texcoord) :
-			x(pos.x), y(pos.y), z(pos.z),
-			nx(normal.x), ny(normal.y), nz(normal.z),
-			u(texcoord.x), v(texcoord.y)
-		{}
-
-		Vertex() {}
-	};
-private:
-	/** Triple of indices in the order (position, texcoord, normal). */
-	typedef std::array<uint16_t, 3> VertexTriple;
-
 	/** Submesh descriptor. */
 	struct SubMeshDesc {
 		std::string material;		/**< Material name. */
-
-		/** Array of vertices. */
-		std::vector<VertexTriple> vertices;
+		std::vector<uint16_t> indices;	/**< Array of vertex indices to go into index buffer. */
 	public:
 		explicit SubMeshDesc(const std::string &inMaterial) : material(inMaterial) {}
 	};
+
+	/** Indexes into the vertex element arrays for a single vertex. */
+	struct VertexKey {
+		uint16_t position;
+		uint16_t texcoord;
+		uint16_t normal;
+	public:
+		/** Compare this key with another. */
+		bool operator ==(const VertexKey &other) const {
+			return position == other.position && texcoord == other.texcoord && normal == other.normal;
+		}
+
+		/** Get the hash for a vertex key. */
+		friend size_t hashValue(const VertexKey &value) {
+			size_t hash = hashValue(value.position);
+			hash = hashCombine(hash, value.texcoord);
+			hash = hashCombine(hash, value.normal);
+			return hash;
+		}
+	};
+public:
+	OBJLoader();
+	AssetPtr load() override;
 private:
-	template <typename T> bool addVertex(const std::vector<std::string> &tokens, std::vector<T> &array);
+	template <typename VectorType>
+	bool addVertexElement(const std::vector<std::string> &tokens, std::vector<VectorType> &array);
+
 	bool addFace(const std::vector<std::string> &tokens);
-	bool setMaterial(const std::vector<std::string> &tokens);
-	bool setGroup(const std::vector<std::string> &tokens);
 private:
-	/** Geometry information. */
+	/** Parser state. */
+	size_t m_currentLine;			/**< Current line of the file (for error messages). */
+	std::string m_currentMaterial;		/**< Current material name. */
+	SubMeshDesc *m_currentSubMesh;		/**< Current submesh. */
+
+	/** Vertex elements. */
 	std::vector<glm::vec3> m_positions;	/**< Positions ("v" declarations). */
 	std::vector<glm::vec2> m_texcoords;	/**< UVs ("vt" declarations). */
 	std::vector<glm::vec3> m_normals;	/**< Normals ("vn" declarations). */
@@ -67,18 +73,14 @@ private:
 	/** List of submeshes. */
 	std::list<SubMeshDesc> m_subMeshes;
 
-	/** Parser state. */
-	size_t m_currentLine;			/**< Current line of the file (for error messages). */
-	std::string m_currentMaterial;		/**< Current material name. */
-	SubMeshDesc *m_currentSubMesh;		/**< Current submesh. */
+	/** Array of vertices to go into the vertex buffer. */
+	std::vector<SimpleVertex> m_vertices;
 
-	static GlobalGPUResource<VertexFormat> m_vertexFormat;
+	/** Map from VertexKey to a buffer index. */
+	std::unordered_map<VertexKey, uint16_t, Hash<VertexKey>> m_vertexMap;
 };
 
 IMPLEMENT_ASSET_LOADER(OBJLoader, "obj");
-
-/** .obj file vertex format. */
-GlobalGPUResource<VertexFormat> OBJLoader::m_vertexFormat;
 
 /** Initialize the OBJ loader. */
 OBJLoader::OBJLoader() :
@@ -90,6 +92,7 @@ OBJLoader::OBJLoader() :
 /** Load an OBJ file.
  * @return		Pointer to loaded asset, null on failure. */
 AssetPtr OBJLoader::load() {
+	/* Parse the file content. */
 	std::string line;
 	while(m_data->readLine(line)) {
 		m_currentLine++;
@@ -99,24 +102,49 @@ AssetPtr OBJLoader::load() {
 		if(!tokens.size())
 			continue;
 
-		bool ret = true;
-
 		if(tokens[0] == "v") {
-			ret = addVertex(tokens, m_positions);
+			if(!addVertexElement(tokens, m_positions))
+				return nullptr;
 		} else if(tokens[0] == "vt") {
-			ret = addVertex(tokens, m_texcoords);
+			if(!addVertexElement(tokens, m_texcoords))
+				return nullptr;
 		} else if(tokens[0] == "vn") {
-			ret = addVertex(tokens, m_normals);
+			if(!addVertexElement(tokens, m_normals))
+				return nullptr;
 		} else if(tokens[0] == "f") {
-			ret = addFace(tokens);
+			if(!addFace(tokens))
+				return nullptr;
 		} else if(tokens[0] == "usemtl") {
-			ret = setMaterial(tokens);
-		} else if(tokens[0] == "g") {
-			ret = setGroup(tokens);
-		}
+			if(tokens.size() != 2) {
+				orionLog(LogLevel::kError,
+					"%s: %u: Expected single material name",
+					m_path, m_currentLine);
+				return nullptr;
+			}
 
-		if(!ret)
-			return nullptr;
+			if(tokens[1] != m_currentMaterial) {
+				/* Begin a new submesh. */
+				m_currentMaterial = tokens[1];
+				m_currentSubMesh = nullptr;
+			}
+		} else if(tokens[0] == "g") {
+			if(tokens.size() != 2) {
+				/* Note multiple group names can be specified to
+				 * give shared elements between groups but we
+				 * don't support this for now. */
+				orionLog(LogLevel::kError,
+					"%s: %u: Expected single group name",
+					m_path, m_currentLine);
+				return nullptr;
+			}
+
+			/* Begin a new submesh. TODO: Should we bother trying to
+			 * handle duplicate group names and bundling them
+			 * together? Probably not worth the effort. */
+			m_currentSubMesh = nullptr;
+		} else {
+			/* Ignore unknown lines. Most of them are irrelevant to us. */
+		}
 	}
 
 	if(!m_subMeshes.size()) {
@@ -126,69 +154,48 @@ AssetPtr OBJLoader::load() {
 
 	MeshPtr mesh(new Mesh());
 
-	/* Create the vertex format if we don't already have it. FIXME: thread
-	 * safety. Also this should just be some globally defined format. */
-	if(!m_vertexFormat) {
-		m_vertexFormat() = g_gpu->createVertexFormat();
-		m_vertexFormat->addBuffer(0, sizeof(Vertex));
-		m_vertexFormat->addAttribute(
-			VertexAttribute::kPositionSemantic, 0,
-			VertexAttribute::kFloatType, 3, 0, offsetof(Vertex, x));
-		m_vertexFormat->addAttribute(
-			VertexAttribute::kNormalSemantic, 0,
-			VertexAttribute::kFloatType, 3, 0, offsetof(Vertex, nx));
-		m_vertexFormat->addAttribute(
-			VertexAttribute::kTexCoordSemantic, 0,
-			VertexAttribute::kFloatType, 2, 0, offsetof(Vertex, u));
-		m_vertexFormat->finalize();
-	}
-
-	size_t j = 0;
+	/* Create the vertex buffer. */
+	mesh->sharedVertices = g_gpu->createVertexData(m_vertices.size());
+	mesh->sharedVertices->setFormat(g_renderResources->simpleVertexFormat());
+	mesh->sharedVertices->setBuffer(0, buildGPUBuffer(GPUBuffer::kVertexBuffer, m_vertices));
+	mesh->sharedVertices->finalize();
 
 	/* Register all submeshes. */
 	for(const SubMeshDesc &desc : m_subMeshes) {
-		orionLog(LogLevel::kDebug, "%s: Submesh %u: %u vertices", m_path, j++, desc.vertices.size());
-
 		SubMesh *subMesh = mesh->addSubMesh();
 
 		/* Add the material slot. If this name has already been added
 		 * the existing index is returned. */
 		subMesh->material = mesh->addMaterial(desc.material);
 
-		GPUBufferPtr buffer = g_gpu->createBuffer(
-			GPUBuffer::kVertexBuffer,
-			GPUBuffer::kStaticDrawUsage,
-			desc.vertices.size() * sizeof(Vertex));
+		/* Create an index buffer. */
+		subMesh->indices = g_gpu->createIndexData(
+			buildGPUBuffer(GPUBuffer::kIndexBuffer, desc.indices),
+			IndexData::kUnsignedShortType,
+			desc.indices.size());
 
-		subMesh->vertices = g_gpu->createVertexData(desc.vertices.size());
-		subMesh->vertices->setFormat(m_vertexFormat);
-		subMesh->vertices->setBuffer(0, buffer);
-		subMesh->vertices->finalize();
-
-		GPUBufferMapper<Vertex> data(buffer, GPUBuffer::kMapInvalidate, GPUBuffer::kWriteAccess);
-
-		for(size_t i = 0; i < desc.vertices.size(); i++) {
-			new(&data[i]) Vertex(
-				m_positions[desc.vertices[i][0]],
-				m_normals[desc.vertices[i][2]],
-				m_texcoords[desc.vertices[i][1]]);
-		}
+		orionLog(LogLevel::kDebug,
+			"%s: Submesh %u: %u indices",
+			m_path, mesh->numSubMeshes() - 1, desc.indices.size());
 	}
 
 	orionLog(LogLevel::kDebug,
-		"%s: %u submeshes, %u materials",
-		m_path, mesh->numSubMeshes(), mesh->numMaterials());
+		"%s: %u vertices, %u submeshes, %u materials",
+		m_path, m_vertices.size(), mesh->numSubMeshes(), mesh->numMaterials());
 
 	return mesh;
 }
 
-/** Handle a vertex declaration.
+/** Handle a vertex element declaration.
  * @param tokens	Tokens from the current line.
  * @param array		Array to add to.
  * @return		Whether the declaration was valid. */
-template <typename T>
-bool OBJLoader::addVertex(const std::vector<std::string> &tokens, std::vector<T> &array) {
-	T value;
+template <typename VectorType>
+bool OBJLoader::addVertexElement(
+	const std::vector<std::string> &tokens,
+	std::vector<VectorType> &array)
+{
+	VectorType value;
 
 	if(tokens.size() < value.length() + 1) {
 		orionLog(LogLevel::kError, "%s: %u: Expected %d values", m_path, m_currentLine, value.length());
@@ -225,7 +232,9 @@ bool OBJLoader::addFace(const std::vector<std::string> &tokens) {
 		return false;
 	}
 
-	VertexTriple vertices[numVertices];
+	/* Each face gives 3 or 4 vertices as a set of indices into the sets
+	 * of vertex elements that have been declared. */
+	uint16_t indices[numVertices];
 	for(size_t i = 0; i < numVertices; i++) {
 		std::vector<std::string> subTokens;
 		util::tokenize(tokens[i + 1], subTokens, "/", false);
@@ -234,67 +243,77 @@ bool OBJLoader::addFace(const std::vector<std::string> &tokens) {
 			return false;
 		}
 
+		/* Get the vertex elements referred to by this vertex. */
+		VertexKey key;
 		for(size_t j = 0; j < 3; j++) {
 			const char *str = subTokens[j].c_str(), *end;
-			vertices[i][j] = strtoul(str, const_cast<char **>(&end), 10);
+			uint16_t value = strtoul(str, const_cast<char **>(&end), 10);
 			if(end != str + subTokens[j].length()) {
 				orionLog(LogLevel::kError, "%s: %u: Expected integer value", m_path, m_currentLine);
 				return false;
 			}
 
 			/* Indices are 1 based. */
-			vertices[i][j] -= 1;
+			value -= 1;
+
+			switch(j) {
+			case 0:
+				if(value > m_positions.size()) {
+					orionLog(LogLevel::kError,
+						"%s: %u: Invalid position index %u",
+						m_path, m_currentLine, value);
+					return false;
+				}
+
+				key.position = value;
+				break;
+			case 1:
+				if(value > m_texcoords.size()) {
+					orionLog(LogLevel::kError,
+						"%s: %u: Invalid texture coordinate index %u",
+						m_path, m_currentLine, value);
+					return false;
+				}
+
+				key.texcoord = value;
+				break;
+			case 2:
+				if(value > m_normals.size()) {
+					orionLog(LogLevel::kError,
+						"%s: %u: Invalid normal index %u",
+						m_path, m_currentLine, value);
+					return false;
+				}
+
+				key.normal = value;
+				break;
+			}
 		}
+
+		/* Add the vertex. */
+		auto ret = m_vertexMap.emplace(key, 0);
+		if(ret.second) {
+			/* We succeeded in adding a new element, this means this
+			 * is a new vertex. Add one. */
+			ret.first->second = m_vertices.size();
+			m_vertices.emplace_back(
+				m_positions[key.position],
+				m_normals[key.normal],
+				m_texcoords[key.texcoord]);
+		}
+
+		indices[i] = ret.first->second;
 	}
 
-	/* Add the vertices. If there's 3 it's a triangle, it's a quad so add
-	 * it as 2 triangles. */
-	m_currentSubMesh->vertices.push_back(vertices[0]);
-	m_currentSubMesh->vertices.push_back(vertices[1]);
-	m_currentSubMesh->vertices.push_back(vertices[2]);
+	/* Add the indices. If there's 4 it's a quad so add it as 2 triangles. */
+	m_currentSubMesh->indices.push_back(indices[0]);
+	m_currentSubMesh->indices.push_back(indices[1]);
+	m_currentSubMesh->indices.push_back(indices[2]);
 	if(numVertices == 4) {
-		m_currentSubMesh->vertices.push_back(vertices[2]);
-		m_currentSubMesh->vertices.push_back(vertices[3]);
-		m_currentSubMesh->vertices.push_back(vertices[0]);
+		m_currentSubMesh->indices.push_back(indices[2]);
+		m_currentSubMesh->indices.push_back(indices[3]);
+		m_currentSubMesh->indices.push_back(indices[0]);
 	}
-
-	return true;
-}
-
-/** Handle a material declaration.
- * @param tokens	Tokens from the current line.
- * @return		Whether the declaration was valid. */
-bool OBJLoader::setMaterial(const std::vector<std::string> &tokens) {
-	if(tokens.size() != 2) {
-		orionLog(LogLevel::kError, "%s: %u: Expected single material name", m_path, m_currentLine);
-		return false;
-	}
-
-	if(tokens[1] != m_currentMaterial) {
-		/* Begin a new submesh. */
-		m_currentMaterial = tokens[1];
-		m_currentSubMesh = nullptr;
-	}
-
-	return true;
-}
-
-/** Handle a group declaration.
- * @param tokens	Tokens from the current line.
- * @return		Whether the declaration was valid. */
-bool OBJLoader::setGroup(const std::vector<std::string> &tokens) {
-	if(tokens.size() != 2) {
-		/* Note multiple group names can actually be specified to give
-		 * shared elements between groups but we don't support this
-		 * now. */
-		orionLog(LogLevel::kError, "%s: %u: Expected single group name", m_path, m_currentLine);
-		return false;
-	}
-
-	/* Begin a new submesh. TODO: Should we bother trying to handle
-	 * duplicate group names and bundling them together? Probably not worth
-	 * the effort. */
-	m_currentSubMesh = nullptr;
 
 	return true;
 }

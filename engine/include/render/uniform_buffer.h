@@ -8,7 +8,8 @@
 
 #include "gpu/gpu.h"
 
-#include "render/defs.h"
+#include "render/shader_parameter.h"
+#include "render/slots.h"
 
 #include <list>
 

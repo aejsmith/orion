@@ -1,6 +1,7 @@
 sources = map(File, [
     'forward_renderer.cc',
     'pass.cc',
+    'resources.cc',
     'scene.cc',
     'scene_entity.cc',
     'scene_light.cc',

@@ -13,6 +13,8 @@
 
 #include "gpu/gpu.h"
 
+#include "render/resources.h"
+
 #include "world/camera_component.h"
 #include "world/world.h"
 
@@ -49,6 +51,7 @@ Engine::Engine(const EngineConfiguration &config) :
 	g_mainWindow() = new Window(config, g_gpu);
 
 	/* Initialize other global systems. */
+	g_renderResources() = new RenderResources;
 	g_assetManager() = new AssetManager;
 
 	/* Create the game instance. */

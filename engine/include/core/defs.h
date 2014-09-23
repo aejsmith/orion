@@ -40,6 +40,24 @@
 # error "Compiler is not supported"
 #endif
 
+/** Target bitness definition. */
+#if INTPTR_MAX == INT32_MAX
+# define ORION_32BIT		1
+#elif INTPTR_MAX == INT64_MAX
+# define ORION_64BIT		1
+#else
+# error "Cannot determine target bitness"
+#endif
+
+/** Target endianness definition. */
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+# define ORION_LITTLE_ENDIAN	1
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+# define ORION_BIG_ENDIAN	1
+#else
+# error "Cannot determine target endianness"
+#endif
+
 /**
  * Engine version definitions.
  */

@@ -6,7 +6,6 @@
 
 #include "engine/material.h"
 
-#include "render/defs.h"
 #include "render/scene.h"
 #include "render/scene_light.h"
 #include "render/scene_view.h"

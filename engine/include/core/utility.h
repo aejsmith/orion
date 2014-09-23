@@ -17,6 +17,10 @@ constexpr size_t arraySize(T (&array)[N]) {
 	return N;
 }
 
+/**
+ * String algorithms.
+ */
+
 /** Split a string into tokens.
  * @param str		String to split.
  * @param tokens	Vector to fill with tokens (existing content left intact).
