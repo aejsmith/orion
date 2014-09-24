@@ -8,8 +8,6 @@
 
 #include "render/shader.h"
 
-//change Shader methods to not return bool, do the error checking in loader.
-
 /** Asset loader for shaders. */
 class ShaderLoader : public AssetLoader {
 public:
