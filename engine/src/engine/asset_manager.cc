@@ -21,8 +21,6 @@
 #include "engine/asset_loader.h"
 #include "engine/asset_manager.h"
 
-#include <memory>
-
 /** Global asset manager instance. */
 EngineGlobal<AssetManager> g_assetManager;
 

@@ -13,10 +13,6 @@
 #include "gl.h"
 #include "shader.h"
 
-#include <fstream>
-#include <memory>
-#include <streambuf>
-
 /** Target GLSL version. */
 static const char *kTargetGLSLVersion = "330 core";
 

@@ -21,6 +21,7 @@
 #include <cstdarg>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <new>
 #include <string>
 

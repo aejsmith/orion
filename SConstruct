@@ -34,6 +34,7 @@ env['CPPDEFINES'] = {
     'ORION_BUILD_DEBUG': None,
     'GLM_FORCE_CXX11': None,
     'GLM_FORCE_RADIANS': None,
+    'GLM_FORCE_SIZE_T_LENGTH': None,
 }
 
 env['CPPPATH'] = [
