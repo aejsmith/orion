@@ -119,13 +119,6 @@ void GLGPUInterface::initFeatures() {
 	orionLog(LogLevel::kInfo, "OpenGL renderer: %s", glGetString(GL_RENDERER));
 	orionLog(LogLevel::kInfo, "OpenGL version:  %s", glGetString(GL_VERSION));
 
-	/* Check whether the version number is high enough. */
-	GLint major = 0, minor = 0;
-	glGetIntegerv(GL_MAJOR_VERSION, &major);
-	glGetIntegerv(GL_MINOR_VERSION, &minor);
-	if(major < kGLMajorVersion || (major == kGLMajorVersion && minor < kGLMinorVersion))
-		orionAbort("OpenGL version %d.%d is required", kGLMajorVersion, kGLMinorVersion);
-
 	/* Query supported extensions. */
 	GLint count = 0;
 	glGetIntegerv(GL_NUM_EXTENSIONS, &count);
@@ -138,6 +131,13 @@ void GLGPUInterface::initFeatures() {
 	orionLog(LogLevel::kDebug, "OpenGL extensions:");
 	for(const std::string &extension : features.extensions)
 		orionLog(LogLevel::kDebug, "  %s", extension.c_str());
+
+	/* Check whether the version number is high enough. */
+	GLint major = 0, minor = 0;
+	glGetIntegerv(GL_MAJOR_VERSION, &major);
+	glGetIntegerv(GL_MINOR_VERSION, &minor);
+	if(major < kGLMajorVersion || (major == kGLMajorVersion && minor < kGLMinorVersion))
+		orionAbort("OpenGL version %d.%d is required", kGLMajorVersion, kGLMinorVersion);
 
 	/* Check for required extensions. */
 	for(size_t i = 0; i < util::arraySize(g_requiredGLExtensions); i++) {
