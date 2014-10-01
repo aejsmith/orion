@@ -45,9 +45,9 @@ env['CPPPATH'] = [
 
 env['LIBS'] = []
 
+env['CC'] = 'clang'
+env['CXX'] = 'clang++'
 if os.uname()[0] == 'Darwin':
-    env['CC'] = 'clang'
-    env['CXX'] = 'clang++'
     env['CXXFLAGS'] += ['-stdlib=libc++']
     env['LINKFLAGS'] += ['-stdlib=libc++']
     env['CPPPATH'] += ['/opt/local/include']
