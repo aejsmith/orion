@@ -13,7 +13,7 @@ GPUPipeline::GPUPipeline() : m_finalized(false) {}
  * @param shader	Shader to add. Any existing shader in the same stage
  *			will be replaced. */
 void GPUPipeline::addShader(const GPUShaderPtr &shader) {
-	orionAssert(!m_finalized);
+	check(!m_finalized);
 	m_shaders[shader->type()] = shader;
 }
 
@@ -21,7 +21,7 @@ void GPUPipeline::addShader(const GPUShaderPtr &shader) {
 void GPUPipeline::finalize() {
 	m_finalized = true;
 
-	orionCheck(
+	checkMsg(
 		m_shaders[GPUShader::kVertexShader] && m_shaders[GPUShader::kFragmentShader],
 		"A pipeline requires at least a vertex and a fragment shader");
 

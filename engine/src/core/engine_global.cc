@@ -11,7 +11,7 @@ std::list<EngineGlobalBase *> EngineGlobalBase::m_globals;
 
 /** Destructor, verifies the object has been destroyed. */
 EngineGlobalBase::~EngineGlobalBase() {
-	orionAssert(!m_initialized);
+	check(!m_initialized);
 }
 
 /** Destroy all global objects in correct order. */
@@ -28,7 +28,7 @@ void EngineGlobalBase::destroyAll() {
 /** Register a global in the list. */
 void EngineGlobalBase::init() {
 	/* Check we haven't already been initialized. FIXME: thread safety. */
-	orionAssert(!m_initialized);
+	check(!m_initialized);
 	m_initialized = true;
 
 	m_globals.push_back(this);

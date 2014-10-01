@@ -24,7 +24,7 @@ IMPLEMENT_ASSET_LOADER(MaterialLoader, "omt");
  * @return		Pointer to loaded asset, null on failure. */
 AssetPtr MaterialLoader::load() {
 	if(!m_attributes.HasMember("shader") || !m_attributes["shader"].IsString()) {
-		orionLog(LogLevel::kError, "%s: No/invalid shader specified", m_path);
+		logError("%s: No/invalid shader specified", m_path);
 		return nullptr;
 	}
 
@@ -32,7 +32,7 @@ AssetPtr MaterialLoader::load() {
 	ShaderPtr shader = g_assetManager->load<Shader>(shaderName);
 	if(!shader) {
 		// FIXME: asset error handling.
-		orionLog(LogLevel::kError, "%s: Unknown shader '%s'", m_path, shaderName);
+		logError("%s: Unknown shader '%s'", m_path, shaderName);
 		return nullptr;
 	}
 
@@ -42,7 +42,7 @@ AssetPtr MaterialLoader::load() {
 	 * have values set. */
 	if(m_attributes.HasMember("parameters")) {
 		if(!m_attributes["parameters"].IsObject()) {
-			orionLog(LogLevel::kError, "%s: Invalid parameters specified, must be an object", m_path);
+			logError("%s: Invalid parameters specified, must be an object", m_path);
 			return nullptr;
 		}
 
@@ -63,7 +63,7 @@ AssetPtr MaterialLoader::load() {
 bool MaterialLoader::setParameter(const char *name, const rapidjson::Value &value) {
 	const ShaderParameter *shaderParam = m_material->shader()->lookupParameter(name);
 	if(!shaderParam) {
-		orionLog(LogLevel::kError, "%s: Unknown parameter '%s'", m_path, name);
+		logError("%s: Unknown parameter '%s'", m_path, name);
 		return false;
 	}
 
@@ -72,7 +72,7 @@ bool MaterialLoader::setParameter(const char *name, const rapidjson::Value &valu
 		/* RapidJSON flags a value as being signed as long as
 		 * it is within the range of a signed int. */
 		if(!value.IsInt()) {
-			orionLog(LogLevel::kError, "%s: Expected int for '%s'", m_path, name);
+			logError("%s: Expected int for '%s'", m_path, name);
 			return false;
 		}
 
@@ -81,7 +81,7 @@ bool MaterialLoader::setParameter(const char *name, const rapidjson::Value &valu
 	case ShaderParameter::kUnsignedIntType:
 		/* Similar to the above. */
 		if(!value.IsUint()) {
-			orionLog(LogLevel::kError, "%s: Expected uint for '%s'", m_path, name);
+			logError("%s: Expected uint for '%s'", m_path, name);
 			return false;
 		}
 
@@ -89,7 +89,7 @@ bool MaterialLoader::setParameter(const char *name, const rapidjson::Value &valu
 		break;
 	case ShaderParameter::kFloatType:
 		if(!value.IsNumber()) {
-			orionLog(LogLevel::kError, "%s: Expected float for '%s'", m_path, name);
+			logError("%s: Expected float for '%s'", m_path, name);
 			return false;
 		}
 
@@ -100,7 +100,7 @@ bool MaterialLoader::setParameter(const char *name, const rapidjson::Value &valu
 			|| !value[0u].IsNumber()
 			|| !value[1u].IsNumber())
 		{
-			orionLog(LogLevel::kError, "%s: Expected vec2 for '%s'", m_path, name);
+			logError("%s: Expected vec2 for '%s'", m_path, name);
 			return false;
 		}
 
@@ -114,7 +114,7 @@ bool MaterialLoader::setParameter(const char *name, const rapidjson::Value &valu
 			|| !value[1u].IsNumber()
 			|| !value[2u].IsNumber())
 		{
-			orionLog(LogLevel::kError, "%s: Expected vec3 for '%s'", m_path, name);
+			logError("%s: Expected vec3 for '%s'", m_path, name);
 			return false;
 		}
 
@@ -130,7 +130,7 @@ bool MaterialLoader::setParameter(const char *name, const rapidjson::Value &valu
 			|| !value[2u].IsNumber()
 			|| !value[3u].IsNumber())
 		{
-			orionLog(LogLevel::kError, "%s: Expected vec4 for '%s'", m_path, name);
+			logError("%s: Expected vec4 for '%s'", m_path, name);
 			return false;
 		}
 
@@ -142,7 +142,7 @@ bool MaterialLoader::setParameter(const char *name, const rapidjson::Value &valu
 		break;
 	case ShaderParameter::kTextureType:
 		if(!value.IsString()) {
-			orionLog(LogLevel::kError, "%s: Expected texture for '%s'", m_path, name);
+			logError("%s: Expected texture for '%s'", m_path, name);
 			return false;
 		}
 
@@ -150,7 +150,7 @@ bool MaterialLoader::setParameter(const char *name, const rapidjson::Value &valu
 		m_material->setValue(name, g_assetManager->load<TextureBase>(value.GetString()));
 		break;
 	default:
-		orionLog(LogLevel::kError, "%s: Cannot handle type %d for '%s'", m_path, shaderParam->type, name);
+		logError("%s: Cannot handle type %d for '%s'", m_path, shaderParam->type, name);
 		return false;
 	}
 

@@ -73,13 +73,13 @@ GLGPUInterface::~GLGPUInterface() {
 void GLGPUInterface::init(SDL_Window *window) {
 	m_sdlContext = SDL_GL_CreateContext(window);
 	if(!m_sdlContext)
-		orionAbort("Failed to create GL context: %s", SDL_GetError());
+		fatal("Failed to create GL context: %s", SDL_GetError());
 
 	SDL_GL_SetSwapInterval(0);
 
 	glewExperimental = GL_TRUE;
 	if(glewInit() != GLEW_OK)
-		orionAbort("Failed to initialize GLEW");
+		fatal("Failed to initialize GLEW");
 
 	/* Initialize the features table and check requirements. */
 	initFeatures();
@@ -115,9 +115,9 @@ void GLGPUInterface::initFeatures() {
 	GLFeatures &features = this->features;
 
 	/* Log some OpenGL details. */
-	orionLog(LogLevel::kInfo, "OpenGL vendor:   %s", glGetString(GL_VENDOR));
-	orionLog(LogLevel::kInfo, "OpenGL renderer: %s", glGetString(GL_RENDERER));
-	orionLog(LogLevel::kInfo, "OpenGL version:  %s", glGetString(GL_VERSION));
+	logInfo("OpenGL vendor:   %s", glGetString(GL_VENDOR));
+	logInfo("OpenGL renderer: %s", glGetString(GL_RENDERER));
+	logInfo("OpenGL version:  %s", glGetString(GL_VERSION));
 
 	/* Query supported extensions. */
 	GLint count = 0;
@@ -128,24 +128,21 @@ void GLGPUInterface::initFeatures() {
 	}
 
 	/* Print out a (sorted) list of the extensions found. */
-	orionLog(LogLevel::kDebug, "OpenGL extensions:");
+	logDebug("OpenGL extensions:");
 	for(const std::string &extension : features.extensions)
-		orionLog(LogLevel::kDebug, "  %s", extension.c_str());
+		logDebug("  %s", extension.c_str());
 
 	/* Check whether the version number is high enough. */
 	GLint major = 0, minor = 0;
 	glGetIntegerv(GL_MAJOR_VERSION, &major);
 	glGetIntegerv(GL_MINOR_VERSION, &minor);
 	if(major < kGLMajorVersion || (major == kGLMajorVersion && minor < kGLMinorVersion))
-		orionAbort("OpenGL version %d.%d is required", kGLMajorVersion, kGLMinorVersion);
+		fatal("OpenGL version %d.%d is required", kGLMajorVersion, kGLMinorVersion);
 
 	/* Check for required extensions. */
 	for(size_t i = 0; i < util::arraySize(g_requiredGLExtensions); i++) {
-		if(!this->features[g_requiredGLExtensions[i]]) {
-			orionAbort(
-				"Required OpenGL extension '%s' is not supported",
-				g_requiredGLExtensions[i]);
-		}
+		if(!this->features[g_requiredGLExtensions[i]])
+			fatal("Required OpenGL extension '%s' is not supported", g_requiredGLExtensions[i]);
 	}
 
 	/* Cache some GL information. */
@@ -248,11 +245,11 @@ GLEWAPIENTRY void GLGPUInterface::debugCallback(
 		break;
 	}
 
-	orionLog(level, "GL [source = %s, type = %s]:", sourceString, typeString);
-	orionLog(level, "%s", message);
+	logWrite(level, "GL [source = %s, type = %s]:", sourceString, typeString);
+	logWrite(level, "%s", message);
 
 	if(severity == GL_DEBUG_SEVERITY_HIGH)
-		orionAbort("GL driver error (see log for details)");
+		fatal("GL driver error (see log for details)");
 }
 
 #endif /* ORION_GL_DEBUG */

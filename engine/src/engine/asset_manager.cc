@@ -56,7 +56,7 @@ AssetPtr AssetManager::load(const Path &path) {
 	/* Turn the asset path into a filesystem path. */
 	auto searchPath = m_searchPaths.find(path.subset(0, 1).str());
 	if(searchPath == m_searchPaths.end()) {
-		orionLog(LogLevel::kError, "Could not find asset '%s'", path.c_str());
+		logError("Could not find asset '%s'", path.c_str());
 		return nullptr;
 	}
 
@@ -67,7 +67,7 @@ AssetPtr AssetManager::load(const Path &path) {
 	/* Open the directory. */
 	std::unique_ptr<Directory> directory(g_filesystem->openDirectory(directoryPath));
 	if(!directory) {
-		orionLog(LogLevel::kError, "Could not find asset '%s'", path.c_str());
+		logError("Could not find asset '%s'", path.c_str());
 		return nullptr;
 	}
 
@@ -87,20 +87,18 @@ AssetPtr AssetManager::load(const Path &path) {
 			if(entryExt == "metadata") {
 				metadata.reset(g_filesystem->openFile(filePath));
 				if(!metadata) {
-					orionLog(LogLevel::kError, "Failed to open '%s'", filePath.c_str());
+					logError("Failed to open '%s'", filePath.c_str());
 					return nullptr;
 				}
 			} else if(entryExt.length()) {
 				if(data) {
-					orionLog(LogLevel::kError,
-						"Asset '%s' has multiple data streams",
-						path.c_str());
+					logError("Asset '%s' has multiple data streams", path.c_str());
 					return nullptr;
 				}
 
 				data.reset(g_filesystem->openFile(filePath));
 				if(!data) {
-					orionLog(LogLevel::kError, "Failed to open '%s'", filePath.c_str());
+					logError("Failed to open '%s'", filePath.c_str());
 					return nullptr;
 				}
 
@@ -111,14 +109,14 @@ AssetPtr AssetManager::load(const Path &path) {
 
 	/* Succeeded if we have at least a data stream. */
 	if(!data) {
-		orionLog(LogLevel::kError, "Could not find asset '%s'", path.c_str());
+		logError("Could not find asset '%s'", path.c_str());
 		return nullptr;
 	}
 
 	/* Look for a loader for the asset. */
 	std::unique_ptr<AssetLoader> loader(AssetLoaderFactory::create(type));
 	if(!loader) {
-		orionLog(LogLevel::kError, "%s: Unknown file type '%s'", path.c_str(), type.c_str());
+		logError("%s: Unknown file type '%s'", path.c_str(), type.c_str());
 		return nullptr;
 	}
 
@@ -131,7 +129,7 @@ AssetPtr AssetManager::load(const Path &path) {
 	asset->m_path = path.str();
 	m_assets.insert(std::make_pair(path.str(), asset.get()));
 
-	orionLog(LogLevel::kDebug, "Loaded asset '%s' with file type '%s'", path.c_str(), type.c_str());
+	logDebug("Loaded asset '%s' with file type '%s'", path.c_str(), type.c_str());
 	return asset;
 }
 
@@ -147,5 +145,5 @@ Asset *AssetManager::lookupAsset(const Path &path) const {
  * @param asset		Asset to unregister. */
 void AssetManager::unregisterAsset(Asset *asset) {
 	size_t ret = m_assets.erase(asset->path());
-	orionCheck(ret, "Destroying asset '%s' which is not in the cache", asset->path().c_str());
+	checkMsg(ret, "Destroying asset '%s' which is not in the cache", asset->path().c_str());
 }

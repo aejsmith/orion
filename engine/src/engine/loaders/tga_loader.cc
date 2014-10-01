@@ -39,18 +39,18 @@ IMPLEMENT_ASSET_LOADER(TGALoader, "tga");
 AssetPtr TGALoader::load() {
 	Header header;
 	if(!m_data->read(reinterpret_cast<char *>(&header), sizeof(header), 0)) {
-		orionLog(LogLevel::kError, "%s: Failed to read asset data", m_path);
+		logError("%s: Failed to read asset data", m_path);
 		return nullptr;
 	}
 
 	/* Only support uncompressed RGB images for now. */
 	if(header.imageType != 2) {
-		orionLog(LogLevel::kError, "%s: Unsupported image format (%u)", m_path, header.imageType);
+		logError("%s: Unsupported image format (%u)", m_path, header.imageType);
 		return nullptr;
 	}
 
 	if(header.depth != 24 && header.depth != 32) {
-		orionLog(LogLevel::kError, "%s: Unsupported depth (%u)", m_path, header.depth);
+		logError("%s: Unsupported depth (%u)", m_path, header.depth);
 		return nullptr;
 	}
 
@@ -64,7 +64,7 @@ AssetPtr TGALoader::load() {
 	uint64_t offset = header.idLength + (header.colourMapLength * (header.colourMapDepth / 8));
 	std::unique_ptr<char []> buf(new char[size]);
 	if(!m_data->read(buf.get(), size, offset)) {
-		orionLog(LogLevel::kError, "%s: Failed to read asset data", m_path);
+		logError("%s: Failed to read asset data", m_path);
 		return nullptr;
 	}
 

@@ -30,16 +30,14 @@ AssetPtr AssetLoader::load(DataStream *data, DataStream *metadata, const char *p
 		std::unique_ptr<char[]> buf(new char[metadata->size() + 1]);
 		buf[metadata->size()] = 0;
 		if(!metadata->read(buf.get(), metadata->size())) {
-			orionLog(LogLevel::kError, "%s: Failed to read %s metadata", path);
+			logError("%s: Failed to read metadata", path);
 			return nullptr;
 		}
 
 		m_attributes.Parse(buf.get());
 		if(m_attributes.HasParseError()) {
 			const char *msg = rapidjson::GetParseError_En(m_attributes.GetParseError());
-			orionLog(LogLevel::kError,
-				"%s: Parse error in metadata (at %zu): %s",
-				path, m_attributes.GetErrorOffset(), msg);
+			logError("%s: Parse error in metadata (at %zu): %s", path, m_attributes.GetErrorOffset(), msg);
 			return nullptr;
 		}
 	} else {
@@ -62,7 +60,7 @@ AssetLoaderFactory::AssetLoaderFactory(const char *type) :
 {
 	/* Register the loader factory. */
 	auto ret = assetLoaderFactoryMap().insert(std::make_pair(m_type, this));
-	orionCheck(ret.second, "Registering asset loader '%s' that already exists", m_type);
+	checkMsg(ret.second, "Registering asset loader '%s' that already exists", m_type);
 }
 
 /** Destroy the asset loader factory. */

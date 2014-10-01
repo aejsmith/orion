@@ -38,8 +38,8 @@ GPUTexture::GPUTexture(const GPUTexture2DDesc &desc) :
 	m_mips(clampMipLevels(desc.mips, desc.width, desc.height, 0)),
 	m_flags(desc.flags)
 {
-	orionAssert(m_width > 0);
-	orionAssert(m_height > 0);
+	check(m_width > 0);
+	check(m_height > 0);
 }
 
 /** Initialize the texture as a 2D array texture.
@@ -53,9 +53,9 @@ GPUTexture::GPUTexture(const GPUTexture2DArrayDesc &desc) :
 	m_mips(clampMipLevels(desc.mips, desc.width, desc.height, 0)),
 	m_flags(desc.flags)
 {
-	orionAssert(m_width > 0);
-	orionAssert(m_height > 0);
-	orionAssert(m_depth > 0);
+	check(m_width > 0);
+	check(m_height > 0);
+	check(m_depth > 0);
 }
 
 /** Initialize the texture as a cube texture.
@@ -69,7 +69,7 @@ GPUTexture::GPUTexture(const GPUTextureCubeDesc &desc) :
 	m_mips(clampMipLevels(desc.mips, desc.size, desc.size, 0)),
 	m_flags(desc.flags)
 {
-	orionAssert(m_width > 0);
+	check(m_width > 0);
 }
 
 /** Initialize the texture as a 3D texture.
@@ -83,7 +83,7 @@ GPUTexture::GPUTexture(const GPUTexture3DDesc &desc) :
 	m_mips(clampMipLevels(desc.mips, desc.width, desc.height, desc.depth)),
 	m_flags(desc.flags)
 {
-	orionAssert(m_width > 0);
-	orionAssert(m_height > 0);
-	orionAssert(m_depth > 0);
+	check(m_width > 0);
+	check(m_height > 0);
+	check(m_depth > 0);
 }

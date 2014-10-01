@@ -30,7 +30,7 @@ size_t ShaderParameter::size(Type type) {
 	case kMat4Type:
 		return sizeof(glm::mat4);
 	default:
-		orionAbort("Invalid type passed to ShaderParameter::size");
+		fatal("Invalid type passed to ShaderParameter::size");
 	}
 }
 
@@ -58,7 +58,7 @@ size_t ShaderParameter::alignment(Type type) {
 	case kMat4Type:
 		return ShaderParameterTypeTraits<glm::mat4>::kAlignment;
 	default:
-		orionAbort("Invalid type passed to ShaderParameter::alignment");
+		fatal("Invalid type passed to ShaderParameter::alignment");
 	}
 }
 
@@ -86,6 +86,6 @@ const char *ShaderParameter::glslType(Type type) {
 	case kMat4Type:
 		return "mat4";
 	default:
-		orionAbort("Invalid type passed to ShaderParameter::glslType");
+		fatal("Invalid type passed to ShaderParameter::glslType");
 	}
 }

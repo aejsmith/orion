@@ -32,7 +32,7 @@ void GLGPUInterface::bindTexture(unsigned index, const GPUTexturePtr &_texture) 
  * @param _buffer	Buffer to bind. */
 void GLGPUInterface::bindUniformBuffer(unsigned index, const GPUBufferPtr &_buffer) {
 	GLBuffer *buffer = static_cast<GLBuffer *>(_buffer.get());
-	orionAssert(buffer->type() == GPUBuffer::kUniformBuffer);
+	check(buffer->type() == GPUBuffer::kUniformBuffer);
 
 	buffer->bindIndexed(index);
 }

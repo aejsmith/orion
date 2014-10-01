@@ -116,9 +116,7 @@ AssetPtr OBJLoader::load() {
 				return nullptr;
 		} else if(tokens[0] == "usemtl") {
 			if(tokens.size() != 2) {
-				orionLog(LogLevel::kError,
-					"%s: %u: Expected single material name",
-					m_path, m_currentLine);
+				logError("%s: %u: Expected single material name", m_path, m_currentLine);
 				return nullptr;
 			}
 
@@ -132,9 +130,7 @@ AssetPtr OBJLoader::load() {
 				/* Note multiple group names can be specified to
 				 * give shared elements between groups but we
 				 * don't support this for now. */
-				orionLog(LogLevel::kError,
-					"%s: %u: Expected single group name",
-					m_path, m_currentLine);
+				logError("%s: %u: Expected single group name", m_path, m_currentLine);
 				return nullptr;
 			}
 
@@ -148,7 +144,7 @@ AssetPtr OBJLoader::load() {
 	}
 
 	if(!m_subMeshes.size()) {
-		orionLog(LogLevel::kError, "%s: No faces defined", m_path);
+		logError("%s: No faces defined", m_path);
 		return nullptr;
 	}
 
@@ -174,15 +170,10 @@ AssetPtr OBJLoader::load() {
 			IndexData::kUnsignedShortType,
 			desc.indices.size());
 
-		orionLog(LogLevel::kDebug,
-			"%s: Submesh %u: %u indices",
-			m_path, mesh->numSubMeshes() - 1, desc.indices.size());
+		logDebug("%s: Submesh %u: %u indices", m_path, mesh->numSubMeshes() - 1, desc.indices.size());
 	}
 
-	orionLog(LogLevel::kDebug,
-		"%s: %u vertices, %u submeshes, %u materials",
-		m_path, m_vertices.size(), mesh->numSubMeshes(), mesh->numMaterials());
-
+	logDebug("%s: %u vertices, %u submeshes, %u materials", m_path, m_vertices.size(), mesh->numSubMeshes(), mesh->numMaterials());
 	return mesh;
 }
 
@@ -198,7 +189,7 @@ bool OBJLoader::addVertexElement(
 	VectorType value;
 
 	if(tokens.size() < value.length() + 1) {
-		orionLog(LogLevel::kError, "%s: %u: Expected %d values", m_path, m_currentLine, value.length());
+		logError("%s: %u: Expected %d values", m_path, m_currentLine, value.length());
 		return false;
 	}
 
@@ -206,7 +197,7 @@ bool OBJLoader::addVertexElement(
 		const char *str = tokens[i + 1].c_str(), *end;
 		value[i] = strtof(str, const_cast<char **>(&end));
 		if(end != str + tokens[i + 1].length()) {
-			orionLog(LogLevel::kError, "%s: %u: Expected float value", m_path, m_currentLine);
+			logError("%s: %u: Expected float value", m_path, m_currentLine);
 			return false;
 		}
 	}
@@ -228,7 +219,7 @@ bool OBJLoader::addFace(const std::vector<std::string> &tokens) {
 	size_t numVertices = tokens.size() - 1;
 
 	if(numVertices != 3 && numVertices != 4) {
-		orionLog(LogLevel::kError, "%s: %u: Expected 3 or 4 vertices", m_path, m_currentLine);
+		logError("%s: %u: Expected 3 or 4 vertices", m_path, m_currentLine);
 		return false;
 	}
 
@@ -239,7 +230,7 @@ bool OBJLoader::addFace(const std::vector<std::string> &tokens) {
 		std::vector<std::string> subTokens;
 		util::tokenize(tokens[i + 1], subTokens, "/", false);
 		if(subTokens.size() != 3) {
-			orionLog(LogLevel::kError, "%s: %u: Expected v/vt/vn", m_path, m_currentLine);
+			logError("%s: %u: Expected v/vt/vn", m_path, m_currentLine);
 			return false;
 		}
 
@@ -249,7 +240,7 @@ bool OBJLoader::addFace(const std::vector<std::string> &tokens) {
 			const char *str = subTokens[j].c_str(), *end;
 			uint16_t value = strtoul(str, const_cast<char **>(&end), 10);
 			if(end != str + subTokens[j].length()) {
-				orionLog(LogLevel::kError, "%s: %u: Expected integer value", m_path, m_currentLine);
+				logError("%s: %u: Expected integer value", m_path, m_currentLine);
 				return false;
 			}
 
@@ -259,9 +250,7 @@ bool OBJLoader::addFace(const std::vector<std::string> &tokens) {
 			switch(j) {
 			case 0:
 				if(value > m_positions.size()) {
-					orionLog(LogLevel::kError,
-						"%s: %u: Invalid position index %u",
-						m_path, m_currentLine, value);
+					logError("%s: %u: Invalid position index %u", m_path, m_currentLine, value);
 					return false;
 				}
 
@@ -269,9 +258,7 @@ bool OBJLoader::addFace(const std::vector<std::string> &tokens) {
 				break;
 			case 1:
 				if(value > m_texcoords.size()) {
-					orionLog(LogLevel::kError,
-						"%s: %u: Invalid texture coordinate index %u",
-						m_path, m_currentLine, value);
+					logError("%s: %u: Invalid texture coordinate index %u", m_path, m_currentLine, value);
 					return false;
 				}
 
@@ -279,9 +266,7 @@ bool OBJLoader::addFace(const std::vector<std::string> &tokens) {
 				break;
 			case 2:
 				if(value > m_normals.size()) {
-					orionLog(LogLevel::kError,
-						"%s: %u: Invalid normal index %u",
-						m_path, m_currentLine, value);
+					logError("%s: %u: Invalid normal index %u", m_path, m_currentLine, value);
 					return false;
 				}
 

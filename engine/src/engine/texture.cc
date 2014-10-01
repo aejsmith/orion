@@ -92,7 +92,7 @@ void Texture2D::update(const Rect &area, const void *data, bool updateMipmap) {
  * @param data		New texture data.
  */
 void Texture2D::update(unsigned mip, const Rect &area, const void *data) {
-	orionAssert(mip < mips());
+	check(mip < mips());
 
 	m_gpu->update(area, data, mip);
 }

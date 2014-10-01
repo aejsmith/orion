@@ -34,7 +34,7 @@ Window::Window(const EngineConfiguration &config, GPUInterface *gpu) :
 		config.displayWidth, config.displayHeight,
 		flags);
 	if(!m_sdlWindow)
-		orionAbort("Failed to create main window: %s", SDL_GetError());
+		fatal("Failed to create main window: %s", SDL_GetError());
 
 	/* Initialize the GPU interface properly. */
 	gpu->init(m_sdlWindow);

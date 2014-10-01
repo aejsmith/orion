@@ -32,7 +32,7 @@ void Shader::setDrawState(Material *material) const {
 	/* Set the uniform buffer if we have one. */
 	if(m_uniformStruct) {
 		UniformBufferBase *buffer = material->m_uniforms;
-		orionAssert(buffer);
+		check(buffer);
 		g_gpu->bindUniformBuffer(UniformSlots::kMaterialUniforms, buffer->gpu());
 	}
 
@@ -49,14 +49,14 @@ void Shader::setDrawState(Material *material) const {
  * @param type		Type of the parameter. */
 void Shader::addParameter(const std::string &name, ShaderParameter::Type type) {
 	auto ret = m_parameters.emplace(std::make_pair(name, ShaderParameter()));
-	orionCheck(ret.second, "Adding duplicate shader parameter '%s'", name.c_str());
+	checkMsg(ret.second, "Adding duplicate shader parameter '%s'", name.c_str());
 
 	ShaderParameter &param = ret.first->second;
 	param.type = type;
 
 	if(type == ShaderParameter::kTextureType) {
 		/* Assign a texture slot. */
-		orionCheck(
+		checkMsg(
 			m_nextTextureSlot <= TextureSlots::kMaterialTexturesEnd,
 			"Parameter '%s' exceeds maximum number of textures", name.c_str());
 
@@ -89,7 +89,7 @@ void Shader::addPass(Pass *pass) {
 	switch(pass->type()) {
 	case Pass::kDeferredBasePass:
 	case Pass::kDeferredOutputPass:
-		orionCheck(
+		checkMsg(
 			m_passes[pass->type()].size() == 0,
 			"Only one deferred base/output pass is allowed per shader");
 		break;

@@ -32,15 +32,15 @@ Engine::Engine(const EngineConfiguration &config) :
 	m_lastFPS(0),
 	m_frames(0)
 {
-	orionAssert(!g_engine);
+	check(!g_engine);
 	g_engine = this;
 
 	if(SDL_Init(SDL_INIT_EVERYTHING) != 0)
-		orionAbort("Failed to initialize SDL: %s", SDL_GetError());
+		fatal("Failed to initialize SDL: %s", SDL_GetError());
 
 	/* Initialize the log. */
 	g_logManager() = new LogManager;
-	orionLog(LogLevel::kInfo, "Orion revision %s built at %s", g_versionString, g_versionTimestamp);
+	logInfo("Orion revision %s built at %s", g_versionString, g_versionTimestamp);
 
 	/* Initialize platform systems. */
 	g_filesystem() = platform::createFilesystem();

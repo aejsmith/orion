@@ -13,9 +13,9 @@ VertexFormat::VertexFormat() : m_finalized(false) {}
  * @see			VertexBufferDesc.
  * @param index		Index of the buffer to add. */
 void VertexFormat::addBuffer(unsigned index, size_t stride) {
-	orionAssert(stride);
-	orionAssert(!m_finalized);
-	orionCheck(!buffer(index), "Adding duplicate buffer %u", index);
+	check(stride);
+	check(!m_finalized);
+	checkMsg(!buffer(index), "Adding duplicate buffer %u", index);
 
 	if(index >= m_buffers.size())
 		m_buffers.resize(index + 1);
@@ -42,7 +42,7 @@ void VertexFormat::addAttribute(
 	unsigned buffer,
 	size_t offset)
 {
-	orionAssert(!m_finalized);
+	check(!m_finalized);
 
 	VertexAttribute attribute;
 	attribute.semantic = semantic;
@@ -54,15 +54,14 @@ void VertexFormat::addAttribute(
 
 	const VertexBufferDesc *desc = this->buffer(buffer);
 
-	orionCheck(desc, "Attribute references unknown buffer %u", buffer);
-	orionCheck((offset + attribute.size()) <= desc->stride,
+	checkMsg(desc, "Attribute references unknown buffer %u", buffer);
+	checkMsg(count >= 1 && count <= 4, "Unsupported attribute vector size %u", count);
+	checkMsg((offset + attribute.size()) <= desc->stride,
 		"Attribute position exceeds buffer stride (offset: %u, size: %u, stride: %u)",
 		offset, attribute.size(), desc->stride);
-	orionCheck(count >= 1 && count <= 4,
-		"Unsupported attribute vector size %u", count);
 
 	for(const VertexAttribute &exist : m_attributes) {
-		orionCheck(exist.semantic != semantic || exist.index != index,
+		checkMsg(exist.semantic != semantic || exist.index != index,
 			"Adding duplicate attribute (semantic: %d, index: %u)",
 			semantic, index);
 	}

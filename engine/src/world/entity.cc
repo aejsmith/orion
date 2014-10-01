@@ -98,9 +98,7 @@ Entity *Entity::createChild(const std::string &name) {
 /** Add a component to the entity (internal method).
  * @param component	Component to add. */
 void Entity::addComponent(Component *component) {
-	orionCheck(!m_components[component->type()],
-		"Component of type %d already registered",
-		component->type());
+	checkMsg(!m_components[component->type()], "Component of type %d already registered", component->type());
 
 	component->m_entity = this;
 	m_components[component->type()] = component;
@@ -114,7 +112,7 @@ void Entity::addComponent(Component *component) {
 /** Remove a component from the entity (internal method).
  * @param component	Component to remove. */
 void Entity::removeComponent(Component *component) {
-	orionAssert(m_components[component->type()] == component);
+	check(m_components[component->type()] == component);
 	m_components[component->type()] = nullptr;
 }
 

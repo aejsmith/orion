@@ -96,7 +96,7 @@ MeshRendererComponent::MeshRendererComponent(Entity *entity, MeshPtr mesh) :
 MaterialPtr MeshRendererComponent::material(const std::string &name) const {
 	size_t index = 0;
 	bool ret = m_mesh->material(name, index);
-	orionCheck(ret, "Material slot '%s' not found", name.c_str());
+	checkMsg(ret, "Material slot '%s' not found", name.c_str());
 
 	return m_materials[index];
 }
@@ -115,7 +115,7 @@ MaterialPtr MeshRendererComponent::material(const std::string &name) const {
 void MeshRendererComponent::setMaterial(const std::string &name, MaterialPtr material) {
 	size_t index = 0;
 	bool ret = m_mesh->material(name, index);
-	orionCheck(ret, "Material slot '%s' not found", name.c_str());
+	checkMsg(ret, "Material slot '%s' not found", name.c_str());
 
 	m_materials[index] = material;
 }
@@ -139,8 +139,8 @@ class CustomBehaviour : public BehaviourComponent {
 public:
 	CustomBehaviour(Entity *entity) : BehaviourComponent(entity) {}
 
-	void activated() { orionLog(LogLevel::kDebug, "Entity was activated"); }
-	void deactivated() { orionLog(LogLevel::kDebug, "Entity was deactivated"); }
+	void activated() { logDebug("Entity was activated"); }
+	void deactivated() { logDebug("Entity was deactivated"); }
 
 	void tick(float dt) {
 		entity()->rotate(dt * 90.0f, glm::vec3(0.0, 1.0, 0.0));

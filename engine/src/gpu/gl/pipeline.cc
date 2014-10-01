@@ -23,7 +23,7 @@ GLPipeline::~GLPipeline() {
 
 /** Bind the pipeline for rendering. */
 void GLPipeline::bind() {
-	orionAssert(m_finalized);
+	check(m_finalized);
 
 	/* Note that monolithic program objects bound with glUseProgram take
 	 * precedence over the bound pipeline object, so if glUseProgram is

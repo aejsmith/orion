@@ -102,9 +102,9 @@ void GLTexture::bindForModification() {
  * @param layer		Array layer/cube face.
  * @param mip		Mipmap level. */
 void GLTexture::update(const Rect &area, const void *data, unsigned mip, unsigned layer) {
-	orionAssert(m_type == kTexture2D || m_type == kTexture2DArray || m_type == kTextureCube);
-	orionAssert(mip < m_mips);
-	orionAssert(layer < m_depth);
+	check(m_type == kTexture2D || m_type == kTexture2DArray || m_type == kTextureCube);
+	check(mip < m_mips);
+	check(layer < m_depth);
 
 	bindForModification();
 
@@ -136,8 +136,8 @@ void GLTexture::update(const Rect &area, const void *data, unsigned mip, unsigne
  * @param data		Data to update with.
  * @param mip		Mipmap level. */
 void GLTexture::update(const Box &area, const void *data, unsigned mip) {
-	orionAssert(m_type == kTexture3D);
-	orionAssert(mip < m_mips);
+	check(m_type == kTexture3D);
+	check(mip < m_mips);
 
 	bindForModification();
 
@@ -152,7 +152,7 @@ void GLTexture::update(const Box &area, const void *data, unsigned mip) {
 
 /** Generate mipmap images. */
 void GLTexture::generateMipmap() {
-	orionAssert(m_flags & kAutoMipmap);
+	check(m_flags & kAutoMipmap);
 
 	bindForModification();
 	glGenerateMipmap(m_glTarget);

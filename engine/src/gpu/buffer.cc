@@ -19,7 +19,7 @@ GPUBuffer::GPUBuffer(Type type, Usage usage, size_t size) :
 
 /** Destroy the buffer. */
 GPUBuffer::~GPUBuffer() {
-	orionCheck(!m_mapped, "Destroying buffer which is still mapped");
+	checkMsg(!m_mapped, "Destroying buffer which is still mapped");
 }
 
 /**
@@ -34,8 +34,8 @@ GPUBuffer::~GPUBuffer() {
  * @param buf		Buffer containing data to write.
  */
 void GPUBuffer::write(size_t offset, size_t size, const void *buf) {
-	orionCheck(!m_mapped, "Call to write() while buffer mapped");
-	orionCheck((offset + size) <= m_size,
+	checkMsg(!m_mapped, "Call to write() while buffer mapped");
+	checkMsg((offset + size) <= m_size,
 		"Write outside buffer bounds (total: %zu, offset: %zu, size: %zu)",
 		m_size, offset, size);
 
@@ -62,11 +62,11 @@ void GPUBuffer::write(size_t offset, size_t size, const void *buf) {
  * @return		Pointer to mapped buffer.
  */
 void *GPUBuffer::map(size_t offset, size_t size, uint32_t flags, uint32_t access) {
-	orionCheck(!m_mapped, "Cannot create multiple buffer mappings");
-	orionCheck((offset + size) <= m_size,
+	checkMsg(!m_mapped, "Cannot create multiple buffer mappings");
+	checkMsg((offset + size) <= m_size,
 		"Map outside buffer bounds (total: %zu, offset: %zu, size: %zu)",
 		m_size, offset, size);
-	orionAssert(!((flags & kMapInvalidate) && (flags & kMapInvalidateBuffer)));
+	check(!((flags & kMapInvalidate) && (flags & kMapInvalidateBuffer)));
 
 	/* Convert invalidate range to invalidate buffer if the whole buffer is
 	 * specified. */
@@ -80,7 +80,7 @@ void *GPUBuffer::map(size_t offset, size_t size, uint32_t flags, uint32_t access
 
 /** Unmap the previous mapping created for the buffer with map(). */
 void GPUBuffer::unmap() {
-	orionCheck(m_mapped, "Unmapping buffer which is not currently mapped");
+	checkMsg(m_mapped, "Unmapping buffer which is not currently mapped");
 
 	unmapImpl();
 	m_mapped = false;

@@ -19,6 +19,6 @@ GPUInterface *GPUInterface::create(const EngineConfiguration &config) {
 	case EngineConfiguration::kGLGraphicsAPI:
 		return new GLGPUInterface;
 	default:
-		orionAbort("Configuration specifies unknown graphics API");
+		fatal("Configuration specifies unknown graphics API");
 	}
 }

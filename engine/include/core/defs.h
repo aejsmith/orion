@@ -70,7 +70,7 @@ extern const char *g_versionTimestamp;
  * Error handling definitions.
  */
 
-extern void __orionAbort(const char *file, int line, const char *fmt, ...) NORETURN;
+extern void __fatal(const char *file, int line, const char *fmt, ...) NORETURN;
 
 /**
  * Signal that an unrecoverable error has occurred.
@@ -84,8 +84,8 @@ extern void __orionAbort(const char *file, int line, const char *fmt, ...) NORET
  * @param fmt		Error message format string.
  * @param ...		Arguments to substitute into format.
  */
-#define orionAbort(fmt, ...) \
-	__orionAbort(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define fatal(fmt, ...) \
+	__fatal(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
 /**
  * Check that a condition is true.
@@ -95,10 +95,10 @@ extern void __orionAbort(const char *file, int line, const char *fmt, ...) NORET
  *
  * @param cond		Condition to check.
  */
-#define orionAssert(cond) \
+#define check(cond) \
 	do { \
 		if(unlikely(!(cond))) \
-			__orionAbort(__FILE__, __LINE__, "Assertion failed: %s", #cond); \
+			__fatal(__FILE__, __LINE__, "Assertion failed: %s", #cond); \
 	} while(0)
 
 /**
@@ -111,10 +111,10 @@ extern void __orionAbort(const char *file, int line, const char *fmt, ...) NORET
  * @param fmt		Error message format string.
  * @param ...		Arguments to substitute into format.
  */
-#define orionCheck(cond, fmt, ...) \
+#define checkMsg(cond, fmt, ...) \
 	do { \
 		if(unlikely(!(cond))) \
-			__orionAbort(__FILE__, __LINE__, fmt, ##__VA_ARGS__); \
+			__fatal(__FILE__, __LINE__, fmt, ##__VA_ARGS__); \
 	} while(0)
 
 /**

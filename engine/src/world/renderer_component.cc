@@ -42,7 +42,7 @@ void RendererComponent::activated() {
 	/* Create the scene entities if we haven't already. */
 	if(m_sceneEntities.empty()) {
 		createSceneEntities(m_sceneEntities);
-		orionAssert(!m_sceneEntities.empty());
+		check(!m_sceneEntities.empty());
 
 		/* Set initial transformations. */
 		RendererComponent::transformed();

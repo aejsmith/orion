@@ -32,7 +32,7 @@ AssetPtr ShaderLoader::load() {
 	/* Add parameters if there are any. */
 	if(m_attributes.HasMember("parameters")) {
 		if(!m_attributes["parameters"].IsObject()) {
-			orionLog(LogLevel::kError, "%s: 'parameters' attribute should be an object", m_path);
+			logError("%s: 'parameters' attribute should be an object", m_path);
 			return nullptr;
 		}
 
@@ -44,10 +44,10 @@ AssetPtr ShaderLoader::load() {
 	}
 
 	if(!m_attributes.HasMember("passes")) {
-		orionLog(LogLevel::kError, "%s: 'passes' attribute is missing", m_path);
+		logError("%s: 'passes' attribute is missing", m_path);
 		return nullptr;
 	} else if(!m_attributes["passes"].IsArray()) {
-		orionLog(LogLevel::kError, "%s: 'passes' attribute should be an array");
+		logError("%s: 'passes' attribute should be an array", m_path);
 		return nullptr;
 	}
 
@@ -60,7 +60,7 @@ AssetPtr ShaderLoader::load() {
 
 	/* Sanity check. */
 	if((m_shader->numPasses(Pass::kDeferredBasePass) != 0) != (m_shader->numPasses(Pass::kDeferredOutputPass) != 0)) {
-		orionLog(LogLevel::kError, "%s: Cannot have just one of deferred base and output passes");
+		logError("%s: Cannot have just one of deferred base and output passes", m_path);
 		return nullptr;
 	}
 
@@ -73,10 +73,10 @@ AssetPtr ShaderLoader::load() {
  * @return		Whether the parameter was successfully added. */
 bool ShaderLoader::addParameter(const char *name, const rapidjson::Value &value) {
 	if(strlen(name) == 0) {
-		orionLog(LogLevel::kError, "%s: Parameter name is empty", m_path);
+		logError("%s: Parameter name is empty", m_path);
 		return false;
 	} else if(!value.IsString()) {
-		orionLog(LogLevel::kError, "%s: Parameter '%s' type should be a string", m_path, name);
+		logError("%s: Parameter '%s' type should be a string", m_path, name);
 		return false;
 	}
 
@@ -103,16 +103,16 @@ bool ShaderLoader::addParameter(const char *name, const rapidjson::Value &value)
 		type = ShaderParameter::kTextureType;
 
 		if(m_shader->numTextures() > TextureSlots::kMaterialTexturesEnd) {
-			orionLog(LogLevel::kError, "%s: Maximum number of textures exceeded", m_path);
+			logError("%s: Maximum number of textures exceeded", m_path);
 			return false;
 		}
 	} else {
-		orionLog(LogLevel::kError, "%s: Parameter '%s' type '%s' is invalid", m_path, name, value.GetString());
+		logError("%s: Parameter '%s' type '%s' is invalid", m_path, name, value.GetString());
 		return false;
 	}
 
 	if(m_shader->lookupParameter(name)) {
-		orionLog(LogLevel::kError, "%s: Duplicate parameter '%s'", m_path, name);
+		logError("%s: Duplicate parameter '%s'", m_path, name);
 		return false;
 	}
 
@@ -125,16 +125,16 @@ bool ShaderLoader::addParameter(const char *name, const rapidjson::Value &value)
  * @return		Whether the pass was successfully added. */
 bool ShaderLoader::addPass(const rapidjson::Value &desc) {
 	if(!desc.IsObject()) {
-		orionLog(LogLevel::kError, "%s: Pass descriptor should be an object", m_path);
+		logError("%s: Pass descriptor should be an object", m_path);
 		return false;
 	} else if(!desc.HasMember("type")) {
-		orionLog(LogLevel::kError, "%s: Pass 'type' attribute is missing", m_path);
+		logError("%s: Pass 'type' attribute is missing", m_path);
 		return false;
 	}
 
 	const rapidjson::Value &value = desc["type"];
 	if(!value.IsString()) {
-		orionLog(LogLevel::kError, "%s: Pass 'type' attribute should be a string", m_path);
+		logError("%s: Pass 'type' attribute should be a string", m_path);
 		return false;
 	}
 
@@ -148,7 +148,7 @@ bool ShaderLoader::addPass(const rapidjson::Value &desc) {
 	} else if(strcmp(value.GetString(), "DeferredOutput") == 0) {
 		type = Pass::kDeferredOutputPass;
 	} else {
-		orionLog(LogLevel::kError, "%s: Pass type '%s' is invalid", m_path, value.GetString());
+		logError("%s: Pass type '%s' is invalid", m_path, value.GetString());
 		return false;
 	}
 
@@ -156,9 +156,7 @@ bool ShaderLoader::addPass(const rapidjson::Value &desc) {
 	case Pass::kDeferredBasePass:
 	case Pass::kDeferredOutputPass:
 		if(m_shader->numPasses(type)) {
-			orionLog(LogLevel::kError,
-				"%s: Only one pass of type '%s' allowed per shader",
-				m_path, value.GetString());
+			logError("%s: Only one pass of type '%s' allowed per shader", m_path, value.GetString());
 			return false;
 		}
 	default:
@@ -168,7 +166,7 @@ bool ShaderLoader::addPass(const rapidjson::Value &desc) {
 	std::unique_ptr<Pass> pass(new Pass(m_shader.get(), type));
 
 	if(!desc.HasMember("vertex") || !desc.HasMember("fragment")) {
-		orionLog(LogLevel::kError, "%s: Pass requires at least vertex and fragment shaders", m_path);
+		logError("%s: Pass requires at least vertex and fragment shaders", m_path);
 		return false;
 	}
 
@@ -187,7 +185,7 @@ bool ShaderLoader::addPass(const rapidjson::Value &desc) {
  * @param value		Value containing path string. */
 bool ShaderLoader::loadStage(Pass *pass, GPUShader::Type stage, const rapidjson::Value &value) {
 	if(!value.IsString()) {
-		orionLog(LogLevel::kError, "%s: Pass stage should be a path string", m_path);
+		logError("%s: Pass stage should be a path string", m_path);
 		return false;
 	}
 

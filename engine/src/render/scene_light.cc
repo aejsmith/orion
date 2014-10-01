@@ -49,7 +49,7 @@ void SceneLight::setIntensity(float intensity) {
 /** Set the cutoff angle (for spot lights).
  * @param cutoff	New cutoff angle. Must be <= 45 degrees. */
 void SceneLight::setCutoff(float cutoff) {
-	orionCheck(cutoff <= 45.0f, "Cutoff angle must be <= 45");
+	checkMsg(cutoff <= 45.0f, "Cutoff angle must be <= 45");
 
 	m_cutoff = cutoff;
 

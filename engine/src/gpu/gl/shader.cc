@@ -140,7 +140,7 @@ GPUShaderPtr GLGPUInterface::compileShader(GPUShader::Type type, const std::stri
 		util::arraySize(strings),
 		strings);
 	if(!program) {
-		orionLog(LogLevel::kError, "GL: Failed to create program object");
+		logError("GL: Failed to create program object");
 		return nullptr;
 	}
 
@@ -155,8 +155,8 @@ GPUShaderPtr GLGPUInterface::compileShader(GPUShader::Type type, const std::stri
 		glGetProgramInfoLog(program, result, &result, log.get());
 		glDeleteProgram(program);
 
-		orionLog(LogLevel::kError, "GL: Failed to compile shader");
-		orionLog(LogLevel::kInfo,  "GL: Compiler log:\n%s", log.get());
+		logError("GL: Failed to compile shader");
+		logInfo("GL: Compiler log:\n%s", log.get());
 		return nullptr;
 	}
 

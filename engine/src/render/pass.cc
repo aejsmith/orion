@@ -75,18 +75,18 @@ static void addStandardDeclarations(std::string &source) {
  * @param path		Filesystem path to shader source.
  * @return		Whether the stage was loaded successfully. */
 bool Pass::loadStage(GPUShader::Type stage, const Path &path) {
-	orionAssert(!m_pipeline->shader(stage));
+	check(!m_pipeline->shader(stage));
 
 	std::unique_ptr<File> file(g_filesystem->openFile(path));
 	if(!file) {
-		orionLog(LogLevel::kError, "Cannot find shader source file '%s'", path.c_str());
+		logError("Cannot find shader source file '%s'", path.c_str());
 		return false;
 	}
 
 	std::unique_ptr<char []> buf(new char[file->size() + 1]);
 	buf[file->size()] = 0;
 	if(!file->read(buf.get(), file->size())) {
-		orionLog(LogLevel::kError, "Failed to read shader source file '%s'", path.c_str());
+		logError("Failed to read shader source file '%s'", path.c_str());
 		return false;
 	}
 
@@ -114,7 +114,7 @@ bool Pass::loadStage(GPUShader::Type stage, const Path &path) {
 			? m_parent->uniformStruct()
 			: UniformStruct::lookup(uniformBlock.name);
 		if(!uniformStruct) {
-			orionLog(LogLevel::kError, "Shader refers to unknown uniform block '%s'", uniformBlock.name.c_str());
+			logError("Shader '%s' refers to unknown uniform block '%s'", path.c_str(), uniformBlock.name.c_str());
 			return nullptr;
 		}
 
@@ -128,7 +128,7 @@ bool Pass::loadStage(GPUShader::Type stage, const Path &path) {
 		// TODO: global textures.
 		const ShaderParameter *param = m_parent->lookupParameter(sampler.name);
 		if(!param || param->type != ShaderParameter::kTextureType) {
-			orionLog(LogLevel::kError, "Shader refers to unknown texture '%s'", sampler.name.c_str());
+			logError("Shader '%s' refers to unknown texture '%s'", path.c_str(), sampler.name.c_str());
 			return nullptr;
 		}
 

@@ -44,7 +44,7 @@ GLVertexData::~GLVertexData() {
 /** Bind the VAO for rendering.
  * @param indices	Index buffer being used for rendering. */
 void GLVertexData::bind(const GPUBufferPtr &indices) {
-	orionAssert(m_finalized);
+	check(m_finalized);
 
 	g_opengl->state.bindVertexArray(m_array);
 
@@ -76,11 +76,8 @@ void GLVertexData::finalizeImpl() {
 
 	for(const VertexAttribute &attribute : m_format->attributes()) {
 		GLuint index;
-		if(!mapAttribute(attribute.semantic, attribute.index, &index)) {
-			orionAbort(
-				"GL: Cannot map attribute (semantic: %d, index: %u)",
-				attribute.semantic, attribute.index);
-		}
+		if(!mapAttribute(attribute.semantic, attribute.index, &index))
+			fatal("GL: Cannot map attribute (semantic: %d, index: %u)", attribute.semantic, attribute.index);
 
 		/* FIXME: Check if type is supported. */
 		GLenum type = gl::convertAttributeType(attribute.type);

@@ -13,7 +13,7 @@
  * 0, this is checked.
  */
 Refcounted::~Refcounted() {
-	orionAssert(m_refcount == 0);
+	check(m_refcount == 0);
 }
 
 /**
@@ -26,7 +26,7 @@ Refcounted::~Refcounted() {
  * @return		New value of the reference count.
  */
 int32_t Refcounted::release() const {
-	orionAssert(m_refcount > 0);
+	check(m_refcount > 0);
 
 	int32_t ret = --m_refcount;
 	if(ret == 0)

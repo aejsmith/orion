@@ -15,7 +15,7 @@ RenderTarget::RenderTarget(unsigned priority) :
 
 /** Destroy the render target. */
 RenderTarget::~RenderTarget() {
-	orionCheck(m_cameras.empty(), "Destroying render target with active cameras");
+	checkMsg(m_cameras.empty(), "Destroying render target with active cameras");
 }
 
 /** Add a camera to the render target.
