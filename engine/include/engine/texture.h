@@ -16,7 +16,7 @@ public:
 	~TextureBase() {}
 
 	/** @return		GPU texture implementing this texture. */
-	GPUTexturePtr gpu() const { return m_gpu; }
+	GPUTexture *gpu() const { return m_gpu; }
 
 	/** @return		Pixel format for the texture. */
 	PixelFormat format() const { return m_gpu->format(); }

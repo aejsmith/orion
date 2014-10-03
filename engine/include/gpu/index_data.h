@@ -26,7 +26,7 @@ public:
 	};
 public:
 	/** @return		Buffer containing index data. */
-	GPUBufferPtr buffer() const { return m_buffer; }
+	GPUBuffer *buffer() const { return m_buffer; }
 	/** @return		Type of index elements. */
 	Type type() const { return m_type; }
 	/** @return		Number of indices. */
@@ -50,7 +50,7 @@ public:
 		}
 	}
 protected:
-	IndexData(const GPUBufferPtr &buffer, Type type, size_t count);
+	IndexData(GPUBuffer *buffer, Type type, size_t count);
 protected:
 	GPUBufferPtr m_buffer;		/**< Buffer containing index data. */
 	Type m_type;			/**< Type of index elements. */

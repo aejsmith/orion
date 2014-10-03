@@ -100,7 +100,7 @@ const glm::mat4 &SceneView::projection() {
 
 /** Get the uniform buffer containing view parameters.
  * @return		Pointer to buffer containing view parameters. */
-GPUBufferPtr SceneView::uniforms() {
+GPUBuffer *SceneView::uniforms() {
 	/* Ensure view and projection are up to date. */
 	bool wasOutdated = m_viewOutdated || m_projectionOutdated;
 	if(m_viewOutdated)

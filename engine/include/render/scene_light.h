@@ -65,7 +65,7 @@ public:
 	float attenuationExp() const { return m_attenuationExp; }
 
 	/** @return		GPU buffer containing light uniforms. */
-	GPUBufferPtr uniforms() const { return m_uniforms.gpu(); }
+	GPUBuffer *uniforms() const { return m_uniforms.gpu(); }
 private:
 	void setPosition(const glm::vec3 &position);
 private:

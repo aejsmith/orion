@@ -29,7 +29,7 @@ VertexData::VertexData(size_t count) :
  *
  * @param format	Vertex format descriptor.
  */
-void VertexData::setFormat(const VertexFormatPtr &format) {
+void VertexData::setFormat(VertexFormat *format) {
 	check(!m_finalized);
 	check(!m_format);
 	check(format->finalized());
@@ -48,7 +48,7 @@ void VertexData::setFormat(const VertexFormatPtr &format) {
  * @param index		Index to add buffer at.
  * @param buffer	Buffer to add.
  */
-void VertexData::setBuffer(unsigned index, const GPUBufferPtr &buffer) {
+void VertexData::setBuffer(unsigned index, GPUBuffer *buffer) {
 	check(!m_finalized);
 	check(m_format);
 	check(buffer->type() == GPUBuffer::kVertexBuffer);

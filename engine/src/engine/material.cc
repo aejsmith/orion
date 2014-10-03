@@ -8,7 +8,7 @@
 
 /** Create a new material.
  * @param shader	Shader to use for the material. */
-Material::Material(ShaderPtr shader) :
+Material::Material(Shader *shader) :
 	m_shader(shader),
 	m_uniforms(nullptr)
 {

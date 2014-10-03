@@ -46,27 +46,27 @@ public:
 	/** Create a vertex format descriptor.
 	 * @return		Pointer to created vertex format descriptor. */
 	virtual VertexFormatPtr createVertexFormat() {
-		return VertexFormatPtr(new VertexFormat);
+		return new VertexFormat();
 	}
 
 	/** Create a vertex data object.
 	 * @see			VertexData::VertexData().
 	 * @return		Pointer to created vertex data object. */
 	virtual VertexDataPtr createVertexData(size_t vertices) {
-		return VertexDataPtr(new VertexData(vertices));
+		return new VertexData(vertices);
 	}
 
 	/** Create an index data object.
 	 * @see			IndexData::IndexData().
 	 * @return		Pointer to created index data object. */
-	virtual IndexDataPtr createIndexData(const GPUBufferPtr &buffer, IndexData::Type type, size_t count) {
-		return IndexDataPtr(new IndexData(buffer, type, count));
+	virtual IndexDataPtr createIndexData(GPUBuffer *buffer, IndexData::Type type, size_t count) {
+		return new IndexData(buffer, type, count);
 	}
 
 	/** Create a pipeline object.
 	 * @return		Pointer to created pipeline. */
 	virtual GPUPipelinePtr createPipeline() {
-		return GPUPipelinePtr(new GPUPipeline());
+		return new GPUPipeline();
 	}
 
 	/** Create a 2D texture.
@@ -114,17 +114,17 @@ public:
 
 	/** Bind a pipeline for rendering.
 	 * @param pipeline	Pipeline to use. */
-	virtual void bindPipeline(const GPUPipelinePtr &pipeline) = 0;
+	virtual void bindPipeline(GPUPipeline *pipeline) = 0;
 
 	/** Bind a texture.
 	 * @param index		Texture unit index to bind to.
 	 * @param texture	Texture to bind. */
-	virtual void bindTexture(unsigned index, const GPUTexturePtr &texture) = 0;
+	virtual void bindTexture(unsigned index, GPUTexture *texture) = 0;
 
 	/** Bind a uniform buffer.
 	 * @param index		Uniform block index to bind to.
 	 * @param buffer	Buffer to bind. */
-	virtual void bindUniformBuffer(unsigned index, const GPUBufferPtr &buffer) = 0;
+	virtual void bindUniformBuffer(unsigned index, GPUBuffer *buffer) = 0;
 
 	/**
 	 * Set the blending mode.
@@ -180,7 +180,7 @@ public:
 	 * @param type		Primitive type to render.
 	 * @param vertices	Vertex data to use.
 	 * @param indices	Index data to use (can be null). */
-	virtual void draw(PrimitiveType type, const VertexDataPtr &vertices, const IndexDataPtr &indices) = 0;
+	virtual void draw(PrimitiveType type, VertexData *vertices, IndexData *indices) = 0;
 protected:
 	GPUInterface() {}
 };

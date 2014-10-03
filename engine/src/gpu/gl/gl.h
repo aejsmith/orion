@@ -80,25 +80,21 @@ public:
 
 	GPUShaderPtr compileShader(GPUShader::Type type, const std::string &source) override;
 
-	void bindPipeline(const GPUPipelinePtr &pipeline) override;
-	void bindTexture(unsigned index, const GPUTexturePtr &texture) override;
-	void bindUniformBuffer(unsigned index, const GPUBufferPtr &buffer) override;
+	void bindPipeline(GPUPipeline *pipeline) override;
+	void bindTexture(unsigned index, GPUTexture *texture) override;
+	void bindUniformBuffer(unsigned index, GPUBuffer *buffer) override;
 	void setBlendMode(BlendFunc func, BlendFactor sourceFactor, BlendFactor destFactor) override;
 	void setDepthMode(ComparisonFunc func, bool enableWrite) override;
 
 	void endFrame(bool vsync) override;
 
 	void clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil) override;
-	void draw(PrimitiveType type, const VertexDataPtr &vertices, const IndexDataPtr &indices) override;
+	void draw(PrimitiveType type, VertexData *vertices, IndexData *indices) override;
 public:
-	/** GL feature information. */
-	GLFeatures features;
-	/** Mapping of engine pixel formats to GL types. */
-	PixelFormatArray pixelFormats;
-	/** Cached GL state. */
-	GLState state;
-	/** Default VAO when no object-specific VAO is in use. */
-	GLuint defaultVertexArray;
+	GLFeatures features;		/**< GL feature information. */
+	PixelFormatArray pixelFormats;	/**< Mapping of engine pixel formats to GL types. */
+	GLState state;			/**< Cached GL state. */
+	GLuint defaultVertexArray;	/**< Default VAO when no object-specific VAO is in use. */
 private:
 	void initFeatures();
 	void initPixelFormats();

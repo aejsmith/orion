@@ -139,7 +139,7 @@ UniformBufferBase::~UniformBufferBase() {
  *
  * @return		Pointer to GPU buffer.
  */
-GPUBufferPtr UniformBufferBase::gpu() const {
+GPUBuffer *UniformBufferBase::gpu() const {
 	if(m_dirty) {
 		m_gpuBuffer->write(0, m_uniformStruct.size, m_shadowBuffer);
 		m_dirty = false;

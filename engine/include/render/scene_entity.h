@@ -37,7 +37,7 @@ public:
 	/** @return		Current scale. */
 	const glm::vec3 &scale() const { return m_transform.scale(); }
 	/** @return		GPU buffer containing entity uniforms. */
-	GPUBufferPtr uniforms() const { return m_uniforms.gpu(); }
+	GPUBuffer *uniforms() const { return m_uniforms.gpu(); }
 
 	/** Get the material for the entity.
 	 * @return		Material for the entity. */

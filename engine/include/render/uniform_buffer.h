@@ -129,7 +129,7 @@ public:
 	/** @return		Uniform structure for this buffer. */
 	const UniformStruct &uniformStruct() const { return m_uniformStruct; }
 
-	GPUBufferPtr gpu() const;
+	GPUBuffer *gpu() const;
 
 	/**
 	 * Member access.

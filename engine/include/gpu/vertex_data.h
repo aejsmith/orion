@@ -32,21 +32,21 @@
  */
 class VertexData : public GPUResource {
 public:
-	void setFormat(const VertexFormatPtr &format);
-	void setBuffer(unsigned index, const GPUBufferPtr &buffer);
+	void setFormat(VertexFormat *format);
+	void setBuffer(unsigned index, GPUBuffer *buffer);
 
 	void finalize();
 
 	/** @return		Total number of vertices. */
 	size_t count() const { return m_count; }
 	/** @return		Pointer to vertex format descriptor. */
-	VertexFormatPtr format() const { return m_format; }
+	VertexFormat *format() const { return m_format; }
 
 	/** Get a vertex buffer.
 	 * @param index		Buffer index to get.
 	 * @return		Pointer to vertex buffer, or null if no buffer
 	 *			at specified index. */
-	GPUBufferPtr buffer(unsigned index) const {
+	GPUBuffer *buffer(unsigned index) const {
 		return (index < m_buffers.size()) ? m_buffers[index] : nullptr;
 	}
 

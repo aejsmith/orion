@@ -16,7 +16,7 @@ public:
 
 	/** Get the GPU vertex format corresponding to SimpleVertex.
 	 * @return		Simple vertex format. */
-	VertexFormatPtr simpleVertexFormat() const { return m_simpleVertexFormat; }
+	VertexFormat *simpleVertexFormat() const { return m_simpleVertexFormat; }
 private:
 	VertexFormatPtr m_simpleVertexFormat;
 };

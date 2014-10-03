@@ -47,30 +47,49 @@ private:
 	mutable int32_t m_refcount;	/**< Object reference count. */
 };
 
-/** Reference counting smart pointer.
+/**
+ * Reference counting smart pointer.
+ *
+ * This class implements a smart pointer to a reference counted object which
+ * provides retain() and release() methods (need not necessarily derive from
+ * Refcounted).
+ *
+ * This class allows implicit conversions to and from pointers to the referenced
+ * type. It is typically safe to take raw pointers to reference counted objects
+ * as arguments as long as you expect that the caller should hold a reference.
+ * Similarly, it should be safe to return raw pointers to objects as long as
+ * you know a reference should be held to it somewhere, e.g. Material::shader()
+ * returns a Shader *, because it itself holds a reference to the Shader, and
+ * knows that something should have a reference to itself. If the caller intends
+ * to store the returned pointer for long term usage, it should assign it to a
+ * ReferencePtr.
+ *
  * @tparam T		Type of the reference counted object that the pointer
  *			should point to. */
 template <typename T>
 class ReferencePtr {
 public:
+	/** Type of the referenced object. */
+	typedef T ReferencedType;
+public:
 	/** Create a null pointer. */
-	constexpr ReferencePtr() : m_object(nullptr) {}
+	ReferencePtr() : m_object(nullptr) {}
 
 	/** Create a null pointer. */
-	constexpr ReferencePtr(std::nullptr_t) : m_object(nullptr) {}
+	ReferencePtr(std::nullptr_t) : m_object(nullptr) {}
 
-	/** Point to an object, increasing its reference count. */
-	template <
-		typename U,
-		typename = typename std::enable_if<std::is_convertible<U *, T *>::value>::type>
-	explicit ReferencePtr(U *ptr) :
+	/** Point to an object, increasing its reference count.
+	 * @param ptr		Object to reference. */
+	template <typename U, typename = typename std::enable_if<std::is_convertible<U *, ReferencedType *>::value>::type>
+	ReferencePtr(U *ptr) :
 		m_object(ptr)
 	{
 		if(m_object)
 			m_object->retain();
 	}
 
-	/** Copy another pointer, increasing the reference count. */
+	/** Copy another pointer, increasing the reference count.
+	 * @param other		Pointer to copy. */
 	ReferencePtr(const ReferencePtr &other) :
 		m_object(other.m_object)
 	{
@@ -78,10 +97,9 @@ public:
 			m_object->retain();
 	}
 
-	/** Copy another pointer of compatible type, increasing the reference count. */
-	template <
-		typename U,
-		typename = typename std::enable_if<std::is_convertible<U *, T *>::value>::type>
+	/** Copy another pointer of compatible type, increasing the reference count.
+	 * @param other		Pointer to copy. */
+	template <typename U, typename = typename std::enable_if<std::is_convertible<U *, ReferencedType *>::value>::type>
 	ReferencePtr(const ReferencePtr<U> &other) :
 		m_object(other.get())
 	{
@@ -89,7 +107,8 @@ public:
 			m_object->retain();
 	}
 
-	/** Move another pointer to this one. */
+	/** Move another pointer to this one.
+	 * @param other		Pointer to move, becomes invalid. */
 	ReferencePtr(ReferencePtr &&other) :
 		m_object(other.m_object)
 	{
@@ -99,30 +118,31 @@ public:
 	/** Destroy the pointer, releasing the object. */
 	~ReferencePtr() { reset(); }
 
-	/** Check whether the pointer is valid. */
-	explicit operator bool() const { return m_object != nullptr; }
-
-	/** Assign from a basic pointer, increasing the reference count. */
-	ReferencePtr &operator =(T *ptr) {
+	/** Assign from a basic pointer, increasing the reference count.
+	 * @param ptr		Pointer to assign. */
+	ReferencePtr &operator =(ReferencedType *ptr) {
 		reset(ptr);
 		return *this;
 	}
 
-	/** Copy another pointer, increasing the reference count. */
+	/** Copy another pointer, increasing the reference count.
+	 * @param other		Pointer to copy. */
 	ReferencePtr &operator =(const ReferencePtr &other) {
 		reset(other.m_object);
 		return *this;
 	}
 
-	/** Copy another pointer of compatible type, increasing the reference count. */
+	/** Copy another pointer of compatible type, increasing the reference count.
+	 * @param other		Pointer to copy. */
 	template <typename U>
-	typename std::enable_if<std::is_convertible<U *, T *>::value, ReferencePtr &>
+	typename std::enable_if<std::is_convertible<U *, ReferencedType *>::value, ReferencePtr &>
 	operator =(const ReferencePtr<U> &other) {
 		reset(other.get());
 		return *this;
 	}
 
-	/** Move another pointer to this one. */
+	/** Move another pointer to this one.
+	 * @param other		Pointer to move, becomes invalid. */
 	ReferencePtr &operator =(ReferencePtr &&other) {
 		if(m_object)
 			m_object->release();
@@ -132,28 +152,24 @@ public:
 		return *this;
 	}
 
-	/** Move another pointer of compatible type to this one. */
-	template <typename U>
-	typename std::enable_if<std::is_convertible<U *, T *>::value, ReferencePtr &>
-	operator =(ReferencePtr<U> &&other) {
-		if(m_object)
-			m_object->release();
+	/** @return		Whether the pointer is valid. */
+	explicit operator bool() const { return m_object != nullptr; }
 
-		m_object = other.m_object;
-		other.m_object = nullptr;
-		return *this;
-	}
+	/** @return		Raw pointer value. */
+	operator ReferencedType *() const { return m_object; }
 
-	T &operator *() const { return *m_object; }
-	T *operator ->() const { return m_object; }
-	operator T *() const { return m_object; }
+	/** @return		Reference to object. */
+	ReferencedType &operator *() const { return *m_object; }
+
+	/** @return		Pointer to object. */
+	ReferencedType *operator ->() const { return m_object; }
 
 	/** @return		Value of the pointer. */
-	T *get() const { return m_object; }
+	ReferencedType *get() const { return m_object; }
 
 	/** Release the current pointer and replace it.
 	 * @param ptr		New pointer, defaults to null. */
-	void reset(T *ptr = nullptr) {
+	void reset(ReferencedType *ptr = nullptr) {
 		if(ptr)
 			ptr->retain();
 
@@ -168,18 +184,42 @@ public:
 	void swap(ReferencePtr &other) {
 		std::swap(m_object, other.m_object);
 	}
+
+	/** Static cast for ReferencePtr.
+	 * @tparam T		Type to cast to.
+	 * @param ptr		Pointer to cast.
+	 * @return		Casted pointer. */
+	template <typename U>
+	ReferencePtr<U> staticCast() const {
+		return ReferencePtr<U>(static_cast<U *>(m_object));
+	}
+
+	/** Dynamic cast for ReferencePtr.
+	 * @tparam T		Type to cast to.
+	 * @param ptr		Pointer to cast.
+	 * @return		Casted pointer. */
+	template <typename U>
+	ReferencePtr<U> dynamicCast() const {
+		return ReferencePtr<U>(dynamic_cast<U *>(m_object));
+	}
 private:
-	T *m_object;			/**< Referenced object. */
+	ReferencedType *m_object;	/**< Referenced object. */
 };
 
 /** Compare ReferencePtrs for equality. */
 template <typename T, typename U>
-bool operator ==(const ReferencePtr<T> &a, const ReferencePtr<U> &b) {
+inline bool operator ==(const ReferencePtr<T> &a, const ReferencePtr<U> &b) {
 	return a.get() == b.get();
 }
 
 /** Compare ReferencePtrs for inequality. */
 template <typename T, typename U>
-bool operator !=(const ReferencePtr<T> &a, const ReferencePtr<U> &b) {
+inline bool operator !=(const ReferencePtr<T> &a, const ReferencePtr<U> &b) {
 	return !(a == b);
+}
+
+/** Check order of ReferencePtrs. */
+template <typename T, typename U>
+inline bool operator <(const ReferencePtr<T> &a, const ReferencePtr<U> &b) {
+	return a.get() < b.get();
 }

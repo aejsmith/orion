@@ -123,7 +123,7 @@ class GPUBufferMapper : Noncopyable {
 public:
 	/** Map the entire buffer.
 	 * @see			GPUBuffer::map(). */
-	GPUBufferMapper(const GPUBufferPtr &buffer, uint32_t flags, uint32_t access) :
+	GPUBufferMapper(GPUBuffer *buffer, uint32_t flags, uint32_t access) :
 		m_buffer(buffer)
 	{
 		m_mapping = reinterpret_cast<T *>(m_buffer->map(0, buffer->size(), flags, access));
@@ -131,7 +131,7 @@ public:
 
 	/** Map a range of the buffer.
 	 * @see			GPUBuffer::map(). */
-	GPUBufferMapper(const GPUBufferPtr &buffer, size_t offset, size_t size, uint32_t flags, uint32_t access) :
+	GPUBufferMapper(GPUBuffer *buffer, size_t offset, size_t size, uint32_t flags, uint32_t access) :
 		m_buffer(buffer)
 	{
 		m_mapping = reinterpret_cast<T *>(m_buffer->map(offset, size, flags, access));
@@ -152,10 +152,9 @@ public:
 	T &operator [](size_t n) const { return m_mapping[n]; }
 private:
 	/** Buffer being mapped.
-	 * @note		Hold just a reference to the pointer as the
-	 *			user should hold the pointer itself while it has
-	 *			the buffer mapped. */
-	const GPUBufferPtr &m_buffer;
+	 * @note		Hold just a raw pointer as the user should hold
+	 *			a reference to the buffer. */
+	GPUBuffer *m_buffer;
 
 	/** Pointer to mapping. */
 	T *m_mapping;

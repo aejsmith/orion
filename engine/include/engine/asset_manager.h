@@ -40,7 +40,7 @@ public:
 			"AssetType is not derived from Asset");
 
 		AssetPtr asset = load(path);
-		return TypedAssetPtr<AssetType>(dynamic_cast<AssetType *>(asset.get()));
+		return asset.dynamicCast<AssetType>();
 	}
 private:
 	Asset *lookupAsset(const Path &path) const;
@@ -51,6 +51,7 @@ private:
 	 *
 	 * Map of known assets. Note we store a raw pointer here instead of
 	 * an AssetPtr because we don't want to increase the reference count.
+	 * Assets remove themselves from here when they are destroyed.
 	 *
 	 * @todo		Replace with a radix tree.
 	 */

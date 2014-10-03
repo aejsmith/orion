@@ -14,24 +14,24 @@
 
 /** Bind a pipeline for rendering.
  * @param _pipeline	Pipeline to use. */
-void GLGPUInterface::bindPipeline(const GPUPipelinePtr &_pipeline) {
-	GLPipeline *pipeline = static_cast<GLPipeline *>(_pipeline.get());
+void GLGPUInterface::bindPipeline(GPUPipeline *_pipeline) {
+	GLPipeline *pipeline = static_cast<GLPipeline *>(_pipeline);
 	pipeline->bind();
 }
 
 /** Bind a texture.
  * @param index		Texture unit index to bind to.
  * @param _texture	Texture to bind. */
-void GLGPUInterface::bindTexture(unsigned index, const GPUTexturePtr &_texture) {
-	GLTexture *texture = static_cast<GLTexture *>(_texture.get());
+void GLGPUInterface::bindTexture(unsigned index, GPUTexture *_texture) {
+	GLTexture *texture = static_cast<GLTexture *>(_texture);
 	texture->bind(index);
 }
 
 /** Bind a uniform buffer.
  * @param index		Uniform block index to bind to.
  * @param _buffer	Buffer to bind. */
-void GLGPUInterface::bindUniformBuffer(unsigned index, const GPUBufferPtr &_buffer) {
-	GLBuffer *buffer = static_cast<GLBuffer *>(_buffer.get());
+void GLGPUInterface::bindUniformBuffer(unsigned index, GPUBuffer *_buffer) {
+	GLBuffer *buffer = static_cast<GLBuffer *>(_buffer);
 	check(buffer->type() == GPUBuffer::kUniformBuffer);
 
 	buffer->bindIndexed(index);
@@ -105,8 +105,8 @@ void GLGPUInterface::clear(unsigned buffers, const glm::vec4 &colour, float dept
  * @param type		Primitive type to render.
  * @param _vertices	Vertex data to use.
  * @param indices	Index data to use (can be null). */
-void GLGPUInterface::draw(PrimitiveType type, const VertexDataPtr &_vertices, const IndexDataPtr &indices) {
-	GLVertexData *vertices = static_cast<GLVertexData *>(_vertices.get());
+void GLGPUInterface::draw(PrimitiveType type, VertexData *_vertices, IndexData *indices) {
+	GLVertexData *vertices = static_cast<GLVertexData *>(_vertices);
 
 	/* Bind the VAO and the index buffer (if any). */
 	vertices->bind((indices) ? indices->buffer() : nullptr);

@@ -53,7 +53,7 @@ public:
 
 	const glm::mat4 &projection();
 
-	GPUBufferPtr uniforms();
+	GPUBuffer *uniforms();
 private:
 	glm::vec3 m_position;		/**< View position. */
 	glm::quat m_orientation;	/**< View orientation. */

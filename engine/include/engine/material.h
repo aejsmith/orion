@@ -23,11 +23,11 @@ class UniformBufferBase;
  */
 class Material : public Asset {
 public:
-	explicit Material(ShaderPtr shader);
+	explicit Material(Shader *shader);
 	~Material();
 
 	/** @return		Shader for the material. */
-	ShaderPtr shader() const { return m_shader; }
+	Shader *shader() const { return m_shader; }
 
 	/**
 	 * Parameter value access.

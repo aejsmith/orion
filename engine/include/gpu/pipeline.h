@@ -29,13 +29,13 @@
  */
 class GPUPipeline : public GPUResource {
 public:
-	void addShader(const GPUShaderPtr &shader);
+	void addShader(GPUShader *shader);
 	void finalize();
 
 	/** Get the shader for a stage.
 	 * @param stage		Stage to get shader for.
 	 * @return		Shader set for that stage. */
-	GPUShaderPtr shader(GPUShader::Type stage) const { return m_shaders[stage]; }
+	GPUShader *shader(GPUShader::Type stage) const { return m_shaders[stage]; }
 protected:
 	/** Type of the shader array. */
 	typedef std::array<GPUShaderPtr, GPUShader::kNumShaderTypes> ShaderArray;
