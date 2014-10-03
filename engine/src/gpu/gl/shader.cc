@@ -128,7 +128,7 @@ GPUShaderPtr GLGPUInterface::compileShader(GPUShader::Type type, const std::stri
 		 * information with VertexData::mapAttribute(). */
 		preamble += "#define kPositionSemantic 0\n";
 		preamble += "#define kNormalSemantic 2\n";
-		preamble += "#define kTexCoordSemantic 4\n";
+		preamble += "#define kTexcoordSemantic 4\n";
 		preamble += "#define kDiffuseSemantic 14\n";
 		preamble += "#define kSpecularSemantic 15\n";
 	}

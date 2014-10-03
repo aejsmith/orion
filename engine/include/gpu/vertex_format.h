@@ -38,7 +38,7 @@ struct VertexAttribute {
 	enum Semantic {
 		kPositionSemantic,	/**< Vertex position. */
 		kNormalSemantic,	/**< Vertex normal. */
-		kTexCoordSemantic,	/**< Texture coordinates. */
+		kTexcoordSemantic,	/**< Texture coordinates. */
 		kDiffuseSemantic,	/**< Diffuse colour. */
 		kSpecularSemantic,	/**< Specular colour. */
 	};

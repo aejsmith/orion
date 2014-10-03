@@ -6,7 +6,7 @@
 
 layout(location = 0) in vec3 vtxPosition;
 layout(location = 1) in vec3 vtxNormal;
-layout(location = 2) in vec2 vtxTexCoord;
+layout(location = 2) in vec2 vtxTexcoord;
 
 layout(location = 0) out vec4 fragColour;
 
@@ -105,6 +105,6 @@ void main() {
 		break;
 	}
 
-	vec4 texel = texture(diffuseTexture, vtxTexCoord);
+	vec4 texel = texture(diffuseTexture, vtxTexcoord);
 	fragColour = texel * lightFactor;
 }

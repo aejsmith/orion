@@ -24,7 +24,7 @@ RenderResources::RenderResources() {
 		VertexAttribute::kNormalSemantic, 0,
 		VertexAttribute::kFloatType, 3, 0, offsetof(SimpleVertex, nx));
 	m_simpleVertexFormat->addAttribute(
-		VertexAttribute::kTexCoordSemantic, 0,
+		VertexAttribute::kTexcoordSemantic, 0,
 		VertexAttribute::kFloatType, 2, 0, offsetof(SimpleVertex, u));
 	m_simpleVertexFormat->finalize();
 }

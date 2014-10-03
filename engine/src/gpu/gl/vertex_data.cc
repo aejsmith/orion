@@ -117,7 +117,7 @@ bool GLVertexData::mapAttribute(VertexAttribute::Semantic semantic, unsigned ind
 
 		*gl = 2 + index;
 		return true;
-	case VertexAttribute::kTexCoordSemantic:
+	case VertexAttribute::kTexcoordSemantic:
 		if(index >= 10)
 			return false;
 
