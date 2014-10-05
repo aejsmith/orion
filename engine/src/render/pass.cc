@@ -2,6 +2,8 @@
  * @file
  * @copyright		2014 Alex Smith
  * @brief		Shader pass class.
+ *
+ * @todo		Having the loading shaders array is a bit irritating.
  */
 
 #include "core/filesystem.h"
@@ -19,9 +21,7 @@
 Pass::Pass(Shader *parent, Type type) :
 	m_parent(parent),
 	m_type(type)
-{
-	m_pipeline = g_gpu->createPipeline();
-}
+{}
 
 /** Destroy the pass. */
 Pass::~Pass() {}
@@ -34,6 +34,7 @@ Pass::~Pass() {}
  * with this pass.
  */
 void Pass::setDrawState() const {
+	check(m_pipeline);
 	g_gpu->bindPipeline(m_pipeline);
 }
 
@@ -75,7 +76,7 @@ static void addStandardDeclarations(std::string &source) {
  * @param path		Filesystem path to shader source.
  * @return		Whether the stage was loaded successfully. */
 bool Pass::loadStage(GPUShader::Type stage, const Path &path) {
-	check(!m_pipeline->shader(stage));
+	check(!m_loadingShaders[stage]);
 
 	std::unique_ptr<File> file(g_filesystem->openFile(path));
 	if(!file) {
@@ -135,11 +136,11 @@ bool Pass::loadStage(GPUShader::Type stage, const Path &path) {
 		shader->bindSampler(sampler.index, param->textureSlot);
 	}
 
-	m_pipeline->addShader(shader);
+	m_loadingShaders[stage] = shader;
 	return true;
 }
 
 /** Finalize the pass (called from Shader::addPass). */
 void Pass::finalize() {
-	m_pipeline->finalize();
+	m_pipeline = g_gpu->createPipeline(m_loadingShaders);
 }

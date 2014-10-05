@@ -166,30 +166,26 @@ void GLTexture::generateMipmap() {
  * @param desc		Descriptor containing texture parameters.
  * @return		Pointer to created texture. */
 GPUTexturePtr GLGPUInterface::createTexture(const GPUTexture2DDesc &desc) {
-	GPUTexture *texture = new GLTexture(desc);
-	return GPUTexturePtr(texture);
+	return new GLTexture(desc);
 }
 
 /** Create a 2D array texture.
  * @param desc		Descriptor containing texture parameters.
  * @return		Pointer to created texture. */
 GPUTexturePtr GLGPUInterface::createTexture(const GPUTexture2DArrayDesc &desc) {
-	GPUTexture *texture = new GLTexture(desc);
-	return GPUTexturePtr(texture);
+	return new GLTexture(desc);
 }
 
 /** Create a cube texture.
  * @param desc		Descriptor containing texture parameters.
  * @return		Pointer to created texture. */
 GPUTexturePtr GLGPUInterface::createTexture(const GPUTextureCubeDesc &desc) {
-	GPUTexture *texture = new GLTexture(desc);
-	return GPUTexturePtr(texture);
+	return new GLTexture(desc);
 }
 
 /** Create a 3D texture.
  * @param desc		Descriptor containing texture parameters.
  * @return		Pointer to created texture. */
 GPUTexturePtr GLGPUInterface::createTexture(const GPUTexture3DDesc &desc) {
-	GPUTexture *texture = new GLTexture(desc);
-	return GPUTexturePtr(texture);
+	return new GLTexture(desc);
 }

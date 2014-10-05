@@ -64,5 +64,8 @@ private:
 	Type m_type;				/**< Type of the pass. */
 	GPUPipelinePtr m_pipeline;		/**< GPU pipeline. */
 
+	/** Array of shaders, valid only during initialization. */
+	GPUShaderArray m_loadingShaders;
+
 	friend class Shader;
 };

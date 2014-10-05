@@ -8,6 +8,8 @@
 
 #include "gpu/defs.h"
 
+#include <vector>
+
 /**
  * Class for storing data on the GPU.
  *
@@ -108,6 +110,9 @@ protected:
 
 /** Type of a pointer to a GPU buffer. */
 typedef GPUResourcePtr<GPUBuffer> GPUBufferPtr;
+
+/** Type of a GPU buffer array. */
+typedef std::vector<GPUBufferPtr> GPUBufferArray;
 
 /**
  * Scoped buffer mapper class.

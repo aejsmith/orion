@@ -74,7 +74,7 @@ Material *SubMeshSceneEntity::material() const {
 
 /** Draw the entity. */
 void SubMeshSceneEntity::draw() const {
-	const VertexDataPtr &vertices = (m_subMesh->vertices)
+	GPUVertexData *vertices = (m_subMesh->vertices)
 		? m_subMesh->vertices
 		: m_subMesh->parent()->sharedVertices;
 

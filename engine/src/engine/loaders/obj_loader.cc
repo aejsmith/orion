@@ -151,10 +151,12 @@ AssetPtr OBJLoader::load() {
 	MeshPtr mesh(new Mesh());
 
 	/* Create the vertex buffer. */
-	mesh->sharedVertices = g_gpu->createVertexData(m_vertices.size());
-	mesh->sharedVertices->setFormat(g_renderResources->simpleVertexFormat());
-	mesh->sharedVertices->setBuffer(0, buildGPUBuffer(GPUBuffer::kVertexBuffer, m_vertices));
-	mesh->sharedVertices->finalize();
+	GPUBufferArray buffers(1);
+	buffers[0] = buildGPUBuffer(GPUBuffer::kVertexBuffer, m_vertices);
+	mesh->sharedVertices = g_gpu->createVertexData(
+		m_vertices.size(),
+		g_renderResources->simpleVertexFormat(),
+		buffers);
 
 	/* Register all submeshes. */
 	for(const SubMeshDesc &desc : m_subMeshes) {
@@ -167,13 +169,15 @@ AssetPtr OBJLoader::load() {
 		/* Create an index buffer. */
 		subMesh->indices = g_gpu->createIndexData(
 			buildGPUBuffer(GPUBuffer::kIndexBuffer, desc.indices),
-			IndexData::kUnsignedShortType,
+			GPUIndexData::kUnsignedShortType,
 			desc.indices.size());
 
 		logDebug("%s: Submesh %u: %u indices", m_path, mesh->numSubMeshes() - 1, desc.indices.size());
 	}
 
-	logDebug("%s: %u vertices, %u submeshes, %u materials", m_path, m_vertices.size(), mesh->numSubMeshes(), mesh->numMaterials());
+	logDebug("%s: %u vertices, %u submeshes, %u materials",
+		m_path, m_vertices.size(), mesh->numSubMeshes(), mesh->numMaterials());
+
 	return mesh;
 }
 

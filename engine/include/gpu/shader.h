@@ -75,3 +75,6 @@ private:
 
 /** Type of a GPU shader pointer. */
 typedef GPUResourcePtr<GPUShader> GPUShaderPtr;
+
+/** Type of an array of GPU shaders, indexed by stage. */
+typedef std::array<GPUShaderPtr, GPUShader::kNumShaderTypes> GPUShaderArray;

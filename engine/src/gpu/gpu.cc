@@ -22,3 +22,23 @@ GPUInterface *GPUInterface::create(const EngineConfiguration &config) {
 		fatal("Configuration specifies unknown graphics API");
 	}
 }
+
+/**
+ * Default object creation methods.
+ */
+
+GPUIndexDataPtr GPUInterface::createIndexData(GPUBuffer *buffer, GPUIndexData::Type type, size_t count) {
+	return new GPUIndexData(buffer, type, count);
+}
+
+GPUPipelinePtr GPUInterface::createPipeline(GPUShaderArray &shaders) {
+	return new GPUPipeline(shaders);
+}
+
+GPUVertexDataPtr GPUInterface::createVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers) {
+	return new GPUVertexData(count, format, buffers);
+}
+
+GPUVertexFormatPtr GPUInterface::createVertexFormat(VertexBufferLayoutArray &buffers, VertexAttributeArray &attributes) {
+	return new GPUVertexFormat(buffers, attributes);
+}

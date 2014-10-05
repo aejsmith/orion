@@ -5,9 +5,9 @@
  *
  * GL vertex array objects store the bindings of vertex attributes to source
  * buffers, attribute data format, and the element array buffer binding.
- * Except for the index buffer binding, this is the same as what VertexData
- * holds, therefore we can use VAOs to store the entire VertexData state.
- * Despite the index buffer not being held by VertexData we can additionally
+ * Except for the index buffer binding, this is the same as what GPUVertexData
+ * holds, therefore we can use VAOs to store the entire GPUVertexData state.
+ * Despite the index buffer not being held by GPUVertexData we can additionally
  * make use of the VAO to store it - we hold a pointer to the last buffer used
  * with the VAO, and if the one being used for rendering is the same then we
  * don't rebind it.
@@ -24,28 +24,45 @@
 #include "vertex_data.h"
 
 /** Initialize the vertex data object.
- * @param vertices	Total number of vertices. */
-GLVertexData::GLVertexData(size_t vertices) :
-	VertexData(vertices),
-	m_array(GL_NONE),
+ * @param count		Total number of vertices.
+ * @param format	Vertex format.
+ * @param buffers	Array of buffers. */
+GLVertexData::GLVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers) :
+	GPUVertexData(count, format, buffers),
 	m_boundIndices(nullptr)
-{}
+{
+	glGenVertexArrays(1, &m_array);
+	g_opengl->state.bindVertexArray(m_array);
+
+	for(const VertexAttribute &attribute : m_format->attributes()) {
+		GLuint index;
+		if(!mapAttribute(attribute.semantic, attribute.index, &index))
+			fatal("GL: Cannot map attribute (semantic: %d, index: %u)", attribute.semantic, attribute.index);
+
+		/* FIXME: Check if type is supported. */
+		GLenum type = gl::convertAttributeType(attribute.type);
+		void *offset = reinterpret_cast<void *>(static_cast<uintptr_t>(attribute.offset));
+
+		const VertexBufferLayout &layout = m_format->buffers()[attribute.buffer];
+		const GLBuffer *buffer = static_cast<GLBuffer *>(m_buffers[attribute.buffer].get());
+		buffer->bind();
+
+		glEnableVertexAttribArray(index);
+		glVertexAttribPointer(index, attribute.count, type, GL_FALSE, layout.stride, offset);
+	}
+}
 
 /** Destroy the vertex data object. */
 GLVertexData::~GLVertexData() {
-	if(m_array != GL_NONE) {
-		if(g_opengl->state.boundVertexArray == m_array)
-			g_opengl->state.bindVertexArray(g_opengl->defaultVertexArray);
+	if(g_opengl->state.boundVertexArray == m_array)
+		g_opengl->state.bindVertexArray(g_opengl->defaultVertexArray);
 
-		glDeleteVertexArrays(1, &m_array);
-	}
+	glDeleteVertexArrays(1, &m_array);
 }
 
 /** Bind the VAO for rendering.
  * @param indices	Index buffer being used for rendering. */
-void GLVertexData::bind(const GPUBufferPtr &indices) {
-	check(m_finalized);
-
+void GLVertexData::bind(GPUBuffer *indices) {
 	g_opengl->state.bindVertexArray(m_array);
 
 	/* As described at the top of the file, the index buffer binding is
@@ -59,36 +76,13 @@ void GLVertexData::bind(const GPUBufferPtr &indices) {
 	 * buffer binding. */
 	if(unlikely(indices != m_boundIndices)) {
 		if(indices) {
-			GLBuffer *buffer = static_cast<GLBuffer *>(indices.get());
+			GLBuffer *buffer = static_cast<GLBuffer *>(indices);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer->buffer());
 		} else {
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		}
 
 		m_boundIndices = indices;
-	}
-}
-
-/** Bind the VAO for rendering. */
-void GLVertexData::finalizeImpl() {
-	glGenVertexArrays(1, &m_array);
-	g_opengl->state.bindVertexArray(m_array);
-
-	for(const VertexAttribute &attribute : m_format->attributes()) {
-		GLuint index;
-		if(!mapAttribute(attribute.semantic, attribute.index, &index))
-			fatal("GL: Cannot map attribute (semantic: %d, index: %u)", attribute.semantic, attribute.index);
-
-		/* FIXME: Check if type is supported. */
-		GLenum type = gl::convertAttributeType(attribute.type);
-		void *offset = reinterpret_cast<void *>(static_cast<uintptr_t>(attribute.offset));
-
-		const VertexBufferDesc *desc = m_format->buffer(attribute.buffer);
-		const GLBuffer *buffer = static_cast<GLBuffer *>(m_buffers[attribute.buffer].get());
-		buffer->bind();
-
-		glEnableVertexAttribArray(index);
-		glVertexAttribPointer(index, attribute.count, type, GL_FALSE, desc->stride, offset);
 	}
 }
 
@@ -141,9 +135,8 @@ bool GLVertexData::mapAttribute(VertexAttribute::Semantic semantic, unsigned ind
 }
 
 /** Create a vertex data object.
- * @see			VertexData::VertexData().
+ * @see			GPUVertexData::GPUVertexData().
  * @return		Pointer to created vertex data object. */
-VertexDataPtr GLGPUInterface::createVertexData(size_t vertices) {
-	VertexData *data = new GLVertexData(vertices);
-	return VertexDataPtr(data);
+GPUVertexDataPtr GLGPUInterface::createVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers) {
+	return new GLVertexData(count, format, buffers);
 }

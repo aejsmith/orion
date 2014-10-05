@@ -51,8 +51,8 @@ AssetPtr AssetManager::load(const Path &path) {
 	/* Look up the path in the cache of known assets. */
 	Asset *exist = lookupAsset(path);
 	if(exist)
-		return AssetPtr(exist);
-	
+		return exist;
+
 	/* Turn the asset path into a filesystem path. */
 	auto searchPath = m_searchPaths.find(path.subset(0, 1).str());
 	if(searchPath == m_searchPaths.end()) {

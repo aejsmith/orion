@@ -161,7 +161,7 @@ void GLState::bindBuffer(GLenum target, GLuint buffer) {
 	if(target == GL_ELEMENT_ARRAY_BUFFER) {
 		/* Since the element array buffer binding is part of VAO state,
 		 * make sure we are on the default VAO. All element array buffer
-		 * bindings done outside of VertexData::bind() should be done
+		 * bindings done outside of GLVertexData::bind() should be done
 		 * on the default VAO so that we don't affect the per-object
 		 * VAOs and so that we can keep track of the currently bound
 		 * buffer more easily. */

@@ -125,7 +125,7 @@ GPUShaderPtr GLGPUInterface::compileShader(GPUShader::Type type, const std::stri
 		preamble += "out gl_PerVertex { vec4 gl_Position; };\n";
 
 		/* Insert attribute semantic definitions. TODO: Share this
-		 * information with VertexData::mapAttribute(). */
+		 * information with GLVertexData::mapAttribute(). */
 		preamble += "#define kPositionSemantic 0\n";
 		preamble += "#define kNormalSemantic 2\n";
 		preamble += "#define kTexcoordSemantic 4\n";
@@ -160,6 +160,5 @@ GPUShaderPtr GLGPUInterface::compileShader(GPUShader::Type type, const std::stri
 		return nullptr;
 	}
 
-	GPUShader *shader = new GLShader(type, program);
-	return GPUShaderPtr(shader);
+	return new GLShader(type, program);
 }

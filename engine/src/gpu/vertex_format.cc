@@ -6,96 +6,33 @@
 
 #include "gpu/vertex_format.h"
 
-/** Initialize a vertex format descriptor. */
-VertexFormat::VertexFormat() : m_finalized(false) {}
-
-/** Add a buffer.
- * @see			VertexBufferDesc.
- * @param index		Index of the buffer to add. */
-void VertexFormat::addBuffer(unsigned index, size_t stride) {
-	check(stride);
-	check(!m_finalized);
-	checkMsg(!buffer(index), "Adding duplicate buffer %u", index);
-
-	if(index >= m_buffers.size())
-		m_buffers.resize(index + 1);
-
-	m_buffers[index].stride = stride;
-}
-
-/**
- * Add an attribute.
- *
- * Adds a vertex attribute to the format descriptor. The attribute semantic and
- * index are used to bind vertex data elements to shader variables. The index
- * allows multiple attributes with the same semantic (e.g. multiple sets of
- * texture coordinates). You cannot add multiple attributes with the same
- * semantic and index.
- *
- * @see			VertexAttribute.
- */
-void VertexFormat::addAttribute(
-	VertexAttribute::Semantic semantic,
-	unsigned index,
-	VertexAttribute::Type type,
-	size_t count,
-	unsigned buffer,
-	size_t offset)
+/** Initialize a vertex format descriptor.
+ * @param buffers	Array of buffer layout descriptors. Array is invalidated.
+ * @param attributes	Array of attribute descriptors. Array is invalidated. */
+GPUVertexFormat::GPUVertexFormat(VertexBufferLayoutArray &buffers, VertexAttributeArray &attributes) :
+	m_buffers(std::move(buffers)),
+	m_attributes(std::move(attributes))
 {
-	check(!m_finalized);
+	for(size_t i = 0; i < m_buffers.size(); i++)
+		check(m_buffers[i].stride);
 
-	VertexAttribute attribute;
-	attribute.semantic = semantic;
-	attribute.index = index;
-	attribute.type = type;
-	attribute.count = count;
-	attribute.buffer = buffer;
-	attribute.offset = offset;
+	for(size_t i = 0; i < m_attributes.size(); i++) {
+		const VertexAttribute &attribute = m_attributes[i];
 
-	const VertexBufferDesc *desc = this->buffer(buffer);
+		check(attribute.count);
+		checkMsg(attribute.count >= 1 && attribute.count <= 4,
+			"Attribute %u vector size %u unsupported", i, attribute.count);
+		checkMsg(attribute.buffer < m_buffers.size(),
+			"Attribute %u references unknown buffer %u", i, attribute.buffer);
+		checkMsg((attribute.offset + attribute.size()) <= m_buffers[attribute.buffer].stride,
+			"Attribute %u position exceeds buffer stride (offset: %u, size: %u, stride: %u)",
+			i, attribute.offset, attribute.size(), m_buffers[attribute.buffer].stride);
 
-	checkMsg(desc, "Attribute references unknown buffer %u", buffer);
-	checkMsg(count >= 1 && count <= 4, "Unsupported attribute vector size %u", count);
-	checkMsg((offset + attribute.size()) <= desc->stride,
-		"Attribute position exceeds buffer stride (offset: %u, size: %u, stride: %u)",
-		offset, attribute.size(), desc->stride);
+		for(size_t j = 0; j < i; j++) {
+			const VertexAttribute &other = m_attributes[j];
 
-	for(const VertexAttribute &exist : m_attributes) {
-		checkMsg(exist.semantic != semantic || exist.index != index,
-			"Adding duplicate attribute (semantic: %d, index: %u)",
-			semantic, index);
+			checkMsg(other.semantic != attribute.semantic || other.index != attribute.index,
+				"Attribute %u is semantic duplicate of %u", i, j);
+		}
 	}
-
-	m_attributes.push_back(attribute);
-}
-
-/** Finalize the format descriptor. */
-void VertexFormat::finalize() {
-	finalizeImpl();
-	m_finalized = true;
-}
-
-/** Get a vertex buffer descriptor by index.
- * @param index		Buffer index.
- * @return		Pointer to buffer if set, null if not. */
-const VertexBufferDesc *VertexFormat::buffer(unsigned index) const {
-	return (index < m_buffers.size() && m_buffers[index].stride)
-		? &m_buffers[index]
-		: nullptr;
-}
-
-/** Find an attribute.
- * @param semantic	Attribute semantic.
- * @param index		Attribute index.
- * @return		Pointer to attribute if found, null if not. */
-const VertexAttribute *VertexFormat::findAttribute(
-	VertexAttribute::Semantic semantic,
-	unsigned index) const
-{
-	for(const VertexAttribute &exist : m_attributes) {
-		if(exist.semantic == semantic && exist.index == index)
-			return &exist;
-	}
-
-	return nullptr;
 }

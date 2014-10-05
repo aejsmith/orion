@@ -16,7 +16,7 @@
  * used for rendering. Since this class may have an API-specific implementation,
  * instances must be created with GPUInterface::createIndexData().
  */
-class IndexData : public GPUResource {
+class GPUIndexData : public GPUResource {
 public:
 	/** Type of index elements. */
 	enum Type {
@@ -50,7 +50,7 @@ public:
 		}
 	}
 protected:
-	IndexData(GPUBuffer *buffer, Type type, size_t count);
+	GPUIndexData(GPUBuffer *buffer, Type type, size_t count);
 protected:
 	GPUBufferPtr m_buffer;		/**< Buffer containing index data. */
 	Type m_type;			/**< Type of index elements. */
@@ -60,5 +60,5 @@ protected:
 	friend class GPUInterface;
 };
 
-/** Shared pointer to IndexData. */
-typedef GPUResourcePtr<IndexData> IndexDataPtr;
+/** Type of a reference to GPUIndexData */
+typedef GPUResourcePtr<GPUIndexData> GPUIndexDataPtr;

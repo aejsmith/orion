@@ -105,11 +105,11 @@ void GLGPUInterface::clear(unsigned buffers, const glm::vec4 &colour, float dept
  * @param type		Primitive type to render.
  * @param _vertices	Vertex data to use.
  * @param indices	Index data to use (can be null). */
-void GLGPUInterface::draw(PrimitiveType type, VertexData *_vertices, IndexData *indices) {
-	GLVertexData *vertices = static_cast<GLVertexData *>(_vertices);
+void GLGPUInterface::draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) {
+	GLVertexData *glVertices = static_cast<GLVertexData *>(vertices);
 
 	/* Bind the VAO and the index buffer (if any). */
-	vertices->bind((indices) ? indices->buffer() : nullptr);
+	glVertices->bind((indices) ? indices->buffer() : nullptr);
 
 	GLenum mode = gl::convertPrimitiveType(type);
 	if(indices) {

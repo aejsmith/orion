@@ -8,21 +8,26 @@
 
 #include "gpu/defs.h"
 
-#include <list>
 #include <vector>
 
+/** Maximum number of vertex attributes. */
+static const size_t kMaxVertexAttributes = 16;
+
 /**
- * Structure describing a vertex buffer.
+ * Structure describing a vertex buffer layout.
  *
- * This structure describes additional layout information for a buffer to be
- * used with a vertex format. Currently it only defines the stride between
- * each vertex, everything else is described by the attributes.
+ * This structure describes layout information for a buffer to be used with a
+ * vertex format. Currently it only defines the stride between each vertex,
+ * everything else is described by the attributes.
  */
-struct VertexBufferDesc {
+struct VertexBufferLayout {
 	size_t stride;			/**< Offset between each vertex. */
 public:
-	VertexBufferDesc() : stride(0) {}
+	VertexBufferLayout() : stride(0) {}
 };
+
+/** Type of a vertex buffer layout array. */
+typedef std::vector<VertexBufferLayout> VertexBufferLayoutArray;
 
 /**
  * Structure describing a vertex attribute.
@@ -32,6 +37,9 @@ public:
  * attribute has a semantic and an index that is used to bind shader variables.
  * The index allows multiple attributes with the same semantic (for example,
  * multiple sets of texture coordinates).
+ *
+ * In the array passed to GPUInterface::createVertexData(), entries with a zero
+ * count are ignored.
  */
 struct VertexAttribute {
 	/** List of attribute semantics. */
@@ -54,105 +62,75 @@ struct VertexAttribute {
 		kFloatType,		/**< Single-precision floating point. */
 		kDoubleType,		/**< Double-precision floating point. */
 	};
-
+public:
 	Semantic semantic;		/**< Semantic of the attribute. */
 	unsigned index;			/**< Attribute index. */
 	Type type;			/**< Attribute data types. */
 	size_t count;			/**< Number of elements (for vector types). */
-	unsigned buffer;		/**< Buffer containing the attribute. */
+	unsigned buffer;		/**< Index of buffer that will contain the attribute. */
 	size_t offset;			/**< Offset of the attribute within each vertex in the buffer. */
 public:
-	static size_t size(Type type, size_t count = 1);
+	VertexAttribute() : count(0) {}
 
 	/** @return		Size of the attribute in bytes. */
 	size_t size() const { return size(type, count); }
+
+	/** Get the size of a vertex attribute type.
+	 * @param type		Type to get size of.
+	 * @param count		Number of elements (for vector types). */
+	static size_t size(Type type, size_t count = 1) {
+		switch(type) {
+		case kByteType:
+		case kUnsignedByteType:
+			return sizeof(uint8_t) * count;
+		case kShortType:
+		case kUnsignedShortType:
+			return sizeof(uint16_t) * count;
+		case kIntType:
+		case kUnsignedIntType:
+			return sizeof(uint32_t) * count;
+		case kFloatType:
+			return sizeof(float) * count;
+		case kDoubleType:
+			return sizeof(double) * count;
+		default:
+			return 0;
+		}
+	}
 };
 
-/** Get the size of a vertex attribute type.
- * @param type		Type to get size of.
- * @param count		Number of elements (for vector types). */
-inline size_t VertexAttribute::size(Type type, size_t count) {
-	switch(type) {
-	case kByteType:
-	case kUnsignedByteType:
-		return sizeof(uint8_t) * count;
-	case kShortType:
-	case kUnsignedShortType:
-		return sizeof(uint16_t) * count;
-	case kIntType:
-	case kUnsignedIntType:
-		return sizeof(uint32_t) * count;
-	case kFloatType:
-		return sizeof(float) * count;
-	case kDoubleType:
-		return sizeof(double) * count;
-	default:
-		return 0;
-	}
-}
+/** Type of a vertex attribute array. */
+typedef std::vector<VertexAttribute> VertexAttributeArray;
 
 /**
- * Vertex format descriptor.
+ * Vertex format information.
  *
  * This class holds a description of the layout of vertex data across one or
  * more GPU buffers. This information includes the offset between each vertex
  * in the buffer (the stride), and the vertex attributes contained across the
  * buffers.
  *
- * Usage of this class should be as follows:
- *
- *  1. Add buffer descriptions with addBuffer().
- *  2. Add attribute descriptions with addAttribute().
- *  3. Finalize the object with finalize().
- *
- * The last step allows the API-specific implementation to compile any
- * information it needs, and makes the object immutable. A vertex format must
- * be finalized before it is assigned to a VertexData object.
- *
- * Since this class may have an API-specific implementation, instances must be
- * created with GPUInterface::createVertexFormat().
+ * Once created, a vertex format is immutable. Creation is performed through
+ * GPUInterface::createVertexFormat(), which should be supplied with arrays
+ * describing the buffer layouts and the attributes.
  */
-class VertexFormat : public GPUResource {
+class GPUVertexFormat : public GPUResource {
 public:
-	/** Type of the buffer array. */
-	typedef std::vector<VertexBufferDesc> BufferArray;
-
-	/** Type of the attribute list. */
-	typedef std::list<VertexAttribute> AttributeList;
-public:
-	void addBuffer(unsigned index, size_t stride);
-	void addAttribute(
-		VertexAttribute::Semantic semantic,
-		unsigned index,
-		VertexAttribute::Type type,
-		size_t count,
-		unsigned buffer,
-		size_t offset);
-
-	virtual void finalize();
-
-	const VertexBufferDesc *buffer(unsigned index) const;
-	const VertexAttribute *findAttribute(VertexAttribute::Semantic semantic, unsigned index) const;
-
 	/** @return		Array of buffer descriptors. */
-	const BufferArray &buffers() const { return m_buffers; }
+	const VertexBufferLayoutArray &buffers() const { return m_buffers; }
 	/** @return		List of all attributes. */
-	const AttributeList &attributes() const { return m_attributes; }
-	/** @return		Whether the descriptor is finalized. */
-	bool finalized() const { return m_finalized; }
+	const VertexAttributeArray &attributes() const { return m_attributes; }
 protected:
-	VertexFormat();
-
-	/** Called when the object is being finalized. */
-	virtual void finalizeImpl() {}
+	GPUVertexFormat(VertexBufferLayoutArray &buffers, VertexAttributeArray &attributes);
 protected:
-	BufferArray m_buffers;		/**< Array of buffer descriptors. */
-	AttributeList m_attributes;	/**< List of all attributes. */
-	bool m_finalized;		/**< Whether the descriptor is finalized. */
+	/** Array of buffer descriptors. */
+	VertexBufferLayoutArray m_buffers;
+	/** Array of attributes. */
+	VertexAttributeArray m_attributes;
 
 	/* For the default implementation of createVertexFormat(). */
 	friend class GPUInterface;
 };
 
-/** Shared pointer to VertexFormat. */
-typedef GPUResourcePtr<VertexFormat> VertexFormatPtr;
+/** Type of a reference to a GPUVertexFormat. */
+typedef GPUResourcePtr<GPUVertexFormat> GPUVertexFormatPtr;

@@ -43,51 +43,48 @@ public:
 	 * @return		Pointer to created buffer. */
 	virtual GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) = 0;
 
-	/** Create a vertex format descriptor.
-	 * @return		Pointer to created vertex format descriptor. */
-	virtual VertexFormatPtr createVertexFormat() {
-		return new VertexFormat();
-	}
-
-	/** Create a vertex data object.
-	 * @see			VertexData::VertexData().
-	 * @return		Pointer to created vertex data object. */
-	virtual VertexDataPtr createVertexData(size_t vertices) {
-		return new VertexData(vertices);
-	}
-
 	/** Create an index data object.
-	 * @see			IndexData::IndexData().
+	 * @see			GPUIndexData::GPUIndexData().
 	 * @return		Pointer to created index data object. */
-	virtual IndexDataPtr createIndexData(GPUBuffer *buffer, IndexData::Type type, size_t count) {
-		return new IndexData(buffer, type, count);
-	}
+	virtual GPUIndexDataPtr createIndexData(GPUBuffer *buffer, GPUIndexData::Type type, size_t count);
 
 	/** Create a pipeline object.
+	 * @see			GPUPipeline::GPUPipeline().
 	 * @return		Pointer to created pipeline. */
-	virtual GPUPipelinePtr createPipeline() {
-		return new GPUPipeline();
-	}
+	virtual GPUPipelinePtr createPipeline(GPUShaderArray &shaders);
 
 	/** Create a 2D texture.
+	* @see			GPUTexture::GPUTexture().
 	 * @param desc		Descriptor containing texture parameters.
 	 * @return		Pointer to created texture. */
 	virtual GPUTexturePtr createTexture(const GPUTexture2DDesc &desc) = 0;
 
 	/** Create a 2D array texture.
+	* @see			GPUTexture::GPUTexture().
 	 * @param desc		Descriptor containing texture parameters.
 	 * @return		Pointer to created texture. */
 	virtual GPUTexturePtr createTexture(const GPUTexture2DArrayDesc &desc) = 0;
 
 	/** Create a cube texture.
+	* @see			GPUTexture::GPUTexture().
 	 * @param desc		Descriptor containing texture parameters.
 	 * @return		Pointer to created texture. */
 	virtual GPUTexturePtr createTexture(const GPUTextureCubeDesc &desc) = 0;
 
 	/** Create a 3D texture.
+	* @see			GPUTexture::GPUTexture().
 	 * @param desc		Descriptor containing texture parameters.
 	 * @return		Pointer to created texture. */
 	virtual GPUTexturePtr createTexture(const GPUTexture3DDesc &desc) = 0;
+
+	/** Create a vertex data object.
+	 * @see			GPUVertexData::GPUVertexData().
+	 * @return		Pointer to created vertex data object. */
+	virtual GPUVertexDataPtr createVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers);
+
+	/** Create a vertex format.
+	 * @see			GPUVertexFormat::GPUVertexFormat(). */
+	virtual GPUVertexFormatPtr createVertexFormat(VertexBufferLayoutArray &buffers, VertexAttributeArray &attributes);
 
 	/**
 	 * Shader methods.
@@ -180,7 +177,7 @@ public:
 	 * @param type		Primitive type to render.
 	 * @param vertices	Vertex data to use.
 	 * @param indices	Index data to use (can be null). */
-	virtual void draw(PrimitiveType type, VertexData *vertices, IndexData *indices) = 0;
+	virtual void draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) = 0;
 protected:
 	GPUInterface() {}
 };

@@ -6,73 +6,23 @@
 
 #include "gpu/vertex_data.h"
 
-/**
- * Initialize the vertex data object.
- *
- * Initialize the vertex data object. Initially the object has no buffers and
- * no vertex format associated with it. Users must set the buffers and format
- * to use before using it for rendering.
- *
+/** Initialize the vertex data object.
  * @param count		Total number of vertices.
- */
-VertexData::VertexData(size_t count) :
+ * @param format	Vertex format.
+ * @param buffers	Array of buffers, as required by the vertex format.
+ *			Array is invalidated. */
+GPUVertexData::GPUVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers) :
 	m_count(count),
-	m_format(nullptr),
-	m_finalized(false)
-{}
+	m_format(format),
+	m_buffers(std::move(buffers))
+{
+	check(count);
+	checkMsg(m_buffers.size() == format->buffers().size(),
+		"Buffer count mismatch (expected %u, got %u)",
+		format->buffers().size(), m_buffers.size());
 
-/**
- * Set the vertex format.
- *
- * Sets the vertex format for the data. The specified format descriptor must
- * be finalized.
- *
- * @param format	Vertex format descriptor.
- */
-void VertexData::setFormat(VertexFormat *format) {
-	check(!m_finalized);
-	check(!m_format);
-	check(format->finalized());
-
-	m_format = format;
-}
-
-/**
- * Add a buffer.
- *
- * Adds a vertex buffer. Multiple vertex buffers can be attached, each is given
- * an index which is referenced by the vertex format. The specified index must
- * be specified as part of the vertex format. The buffer size must equal the
- * number of vertices multiplied by the stride specified by the vertex format.
- *
- * @param index		Index to add buffer at.
- * @param buffer	Buffer to add.
- */
-void VertexData::setBuffer(unsigned index, GPUBuffer *buffer) {
-	check(!m_finalized);
-	check(m_format);
-	check(buffer->type() == GPUBuffer::kVertexBuffer);
-
-	const VertexBufferDesc *desc = m_format->buffer(index);
-	checkMsg(desc, "Format has no buffer at index %u", index);
-	check(buffer->size() == (m_count * desc->stride));
-
-	m_buffers.insert(m_buffers.begin() + index, buffer);
-}
-
-/** Finalize the vertex data object. */
-void VertexData::finalize() {
-	check(m_format);
-
-	/* Each buffer specified by the format must be bound. */
-	for(size_t i = 0; i < m_format->buffers().size(); i++) {
-		if(m_format->buffer(i)) {
-			checkMsg(
-				i < m_buffers.size() && m_buffers[i],
-				"Format requires buffer %u but no buffer bound", i);
-		}
+	for(size_t i = 0; i < m_buffers.size(); i++) {
+		check(m_buffers[i]);
+		check(m_buffers[i]->type() == GPUBuffer::kVertexBuffer);
 	}
-
-	finalizeImpl();
-	m_finalized = true;
 }

@@ -71,12 +71,12 @@ public:
 	 */
 
 	GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) override;
-	VertexDataPtr createVertexData(size_t vertices) override;
-	GPUPipelinePtr createPipeline() override;
+	GPUPipelinePtr createPipeline(GPUShaderArray &shaders) override;
 	GPUTexturePtr createTexture(const GPUTexture2DDesc &desc) override;
 	GPUTexturePtr createTexture(const GPUTexture2DArrayDesc &desc) override;
 	GPUTexturePtr createTexture(const GPUTextureCubeDesc &desc) override;
 	GPUTexturePtr createTexture(const GPUTexture3DDesc &desc) override;
+	GPUVertexDataPtr createVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers) override;
 
 	GPUShaderPtr compileShader(GPUShader::Type type, const std::string &source) override;
 
@@ -89,7 +89,7 @@ public:
 	void endFrame(bool vsync) override;
 
 	void clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil) override;
-	void draw(PrimitiveType type, VertexData *vertices, IndexData *indices) override;
+	void draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) override;
 public:
 	GLFeatures features;		/**< GL feature information. */
 	PixelFormatArray pixelFormats;	/**< Mapping of engine pixel formats to GL types. */
@@ -269,13 +269,13 @@ static inline GLenum convertComparisonFunc(ComparisonFunc func) {
 /** Convert an index data type to a GL data type.
  * @param type		Type to convert.
  * @return		GL data type. */
-static inline GLenum convertIndexType(IndexData::Type type) {
+static inline GLenum convertIndexType(GPUIndexData::Type type) {
 	switch(type) {
-	case IndexData::kUnsignedByteType:
+	case GPUIndexData::kUnsignedByteType:
 		return GL_UNSIGNED_BYTE;
-	case IndexData::kUnsignedShortType:
+	case GPUIndexData::kUnsignedShortType:
 		return GL_UNSIGNED_SHORT;
-	case IndexData::kUnsignedIntType:
+	case GPUIndexData::kUnsignedIntType:
 		return GL_UNSIGNED_INT;
 	default:
 		return 0;

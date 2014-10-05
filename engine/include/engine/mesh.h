@@ -20,8 +20,8 @@ public:
 	/** @return		Parent mesh. */
 	Mesh *parent() const { return m_parent; }
 public:
-	VertexDataPtr vertices;			/**< Local vertex data, overrides parent's vertex data. */
-	IndexDataPtr indices;			/**< Indices into vertex data. */
+	GPUVertexDataPtr vertices;		/**< Local vertex data, overrides parent's vertex data. */
+	GPUIndexDataPtr indices;		/**< Indices into vertex data. */
 	size_t material;			/**< Material index in parent mesh. */
 private:
 	explicit SubMesh(Mesh *parent) : material(0), m_parent(parent) {}
@@ -66,7 +66,7 @@ public:
 	SubMesh *addSubMesh();
 	size_t addMaterial(const std::string &name);
 public:
-	VertexDataPtr sharedVertices;		/**< Vertex data shared by all submeshes. */
+	GPUVertexDataPtr sharedVertices;	/**< Vertex data shared by all submeshes. */
 private:
 	std::vector<SubMesh *> m_children;	/**< Child submeshes. */
 

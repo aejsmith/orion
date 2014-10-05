@@ -16,7 +16,7 @@
  * @param type		Type of index elements.
  * @param count		Number of indices.
  */
-IndexData::IndexData(GPUBuffer *buffer, Type type, size_t count) :
+GPUIndexData::GPUIndexData(GPUBuffer *buffer, Type type, size_t count) :
 	m_buffer(buffer),
 	m_type(type),
 	m_count(count)

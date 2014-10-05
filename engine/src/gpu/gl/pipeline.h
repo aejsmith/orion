@@ -11,7 +11,7 @@
 /** OpenGL pipeline implementation. */
 class GLPipeline : public GPUPipeline {
 public:
-	GLPipeline();
+	explicit GLPipeline(GPUShaderArray &shaders);
 	~GLPipeline();
 
 	void bind();
@@ -19,8 +19,6 @@ public:
 	/** Get the pipeline object ID.
 	 * @return		Pipeline object ID. */
 	GLuint pipeline() const { return m_pipeline; }
-protected:
-	void finalizeImpl() override;
 private:
 	GLuint m_pipeline;		/**< Pipeline object ID. */
 };

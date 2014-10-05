@@ -9,20 +9,18 @@
 #include "buffer.h"
 
 /** OpenGL vertex data implementation. */
-class GLVertexData : public VertexData {
+class GLVertexData : public GPUVertexData {
 public:
-	explicit GLVertexData(size_t vertices);
+	GLVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers);
 	~GLVertexData();
 
-	void bind(const GPUBufferPtr &indices);
+	void bind(GPUBuffer *indices);
 
 	/** Get the VAO ID.
 	 * @return		VAO ID. */
 	GLuint array() const { return m_array; }
 
 	static bool mapAttribute(VertexAttribute::Semantic semantic, unsigned index, GLuint *gl);
-protected:
-	void finalizeImpl() override;
 private:
 	GLuint m_array;			/**< Vertex array object. */
 	GPUBufferPtr m_boundIndices;	/**< Currently bound index buffer. */
