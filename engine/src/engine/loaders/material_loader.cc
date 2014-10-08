@@ -28,14 +28,7 @@ AssetPtr MaterialLoader::load() {
 		return nullptr;
 	}
 
-	const char *shaderName = m_attributes["shader"].GetString();
-	ShaderPtr shader = g_assetManager->load<Shader>(shaderName);
-	if(!shader) {
-		// FIXME: asset error handling.
-		logError("%s: Unknown shader '%s'", m_path, shaderName);
-		return nullptr;
-	}
-
+	ShaderPtr shader = g_assetManager->load<Shader>(m_attributes["shader"].GetString());
 	m_material = new Material(shader);
 
 	/* Set all parameters. FIXME: Should validate that all shader parameters
@@ -146,7 +139,6 @@ bool MaterialLoader::setParameter(const char *name, const rapidjson::Value &valu
 			return false;
 		}
 
-		// FIXME: asset error handling.
 		m_material->setValue(name, g_assetManager->load<TextureBase>(value.GetString()));
 		break;
 	default:

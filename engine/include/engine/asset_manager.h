@@ -27,21 +27,7 @@ public:
 	~AssetManager();
 
 	AssetPtr load(const Path &path);
-
-	/** Load an asset of a certain type.
-	 * @tparam AssetType	Type of the asset to load.
-	 * @param path		Path to the asset.
-	 * @return		Pointer to asset, or null if asset could not be
-	 *			loaded or is incorrect type. */
-	template <typename AssetType>
-	TypedAssetPtr<AssetType> load(const Path &path) {
-		static_assert(
-			std::is_base_of<Asset, AssetType>::value,
-			"AssetType is not derived from Asset");
-
-		AssetPtr asset = load(path);
-		return asset.dynamicCast<AssetType>();
-	}
+	template <typename AssetType> TypedAssetPtr<AssetType> load(const Path &path);
 private:
 	Asset *lookupAsset(const Path &path) const;
 	void unregisterAsset(Asset *asset);
@@ -62,5 +48,38 @@ private:
 
 	friend class Asset;
 };
+
+/**
+ * Load an asset of a certain type.
+ *
+ * Loads an asset of a specific type. If the asset fails to load, or is not of
+ * the expected type, then in its place a default "error asset" for the asset
+ * type will be returned. This means that, unlike the non-template load method,
+ * this function never returns null.
+ *
+ * @tparam AssetType	Type of the asset to load.
+ *
+ * @param path		Path to the asset.
+ *
+ * @return		Pointer to loaded asset.
+ */
+template <typename AssetType>
+inline TypedAssetPtr<AssetType> AssetManager::load(const Path &path) {
+	static_assert(
+		std::is_base_of<Asset, AssetType>::value,
+		"AssetType is not derived from Asset");
+
+	AssetPtr asset = load(path);
+	if(!asset)
+		fatal("Unable to load asset '%s'", path.c_str());
+
+	TypedAssetPtr<AssetType> ret = asset.dynamicCast<AssetType>();
+
+	/* Haven't implemented error assets yet, for now die. */
+	if(!ret)
+		fatal("Asset '%s' is not of expected type", path.c_str());
+
+	return ret;
+}
 
 extern EngineGlobal<AssetManager> g_assetManager;
