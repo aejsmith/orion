@@ -19,7 +19,8 @@ EngineGlobal<Window> g_mainWindow;
  * @param gpu		GPU interface. */
 Window::Window(const EngineConfiguration &config, GPUInterface *gpu) :
 	RenderTarget(kWindowPriority),
-	m_size(config.displayWidth, config.displayHeight)
+	m_width(config.displayWidth),
+	m_height(config.displayHeight)
 {
 	uint32_t flags = 0;
 

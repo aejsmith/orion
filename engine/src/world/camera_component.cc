@@ -94,13 +94,16 @@ void CameraComponent::render() {
 
 /** Update the viewport. */
 void CameraComponent::updateViewport() {
-	/* Calculate real viewport size based on render target dimensions. */
-	glm::ivec2 size = m_renderTarget->size();
-	int32_t x = m_viewport.x * static_cast<float>(size.x);
-	int32_t y = m_viewport.y * static_cast<float>(size.y);
-	int32_t width = m_viewport.width * static_cast<float>(size.x);
-	int32_t height = m_viewport.height * static_cast<float>(size.y);
-	m_sceneView.setViewport(IntRect(x, y, width, height));
+	uint32_t targetWidth = m_renderTarget->width();
+	uint32_t targetHeight = m_renderTarget->height();
+
+	IntRect viewport = IntRect(
+		m_viewport.x * static_cast<float>(targetWidth),
+		m_viewport.y * static_cast<float>(targetHeight),
+		m_viewport.width * static_cast<float>(targetWidth),
+		m_viewport.height * static_cast<float>(targetHeight));
+
+	m_sceneView.setViewport(viewport);
 }
 
 /** Called when the camera transformation is changed. */

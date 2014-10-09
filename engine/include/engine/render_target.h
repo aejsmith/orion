@@ -43,8 +43,10 @@ public:
 public:
 	virtual ~RenderTarget();
 
-	/** @return		Size of the render target (in pixels). */
-	virtual glm::ivec2 size() const = 0;
+	/** @return		Width of the render target (in pixels). */
+	virtual uint32_t width() const = 0;
+	/** @return		Height of the render target (in pixels). */
+	virtual uint32_t height() const = 0;
 
 	void addCamera(CameraComponent *camera);
 	void removeCamera(CameraComponent *camera);

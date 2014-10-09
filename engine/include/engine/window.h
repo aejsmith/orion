@@ -23,11 +23,14 @@ public:
 
 	/** @return		SDL window. */
 	SDL_Window *sdlWindow() const { return m_sdlWindow; }
-	/** @return		Size of the window (in pixels). */
-	glm::ivec2 size() const override { return m_size; }
+	/** @return		Width of the window (in pixels). */
+	uint32_t width() const override { return m_width; }
+	/** @return		Height of the window (in pixels). */
+	uint32_t height() const override { return m_height; }
 private:
 	SDL_Window *m_sdlWindow;	/**< SDL window. */
-	glm::ivec2 m_size;		/**< Size of the window. */
+	uint32_t m_width;		/**< Width of the window. */
+	uint32_t m_height;		/**< Height of the window. */
 };
 
 extern EngineGlobal<Window> g_mainWindow;
