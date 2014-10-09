@@ -27,20 +27,14 @@ static UniformStruct::StructList &uniformStructList() {
  * @param inInstance	Instance name to use when declaring in shaders.
  * @param inSlot	Uniform slot to bind to when used in shaders.
  * @param inSize	Size of the structure.
- * @param initFunc	Function to populate the member list. */
-UniformStruct::UniformStruct(
-	const char *inName,
-	const char *inInstance,
-	unsigned inSlot,
-	size_t inSize,
-	InitMembersFunc initFunc)
-:
+ * @param init		Function to populate the member list. */
+UniformStruct::UniformStruct(const char *inName, const char *inInstance, unsigned inSlot, size_t inSize, InitMembersFunc init) :
 	name(inName),
 	instanceName(inInstance),
 	slot(inSlot),
 	size(inSize)
 {
-	initFunc(this);
+	init(this);
 
 	/* Register the structure. */
 	uniformStructList().push_back(this);

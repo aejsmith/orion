@@ -49,7 +49,7 @@ public:
 		size(0)
 	{}
 
-	UniformStruct(const char *inName, const char *inInstance, unsigned inSlot, size_t inSize, InitMembersFunc initFunc);
+	UniformStruct(const char *inName, const char *inInstance, unsigned inSlot, size_t inSize, InitMembersFunc init);
 
 	const UniformStructMember *lookupMember(const char *name) const;
 
