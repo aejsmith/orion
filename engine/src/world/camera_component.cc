@@ -26,48 +26,21 @@
  * @param entity	Entity to attach the camera to.
  */
 CameraComponent::CameraComponent(Entity *entity) :
-	Component(Component::kCameraType, entity),
-	m_renderTarget(g_mainWindow),
-	m_viewport(0.0f, 0.0f, 1.0f, 1.0f)
+	Component(Component::kCameraType, entity)
 {
-	/* Initialize the scene view with a default projection and a viewport
-	 * matching the main window. Its transformation will be set when our
-	 * transformed() function is called. */
+	/* Initialize the scene view with a default projection. */
 	perspective();
-	updateViewport();
+
+	/* Default to the main window as the render target. */
+	setRenderTarget(g_mainWindow);
+	setLayerOrder(RenderLayer::kCameraLayerOrder);
+
+	/* Set default rendering parameters. */
 	setRenderingPath(RendererParams::kDeferredPath);
 }
 
 /** Destroy the camera. */
 CameraComponent::~CameraComponent() {}
-
-/** Set the render target.
- * @param target	New render target. */
-void CameraComponent::setRenderTarget(RenderTarget *target) {
-	if(activeInWorld())
-		m_renderTarget->removeCamera(this);
-
-	m_renderTarget = target;
-	updateViewport();
-
-	if(activeInWorld())
-		m_renderTarget->addCamera(this);
-}
-
-/**
- * Set the viewport.
- *
- * Sets the viewport rectangle. Coordinates are normalized, range from (0, 0)
- * in the top left corner to (1, 1) in the bottom right corner. The actual
- * viewport rectangle is calculated automatically based on the render target's
- * dimensions.
- *
- * @param viewport	Normalized viewport rectangle.
- */
-void CameraComponent::setViewport(const Rect &viewport) {
-	m_viewport = viewport;
-	updateViewport();
-}
 
 /**
  * Set the rendering path.
@@ -86,24 +59,15 @@ void CameraComponent::setRenderingPath(RendererParams::Path path) {
 void CameraComponent::render() {
 	SceneRenderer *renderer = SceneRenderer::create(
 		entity()->world()->scene(),
-		m_renderTarget,
+		renderTarget(),
 		m_rendererParams);
 
 	renderer->render(&m_sceneView);
 }
 
-/** Update the viewport. */
-void CameraComponent::updateViewport() {
-	uint32_t targetWidth = m_renderTarget->width();
-	uint32_t targetHeight = m_renderTarget->height();
-
-	IntRect viewport = IntRect(
-		m_viewport.x * static_cast<float>(targetWidth),
-		m_viewport.y * static_cast<float>(targetHeight),
-		m_viewport.width * static_cast<float>(targetWidth),
-		m_viewport.height * static_cast<float>(targetHeight));
-
-	m_sceneView.setViewport(viewport);
+/** Update the viewport in the SceneView. */
+void CameraComponent::viewportChanged() {
+	m_sceneView.setViewport(pixelViewport());
 }
 
 /** Called when the camera transformation is changed. */
@@ -113,10 +77,10 @@ void CameraComponent::transformed() {
 
 /** Called when the camera becomes active in the world. */
 void CameraComponent::activated() {
-	m_renderTarget->addCamera(this);
+	registerLayer();
 }
 
 /** Called when the camera becomes inactive in the world. */
 void CameraComponent::deactivated() {
-	m_renderTarget->removeCamera(this);
+	unregisterLayer();
 }

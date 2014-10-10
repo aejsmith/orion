@@ -6,13 +6,15 @@
 
 #pragma once
 
+#include "engine/render_target.h"
+
 #include "render/scene_renderer.h"
 #include "render/scene_view.h"
 
 #include "world/component.h"
 
 /** A view into the world from which the scene will be rendered. */
-class CameraComponent : public Component {
+class CameraComponent : public Component, public RenderLayer {
 public:
 	DECLARE_COMPONENT(Component::kCameraType);
 public:
@@ -22,18 +24,12 @@ public:
 	 * Rendering.
 	 */
 
-	void setRenderTarget(RenderTarget *target);
-	void setViewport(const Rect &viewport);
 	void setRenderingPath(RendererParams::Path path);
 
-	/** @return		Render target. */
-	RenderTarget *renderTarget() const { return m_renderTarget; }
-	/** @return		Normalized viewport rectangle. */
-	const Rect &viewport() const { return m_viewport; }
 	/** @return		Rendering path. */
 	RendererParams::Path renderingPath() const { return m_rendererParams.path; }
 
-	void render();
+	void render() override;
 
 	/**
 	 * Viewing manipulation.
@@ -67,11 +63,9 @@ protected:
 	void activated() override;
 	void deactivated() override;
 private:
-	void updateViewport();
+	void viewportChanged() override;
 private:
 	SceneView m_sceneView;			/**< Scene view implementing this camera. */
-	RenderTarget *m_renderTarget;		/**< Render target for the camera. */
-	Rect m_viewport;			/**< Normalized viewport rectangle. */
 	RendererParams m_rendererParams;	/**< Renderer parameters. */
 };
 
