@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include "render/scene_entity.h"
-
 #include "world/component.h"
 
 #include <list>
+
+class SceneEntity;
 
 /**
  * Base class for a component which renders something.

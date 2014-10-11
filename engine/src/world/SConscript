@@ -1,9 +1,10 @@
 sources = map(File, [
-    'camera_component.cc',
+    'camera.cc',
     'component.cc',
     'entity.cc',
-    'light_component.cc',
-    'renderer_component.cc',
+    'light.cc',
+    'mesh_renderer.cc',
+    'renderer.cc',
     'world.cc',
 ])
 

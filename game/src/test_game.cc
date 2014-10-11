@@ -13,123 +13,12 @@
 
 #include "gpu/gpu.h"
 
-#include "render/scene_entity.h"
-#include "render/scene_view.h"
-
 #include "world/behaviour.h"
-#include "world/camera_component.h"
+#include "world/camera.h"
 #include "world/entity.h"
-#include "world/light_component.h"
-#include "world/renderer_component.h"
+#include "world/light.h"
+#include "world/mesh_renderer.h"
 #include "world/world.h"
-
-/**
- * Rendering test code.
- */
-
-/** Component which renders a mesh. */
-class MeshRendererComponent : public RendererComponent {
-public:
-	MeshRendererComponent(Entity *entity, MeshPtr mesh);
-
-	/** @return		Mesh that this component renders. */
-	MeshPtr mesh() const { return m_mesh; }
-
-	MaterialPtr material(const std::string &name) const;
-	void setMaterial(const std::string &name, MaterialPtr material);
-protected:
-	virtual void createSceneEntities(SceneEntityList &entities) override;
-private:
-	MeshPtr m_mesh;			/**< Mesh to render. */
-
-	/** Array of materials. */
-	std::vector<MaterialPtr> m_materials;
-
-	friend class SubMeshSceneEntity;
-};
-
-/** Scene entity for rendering a SubMesh. */
-class SubMeshSceneEntity : public SceneEntity {
-public:
-	/** Initialize the scene entity.
-	 * @param mesh		Submesh to render.
-	 * @param parent	Parent mesh renderer. */
-	SubMeshSceneEntity(SubMesh *subMesh, MeshRendererComponent *parent) :
-		m_subMesh(subMesh),
-		m_parent(parent)
-	{}
-
-	Material *material() const override;
-	void draw() const override;
-private:
-	SubMesh *m_subMesh;		 /**< Submesh to render. */
-	MeshRendererComponent *m_parent; /**< Parent mesh renderer. */
-};
-
-/** Get the material for the entity.
- * @return		Material for the entity. */
-Material *SubMeshSceneEntity::material() const {
-	return m_parent->m_materials[m_subMesh->material].get();
-}
-
-/** Draw the entity. */
-void SubMeshSceneEntity::draw() const {
-	GPUVertexData *vertices = (m_subMesh->vertices)
-		? m_subMesh->vertices
-		: m_subMesh->parent()->sharedVertices;
-
-	g_gpu->draw(PrimitiveType::kTriangleList, vertices, m_subMesh->indices);
-}
-
-/** Initialize the mesh renderer.
- * @param entity	Entity the component belongs to.
- * @param mesh		Mesh to render. */
-MeshRendererComponent::MeshRendererComponent(Entity *entity, MeshPtr mesh) :
-	RendererComponent(entity),
-	m_mesh(mesh),
-	m_materials(mesh->numMaterials())
-{}
-
-/** Get the material with the specified name.
- * @param name		Name of the material to get.
- * @return		Pointer to material set. */
-MaterialPtr MeshRendererComponent::material(const std::string &name) const {
-	size_t index = 0;
-	bool ret = m_mesh->material(name, index);
-	checkMsg(ret, "Material slot '%s' not found", name.c_str());
-
-	return m_materials[index];
-}
-
-/**
- * Set the material to use for part of this mesh.
- *
- * A mesh has one or more material slots defined which its submeshes refer to
- * to get the material they will be rendered with. This function sets the
- * material in the specified slot so that all submeshes using that slot will
- * take on that material.
- *
- * @param name		Name of the material to set.
- * @param material	Material to use.
- */
-void MeshRendererComponent::setMaterial(const std::string &name, MaterialPtr material) {
-	size_t index = 0;
-	bool ret = m_mesh->material(name, index);
-	checkMsg(ret, "Material slot '%s' not found", name.c_str());
-
-	m_materials[index] = material;
-}
-
-/** Create scene entities.
- * @param entities	List to populate. */
-void MeshRendererComponent::createSceneEntities(SceneEntityList &entities) {
-	// FIXME: This is a bit shit, should destroy them on deactivate and recreate each time
-	// also need to handle changes to mesh material/submesh count etc
-	for(size_t i = 0; i < m_mesh->numSubMeshes(); i++) {
-		SubMeshSceneEntity *entity = new SubMeshSceneEntity(m_mesh->subMesh(i), this);
-		entities.push_back(entity);
-	}
-}
 
 /**
  * Game code.

@@ -8,7 +8,7 @@
 #include "render/scene_light.h"
 
 #include "world/entity.h"
-#include "world/light_component.h"
+#include "world/light.h"
 #include "world/world.h"
 
 /** Default direction of a light. */

@@ -15,7 +15,6 @@
 
 #include "render/resources.h"
 
-#include "world/camera_component.h"
 #include "world/world.h"
 
 #include <SDL.h>

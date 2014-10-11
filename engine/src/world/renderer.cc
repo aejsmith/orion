@@ -7,7 +7,7 @@
 #include "render/scene.h"
 #include "render/scene_entity.h"
 
-#include "world/renderer_component.h"
+#include "world/renderer.h"
 #include "world/world.h"
 
 /** Initialise the component.

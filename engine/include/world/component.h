@@ -26,7 +26,7 @@ class Entity;
  * only be destroyed by calling destroy(). The function call sequence for
  * creating a component is:
  *
- *   Entity::create_component()
+ *   Entity::createComponent()
  *    |-> constructors
  *    |-> Entity::addComponent()
  *    |-> Component::transformed()
