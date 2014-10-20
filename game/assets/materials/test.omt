@@ -1,8 +1,0 @@
-{
-	"shader": "engine/shaders/lighting",
-	"parameters": {
-		"shininess": 32.0,
-		"specularColour": [0.5, 0.5, 0.5],
-		"diffuseTexture": "game/textures/test"
-	}
-}
