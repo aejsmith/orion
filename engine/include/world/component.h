@@ -6,9 +6,10 @@
 
 #pragma once
 
-#include "core/core.h"
+#include "world/entity.h"
 
 class Entity;
+class World;
 
 /**
  * Class implementing a component.
@@ -65,6 +66,29 @@ public:
 	bool active() const { return m_active; }
 
 	bool activeInWorld() const;
+
+	/**
+	 * Entity property shortcut functions.
+	 */
+
+	/** @return		World that the entity belongs to. */
+	World *world() const { return m_entity->world(); }
+	/** @return		Transformation for the entity. */
+	const Transform &transform() const { return m_entity->transform(); }
+	/** @return		Entity relative position. */
+	const glm::vec3 &position() const { return m_entity->position(); }
+	/** @return		Entity relative orientation. */
+	const glm::quat &orientation() const { return m_entity->orientation(); }
+	/** @return		Entity relative scale. */
+	const glm::vec3 &scale() const { return m_entity->scale(); }
+	/** @return		Entity local-to-world transformation matrix. */
+	const Transform &worldTransform() const { return m_entity->worldTransform(); }
+	/** @return		Entity absolute position. */
+	const glm::vec3 &worldPosition() const { return m_entity->worldPosition(); }
+	/** @return		Entity absolute orientation. */
+	const glm::quat &worldOrientation() const { return m_entity->worldOrientation(); }
+	/** @return		Entity absolute scale. */
+	const glm::vec3 &worldScale() const { return m_entity->worldScale(); }
 
 	/**
 	 * Hook functions.

@@ -31,32 +31,28 @@ RendererComponent::~RendererComponent() {
 void RendererComponent::transformed() {
 	/* Update all scene entity transformations. */
 	if(activeInWorld()) {
-		Scene *scene = entity()->world()->scene();
 		for(SceneEntity *sceneEntity : m_sceneEntities)
-			scene->transformEntity(sceneEntity, entity()->worldTransform());
+			world()->scene()->transformEntity(sceneEntity, worldTransform());
 	}
 }
 
 /** Called when the component becomes active in the world. */
 void RendererComponent::activated() {
-	/* Create the scene entities if we haven't already. */
-	if(m_sceneEntities.empty()) {
-		createSceneEntities(m_sceneEntities);
-		check(!m_sceneEntities.empty());
+	/* Scene entities should not yet be created. Create them. */
+	check(m_sceneEntities.empty());
+	createSceneEntities(m_sceneEntities);
+	check(!m_sceneEntities.empty());
 
-		/* Set initial transformations. */
-		RendererComponent::transformed();
-	}
-
-	/* Add them to the renderer. */
-	Scene *scene = entity()->world()->scene();
+	/* Add them all to the renderer. */
 	for(SceneEntity *sceneEntity : m_sceneEntities)
-		scene->addEntity(sceneEntity, entity()->worldTransform());
+		world()->scene()->addEntity(sceneEntity, worldTransform());
 }
 
 /** Called when the component becomes inactive in the world. */
 void RendererComponent::deactivated() {
-	Scene *scene = entity()->world()->scene();
-	for(SceneEntity *sceneEntity : m_sceneEntities)
-		scene->removeEntity(sceneEntity);
+	while(!m_sceneEntities.empty()) {
+		SceneEntity *sceneEntity = m_sceneEntities.back();
+		m_sceneEntities.pop_back();
+		world()->scene()->removeEntity(sceneEntity);
+	}
 }

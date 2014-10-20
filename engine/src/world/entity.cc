@@ -9,6 +9,7 @@
  * @fixme		Disallow transformation of root entity.
  */
 
+#include "world/component.h"
 #include "world/entity.h"
 
 /** Initialize a new entity.
@@ -18,11 +19,10 @@ Entity::Entity(const std::string &name, World *world) :
 	m_name(name),
 	m_world(world),
 	m_parent(nullptr),
+	m_components(Component::kNumComponentTypes, nullptr),
 	m_active(false),
 	m_activeInWorld(false)
-{
-	m_components.fill(nullptr);
-}
+{}
 
 /** Private destructor. To destroy an entity use destroy(). */
 Entity::~Entity() {}
@@ -50,6 +50,44 @@ void Entity::destroy() {
 		m_parent->m_children.remove(this);
 
 	delete this;
+}
+
+/** Call the specified function on all children.
+ * @param func		Function to call. */
+template <typename Func>
+inline void Entity::visitChildren(Func func) {
+	for(Entity *child : m_children)
+		func(child);
+}
+
+/** Call the specified function on all active children.
+ * @param func		Function to call. */
+template <typename Func>
+inline void Entity::visitActiveChildren(Func func) {
+	for(Entity *child : m_children) {
+		if(child->active())
+			func(child);
+	}
+}
+
+/** Call the specified function on all components.
+ * @param func		Function to call. */
+template <typename Func>
+inline void Entity::visitComponents(Func func) {
+	for(Component *component : m_components) {
+		if(component)
+			func(component);
+	}
+}
+
+/** Call the specified function on all active components.
+ * @param func		Function to call. */
+template <typename Func>
+inline void Entity::visitActiveComponents(Func func) {
+	for(Component *component : m_components) {
+		if(component && component->active())
+			func(component);
+	}
 }
 
 /**

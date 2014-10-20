@@ -20,7 +20,9 @@ public:
 	Mesh *mesh() const { return m_mesh; }
 
 	Material *material(const std::string &name) const;
+	Material *material(size_t index) const;
 	void setMaterial(const std::string &name, Material *material);
+	void setMaterial(size_t index, Material *material);
 protected:
 	virtual void createSceneEntities(SceneEntityList &entities) override;
 private:

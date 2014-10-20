@@ -37,10 +37,10 @@ protected:
 	/**
 	 * Create scene entities.
 	 *
-	 * This function is called the first time the component is activated in
-	 * the world to create the SceneEntities which will be added to the
-	 * renderer. The entities' transformations will be set after this has
-	 * been called.
+	 * This function is called each time the component is activated in the
+	 * world to create the SceneEntities which will be added to the renderer.
+	 * The entities' transformations will be set after this has been called.
+	 * The entities are all deleted upon deactivation of the component.
 	 *
 	 * @param entities	List to populate.
 	 */

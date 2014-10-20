@@ -6,12 +6,13 @@
 
 #pragma once
 
-#include "world/component.h"
+#include "core/core.h"
 
 #include <algorithm>
-#include <array>
 #include <list>
+#include <vector>
 
+class Component;
 class World;
 
 /**
@@ -85,7 +86,7 @@ public:
 	void rotate(const glm::quat &rotation);
 	void setScale(const glm::vec3 &scale);
 
-	/** @return		Transformation for the object. */
+	/** @return		Transformation for the entity. */
 	const Transform &transform() const { return m_transform; }
 	/** @return		Current relative position. */
 	const glm::vec3 &position() const { return m_transform.position(); }
@@ -93,7 +94,7 @@ public:
 	const glm::quat &orientation() const { return m_transform.orientation(); }
 	/** @return		Current relative scale. */
 	const glm::vec3 &scale() const { return m_transform.scale(); }
-	/** @return		Transformation matrix of the entity. */
+	/** @return		Local-to-world transformation matrix. */
 	const Transform &worldTransform() const { return m_worldTransform; }
 	/** @return		Current absolute position. */
 	const glm::vec3 &worldPosition() const { return m_worldTransform.position(); }
@@ -101,12 +102,6 @@ public:
 	const glm::quat &worldOrientation() const { return m_worldTransform.orientation(); }
 	/** @return		Current absolute scale. */
 	const glm::vec3 &worldScale() const { return m_worldTransform.scale(); }
-private:
-	/** Type of a list of entities. */
-	typedef std::list<Entity *> EntityList;
-
-	/** Type of the component array. */
-	typedef std::array<Component *, Component::kNumComponentTypes> ComponentArray;
 private:
 	Entity(const std::string &name, World *world);
 	~Entity();
@@ -123,11 +118,12 @@ private:
 	void activated();
 	void deactivated();
 private:
-	std::string m_name;		/**< Name of the entity. */
-	World *m_world;			/**< World that this entity belongs to. */
-	Entity *m_parent;		/**< Parent entity. */
-	EntityList m_children;		/**< Child entities. */
-	bool m_active;			/**< Whether the entity is active. */
+	std::string m_name;			/**< Name of the entity. */
+	World *m_world;				/**< World that this entity belongs to. */
+	Entity *m_parent;			/**< Parent entity. */
+	std::list<Entity *> m_children;		/**< Child entities. */
+	std::vector<Component *> m_components;	/**< Components attached to the entity. */
+	bool m_active;				/**< Whether the entity is active. */
 
 	/**
 	 * Whether the entity is really active in the world.
@@ -137,8 +133,7 @@ private:
 	 */
 	bool m_activeInWorld;
 
-	/** Transformation relative to the parent. */
-	Transform m_transform;
+	Transform m_transform;			/**< Transformation relative to the parent. */
 
 	/**
 	 * Pre-calculated world transformation.
@@ -147,9 +142,6 @@ private:
 	 * save having to recalculate it every time they're needed.
 	 */
 	Transform m_worldTransform;
-
-	/** Components attached to the entity. */
-	ComponentArray m_components;
 
 	/** Component needs to use removeComponent(). */
 	friend class Component;
@@ -177,42 +169,4 @@ inline Type *Entity::findComponent() const {
         return (m_components[Type::kComponentTypeID])
                 ? static_cast<Type *>(m_components[Type::kComponentTypeID])
                 : nullptr;
-}
-
-/** Call the specified function on all children.
- * @param func		Function to call. */
-template <typename Func>
-inline void Entity::visitChildren(Func func) {
-	for(Entity *child : m_children)
-		func(child);
-}
-
-/** Call the specified function on all active children.
- * @param func		Function to call. */
-template <typename Func>
-inline void Entity::visitActiveChildren(Func func) {
-	for(Entity *child : m_children) {
-		if(child->active())
-			func(child);
-	}
-}
-
-/** Call the specified function on all components.
- * @param func		Function to call. */
-template <typename Func>
-inline void Entity::visitComponents(Func func) {
-	for(Component *component : m_components) {
-		if(component)
-			func(component);
-	}
-}
-
-/** Call the specified function on all active components.
- * @param func		Function to call. */
-template <typename Func>
-inline void Entity::visitActiveComponents(Func func) {
-	for(Component *component : m_components) {
-		if(component && component->active())
-			func(component);
-	}
 }

@@ -95,27 +95,27 @@ void LightComponent::setDirection(const glm::vec3 &direction) {
 glm::vec3 LightComponent::direction() const {
 	/* Here we return the direction relative to the parent. TODO: Absolute
 	 * direction function. */
-	return entity()->orientation() * kDefaultDirection;
+	return orientation() * kDefaultDirection;
 }
 
 /** Called when the entity's transformation is changed. */
 void LightComponent::transformed() {
 	/* Update SceneLight's direction vector. Here we want to set the
 	 * absolute direction. */
-	glm::vec3 direction = entity()->worldOrientation() * kDefaultDirection;
+	glm::vec3 direction = worldOrientation() * kDefaultDirection;
 	m_sceneLight.setDirection(direction);
 
 	/* Scene manager needs to know the light has moved. */
 	if(activeInWorld())
-		entity()->world()->scene()->transformLight(&m_sceneLight, entity()->position());
+		world()->scene()->transformLight(&m_sceneLight, position());
 }
 
 /** Called when the component becomes active in the world. */
 void LightComponent::activated() {
-	entity()->world()->scene()->addLight(&m_sceneLight, entity()->position());
+	world()->scene()->addLight(&m_sceneLight, position());
 }
 
 /** Called when the component becomes inactive in the world. */
 void LightComponent::deactivated() {
-	entity()->world()->scene()->removeLight(&m_sceneLight);
+	world()->scene()->removeLight(&m_sceneLight);
 }

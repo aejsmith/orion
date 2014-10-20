@@ -63,6 +63,14 @@ Material *MeshRendererComponent::material(const std::string &name) const {
 	return m_materials[index];
 }
 
+/** Get the material with the specified index.
+ * @param index		Index of the material to get.
+ * @return		Pointer to material set. */
+Material *MeshRendererComponent::material(size_t index) const {
+	check(index < m_materials.size());
+	return m_materials[index];
+}
+
 /**
  * Set the material to use for part of this mesh.
  *
@@ -82,11 +90,17 @@ void MeshRendererComponent::setMaterial(const std::string &name, Material *mater
 	m_materials[index] = material;
 }
 
+/** Set the material to use for part of this mesh.
+ * @param index		Index of the material to set.
+ * @param material	Material to use. */
+void MeshRendererComponent::setMaterial(size_t index, Material *material) {
+	check(index < m_materials.size());
+	m_materials[index] = material;
+}
+
 /** Create scene entities.
  * @param entities	List to populate. */
 void MeshRendererComponent::createSceneEntities(SceneEntityList &entities) {
-	// FIXME: This is a bit shit, should destroy them on deactivate and recreate each time
-	// also need to handle changes to mesh material/submesh count etc
 	for(size_t i = 0; i < m_mesh->numSubMeshes(); i++) {
 		SubMeshSceneEntity *entity = new SubMeshSceneEntity(m_mesh->subMesh(i), this);
 		entities.push_back(entity);
