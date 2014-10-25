@@ -19,6 +19,14 @@ inline typename std::enable_if<std::is_integral<T>::value, size_t>::type hashVal
 	return static_cast<size_t>(value);
 }
 
+/** Hash an enum value.
+ * @param value		Value to hash.
+ * @return		Generated hash. */
+template <typename T>
+inline typename std::enable_if<std::is_enum<T>::value, size_t>::type hashValue(T value) {
+	return hashValue(static_cast<typename std::underlying_type<T>::type>(value));
+}
+
 /** Hash a floating point value.
  * @param value		Value to hash.
  * @return		Generated hash. */
