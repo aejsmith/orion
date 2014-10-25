@@ -13,28 +13,31 @@
 #include "engine/window.h"
 
 /** Bind a pipeline for rendering.
- * @param _pipeline	Pipeline to use. */
-void GLGPUInterface::bindPipeline(GPUPipeline *_pipeline) {
-	GLPipeline *pipeline = static_cast<GLPipeline *>(_pipeline);
-	pipeline->bind();
+ * @param pipeline	Pipeline to use. */
+void GLGPUInterface::bindPipeline(GPUPipeline *pipeline) {
+	GLPipeline *glPipeline = static_cast<GLPipeline *>(pipeline);
+	glPipeline->bind();
 }
 
 /** Bind a texture.
  * @param index		Texture unit index to bind to.
- * @param _texture	Texture to bind. */
-void GLGPUInterface::bindTexture(unsigned index, GPUTexture *_texture) {
-	GLTexture *texture = static_cast<GLTexture *>(_texture);
-	texture->bind(index);
+ * @param texture	Texture to bind.
+ * @param sampler	Sampler state to bind with. */
+void GLGPUInterface::bindTexture(unsigned index, GPUTexture *texture, GPUSamplerState *sampler) {
+	GLTexture *glTexture = static_cast<GLTexture *>(texture);
+	glTexture->bind(index);
+	GLSamplerState *glSampler = static_cast<GLSamplerState *>(sampler);
+	glSampler->bind(index);
 }
 
 /** Bind a uniform buffer.
  * @param index		Uniform block index to bind to.
- * @param _buffer	Buffer to bind. */
-void GLGPUInterface::bindUniformBuffer(unsigned index, GPUBuffer *_buffer) {
-	GLBuffer *buffer = static_cast<GLBuffer *>(_buffer);
+ * @param buffer	Buffer to bind. */
+void GLGPUInterface::bindUniformBuffer(unsigned index, GPUBuffer *buffer) {
 	check(buffer->type() == GPUBuffer::kUniformBuffer);
 
-	buffer->bindIndexed(index);
+	GLBuffer *glBuffer = static_cast<GLBuffer *>(buffer);
+	glBuffer->bindIndexed(index);
 }
 
 /** Set the blending mode.
@@ -47,9 +50,9 @@ void GLGPUInterface::setBlendMode(BlendFunc func, BlendFactor sourceFactor, Blen
 		sourceFactor != BlendFactor::kOne ||
 		destFactor != BlendFactor::kZero;
 
-	g_opengl->state.enableBlend(enableBlend);
-	g_opengl->state.setBlendEquation(gl::convertBlendFunc(func));
-	g_opengl->state.setBlendFunc(
+	this->state.enableBlend(enableBlend);
+	this->state.setBlendEquation(gl::convertBlendFunc(func));
+	this->state.setBlendFunc(
 		gl::convertBlendFactor(sourceFactor),
 		gl::convertBlendFactor(destFactor));
 }
@@ -63,15 +66,15 @@ void GLGPUInterface::setDepthMode(ComparisonFunc func, bool enableWrite) {
 	 * depth test is disabled". */
 	bool enableTest = func != ComparisonFunc::kAlways || enableWrite;
 
-	g_opengl->state.enableDepthTest(enableTest);
-	g_opengl->state.enableDepthWrite(enableWrite);
-	g_opengl->state.setDepthFunc(gl::convertComparisonFunc(func));
+	this->state.enableDepthTest(enableTest);
+	this->state.enableDepthWrite(enableWrite);
+	this->state.setDepthFunc(gl::convertComparisonFunc(func));
 }
 
 /** End a frame and present it on screen.
  * @param vsync		Whether to wait for vertical sync. */
 void GLGPUInterface::endFrame(bool vsync) {
-	g_opengl->state.setSwapInterval(vsync);
+	this->state.setSwapInterval(vsync);
 	SDL_GL_SwapWindow(g_mainWindow->sdlWindow());
 }
 
@@ -84,17 +87,17 @@ void GLGPUInterface::clear(unsigned buffers, const glm::vec4 &colour, float dept
 	GLbitfield mask = 0;
 
 	if(buffers & ClearBuffer::kColourBuffer) {
-		g_opengl->state.setClearColour(colour);
+		this->state.setClearColour(colour);
 		mask |= GL_COLOR_BUFFER_BIT;
 	}
 
 	if(buffers & ClearBuffer::kDepthBuffer) {
-		g_opengl->state.setClearDepth(depth);
+		this->state.setClearDepth(depth);
 		mask |= GL_DEPTH_BUFFER_BIT;
 	}
 
 	if(buffers & ClearBuffer::kStencilBuffer) {
-		g_opengl->state.setClearStencil(stencil);
+		this->state.setClearStencil(stencil);
 		mask |= GL_STENCIL_BUFFER_BIT;
 	}
 

@@ -10,6 +10,7 @@
 #include "gpu/index_data.h"
 #include "gpu/pipeline.h"
 #include "gpu/shader.h"
+#include "gpu/state.h"
 #include "gpu/texture.h"
 #include "gpu/vertex_data.h"
 
@@ -35,7 +36,7 @@ public:
 	virtual void init(SDL_Window *window) = 0;
 
 	/**
-	 * Object creation methods.
+	 * Resource creation methods.
 	 */
 
 	/** Create a GPU buffer.
@@ -52,6 +53,11 @@ public:
 	 * @see			GPUPipeline::GPUPipeline().
 	 * @return		Pointer to created pipeline. */
 	virtual GPUPipelinePtr createPipeline(GPUShaderArray &shaders);
+
+	/** Create a sampler state object.
+	 * @param desc		Descriptor for sampler state.
+	 * @return		Pointer to created sampler state object. */
+	virtual GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) = 0;
 
 	/** Create a 2D texture.
 	* @see			GPUTexture::GPUTexture().
@@ -115,8 +121,9 @@ public:
 
 	/** Bind a texture.
 	 * @param index		Texture unit index to bind to.
-	 * @param texture	Texture to bind. */
-	virtual void bindTexture(unsigned index, GPUTexture *texture) = 0;
+	 * @param texture	Texture to bind.
+	 * @param sampler	Sampler state. */
+	virtual void bindTexture(unsigned index, GPUTexture *texture, GPUSamplerState *sampler) = 0;
 
 	/** Bind a uniform buffer.
 	 * @param index		Uniform block index to bind to.

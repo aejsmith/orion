@@ -19,6 +19,7 @@ static const int kGLMinorVersion = 3;
 static const char *g_requiredGLExtensions[] = {
 	"GL_ARB_separate_shader_objects",
 	"GL_ARB_texture_storage",
+	"GL_EXT_texture_filter_anisotropic",
 };
 
 /** Initialize the GPU interface. */
@@ -146,6 +147,7 @@ void GLGPUInterface::initFeatures() {
 	}
 
 	/* Cache some GL information. */
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &features.maxAnisotropy);
 	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &features.maxTextureUnits);
 }
 

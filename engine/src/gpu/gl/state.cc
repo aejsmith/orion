@@ -7,6 +7,10 @@
 #include "gl.h"
 
 /**
+ * GL state caching.
+ */
+
+/**
  * Initalize the GL state.
  *
  * This initializes the state object with default OpenGL state. Check the OpenGL
@@ -227,4 +231,87 @@ void GLState::bindTexture(unsigned unit, GLenum target, GLuint texture) {
 		unitState.target = target;
 		unitState.texture = texture;
 	}
+}
+
+/** Bind a sampler to a texture unit.
+ * @param unit		Texture unit to bind to. Note this is specified as
+ *			the unit, not as a GL_TEXTUREn constant.
+ * @param sampler	Texture sampler to bind. */
+void GLState::bindSampler(unsigned unit, GLuint sampler) {
+	TextureUnit &unitState = this->textureUnits[unit];
+	if(unitState.sampler != sampler) {
+		glBindSampler(unit, sampler);
+		unitState.sampler = sampler;
+	}
+}
+
+/**
+ * State object management.
+ */
+
+/** Initialize a GL sampler state object.
+ * @param desc		Descriptor for sampler state. */
+GLSamplerState::GLSamplerState(const GPUSamplerStateDesc &desc) :
+	GPUSamplerState(desc)
+{
+	glGenSamplers(1, &m_sampler);
+
+	/* Set wrap parameters. */
+	GLint wrapS = gl::convertSamplerAddressMode(m_desc.addressU);
+	glSamplerParameteri(m_sampler, GL_TEXTURE_WRAP_S, wrapS);
+	GLint wrapT = gl::convertSamplerAddressMode(m_desc.addressV);
+	glSamplerParameteri(m_sampler, GL_TEXTURE_WRAP_T, wrapT);
+	GLint wrapR = gl::convertSamplerAddressMode(m_desc.addressW);
+	glSamplerParameteri(m_sampler, GL_TEXTURE_WRAP_R, wrapR);
+
+	/* Set filtering mode. */
+	switch(m_desc.filterMode) {
+	case SamplerFilterMode::kBilinear:
+		glSamplerParameteri(m_sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+		glSamplerParameteri(m_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		break;
+	case SamplerFilterMode::kTrilinear:
+		glSamplerParameteri(m_sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glSamplerParameteri(m_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		break;
+	case SamplerFilterMode::kAnisotropic:
+		glSamplerParameteri(m_sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glSamplerParameteri(m_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		/* Set maximum anisotropy. TODO: global default if set to 0. */
+		glSamplerParameterf(m_sampler, GL_TEXTURE_MAX_ANISOTROPY_EXT, glm::clamp(
+			static_cast<float>(m_desc.maxAnisotropy),
+			1.0f,
+			g_opengl->features.maxAnisotropy));
+
+		break;
+	default:
+		glSamplerParameteri(m_sampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+		glSamplerParameteri(m_sampler, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		break;
+	}
+}
+
+/** Destroy the sampler state object. */
+GLSamplerState::~GLSamplerState() {
+	glDeleteSamplers(1, &m_sampler);
+}
+
+/** Bind the sampler to a texture unit.
+ * @param index		Texture unit index to bind to. */
+void GLSamplerState::bind(unsigned index) {
+	g_opengl->state.bindSampler(index, m_sampler);
+}
+
+/** Create a sampler state object.
+ * @param desc		Descriptor for sampler state.
+ * @return		Pointer to created sampler state object. */
+GPUSamplerStatePtr GLGPUInterface::createSamplerState(const GPUSamplerStateDesc &desc) {
+	auto ret = m_samplerStates.find(desc);
+	if(ret != m_samplerStates.end())
+		return ret->second;
+
+	GPUSamplerStatePtr state = new GLSamplerState(desc);
+	m_samplerStates.insert(std::make_pair(desc, state));
+	return state;
 }

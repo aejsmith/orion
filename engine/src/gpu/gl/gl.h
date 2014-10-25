@@ -14,6 +14,7 @@
 
 #include <array>
 #include <set>
+#include <unordered_map>
 
 /** Define to 1 to enable ARB_debug_output. */
 #define ORION_GL_DEBUG			1
@@ -32,6 +33,7 @@ struct GLFeatures {
 	std::set<std::string> extensions;
 
 	/** Cached glGet* parameters. */
+	GLfloat maxAnisotropy;		/**< GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT */
 	GLint maxTextureUnits;		/**< GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS */
 public:
 	/** Check whether an extension is supported.
@@ -72,6 +74,7 @@ public:
 
 	GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) override;
 	GPUPipelinePtr createPipeline(GPUShaderArray &shaders) override;
+	GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) override;
 	GPUTexturePtr createTexture(const GPUTexture2DDesc &desc) override;
 	GPUTexturePtr createTexture(const GPUTexture2DArrayDesc &desc) override;
 	GPUTexturePtr createTexture(const GPUTextureCubeDesc &desc) override;
@@ -81,7 +84,7 @@ public:
 	GPUShaderPtr compileShader(GPUShader::Type type, const std::string &source) override;
 
 	void bindPipeline(GPUPipeline *pipeline) override;
-	void bindTexture(unsigned index, GPUTexture *texture) override;
+	void bindTexture(unsigned index, GPUTexture *texture, GPUSamplerState *sampler) override;
 	void bindUniformBuffer(unsigned index, GPUBuffer *buffer) override;
 	void setBlendMode(BlendFunc func, BlendFactor sourceFactor, BlendFactor destFactor) override;
 	void setDepthMode(ComparisonFunc func, bool enableWrite) override;
@@ -109,6 +112,9 @@ private:
 		const GLvoid *param);
 private:
 	SDL_GLContext m_sdlContext;	/**< SDL GL context. */
+
+	/** Hash table of created sampler state objects. */
+	std::unordered_map<GPUSamplerStateDesc, GPUSamplerStatePtr, Hash<GPUSamplerStateDesc>> m_samplerStates;
 };
 
 extern GLGPUInterface *g_opengl;
@@ -297,6 +303,18 @@ static inline GLenum convertPrimitiveType(PrimitiveType type) {
 		return GL_POINTS;
 	default:
 		return 0;
+	}
+}
+
+/** Convert a sampler address mode to a GL wrap mode.
+ * @param mode		Mode to convert.
+ * @return		Converted GL mode. */
+static inline GLint convertSamplerAddressMode(SamplerAddressMode mode) {
+	switch(mode) {
+	case SamplerAddressMode::kWrap:
+		return GL_REPEAT;
+	default:
+		return GL_CLAMP_TO_EDGE;
 	}
 }
 

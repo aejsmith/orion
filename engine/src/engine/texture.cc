@@ -8,6 +8,75 @@
 
 #include "gpu/gpu.h"
 
+/** Private constructor, does not actually create the texture. */
+TextureBase::TextureBase() :
+	m_filterMode(SamplerFilterMode::kAnisotropic),
+	m_anisotropy(16),
+	m_addressMode(SamplerAddressMode::kClamp)
+{
+	updateSamplerState();
+}
+
+/**
+ * Set the texture filtering mode.
+ *
+ * Sets the texture filtering mode for this texture. By default, textures will
+ * use the global texture filtering settings. Using this function will override
+ * those settings for this particular texture.
+ *
+ * @param mode		Texture filtering mode to use.
+ */
+void TextureBase::setFilterMode(SamplerFilterMode mode) {
+	// TODO: global filtering defaults.
+	if(mode != m_filterMode) {
+		m_filterMode = mode;
+		updateSamplerState();
+	}
+}
+
+/**
+ * Set the anisotropy level.
+ *
+ * When the filtering mode is set to anisotropic, this sets the degree of
+ * anisotropy used by the filtering process. Unless the filtering mode has been
+ * overridden from the global defaults using setFilterMode(), this parameter is
+ * ignored.
+ *
+ * @param anisotropy	Degree of anisotropy for anisotropic filtering.
+ */
+void TextureBase::setAnisotropy(unsigned anisotropy) {
+	if(anisotropy != m_anisotropy) {
+		m_anisotropy = anisotropy;
+		updateSamplerState();
+	}
+}
+
+/**
+ * Set the texture addressing mode.
+ *
+ * This sets the method used for resolving texture coordinates outside the
+ * (0, 1) range. When it is set to clamp, texture coordinates are clamped to
+ * the (0, 1) range. When it is set to wrap, texture coordinates are wrapped
+ * around, causing the texture to repeat.
+ *
+ * @param mode		Texture addressing mode to use.
+ */
+void TextureBase::setAddressMode(SamplerAddressMode mode) {
+	if(mode != m_addressMode) {
+		m_addressMode = mode;
+		updateSamplerState();
+	}
+}
+
+/** Recreate the texture sampler state. */
+void TextureBase::updateSamplerState() {
+	GPUSamplerStateDesc desc;
+	desc.filterMode = m_filterMode;
+	desc.maxAnisotropy = m_anisotropy;
+	desc.addressU = desc.addressV = desc.addressW = m_addressMode;
+	m_sampler = g_gpu->createSamplerState(desc);
+}
+
 /**
  * Create a 2D texture.
  *

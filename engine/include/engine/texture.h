@@ -8,6 +8,7 @@
 
 #include "engine/asset.h"
 
+#include "gpu/state.h"
 #include "gpu/texture.h"
 
 /** Base texture asset class. */
@@ -15,18 +16,37 @@ class TextureBase : public Asset {
 public:
 	~TextureBase() {}
 
-	/** @return		GPU texture implementing this texture. */
-	GPUTexture *gpu() const { return m_gpu; }
-
 	/** @return		Pixel format for the texture. */
 	PixelFormat format() const { return m_gpu->format(); }
 	/** @return		Number of mip levels. */
 	unsigned mips() const { return m_gpu->mips(); }
+	/** @return		Texture filtering mode. */
+	SamplerFilterMode filterMode() const { return m_filterMode; }
+	/** @return		Anisotropic filtering level. */
+	unsigned anisotropy() const { return m_anisotropy; }
+	/** @return		Addressing mode. */
+	SamplerAddressMode addressMode() const { return m_addressMode; }
+
+	void setFilterMode(SamplerFilterMode mode);
+	void setAnisotropy(unsigned anisotropy);
+	void setAddressMode(SamplerAddressMode mode);
+
+	/** @return		GPU texture implementing this texture. */
+	GPUTexture *gpu() const { return m_gpu; }
+	/** @return		GPU sampler state for the texture. */
+	GPUSamplerState *sampler() const { return m_sampler; }
 protected:
-	/** Private constructor, does not actually create the texture. */
-	TextureBase() {}
+	TextureBase();
+
+	void updateSamplerState();
 protected:
-	GPUTexturePtr m_gpu;		/**< GPU texture pointer. */
+	GPUTexturePtr m_gpu;			/**< GPU texture pointer. */
+	GPUSamplerStatePtr m_sampler;		/**< GPU sampler state. */
+
+	/** Texture sampling parameters. */
+	SamplerFilterMode m_filterMode;		/**< Filtering mode. */
+	unsigned m_anisotropy;			/**< Anisotropic filtering level. */
+	SamplerAddressMode m_addressMode;	/**< Addressing mode. */
 };
 
 /** Type of a base texture pointer. */

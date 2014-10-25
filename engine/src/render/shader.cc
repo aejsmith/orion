@@ -40,7 +40,7 @@ void Shader::setDrawState(Material *material) const {
 	const Material::TextureArray &textures = material->m_textures;
 	for(size_t i = 0; i < m_nextTextureSlot; i++) {
 		if(textures[i])
-			g_gpu->bindTexture(i, textures[i]->gpu());
+			g_gpu->bindTexture(i, textures[i]->gpu(), textures[i]->sampler());
 	}
 }
 

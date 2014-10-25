@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "core/core.h"
+#include "gpu/state.h"
 
 #include <GL/glew.h>
 
@@ -55,8 +55,9 @@ struct GLState {
 	struct TextureUnit {
 		GLenum target;
 		GLuint texture;
+		GLuint sampler;
 	public:
-		TextureUnit() : target(GL_NONE), texture(0) {}
+		TextureUnit() : target(GL_NONE), texture(0), sampler(0) {}
 	};
 public:
 	int swapInterval;		/**< Current swap interval. */
@@ -108,4 +109,20 @@ public:
 	void bindBufferBase(GLenum target, GLuint index, GLuint buffer);
 	void bindPipeline(GLuint pipeline);
 	void bindTexture(unsigned unit, GLenum target, GLuint texture);
+	void bindSampler(unsigned unit, GLuint sampler);
+};
+
+/**
+ * GPU state objects.
+ */
+
+/** OpenGL sampler state object implementation. */
+class GLSamplerState : public GPUSamplerState {
+public:
+	GLSamplerState(const GPUSamplerStateDesc &desc);
+	~GLSamplerState();
+
+	void bind(unsigned index);
+private:
+	GLuint m_sampler;		/**< Sampler object. */
 };

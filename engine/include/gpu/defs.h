@@ -32,6 +32,22 @@ namespace ClearBuffer {
 	};
 };
 
+/** Faces for a cubemap. */
+namespace CubeFace {
+	enum {
+		kPositiveX,		/**< Positive X direction. */
+		kNegativeX,		/**< Negative X direction. */
+		kPositiveY,		/**< Positive Y direction. */
+		kNegativeY,		/**< Negative Y direction. */
+		kPositiveZ,		/**< Positive Z direction. */
+		kNegativeZ,		/**< Negative Z direction. */
+	};
+}
+
+/**
+ * Blend state definitions.
+ */
+
 /**
  * Colour blending functions.
  *
@@ -65,6 +81,10 @@ enum class BlendFactor {
 	kOneMinusDestAlpha,		/**< Multiply by (1 - dest alpha). */
 };
 
+/**
+ * Depth/stencil state definitions.
+ */
+
 /** Comparison function for depth/stencil tests. */
 enum class ComparisonFunc {
 	kAlways,			/**< Always passes (depth testing disabled). */
@@ -77,24 +97,38 @@ enum class ComparisonFunc {
 	kGreaterOrEqual,		/**< Pass if incoming >= current. */
 };
 
+/**
+ * Rasterizer state definitions.
+ */
+
 /** Face culling mode. */
-enum class CullMode {
+enum class RasterizerCullMode {
 	kDisabled,			/**< Disable face culling. */
 	kBack,				/**< Cull back-facing polygons. */
 	kFront,				/**< Cull front-facing polygons. */
 };
 
-/** Faces for a cubemap. */
-namespace CubeFace {
-	enum {
-		kPositiveX,		/**< Positive X direction. */
-		kNegativeX,		/**< Negative X direction. */
-		kPositiveY,		/**< Positive Y direction. */
-		kNegativeY,		/**< Negative Y direction. */
-		kPositiveZ,		/**< Positive Z direction. */
-		kNegativeZ,		/**< Negative Z direction. */
-	};
-}
+/**
+ * Sampler state definitions.
+ */
+
+/** Method for resolving texture coordinates outside the (0, 1) range. */
+enum class SamplerAddressMode {
+	kClamp,				/**< Clamp to (0, 1). */
+	kWrap,				/**< Tile the texture, i.e. wrap coordinates. */
+};
+
+/** Texture filtering mode. */
+enum class SamplerFilterMode {
+	kNearest,			/**< Use nearest point. */
+	kBilinear,			/**< Linear interpolation within mip, single mip level. */
+	kTrilinear,			/**< Linear interpolation within mip and between mip levels. */
+	kAnisotropic,			/**< Anisotropic filtering. */
+};
+
+/**
+ * Resource base class.
+ */
 
 /**
  * Base class for GPU resources.
