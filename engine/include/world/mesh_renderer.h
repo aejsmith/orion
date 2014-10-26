@@ -12,9 +12,9 @@
 #include "world/renderer.h"
 
 /** Component which renders a mesh. */
-class MeshRendererComponent : public RendererComponent {
+class MeshRenderer : public RendererComponent {
 public:
-	MeshRendererComponent(Entity *entity, Mesh *mesh);
+	MeshRenderer(Entity *entity, Mesh *mesh);
 
 	/** @return		Mesh that this component renders. */
 	Mesh *mesh() const { return m_mesh; }

@@ -25,7 +25,7 @@
  *
  * @param entity	Entity to attach the camera to.
  */
-CameraComponent::CameraComponent(Entity *entity) :
+Camera::Camera(Entity *entity) :
 	Component(Component::kCameraType, entity)
 {
 	/* Initialize the scene view with a default projection. */
@@ -40,7 +40,7 @@ CameraComponent::CameraComponent(Entity *entity) :
 }
 
 /** Destroy the camera. */
-CameraComponent::~CameraComponent() {}
+Camera::~Camera() {}
 
 /**
  * Set the rendering path.
@@ -50,13 +50,13 @@ CameraComponent::~CameraComponent() {}
  *
  * @param path		Rendering path to use.
  */
-void CameraComponent::setRenderingPath(RendererParams::Path path) {
+void Camera::setRenderingPath(RendererParams::Path path) {
 	// FIXME: Fall back if unsupported.
 	m_rendererParams.path = path;
 }
 
 /** Render the scene from the camera to its render target. */
-void CameraComponent::render() {
+void Camera::render() {
 	SceneRenderer *renderer = SceneRenderer::create(
 		entity()->world()->scene(),
 		renderTarget(),
@@ -66,21 +66,21 @@ void CameraComponent::render() {
 }
 
 /** Update the viewport in the SceneView. */
-void CameraComponent::viewportChanged() {
+void Camera::viewportChanged() {
 	m_sceneView.setViewport(pixelViewport());
 }
 
 /** Called when the camera transformation is changed. */
-void CameraComponent::transformed() {
+void Camera::transformed() {
 	m_sceneView.setTransform(entity()->position(), entity()->orientation());
 }
 
 /** Called when the camera becomes active in the world. */
-void CameraComponent::activated() {
+void Camera::activated() {
 	registerLayer();
 }
 
 /** Called when the camera becomes inactive in the world. */
-void CameraComponent::deactivated() {
+void Camera::deactivated() {
 	unregisterLayer();
 }

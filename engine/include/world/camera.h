@@ -14,11 +14,11 @@
 #include "world/component.h"
 
 /** A view into the world from which the scene will be rendered. */
-class CameraComponent : public Component, public RenderLayer {
+class Camera : public Component, public RenderLayer {
 public:
 	DECLARE_COMPONENT(Component::kCameraType);
 public:
-	explicit CameraComponent(Entity *entity);
+	explicit Camera(Entity *entity);
 
 	/**
 	 * Rendering.
@@ -57,7 +57,7 @@ public:
 	/** @return		View-to-projection matrix. */
 	const glm::mat4 &projection() { return m_sceneView.projection(); }
 protected:
-	~CameraComponent();
+	~Camera();
 
 	void transformed() override;
 	void activated() override;
@@ -73,24 +73,24 @@ private:
  * @param fovx		Horizontal field of view, in degrees.
  * @param znear		Distance to near clipping plane.
  * @param zfar		Distance to far clipping plane. */
-inline void CameraComponent::perspective(float fovx, float znear, float zfar) {
+inline void Camera::perspective(float fovx, float znear, float zfar) {
 	m_sceneView.perspective(fovx, znear, zfar);
 }
 
 /** Set the horizontal field of view.
  * @param fov		New horizontal FOV, in degrees. */
-inline void CameraComponent::setFOV(float fov) {
+inline void Camera::setFOV(float fov) {
 	m_sceneView.perspective(fov, zNear(), zFar());
 }
 
 /** Set the near clipping plane.
  * @param zNear		New distance to the near clipping plane. */
-inline void CameraComponent::setZNear(float zNear) {
+inline void Camera::setZNear(float zNear) {
 	m_sceneView.perspective(fov(), zNear, zFar());
 }
 
 /** Set the far clipping plane.
  * @param zfar		New distance to the far clipping plane. */
-inline void CameraComponent::setZFar(float zFar) {
+inline void Camera::setZFar(float zFar) {
 	m_sceneView.perspective(fov(), zNear(), zFar);
 }

@@ -17,7 +17,7 @@ static const glm::vec3 kDefaultDirection = glm::vec3(0.0f, 0.0f, -1.0f);
 /** Initialize a light component.
  * @param entity	Entity that the component belongs to.
  * @param type		SceneLight type. */
-LightComponent::LightComponent(Entity *entity, SceneLight::Type type) :
+Light::Light(Entity *entity, SceneLight::Type type) :
 	Component(Component::kLightType, entity),
 	m_sceneLight(type)
 {
@@ -28,20 +28,20 @@ LightComponent::LightComponent(Entity *entity, SceneLight::Type type) :
 
 /** Initialize an ambient light component.
  * @param entity	Entity that the component belongs to. */
-AmbientLightComponent::AmbientLightComponent(Entity *entity) :
-	LightComponent(entity, SceneLight::kAmbientLight)
+AmbientLight::AmbientLight(Entity *entity) :
+	Light(entity, SceneLight::kAmbientLight)
 {}
 
 /** Initialize a directional light component.
  * @param entity	Entity that the component belongs to. */
-DirectionalLightComponent::DirectionalLightComponent(Entity *entity) :
-	LightComponent(entity, SceneLight::kDirectionalLight)
+DirectionalLight::DirectionalLight(Entity *entity) :
+	Light(entity, SceneLight::kDirectionalLight)
 {}
 
 /** Initialize a point light component.
  * @param entity	Entity that the component belongs to. */
-PointLightComponent::PointLightComponent(Entity *entity) :
-	LightComponent(entity, SceneLight::kPointLight)
+PointLight::PointLight(Entity *entity) :
+	Light(entity, SceneLight::kPointLight)
 {
 	/* Set default parameters. */
 	setRange(100.0f);
@@ -50,8 +50,8 @@ PointLightComponent::PointLightComponent(Entity *entity) :
 
 /** Initialize a spot light component.
  * @param entity	Entity that the component belongs to. */
-SpotLightComponent::SpotLightComponent(Entity *entity) :
-	LightComponent(entity, SceneLight::kSpotLight)
+SpotLight::SpotLight(Entity *entity) :
+	Light(entity, SceneLight::kSpotLight)
 {
 	/* Set default parameters. */
 	setRange(50.0f);
@@ -60,7 +60,7 @@ SpotLightComponent::SpotLightComponent(Entity *entity) :
 }
 
 /** Destroy the light. */
-LightComponent::~LightComponent() {}
+Light::~Light() {}
 
 /**
  * Set the light direction.
@@ -71,7 +71,7 @@ LightComponent::~LightComponent() {}
  *
  * @param direction	New light direction.
  */
-void LightComponent::setDirection(const glm::vec3 &direction) {
+void Light::setDirection(const glm::vec3 &direction) {
 	glm::quat q;
 
 	/* Calculate the quaternion that rotates the default direction vector
@@ -92,14 +92,14 @@ void LightComponent::setDirection(const glm::vec3 &direction) {
 }
 
 /** @return		Current light direction. */
-glm::vec3 LightComponent::direction() const {
+glm::vec3 Light::direction() const {
 	/* Here we return the direction relative to the parent. TODO: Absolute
 	 * direction function. */
 	return orientation() * kDefaultDirection;
 }
 
 /** Called when the entity's transformation is changed. */
-void LightComponent::transformed() {
+void Light::transformed() {
 	/* Update SceneLight's direction vector. Here we want to set the
 	 * absolute direction. */
 	glm::vec3 direction = worldOrientation() * kDefaultDirection;
@@ -111,11 +111,11 @@ void LightComponent::transformed() {
 }
 
 /** Called when the component becomes active in the world. */
-void LightComponent::activated() {
+void Light::activated() {
 	world()->scene()->addLight(&m_sceneLight, position());
 }
 
 /** Called when the component becomes inactive in the world. */
-void LightComponent::deactivated() {
+void Light::deactivated() {
 	world()->scene()->removeLight(&m_sceneLight);
 }

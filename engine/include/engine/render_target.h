@@ -80,8 +80,8 @@ private:
  * render textures used in the scene are updated before the main window is
  * rendered. The Engine class maintains a list of active render targets and the
  * rendering loop will update them all ordered by their priority. Each render
- * target maintains a list of CameraComponents targeting them. A render target
- * is active if at least one camera targets it.
+ * target maintains a list of layers to be drawn on that target, and will be
+ * updated by the rendering loop if at least one layer exists on the target.
  */
 class RenderTarget {
 public:

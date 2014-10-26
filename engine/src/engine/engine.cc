@@ -135,8 +135,8 @@ void Engine::tick() {
 void Engine::renderAllTargets() {
 	for(RenderTarget *target : m_renderTargets) {
 		// FIXME: Where does this go? Clear settings should go in
-		// CameraComponent, need a rect constraint to clear to only
-		// clear viewport.
+		// Camera, need a rect constraint to clear to only clear
+		// viewport.
 		g_gpu->clear(
 			ClearBuffer::kColourBuffer | ClearBuffer::kDepthBuffer | ClearBuffer::kStencilBuffer,
 			glm::vec4(0.0, 0.0, 0.0, 1.0), 1.0, 0);

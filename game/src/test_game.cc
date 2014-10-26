@@ -13,6 +13,10 @@
 
 #include "gpu/gpu.h"
 
+#include "render/resources.h"
+#include "render/utility.h"
+#include "render/vertex.h"
+
 #include "world/behaviour.h"
 #include "world/camera.h"
 #include "world/entity.h"
@@ -24,12 +28,9 @@
  * Game code.
  */
 
-class CustomBehaviour : public BehaviourComponent {
+class Rotator : public BehaviourComponent {
 public:
-	CustomBehaviour(Entity *entity) : BehaviourComponent(entity) {}
-
-	void activated() { logDebug("Entity was activated"); }
-	void deactivated() { logDebug("Entity was deactivated"); }
+	Rotator(Entity *entity) : BehaviourComponent(entity) {}
 
 	void tick(float dt) {
 		entity()->rotate(dt * 90.0f, glm::vec3(0.0, 1.0, 0.0));
@@ -41,193 +42,107 @@ class TestGame : public Game {
 public:
 	TestGame();
 private:
-	//Entity *makeCube(Entity *parent, const std::string &name);
-	//Entity *makePlane(Entity *parent, const std::string &name);
+	Entity *createPlane(Entity *parent, const std::string &name, Material *material, float tiles);
 private:
 	World *m_world;			/**< Game world. */
 
 	/** Rendering resources. */
 	MaterialPtr m_cubeMaterial;
 	MeshPtr m_cubeMesh;
-	//VertexFormatPtr m_vertexFormat;
 };
 
-#if 0
-Entity *TestGame::makeCube(Entity *parent, const std::string &name) {
-	/* Indices into the below arrays for each face. */
-	static size_t cubeIndices[] = {
-		/* Front face. */
-		0, 1, 2, 2, 3, 0,
-		/* Back face. */
-		5, 4, 7, 7, 6, 5,
-		/* Left face. */
-		4, 0, 3, 3, 7, 4,
-		/* Right face. */
-		1, 5, 6, 6, 2, 1,
-		/* Top face. */
-		3, 2, 6, 6, 7, 3,
-		/* Bottom face. */
-		4, 5, 1, 1, 0, 4,
-	};
-
-	/* Vertices of a cube. */
-	static glm::vec3 cubeVertices[] = {
-		glm::vec3(-0.5f, -0.5f, 0.5f),
-		glm::vec3(0.5f, -0.5f, 0.5f),
-		glm::vec3(0.5f, 0.5f, 0.5f),
-		glm::vec3(-0.5f, 0.5f, 0.5f),
-		glm::vec3(-0.5f, -0.5f, -0.5f),
-		glm::vec3(0.5f, -0.5f, -0.5f),
-		glm::vec3(0.5f, 0.5f, -0.5f),
-		glm::vec3(-0.5f, 0.5f, -0.5f),
-	};
-
-	/* Normals for each face. */
-	static glm::vec3 cubeNormals[] = {
-		glm::vec3(0.0f, 0.0f, 1.0f),
-		glm::vec3(0.0f, 0.0f, -1.0f),
-		glm::vec3(-1.0f, 0.0f, 0.0f),
-		glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f),
-		glm::vec3(0.0f, -1.0f, 0.0f),
-	};
-
-	/* Texture coordinates for each face. */
-	static glm::vec2 cubeTexcoords[] = {
-		glm::vec2(0.0f, 0.0f), glm::vec2(1.0f, 0.0f),
-		glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 1.0f),
-		glm::vec2(0.0f, 1.0f), glm::vec2(0.0f, 0.0f),
-	};
-
-	GPUBufferPtr buffer = g_gpu->createBuffer(
-		GPUBuffer::kVertexBuffer,
-		GPUBuffer::kStaticDrawUsage,
-		util::arraySize(cubeIndices) * sizeof(Vertex));
-
-	{
-		GPUBufferMapper<Vertex> data(buffer, GPUBuffer::kMapInvalidate, GPUBuffer::kWriteAccess);
-
-		for(size_t i = 0; i < util::arraySize(cubeIndices); i++) {
-			new(&data[i]) Vertex(
-				cubeVertices[cubeIndices[i]],
-				cubeNormals[i / 6],
-				cubeTexcoords[i % 6]);
-		}
-	}
-
-	VertexDataPtr vertices = g_gpu->createVertexData(util::arraySize(cubeIndices));
-	vertices->setFormat(m_vertexFormat);
-	vertices->setBuffer(0, buffer);
-	vertices->finalize();
-
-	Entity *entity = parent->createChild(name);
-	StaticMeshRendererComponent *renderer = entity->createComponent<StaticMeshRendererComponent>(m_material, vertices, nullptr);
-	renderer->setActive(true);
-
-	return entity;
-}
-
-Entity *TestGame::makePlane(Entity *parent, const std::string &name) {
+/** Create a 2D plane centered at the origin extending in the X/Y direction.
+ * @param parent	Parent entity.
+ * @param name		Name of the entity.
+ * @param material	Material to use for the plane.
+ * @param tiles		Texture tiling count. */
+Entity *TestGame::createPlane(Entity *parent, const std::string &name, Material *material, float tiles) {
 	/* Vertices of the plane. */
-	static glm::vec3 planeVertices[] = {
-		glm::vec3(-1.0f, -1.0f, 0.0f),
-		glm::vec3(1.0f, -1.0f, 0.0f),
-		glm::vec3(1.0f, 1.0f, 0.0f),
-		glm::vec3(-1.0f, 1.0f, 0.0f),
+	static glm::vec3 vertices[] = {
+		glm::vec3(-0.5f, -0.5f, 0.0f),
+		glm::vec3(0.5f, -0.5f, 0.0f),
+		glm::vec3(0.5f, 0.5f, 0.0f),
+		glm::vec3(-0.5f, 0.5f, 0.0f),
 	};
 
 	/* We only have a single normal. */
-	static glm::vec3 planeNormal(0.0f, 0.0f, 1.0f);
+	static glm::vec3 normal(0.0f, 0.0f, 1.0f);
 
-	/* Plane colour. */
-	static glm::vec2 planeTexcoords[] = {
-		glm::vec2(0.0f, 0.0f), glm::vec2(1.0f, 0.0f),
-		glm::vec2(1.0f, 1.0f), glm::vec2(0.0f, 1.0f),
+	/* Texture coordinates. */
+	static glm::vec2 texcoords[] = {
+		glm::vec2(0.0f, 0.0f), glm::vec2(tiles, 0.0f),
+		glm::vec2(tiles, tiles), glm::vec2(0.0f, tiles),
 	};
 
-	GPUBufferPtr buffer = g_gpu->createBuffer(
-		GPUBuffer::kVertexBuffer,
-		GPUBuffer::kStaticDrawUsage,
-		6 * sizeof(Vertex));
+	MeshPtr mesh(new Mesh());
+	SubMesh *subMesh = mesh->addSubMesh();
+	subMesh->material = mesh->addMaterial("default");
 
-	{
-		GPUBufferMapper<Vertex> data(buffer, GPUBuffer::kMapInvalidate, GPUBuffer::kWriteAccess);
+	std::vector<SimpleVertex> data;
+	data.emplace_back(vertices[0], normal, texcoords[0]);
+	data.emplace_back(vertices[1], normal, texcoords[1]);
+	data.emplace_back(vertices[2], normal, texcoords[2]);
+	data.emplace_back(vertices[2], normal, texcoords[2]);
+	data.emplace_back(vertices[3], normal, texcoords[3]);
+	data.emplace_back(vertices[0], normal, texcoords[0]);
 
-		new(&data[0]) Vertex(planeVertices[0], planeNormal, planeTexcoords[0]);
-		new(&data[1]) Vertex(planeVertices[1], planeNormal, planeTexcoords[1]);
-		new(&data[2]) Vertex(planeVertices[2], planeNormal, planeTexcoords[2]);
-		new(&data[3]) Vertex(planeVertices[2], planeNormal, planeTexcoords[2]);
-		new(&data[4]) Vertex(planeVertices[3], planeNormal, planeTexcoords[3]);
-		new(&data[5]) Vertex(planeVertices[0], planeNormal, planeTexcoords[0]);
-	}
-
-	VertexDataPtr vertices = g_gpu->createVertexData(6);
-	vertices->setFormat(m_vertexFormat);
-	vertices->setBuffer(0, buffer);
-	vertices->finalize();
+	GPUBufferArray buffers(1);
+	buffers[0] = buildGPUBuffer(GPUBuffer::kVertexBuffer, data);
+	subMesh->vertices = g_gpu->createVertexData(
+		data.size(),
+		g_renderResources->simpleVertexFormat(),
+		buffers);
 
 	Entity *entity = parent->createChild(name);
-	StaticMeshRendererComponent *renderer = entity->createComponent<StaticMeshRendererComponent>(m_material, vertices, nullptr);
+	MeshRenderer *renderer = entity->createComponent<MeshRenderer>(mesh);
+	renderer->setMaterial(subMesh->material, material);
 	renderer->setActive(true);
 
 	return entity;
 }
-#endif
 
 /** Initialize the game world. */
 TestGame::TestGame() {
 	m_cubeMaterial = g_assetManager->load<Material>("game/materials/companion_cube");
 	m_cubeMesh = g_assetManager->load<Mesh>("game/models/companion_cube");
 
-#if 0
-	m_vertexFormat = g_gpu->createVertexFormat();
-	m_vertexFormat->addBuffer(0, sizeof(Vertex));
-	m_vertexFormat->addAttribute(
-		VertexAttribute::kPositionSemantic, 0,
-		VertexAttribute::kFloatType, 3, 0, offsetof(Vertex, x));
-	m_vertexFormat->addAttribute(
-		VertexAttribute::kNormalSemantic, 0,
-		VertexAttribute::kFloatType, 3, 0, offsetof(Vertex, nx));
-	m_vertexFormat->addAttribute(
-		VertexAttribute::kTexCoordSemantic, 0,
-		VertexAttribute::kFloatType, 2, 0, offsetof(Vertex, u));
-	m_vertexFormat->finalize();
-#endif
-
 	m_world = g_engine->createWorld();
 
-	AmbientLightComponent *ambientLight = m_world->root()->createComponent<AmbientLightComponent>();
+	AmbientLight *ambientLight = m_world->root()->createComponent<AmbientLight>();
 	ambientLight->setIntensity(0.1f);
 	ambientLight->setActive(true);
 
-	//Entity *floor = makePlane(m_world->root(), "floor");
-	//floor->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-	//floor->setScale(glm::vec3(3.0f, 7.5f, 1.0f));
-	//floor->setActive(true);
+	Entity *floor = createPlane(
+		m_world->root(),
+		"floor",
+		g_assetManager->load<Material>("game/materials/floor"),
+		16.0f);
+	floor->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	floor->setScale(glm::vec3(100.0f, 100.0f, 1.0f));
+	floor->setActive(true);
 
-	//Entity *cube = makeCube(m_world->root(), "cube");
 	Entity *cube = m_world->createEntity("cube");
-	cube->setPosition(glm::vec3(0.0f, 0.5f, -4.0f));
+	cube->setPosition(glm::vec3(0.0f, 1.0f, -5.0f));
 	cube->setScale(glm::vec3(0.2f, 0.2f, 0.2f));
 	cube->rotate(45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 	cube->setActive(true);
-	MeshRendererComponent *renderer = cube->createComponent<MeshRendererComponent>(m_cubeMesh);
+	MeshRenderer *renderer = cube->createComponent<MeshRenderer>(m_cubeMesh);
 	renderer->setMaterial("Material.004", m_cubeMaterial);
 	renderer->setActive(true);
-	CustomBehaviour *behaviour = cube->createComponent<CustomBehaviour>();
-	behaviour->setActive(true);
+	Rotator *rotator = cube->createComponent<Rotator>();
+	rotator->setActive(true);
 
 	Entity *camEntity = m_world->createEntity("camera");
-	camEntity->setPosition(glm::vec3(0.0f, 1.5f, 0.0f));
+	camEntity->setPosition(glm::vec3(0.0f, 2.0f, 0.0f));
 	camEntity->setActive(true);
-	CameraComponent *camera = camEntity->createComponent<CameraComponent>();
+	Camera *camera = camEntity->createComponent<Camera>();
 	camera->perspective(90.0f, 0.1f, 1000.0f);
 	camera->setActive(true);
 
 	Entity *lightEntity = m_world->createEntity("light");
 	lightEntity->setPosition(glm::vec3(0.0f, 2.0f, -2.0f));
 	lightEntity->setActive(true);
-	PointLightComponent *pointLight = lightEntity->createComponent<PointLightComponent>();
+	PointLight *pointLight = lightEntity->createComponent<PointLight>();
 	pointLight->setActive(true);
 }
 

@@ -11,7 +11,7 @@
 /** Private constructor, does not actually create the texture. */
 TextureBase::TextureBase() :
 	m_filterMode(SamplerFilterMode::kAnisotropic),
-	m_anisotropy(16),
+	m_anisotropy(8),
 	m_addressMode(SamplerAddressMode::kClamp)
 {
 	updateSamplerState();

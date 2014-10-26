@@ -16,11 +16,11 @@
  * This component implements a light source in the world. This class cannot be
  * created directly, you must create one of the specific light type classes.
  */
-class LightComponent : public Component {
+class Light : public Component {
 public:
 	DECLARE_COMPONENT(Component::kLightType);
 public:
-	~LightComponent();
+	~Light();
 
 	void setColour(const glm::vec3 &colour);
 	void setIntensity(float intensity);
@@ -30,7 +30,7 @@ public:
 	/** @return		Diffuse intensity. */
 	float intensity() const { return m_sceneLight.intensity(); }
 protected:
-	LightComponent(Entity *entity, SceneLight::Type type);
+	Light(Entity *entity, SceneLight::Type type);
 
 	void transformed() override;
 	void activated() override;
@@ -70,9 +70,9 @@ protected:
  * simulate the effect of light scattered about the entire scene. The position
  * is ignored, the light affects the whole scene.
  */
-class AmbientLightComponent : public LightComponent {
+class AmbientLight : public Light {
 public:
-	explicit AmbientLightComponent(Entity *entity);
+	explicit AmbientLight(Entity *entity);
 };
 
 /**
@@ -87,12 +87,12 @@ public:
  * light direction. Because of this, the actual light direction in the world is
  * affected by the parent entity's rotation.
  */
-class DirectionalLightComponent : public LightComponent {
+class DirectionalLight : public Light {
 public:
-	explicit DirectionalLightComponent(Entity *entity);
+	explicit DirectionalLight(Entity *entity);
 
-	using LightComponent::setDirection;
-	using LightComponent::direction;
+	using Light::setDirection;
+	using Light::direction;
 };
 
 /**
@@ -102,16 +102,16 @@ public:
  * light that radiates out from a point in the world. It has a limited range,
  * and attenuation across that range.
  */
-class PointLightComponent : public LightComponent {
+class PointLight : public Light {
 public:
-	explicit PointLightComponent(Entity *entity);
+	explicit PointLight(Entity *entity);
 
-	using LightComponent::setRange;
-	using LightComponent::setAttenuation;
-	using LightComponent::range;
-	using LightComponent::attenuationConstant;
-	using LightComponent::attenuationLinear;
-	using LightComponent::attenuationExp;
+	using Light::setRange;
+	using Light::setAttenuation;
+	using Light::range;
+	using Light::attenuationConstant;
+	using Light::attenuationLinear;
+	using Light::attenuationExp;
 };
 
 /**
@@ -119,48 +119,46 @@ public:
  *
  * This component adds a spot light source to the world. A spot light radiates
  * out in a cone in a certain direction from a point in the world. It has a
- * limited range, and attenuation across that range.
- *
- * See DirectionalLightComponent for details on how the light direction is
- * stored.
+ * limited range, and attenuation across that range. See DirectionalLight for
+ * details on how the light direction is stored.
  */
-class SpotLightComponent : public LightComponent {
+class SpotLight : public Light {
 public:
-	explicit SpotLightComponent(Entity *entity);
+	explicit SpotLight(Entity *entity);
 
-	using LightComponent::setDirection;
-	using LightComponent::setCutoff;
-	using LightComponent::setRange;
-	using LightComponent::setAttenuation;
-	using LightComponent::direction;
-	using LightComponent::cutoff;
-	using LightComponent::range;
-	using LightComponent::attenuationConstant;
-	using LightComponent::attenuationLinear;
-	using LightComponent::attenuationExp;
+	using Light::setDirection;
+	using Light::setCutoff;
+	using Light::setRange;
+	using Light::setAttenuation;
+	using Light::direction;
+	using Light::cutoff;
+	using Light::range;
+	using Light::attenuationConstant;
+	using Light::attenuationLinear;
+	using Light::attenuationExp;
 };
 
 /** Set the colour of the light.
  * @param colour	New light colour. */
-inline void LightComponent::setColour(const glm::vec3 &colour) {
+inline void Light::setColour(const glm::vec3 &colour) {
 	m_sceneLight.setColour(colour);
 }
 
 /** Set the intensity of the light.
  * @param intensity	New light intensity. */
-inline void LightComponent::setIntensity(float intensity) {
+inline void Light::setIntensity(float intensity) {
 	m_sceneLight.setIntensity(intensity);
 }
 
 /** Set the cutoff angle.
  * @param cutoff	New cutoff angle. Must be <= 45 degrees. */
-inline void LightComponent::setCutoff(float cutoff) {
+inline void Light::setCutoff(float cutoff) {
 	m_sceneLight.setCutoff(cutoff);
 }
 
 /** Set the range of the light.
  * @param range		Range of the light. */
-inline void LightComponent::setRange(float range) {
+inline void Light::setRange(float range) {
 	m_sceneLight.setRange(range);
 }
 
@@ -168,6 +166,6 @@ inline void LightComponent::setRange(float range) {
  * @param constant	Constant attenuation factor.
  * @param linear	Linear attenuation factor.
  * @param exp		Exponentional attenuation factor. */
-inline void LightComponent::setAttenuation(float constant, float linear, float exp) {
+inline void Light::setAttenuation(float constant, float linear, float exp) {
 	m_sceneLight.setAttenuation(constant, linear, exp);
 }

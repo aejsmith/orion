@@ -16,7 +16,7 @@ public:
 	/** Initialize the scene entity.
 	 * @param mesh		Submesh to render.
 	 * @param parent	Parent mesh renderer. */
-	SubMeshSceneEntity(SubMesh *subMesh, MeshRendererComponent *parent) :
+	SubMeshSceneEntity(SubMesh *subMesh, MeshRenderer *parent) :
 		m_subMesh(subMesh),
 		m_parent(parent)
 	{}
@@ -24,8 +24,8 @@ public:
 	Material *material() const override;
 	void draw() const override;
 private:
-	SubMesh *m_subMesh;		 /**< Submesh to render. */
-	MeshRendererComponent *m_parent; /**< Parent mesh renderer. */
+	SubMesh *m_subMesh;		/**< Submesh to render. */
+	MeshRenderer *m_parent;		/**< Parent mesh renderer. */
 };
 
 /** Get the material for the entity.
@@ -46,7 +46,7 @@ void SubMeshSceneEntity::draw() const {
 /** Initialize the mesh renderer.
  * @param entity	Entity the component belongs to.
  * @param mesh		Mesh to render. */
-MeshRendererComponent::MeshRendererComponent(Entity *entity, Mesh *mesh) :
+MeshRenderer::MeshRenderer(Entity *entity, Mesh *mesh) :
 	RendererComponent(entity),
 	m_mesh(mesh),
 	m_materials(mesh->numMaterials())
@@ -55,7 +55,7 @@ MeshRendererComponent::MeshRendererComponent(Entity *entity, Mesh *mesh) :
 /** Get the material with the specified name.
  * @param name		Name of the material to get.
  * @return		Pointer to material set. */
-Material *MeshRendererComponent::material(const std::string &name) const {
+Material *MeshRenderer::material(const std::string &name) const {
 	size_t index = 0;
 	bool ret = m_mesh->material(name, index);
 	checkMsg(ret, "Material slot '%s' not found", name.c_str());
@@ -66,7 +66,7 @@ Material *MeshRendererComponent::material(const std::string &name) const {
 /** Get the material with the specified index.
  * @param index		Index of the material to get.
  * @return		Pointer to material set. */
-Material *MeshRendererComponent::material(size_t index) const {
+Material *MeshRenderer::material(size_t index) const {
 	check(index < m_materials.size());
 	return m_materials[index];
 }
@@ -82,7 +82,7 @@ Material *MeshRendererComponent::material(size_t index) const {
  * @param name		Name of the material to set.
  * @param material	Material to use.
  */
-void MeshRendererComponent::setMaterial(const std::string &name, Material *material) {
+void MeshRenderer::setMaterial(const std::string &name, Material *material) {
 	size_t index = 0;
 	bool ret = m_mesh->material(name, index);
 	checkMsg(ret, "Material slot '%s' not found", name.c_str());
@@ -93,14 +93,14 @@ void MeshRendererComponent::setMaterial(const std::string &name, Material *mater
 /** Set the material to use for part of this mesh.
  * @param index		Index of the material to set.
  * @param material	Material to use. */
-void MeshRendererComponent::setMaterial(size_t index, Material *material) {
+void MeshRenderer::setMaterial(size_t index, Material *material) {
 	check(index < m_materials.size());
 	m_materials[index] = material;
 }
 
 /** Create scene entities.
  * @param entities	List to populate. */
-void MeshRendererComponent::createSceneEntities(SceneEntityList &entities) {
+void MeshRenderer::createSceneEntities(SceneEntityList &entities) {
 	for(size_t i = 0; i < m_mesh->numSubMeshes(); i++) {
 		SubMeshSceneEntity *entity = new SubMeshSceneEntity(m_mesh->subMesh(i), this);
 		entities.push_back(entity);
