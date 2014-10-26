@@ -35,12 +35,18 @@ Camera::Camera(Entity *entity) :
 	setRenderTarget(g_mainWindow);
 	setLayerOrder(RenderLayer::kCameraLayerOrder);
 
-	/* Set default rendering parameters. */
-	setRenderingPath(RendererParams::kDeferredPath);
+	/* Create an initial scene renderer. */
+	m_sceneRenderer = SceneRenderer::create(
+		world()->scene(),
+		&m_sceneView,
+		renderTarget(),
+		RenderPath::kDeferred);
 }
 
 /** Destroy the camera. */
-Camera::~Camera() {}
+Camera::~Camera() {
+	delete m_sceneRenderer;
+}
 
 /**
  * Set the rendering path.
@@ -50,19 +56,25 @@ Camera::~Camera() {}
  *
  * @param path		Rendering path to use.
  */
-void Camera::setRenderingPath(RendererParams::Path path) {
-	// FIXME: Fall back if unsupported.
-	m_rendererParams.path = path;
+void Camera::setRenderPath(RenderPath path) {
+	if(path != m_sceneRenderer->path()) {
+		delete m_sceneRenderer;
+		m_sceneRenderer = SceneRenderer::create(
+			world()->scene(),
+			&m_sceneView,
+			renderTarget(),
+			path);
+	}
 }
 
 /** Render the scene from the camera to its render target. */
 void Camera::render() {
-	SceneRenderer *renderer = SceneRenderer::create(
-		entity()->world()->scene(),
-		renderTarget(),
-		m_rendererParams);
+	m_sceneRenderer->render();
+}
 
-	renderer->render(&m_sceneView);
+/** Update the render target in the SceneRenderer. */
+void Camera::renderTargetChanged() {
+	m_sceneRenderer->setTarget(renderTarget());
 }
 
 /** Update the viewport in the SceneView. */

@@ -61,6 +61,9 @@ protected:
 	void registerLayer();
 	void unregisterLayer();
 
+	/** Called when the render target is changed. */
+	virtual void renderTargetChanged() {}
+
 	/** Called when the viewport is changed. */
 	virtual void viewportChanged() {}
 private:

@@ -14,25 +14,24 @@
 
 /** Initialize the scene renderer.
  * @param scene		Scene to render.
- * @param target	Render target.
- * @param params	Renderer parameters. */
-ForwardRenderer::ForwardRenderer(Scene *scene, RenderTarget *target, const RendererParams &params) :
-	SceneRenderer(scene, target, params)
+ * @param view		View into the scene to render from.
+ * @param target	Initial render target. */
+ForwardRenderer::ForwardRenderer(Scene *scene, SceneView *view, RenderTarget *target) :
+	SceneRenderer(scene, view, target)
 {}
 
-/** Render the scene.
- * @param view		View to render from. */
-void ForwardRenderer::render(SceneView *view) {
+/** Render the scene. */
+void ForwardRenderer::render() {
 	/* Get a list of all visible entities. */
 	std::list<SceneEntity *> entities;
-	m_scene->visitVisibleEntities(view, [&entities](SceneEntity *e) { entities.push_back(e); });
+	m_scene->visitVisibleEntities(m_view, [&entities](SceneEntity *e) { entities.push_back(e); });
 
 	/* Get a list of all lights affecting the view. */
 	std::list<SceneLight *> lights;
-	m_scene->visitVisibleLights(view, [&lights](SceneLight *l) { lights.push_back(l); });
+	m_scene->visitVisibleLights(m_view, [&lights](SceneLight *l) { lights.push_back(l); });
 
 	/* Set view uniforms once per frame. */
-	g_gpu->bindUniformBuffer(UniformSlots::kViewUniforms, view->uniforms());
+	g_gpu->bindUniformBuffer(UniformSlots::kViewUniforms, m_view->uniforms());
 
 	/* For the first light we don't need blending, and want depth writes on.
 	 * FIXME: These should be defaults for the GPU interface here and when

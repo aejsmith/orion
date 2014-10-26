@@ -11,7 +11,10 @@
 /** Scene renderer implementing forward rendering. */
 class ForwardRenderer : public SceneRenderer {
 public:
-	ForwardRenderer(Scene *scene, RenderTarget *target, const RendererParams &params);
+	ForwardRenderer(Scene *scene, SceneView *view, RenderTarget *target);
 
-	void render(SceneView *view) override;
+	/** @return		Render path this renderer implements. */
+	RenderPath path() const override { return RenderPath::kForward; }
+
+	void render() override;
 };

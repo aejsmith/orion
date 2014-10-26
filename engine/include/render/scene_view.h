@@ -19,7 +19,7 @@ UNIFORM_STRUCT_END;
 /**
  * A view into a scene.
  *
- * This class represents a view into a scene: a viewing transformation, a
+ * This class represents a view into a scene: a viewing transformation and a
  * projection transformation, and a viewport rectangle. It also holds a uniform
  * buffer containing the view's parameters that can be passed to shaders.
  */

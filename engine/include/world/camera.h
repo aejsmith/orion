@@ -24,10 +24,10 @@ public:
 	 * Rendering.
 	 */
 
-	void setRenderingPath(RendererParams::Path path);
+	void setRenderPath(RenderPath path);
 
 	/** @return		Rendering path. */
-	RendererParams::Path renderingPath() const { return m_rendererParams.path; }
+	RenderPath renderPath() const { return m_sceneRenderer->path(); }
 
 	void render() override;
 
@@ -63,10 +63,11 @@ protected:
 	void activated() override;
 	void deactivated() override;
 private:
+	void renderTargetChanged() override;
 	void viewportChanged() override;
 private:
 	SceneView m_sceneView;			/**< Scene view implementing this camera. */
-	RendererParams m_rendererParams;	/**< Renderer parameters. */
+	SceneRenderer *m_sceneRenderer;		/**< Scene renderer that this camera uses. */
 };
 
 /** Set up a perspective projection.

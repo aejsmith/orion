@@ -10,14 +10,16 @@
 
 /** Create a scene renderer.
  * @param scene		Scene to render.
- * @param target	Render target.
- * @param params	Renderer parameters. */
-SceneRenderer *SceneRenderer::create(Scene *scene, RenderTarget *target, const RendererParams &params) {
-	switch(params.path) {
-	case RendererParams::kDeferredPath:
+ * @param view		View into the scene to render from.
+ * @param target	Initial render target.
+ * @param path		Rendering path to use. */
+SceneRenderer *SceneRenderer::create(Scene *scene, SceneView *view, RenderTarget *target, RenderPath path) {
+	// TODO: Fall back when unsupported.
+	switch(path) {
+	case RenderPath::kDeferred:
 		// TODO
-	case RendererParams::kForwardPath:
-		return new ForwardRenderer(scene, target, params);
+	case RenderPath::kForward:
+		return new ForwardRenderer(scene, view, target);
 	default:
 		unreachable();
 	}
@@ -25,10 +27,10 @@ SceneRenderer *SceneRenderer::create(Scene *scene, RenderTarget *target, const R
 
 /** Initialize the scene renderer.
  * @param scene		Scene to render.
- * @param target	Render target.
- * @param params	Renderer parameters. */
-SceneRenderer::SceneRenderer(Scene *scene, RenderTarget *target, const RendererParams &params) :
+ * @param view		View into the scene to render from.
+ * @param target	Initial render target. */
+SceneRenderer::SceneRenderer(Scene *scene, SceneView *view, RenderTarget *target) :
 	m_scene(scene),
-	m_target(target),
-	m_params(params)
+	m_view(view),
+	m_target(target)
 {}
