@@ -60,7 +60,9 @@ bool TGALoader::loadData() {
 
 	/* Read in the data, which is after the ID and colour map. */
 	size_t size = m_width * m_height * (header.depth / 8);
-	uint64_t offset = header.idLength + (header.colourMapLength * (header.colourMapDepth / 8));
+	uint64_t offset = sizeof(header) +
+		header.idLength +
+		(header.colourMapLength * (header.colourMapDepth / 8));
 	m_buffer.reset(new char[size]);
 	if(!m_data->read(m_buffer.get(), size, offset)) {
 		logError("%s: Failed to read asset data", m_path);
