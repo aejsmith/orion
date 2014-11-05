@@ -71,6 +71,19 @@ void GLGPUInterface::setDepthMode(ComparisonFunc func, bool enableWrite) {
 	this->state.setDepthFunc(gl::convertComparisonFunc(func));
 }
 
+/** Set the viewport.
+ * @param viewport	Viewport rectangle in pixels. */
+void GLGPUInterface::setViewport(const IntRect &viewport) {
+	/* We use (0, 0) as top left, in GL that is bottom left. */
+	IntRect realViewport(
+		viewport.x,
+		this->state.currentRTSize.y - viewport.y - viewport.height,
+		viewport.width,
+		viewport.height);
+
+	this->state.setViewport(realViewport);
+}
+
 /** End a frame and present it on screen.
  * @param vsync		Whether to wait for vertical sync. */
 void GLGPUInterface::endFrame(bool vsync) {

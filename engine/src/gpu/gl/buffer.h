@@ -17,8 +17,7 @@ public:
 	void bind() const;
 	void bindIndexed(unsigned index) const;
 
-	/** Get the buffer ID.
-	 * @return		Buffer ID. */
+	/** @return		GL buffer ID. */
 	GLuint buffer() const { return m_buffer; }
 protected:
 	void writeImpl(size_t offset, size_t size, const void *buf) override;

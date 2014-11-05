@@ -50,8 +50,8 @@ public:
 	/**
 	 * Render the layer.
 	 *
-	 * Renders the layer. It is up to this function to actually set the
-	 * render target and clear it if it desires, as well as configure
+	 * Renders the layer. The render target and viewport will have been set.
+	 * It is up to this function to clear if necessary and to configure
 	 * blending between this layer and the previous layer.
 	 */
 	virtual void render() = 0;
@@ -110,13 +110,16 @@ public:
 	/** @return		Height of the render target (in pixels). */
 	virtual uint32_t height() const = 0;
 
+	/** @return		Rendering priority. */
+	unsigned priority() const { return m_priority; }
+
 	void addLayer(RenderLayer *layer);
 	void removeLayer(RenderLayer *layer);
 
-	/** @return		Rendering priority. */
-	unsigned priority() const { return m_priority; }
-	/** @return		List of registered layers. */
-	const LayerList &layers() const { return m_layers; }
+	void render();
+
+	/** Set the render target. */
+	virtual void set() = 0;
 protected:
 	explicit RenderTarget(unsigned priority);
 private:

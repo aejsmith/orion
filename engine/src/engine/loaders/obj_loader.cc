@@ -8,7 +8,7 @@
  *			vector reallocations going on.
  */
 
-#include "core/hash.h"
+#include "core/hash_table.h"
 
 #include "engine/asset_loader.h"
 #include "engine/mesh.h"
@@ -18,8 +18,6 @@
 #include "render/resources.h"
 #include "render/utility.h"
 #include "render/vertex.h"
-
-#include <unordered_map>
 
 /** Wavefront .obj mesh loader. */
 class OBJLoader : public AssetLoader {
@@ -77,7 +75,7 @@ private:
 	std::vector<SimpleVertex> m_vertices;
 
 	/** Map from VertexKey to a buffer index. */
-	std::unordered_map<VertexKey, uint16_t, Hash<VertexKey>> m_vertexMap;
+	HashTable<VertexKey, uint16_t> m_vertexMap;
 };
 
 IMPLEMENT_ASSET_LOADER(OBJLoader, "obj");

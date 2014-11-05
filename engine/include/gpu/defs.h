@@ -8,6 +8,17 @@
 
 #include "core/refcounted.h"
 
+/**
+ * Constants/limitations.
+ */
+
+/** Maximum number of colour render targets. */
+static const size_t kMaxColourRenderTargets = 8;
+
+/**
+ * Miscellaneous definitions.
+ */
+
 /** Possible primitive types. */
 enum class PrimitiveType {
 	/** List of triangles, 3 vertices per triangle. */

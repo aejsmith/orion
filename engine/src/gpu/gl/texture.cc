@@ -77,6 +77,9 @@ GLTexture::GLTexture(const GPUTexture3DDesc &desc) :
 
 /** Destroy the texture. */
 GLTexture::~GLTexture() {
+	/* Invalidate all cached FBOs which refer to this texture. */
+	g_opengl->invalidateFBOs(this);
+
 	glDeleteTextures(1, &m_texture);
 }
 
@@ -101,7 +104,7 @@ void GLTexture::bindForModification() {
  * @param data		Data to update with.
  * @param layer		Array layer/cube face.
  * @param mip		Mipmap level. */
-void GLTexture::update(const Rect &area, const void *data, unsigned mip, unsigned layer) {
+void GLTexture::update(const IntRect &area, const void *data, unsigned mip, unsigned layer) {
 	check(m_type == kTexture2D || m_type == kTexture2DArray || m_type == kTextureCube);
 	check(mip < m_mips);
 	check(layer < m_depth);
@@ -135,7 +138,7 @@ void GLTexture::update(const Rect &area, const void *data, unsigned mip, unsigne
  * @param area		Area to update (3D box).
  * @param data		Data to update with.
  * @param mip		Mipmap level. */
-void GLTexture::update(const Box &area, const void *data, unsigned mip) {
+void GLTexture::update(const IntBox &area, const void *data, unsigned mip) {
 	check(m_type == kTexture3D);
 	check(mip < m_mips);
 

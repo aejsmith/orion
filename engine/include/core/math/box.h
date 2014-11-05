@@ -39,7 +39,7 @@ public:
 		depth(_depth)
 	{}
 
-	BoxImpl(VecType pos, VecType size) :
+	BoxImpl(const VecType &pos, const VecType &size) :
 		x(pos.x),
 		y(pos.y),
 		z(pos.z),
@@ -64,7 +64,7 @@ public:
 	/** Compare for equality with another box.
 	 * @param other		Box to compare with.
 	 * @return		Whether they are equal. */
-	bool operator ==(const BoxImpl& other) const {
+	bool operator ==(const BoxImpl &other) const {
 		return (x == other.x && y == other.y && z == other.z &&
 			width == other.width && height == other.height && depth == other.depth);
 	}
@@ -72,7 +72,7 @@ public:
 	/** Compare for inequality with another box.
 	 * @param other		Box to compare with.
 	 * @return		Whether they are not equal. */
-	bool operator !=(const BoxImpl& other) const {
+	bool operator !=(const BoxImpl &other) const {
 		return !(*this == other);
 	}
 };

@@ -15,9 +15,8 @@
 EngineGlobal<Window> g_mainWindow;
 
 /** Create the main window.
- * @param config	Engine configuration structure.
- * @param gpu		GPU interface. */
-Window::Window(const EngineConfiguration &config, GPUInterface *gpu) :
+ * @param config	Engine configuration structure. */
+Window::Window(const EngineConfiguration &config) :
 	RenderTarget(kWindowPriority),
 	m_width(config.displayWidth),
 	m_height(config.displayHeight)
@@ -36,14 +35,16 @@ Window::Window(const EngineConfiguration &config, GPUInterface *gpu) :
 		flags);
 	if(!m_sdlWindow)
 		fatal("Failed to create main window: %s", SDL_GetError());
-
-	/* Initialize the GPU interface properly. */
-	gpu->init(m_sdlWindow);
 }
 
 /** Destroy the window. */
 Window::~Window() {
 	SDL_DestroyWindow(m_sdlWindow);
+}
+
+/** Set the window as the render target. */
+void Window::set() {
+	g_gpu->setRenderTarget(nullptr);
 }
 
 /** Set the window title.

@@ -11,9 +11,6 @@
 /** OpenGL texture implementation. */
 class GLTexture : public GPUTexture {
 public:
-	template <typename Desc>
-	GLTexture(const Desc &desc, GLenum target);
-
 	explicit GLTexture(const GPUTexture2DDesc &desc);
 	explicit GLTexture(const GPUTexture2DArrayDesc &desc);
 	explicit GLTexture(const GPUTextureCubeDesc &desc);
@@ -21,12 +18,19 @@ public:
 
 	~GLTexture();
 
-	void update(const Rect &area, const void *data, unsigned mip, unsigned layer) override;
-	void update(const Box &area, const void *data, unsigned mip) override;
+	void update(const IntRect &area, const void *data, unsigned mip, unsigned layer) override;
+	void update(const IntBox &area, const void *data, unsigned mip) override;
 	void generateMipmap() override;
 
 	void bind(unsigned index);
+
+	/** @return		GL texture ID. */
+	GLuint texture() const { return m_texture; }
+	/** @return		GL target. */
+	GLenum glTarget() const { return m_glTarget; }
 private:
+	template <typename Desc> GLTexture(const Desc &desc, GLenum target);
+
 	void bindForModification();
 private:
 	GLuint m_texture;		/**< GL texture handle. */

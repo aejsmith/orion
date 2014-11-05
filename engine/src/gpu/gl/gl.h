@@ -8,13 +8,14 @@
 
 #include "state.h"
 
+#include "core/hash_table.h"
+
 #include "gpu/gpu.h"
 
 #include <SDL.h>
 
 #include <array>
 #include <set>
-#include <unordered_map>
 
 /** Define to 1 to enable ARB_debug_output. */
 #define ORION_GL_DEBUG			1
@@ -23,6 +24,8 @@
 #define ORION_GL_DEBUG_NOTIFICATIONS	0
 
 #include "state.h"
+
+class GLTexture;
 
 /** OpenGL feature information.
  * @todo		Add a bitmap of features that we often need to check
@@ -66,7 +69,7 @@ public:
 	GLGPUInterface();
 	~GLGPUInterface();
 
-	void init(SDL_Window *window) override;
+	void init() override;
 
 	/**
 	 * GPU interface methods.
@@ -88,11 +91,19 @@ public:
 	void bindUniformBuffer(unsigned index, GPUBuffer *buffer) override;
 	void setBlendMode(BlendFunc func, BlendFactor sourceFactor, BlendFactor destFactor) override;
 	void setDepthMode(ComparisonFunc func, bool enableWrite) override;
+	void setRenderTarget(const GPURenderTargetDesc *target) override;
+	void setViewport(const IntRect &viewport) override;
 
 	void endFrame(bool vsync) override;
 
 	void clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil) override;
 	void draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) override;
+
+	/**
+	 * Internal methods.
+	 */
+
+	void invalidateFBOs(const GLTexture *texture);
 public:
 	GLFeatures features;		/**< GL feature information. */
 	PixelFormatArray pixelFormats;	/**< Mapping of engine pixel formats to GL types. */
@@ -114,7 +125,10 @@ private:
 	SDL_GLContext m_sdlContext;	/**< SDL GL context. */
 
 	/** Hash table of created sampler state objects. */
-	std::unordered_map<GPUSamplerStateDesc, GPUSamplerStatePtr, Hash<GPUSamplerStateDesc>> m_samplerStates;
+	HashTable<GPUSamplerStateDesc, GPUSamplerStatePtr> m_samplerStates;
+
+	/** Hash table of cached FBOs. */
+	HashTable<GPURenderTargetDesc, GLuint> m_fbos;
 };
 
 extern GLGPUInterface *g_opengl;

@@ -33,7 +33,7 @@ public:
 		height(_height)
 	{}
 
-	RectImpl(VecType pos, VecType size) :
+	RectImpl(const VecType &pos, const VecType &size) :
 		x(pos.x),
 		y(pos.y),
 		width(size.x),
@@ -55,14 +55,14 @@ public:
 	/** Compare for equality with another rectangle.
 	 * @param other		Rectangle to compare with.
 	 * @return		Whether they are equal. */
-	bool operator ==(const RectImpl& other) const {
+	bool operator ==(const RectImpl &other) const {
 		return (x == other.x && y == other.y && width == other.width && height == other.height);
 	}
 
 	/** Compare for inequality with another rectangle.
 	 * @param other		Rectangle to compare with.
 	 * @return		Whether they are not equal. */
-	bool operator !=(const RectImpl& other) const {
+	bool operator !=(const RectImpl &other) const {
 		return !(*this == other);
 	}
 };

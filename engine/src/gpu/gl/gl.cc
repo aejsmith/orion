@@ -6,6 +6,8 @@
 
 #include "gl.h"
 
+#include "engine/window.h"
+
 /** Global GL GPU interface. */
 GLGPUInterface *g_opengl = nullptr;
 
@@ -69,10 +71,9 @@ GLGPUInterface::~GLGPUInterface() {
 	g_opengl = nullptr;
 }
 
-/** Initialize the GPU interface.
- * @param window	Created SDL window. */
-void GLGPUInterface::init(SDL_Window *window) {
-	m_sdlContext = SDL_GL_CreateContext(window);
+/** Initialize the GPU interface. */
+void GLGPUInterface::init() {
+	m_sdlContext = SDL_GL_CreateContext(g_mainWindow->sdlWindow());
 	if(!m_sdlContext)
 		fatal("Failed to create GL context: %s", SDL_GetError());
 
@@ -103,6 +104,9 @@ void GLGPUInterface::init(SDL_Window *window) {
 	/* Create the default VAO. */
 	glGenVertexArrays(1, &this->defaultVertexArray);
 	this->state.bindVertexArray(this->defaultVertexArray);
+
+	/* Set up initial render target/viewport state (main window). */
+	setRenderTarget(nullptr);
 
 	/* Set up some default state. FIXME */
 	glEnable(GL_CULL_FACE);

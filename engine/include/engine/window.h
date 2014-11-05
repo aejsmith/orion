@@ -8,16 +8,16 @@
 
 #include "engine/render_target.h"
 
-class GPUInterface;
-
 struct EngineConfiguration;
 struct SDL_Window;
 
 /** Engine main window class. */
 class Window : public RenderTarget {
 public:
-	Window(const EngineConfiguration &config, GPUInterface *gpu);
+	Window(const EngineConfiguration &config);
 	~Window();
+
+	void set() override;
 
 	void setTitle(const std::string &title);
 

@@ -62,6 +62,10 @@ struct GLState {
 public:
 	int swapInterval;		/**< Current swap interval. */
 
+	/** Render target/viewport state. */
+	IntRect viewport;		/**< Current viewport. */
+	glm::ivec2 currentRTSize;	/**< Current render target size. */
+
 	/** Clear state. */
 	glm::vec4 clearColour;
 	float clearDepth;
@@ -79,11 +83,13 @@ public:
 	GLenum depthFunc;
 
 	/** Object bindings. */
-	GLuint boundVertexArray;
 	BufferBindings boundBuffers;
+	GLuint boundDrawFramebuffer;
+	GLuint boundReadFramebuffer;
 	GLuint boundPipeline;
 	unsigned activeTexture;
 	TextureUnit *textureUnits;
+	GLuint boundVertexArray;
 public:
 	GLState();
 	~GLState();
@@ -91,6 +97,7 @@ public:
 	void initResources(GLFeatures &features);
 
 	void setSwapInterval(int interval);
+	void setViewport(const IntRect &viewport);
 
 	void setClearColour(const glm::vec4 &colour);
 	void setClearDepth(float depth);
@@ -104,12 +111,13 @@ public:
 	void enableDepthWrite(bool enable);
 	void setDepthFunc(GLenum func);
 
-	void bindVertexArray(GLuint array);
 	void bindBuffer(GLenum target, GLuint buffer);
 	void bindBufferBase(GLenum target, GLuint index, GLuint buffer);
+	void bindFramebuffer(GLenum target, GLuint framebuffer);
 	void bindPipeline(GLuint pipeline);
-	void bindTexture(unsigned unit, GLenum target, GLuint texture);
 	void bindSampler(unsigned unit, GLuint sampler);
+	void bindTexture(unsigned unit, GLenum target, GLuint texture);
+	void bindVertexArray(GLuint array);
 };
 
 /**

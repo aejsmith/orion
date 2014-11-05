@@ -29,10 +29,12 @@ GLState::GLState() :
 	depthTestEnabled(false),
 	depthWriteEnabled(true),
 	depthFunc(GL_LESS),
-	boundVertexArray(0),
+	boundDrawFramebuffer(0),
+	boundReadFramebuffer(0),
 	boundPipeline(0),
 	activeTexture(0),
-	textureUnits(nullptr)
+	textureUnits(nullptr),
+	boundVertexArray(0)
 {}
 
 /** Destroy the GL state. */
@@ -53,6 +55,15 @@ void GLState::setSwapInterval(int interval) {
 	if(interval != this->swapInterval) {
 		SDL_GL_SetSwapInterval(interval);
 		this->swapInterval = interval;
+	}
+}
+
+/** Set the viewport.
+ * @param viewport	Viewport to set. */
+void GLState::setViewport(const IntRect &viewport) {
+	if(viewport != this->viewport) {
+		glViewport(viewport.x, viewport.y, viewport.width, viewport.height);
+		this->viewport = viewport;
 	}
 }
 
@@ -149,15 +160,6 @@ void GLState::setDepthFunc(GLenum func) {
 	}
 }
 
-/** Bind a VAO.
- * @param array		VAO to bind. */
-void GLState::bindVertexArray(GLuint array) {
-	if(array != this->boundVertexArray) {
-		glBindVertexArray(array);
-		this->boundVertexArray = array;
-	}
-}
-
 /** Bind a buffer.
  * @param target	Target to bind buffer to.
  * @param buffer	Buffer to bind. */
@@ -190,12 +192,54 @@ void GLState::bindBufferBase(GLenum target, GLuint index, GLuint buffer) {
 	this->boundBuffers[target] = buffer;
 }
 
+/** Bind a framebuffer.
+ * @param target	Target(s) to bind to.
+ * @param framebuffer	Framebuffer to bind. */
+void GLState::bindFramebuffer(GLenum target, GLuint framebuffer) {
+	switch(target) {
+	case GL_FRAMEBUFFER:
+		if(this->boundDrawFramebuffer != framebuffer || this->boundReadFramebuffer != framebuffer) {
+			glBindFramebuffer(target, framebuffer);
+			this->boundDrawFramebuffer = framebuffer;
+			this->boundReadFramebuffer = framebuffer;
+		}
+
+		break;
+	case GL_DRAW_FRAMEBUFFER:
+		if(this->boundDrawFramebuffer != framebuffer) {
+			glBindFramebuffer(target, framebuffer);
+			this->boundDrawFramebuffer = framebuffer;
+		}
+
+		break;
+	case GL_READ_FRAMEBUFFER:
+		if(this->boundReadFramebuffer != framebuffer) {
+			glBindFramebuffer(target, framebuffer);
+			this->boundReadFramebuffer = framebuffer;
+		}
+
+		break;
+	}
+}
+
 /** Bind a program pipeline.
  * @param pipeline	Pipeline object to bind. */
 void GLState::bindPipeline(GLuint pipeline) {
 	if(this->boundPipeline != pipeline) {
 		glBindProgramPipeline(pipeline);
 		this->boundPipeline = pipeline;
+	}
+}
+
+/** Bind a sampler to a texture unit.
+ * @param unit		Texture unit to bind to. Note this is specified as
+ *			the unit, not as a GL_TEXTUREn constant.
+ * @param sampler	Texture sampler to bind. */
+void GLState::bindSampler(unsigned unit, GLuint sampler) {
+	TextureUnit &unitState = this->textureUnits[unit];
+	if(unitState.sampler != sampler) {
+		glBindSampler(unit, sampler);
+		unitState.sampler = sampler;
 	}
 }
 
@@ -233,15 +277,12 @@ void GLState::bindTexture(unsigned unit, GLenum target, GLuint texture) {
 	}
 }
 
-/** Bind a sampler to a texture unit.
- * @param unit		Texture unit to bind to. Note this is specified as
- *			the unit, not as a GL_TEXTUREn constant.
- * @param sampler	Texture sampler to bind. */
-void GLState::bindSampler(unsigned unit, GLuint sampler) {
-	TextureUnit &unitState = this->textureUnits[unit];
-	if(unitState.sampler != sampler) {
-		glBindSampler(unit, sampler);
-		unitState.sampler = sampler;
+/** Bind a VAO.
+ * @param array		VAO to bind. */
+void GLState::bindVertexArray(GLuint array) {
+	if(array != this->boundVertexArray) {
+		glBindVertexArray(array);
+		this->boundVertexArray = array;
 	}
 }
 

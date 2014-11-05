@@ -7,6 +7,8 @@
 #include "engine/engine.h"
 #include "engine/render_target.h"
 
+#include "gpu/gpu.h"
+
 /**
  * Initialize the layer.
  *
@@ -145,4 +147,21 @@ void RenderTarget::removeLayer(RenderLayer *layer) {
 
 	if(m_layers.empty())
 		g_engine->removeRenderTarget(this);
+}
+
+/** Render the render target. */
+void RenderTarget::render() {
+	/* Make the render target active. */
+	set();
+
+	// FIXME: Where does this go?
+	g_gpu->clear(
+		ClearBuffer::kColourBuffer | ClearBuffer::kDepthBuffer | ClearBuffer::kStencilBuffer,
+		glm::vec4(0.0, 0.0, 0.0, 1.0), 1.0, 0);
+
+	/* Render all our layers. */
+	for(RenderLayer *layer : m_layers) {
+		g_gpu->setViewport(layer->pixelViewport());
+		layer->render();
+	}
 }

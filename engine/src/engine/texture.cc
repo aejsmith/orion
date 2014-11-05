@@ -117,7 +117,7 @@ Texture2D::Texture2D(uint32_t width, uint32_t height, PixelFormat format, unsign
  * @param updateMipmap	Whether to update mipmap images (defaults to true).
  */
 void Texture2D::update(const void *data, bool updateMipmap) {
-	Rect area(0, 0, m_gpu->width(), m_gpu->height());
+	IntRect area(0, 0, m_gpu->width(), m_gpu->height());
 	m_gpu->update(area, data);
 
 	/* Regenerate mipmaps if requested. */
@@ -141,7 +141,7 @@ void Texture2D::update(const void *data, bool updateMipmap) {
  * @param data		New texture data.
  * @param updateMipmap	Whether to update mipmap images (defaults to true).
  */
-void Texture2D::update(const Rect &area, const void *data, bool updateMipmap) {
+void Texture2D::update(const IntRect &area, const void *data, bool updateMipmap) {
 	m_gpu->update(area, data);
 
 	/* Regenerate mipmaps if requested. */
@@ -160,7 +160,7 @@ void Texture2D::update(const Rect &area, const void *data, bool updateMipmap) {
  * @param area		Area to update.
  * @param data		New texture data.
  */
-void Texture2D::update(unsigned mip, const Rect &area, const void *data) {
+void Texture2D::update(unsigned mip, const IntRect &area, const void *data) {
 	check(mip < mips());
 
 	m_gpu->update(area, data, mip);

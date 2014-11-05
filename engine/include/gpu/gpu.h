@@ -15,7 +15,6 @@
 #include "gpu/vertex_data.h"
 
 struct EngineConfiguration;
-struct SDL_Window;
 
 /**
  * Low-level GPU interface.
@@ -31,9 +30,15 @@ public:
 
 	virtual ~GPUInterface() {}
 
-	/** Initialize the GPU interface.
-	 * @param window	Created SDL window. */
-	virtual void init(SDL_Window *window) = 0;
+	/**
+	 * Initialize the GPU interface.
+	 *
+	 * This function is called after the main window has been created to
+	 * properly initialize the GPU interface. The constructor will be called
+	 * before the main window is created so that any necessary SDL
+	 * attributes can be configured.
+	 */
+	virtual void init() = 0;
 
 	/**
 	 * Resource creation methods.
@@ -160,6 +165,25 @@ public:
 	virtual void setDepthMode(
 		ComparisonFunc func = ComparisonFunc::kLessOrEqual,
 		bool enableWrite = true) = 0;
+
+	/**
+	 * Set the render targets.
+	 *
+	 * Sets the current render target. A render target is described by a
+	 * GPURenderTargetDesc, which specifies a number of texture colour
+	 * targets and a depth/stencil target. If the descriptor pointer is
+	 * given as null, the render targeet will be set to the main window.
+	 * This function will reset the viewport to the size of the new render
+	 * target.
+	 *
+	 * @param target	Pointer to render target descriptor.
+	 */
+	virtual void setRenderTarget(const GPURenderTargetDesc *target) = 0;
+
+	/** Set the viewport.
+	 * @param viewport	Viewport rectangle in pixels. Must be <= size of
+	 *			the current render target. */
+	virtual void setViewport(const IntRect &viewport) = 0;
 
 	/**
 	 * Frame methods.

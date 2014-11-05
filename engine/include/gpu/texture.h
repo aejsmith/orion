@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "core/hash.h"
 #include "core/pixel_format.h"
 
 #include "gpu/defs.h"
@@ -79,13 +80,13 @@ public:
 	 * @param layer		Array layer for 2D arrays, cube face for cube
 	 *			textures, 0 otherwise.
 	 * @param mip		Mipmap level. */
-	virtual void update(const Rect &area, const void *data, unsigned mip = 0, unsigned layer = 0) = 0;
+	virtual void update(const IntRect &area, const void *data, unsigned mip = 0, unsigned layer = 0) = 0;
 
 	/** Update 3D texture area.
 	 * @param area		Area to update (3D box).
 	 * @param data		Data to update with, in same format as texture.
 	 * @param mip		Mipmap level. */
-	virtual void update(const Box &area, const void *data, unsigned mip = 0) = 0;
+	virtual void update(const IntBox &area, const void *data, unsigned mip = 0) = 0;
 
 	/**
 	 * Generate mipmap images.
@@ -127,3 +128,83 @@ protected:
 
 /** Type of a pointer to a texture. */
 typedef GPUResourcePtr<GPUTexture> GPUTexturePtr;
+
+/** Reference to a specific image (layer and mip) within a texture. */
+struct GPUTextureImageRef {
+	GPUTexture *texture;		/**< Texture to use. */
+	unsigned layer;			/**< Array layer/cube face. */
+	unsigned mip;			/**< Mip level. */
+public:
+	/** Initialize as a null reference. */
+	GPUTextureImageRef() :
+		texture(nullptr),
+		layer(0),
+		mip(0)
+	{}
+
+	/** Initialize to a texture. */
+	GPUTextureImageRef(GPUTexture *inTexture, unsigned inLayer = 0, unsigned inMip = 0) :
+		texture(inTexture),
+		layer(inLayer),
+		mip(inMip)
+	{}
+
+	/** Compare this reference with another. */
+	bool operator ==(const GPUTextureImageRef &other) const {
+		return texture == other.texture && layer == other.layer && mip == other.mip;
+	}
+
+	/** Compare this reference with another. */
+	bool operator !=(const GPUTextureImageRef &other) const {
+		return !(*this == other);
+	}
+
+	/** Get a hash from a texture image reference. */
+	friend size_t hashValue(const GPUTextureImageRef &ref) {
+		size_t hash = hashValue(ref.texture);
+		hash = hashCombine(hash, ref.layer);
+		hash = hashCombine(hash, ref.mip);
+		return hash;
+	}
+};
+
+/** Render target descriptor structure. */
+struct GPURenderTargetDesc {
+	/**
+	 * Array of colour render target descriptors. All array entries up to
+	 * numColours must be non-null.
+	 */
+	GPUTextureImageRef colour[kMaxColourRenderTargets];
+
+	/** Number of colour targets. */
+	size_t numColours;
+
+	/** Depth/stencil target. */
+	GPUTextureImageRef depthStencil;
+public:
+	GPURenderTargetDesc() : numColours(0) {}
+
+	/** Compare this reference with another. */
+	bool operator ==(const GPURenderTargetDesc &other) const {
+		if(numColours != other.numColours || depthStencil != other.depthStencil)
+			return false;
+
+		for(size_t i = 0; i < numColours; i++) {
+			if(colour[i] != other.colour[i])
+				return false;
+		}
+
+		return true;
+	}
+
+	/** Get a hash from a render target descriptor. */
+	friend size_t hashValue(const GPURenderTargetDesc &desc) {
+		size_t hash = hashValue(desc.numColours);
+		hash = hashCombine(hash, desc.depthStencil);
+
+		for(size_t i = 0; i < desc.numColours; i++)
+			hash = hashCombine(hash, desc.colour[i]);
+
+		return hash;
+	}
+};

@@ -44,10 +44,11 @@ Engine::Engine(const EngineConfiguration &config) :
 	/* Initialize platform systems. */
 	g_filesystem() = platform::createFilesystem();
 
-	/* Create the GPU interface, then create the main window which properly
-	 * initializes the GPU interface. */
+	/* Create the GPU interface, create the main window, and finally properly
+	 * initialize the GPU interface. */
 	g_gpu() = GPUInterface::create(config);
-	g_mainWindow() = new Window(config, g_gpu);
+	g_mainWindow() = new Window(config);
+	g_gpu->init();
 
 	/* Initialize other global systems. */
 	g_renderResources() = new RenderResources;
@@ -133,17 +134,8 @@ void Engine::tick() {
 
 /** Render all render targets. */
 void Engine::renderAllTargets() {
-	for(RenderTarget *target : m_renderTargets) {
-		// FIXME: Where does this go? Clear settings should go in
-		// Camera, need a rect constraint to clear to only clear
-		// viewport.
-		g_gpu->clear(
-			ClearBuffer::kColourBuffer | ClearBuffer::kDepthBuffer | ClearBuffer::kStencilBuffer,
-			glm::vec4(0.0, 0.0, 0.0, 1.0), 1.0, 0);
-
-		for(RenderLayer *layer : target->layers())
-			layer->render();
-	}
+	for(RenderTarget *target : m_renderTargets)
+		target->render();
 }
 
 /** Create a world and make it the active world.
