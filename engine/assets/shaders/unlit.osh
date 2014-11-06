@@ -1,0 +1,12 @@
+{
+	"parameters": {
+		"diffuseTexture": "Texture"
+	},
+	"passes": [
+		{
+			"type": "Forward",
+			"vertex": "engine/shaders/unlit/vtx.glsl",
+			"fragment": "engine/shaders/unlit/frag.glsl"
+		}
+	]
+}

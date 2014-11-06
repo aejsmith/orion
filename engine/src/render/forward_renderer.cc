@@ -39,6 +39,8 @@ void ForwardRenderer::render() {
 	g_gpu->setBlendMode();
 	g_gpu->setDepthMode();
 
+	// FIXME: basic materials
+
 	/* Render all visible entities for each light to accumulate the lighting
 	 * contributions. */
 	for(SceneLight *light : lights) {
