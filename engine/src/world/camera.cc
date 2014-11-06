@@ -84,7 +84,7 @@ void Camera::viewportChanged() {
 
 /** Called when the camera transformation is changed. */
 void Camera::transformed() {
-	m_sceneView.setTransform(entity()->position(), entity()->orientation());
+	m_sceneView.setTransform(entity()->worldPosition(), entity()->worldOrientation());
 }
 
 /** Called when the camera becomes active in the world. */

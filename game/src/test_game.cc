@@ -49,6 +49,8 @@ private:
 	/** Rendering resources. */
 	MaterialPtr m_cubeMaterial;
 	MeshPtr m_cubeMesh;
+	Texture2DPtr m_mirrorTexture;
+	MaterialPtr m_mirrorMaterial;
 };
 
 /** Create a 2D plane centered at the origin extending in the X/Y direction.
@@ -69,7 +71,7 @@ Entity *TestGame::createPlane(Entity *parent, const std::string &name, Material 
 	static glm::vec3 normal(0.0f, 0.0f, 1.0f);
 
 	/* Texture coordinates. */
-	static glm::vec2 texcoords[] = {
+	glm::vec2 texcoords[] = {
 		glm::vec2(0.0f, 0.0f), glm::vec2(tiles, 0.0f),
 		glm::vec2(tiles, tiles), glm::vec2(0.0f, tiles),
 	};
@@ -144,6 +146,26 @@ TestGame::TestGame() {
 	lightEntity->setActive(true);
 	PointLight *pointLight = lightEntity->createComponent<PointLight>();
 	pointLight->setActive(true);
+
+	m_mirrorTexture = new Texture2D(1024, 1024, PixelFormat::kR8G8B8A8, 1, GPUTexture::kRenderTarget);
+
+	m_mirrorMaterial = new Material(g_assetManager->load<Shader>("engine/shaders/lighting"));
+	m_mirrorMaterial->setValue("shininess", 32.0f);
+	m_mirrorMaterial->setValue("specularColour", glm::vec3(0.5f, 0.5f, 0.5f));
+	m_mirrorMaterial->setValue("diffuseTexture", TextureBasePtr(m_mirrorTexture));
+
+	Entity *mirror = createPlane(m_world->root(), "mirror", m_mirrorMaterial, 1.0f);
+	mirror->setPosition(glm::vec3(0.0f, 2.5f, -10.0f));
+	mirror->setScale(glm::vec3(5.0f, 5.0f, 5.0f));
+	mirror->setActive(true);
+
+	camEntity = mirror->createChild("camera");
+	camEntity->rotate(180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+	camEntity->setActive(true);
+	camera = camEntity->createComponent<Camera>();
+	camera->perspective(70.0f, 0.1f, 1000.0f);
+	camera->setRenderTarget(m_mirrorTexture->renderTexture());
+	camera->setActive(true);
 }
 
 /**

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "engine/asset.h"
+#include "engine/render_target.h"
 
 #include "gpu/state.h"
 #include "gpu/texture.h"
@@ -52,6 +53,25 @@ protected:
 /** Type of a base texture pointer. */
 typedef TypedAssetPtr<TextureBase> TextureBasePtr;
 
+/** Texture render target class. */
+class RenderTexture : public RenderTarget {
+public:
+	uint32_t width() const override;
+	uint32_t height() const override;
+	void set() override;
+
+	/** @return		Texture referred to by this render target. */
+	TextureBase *texture() const { return m_texture; }
+protected:
+	RenderTexture(TextureBase *texture, unsigned layer);
+private:
+	TextureBase *m_texture;			/**< Texture that this target refers to. */
+	unsigned m_layer;			/**< Layer of texture. */
+	GPUTexturePtr m_depthStencil;		/**< Depth/stencil buffer. */
+
+	friend class Texture2D;
+};
+
 /** Class implementing a 2D texture. */
 class Texture2D : public TextureBase {
 public:
@@ -61,15 +81,20 @@ public:
 		PixelFormat format = PixelFormat::kR8G8B8A8,
 		unsigned mips = 0,
 		uint32_t flags = GPUTexture::kAutoMipmap);
+	~Texture2D();
 
 	void update(const void *data, bool updateMipmap = true);
 	void update(const IntRect &area, const void *data, bool updateMipmap = true);
 	void update(unsigned mip, const IntRect &area, const void *data);
 
+	RenderTexture *renderTexture();
+
 	/** @return		Width of the texture. */
 	uint32_t width() const { return m_gpu->width(); }
 	/** @return		Height of the texture. */
 	uint32_t height() const { return m_gpu->height(); }
+private:
+	RenderTexture *m_renderTexture;		/**< Render target for the texture. */
 };
 
 /** Type of a 2D texture pointer. */

@@ -2,6 +2,18 @@
  * @file
  * @copyright		2014 Alex Smith
  * @brief		Texture asset classes.
+ *
+ * @todo		Pooling of depth buffers, don't need to allocate one for
+ *			every single render texture. Would use the render target
+ *			pool from the renderer.
+ * @todo		RenderTexture needs to keep its owning texture alive
+ *			while it is in use. RenderLayer holds a RenderTarget
+ *			pointer, which won't keep a reference to the texture.
+ *			To solve this we could store a TextureBasePtr in
+ *			RenderTexture, and have a way to be notified when the
+ *			RenderTarget is no longer referred to by any layers, at
+ *			which point we would drop the reference if the texture
+ *			is not referred to anywhere else.
  */
 
 #include "engine/texture.h"
@@ -90,7 +102,9 @@ void TextureBase::updateSamplerState() {
  * @param mips		Number of mip levels (0 for full pyramid).
  * @param flags		GPU texture creation flags.
  */
-Texture2D::Texture2D(uint32_t width, uint32_t height, PixelFormat format, unsigned mips, uint32_t flags) {
+Texture2D::Texture2D(uint32_t width, uint32_t height, PixelFormat format, unsigned mips, uint32_t flags) :
+	m_renderTexture(nullptr)
+{
 	GPUTexture2DDesc desc;
 	desc.width = width;
 	desc.height = height;
@@ -99,6 +113,15 @@ Texture2D::Texture2D(uint32_t width, uint32_t height, PixelFormat format, unsign
 	desc.flags = flags;
 
 	m_gpu = g_gpu->createTexture(desc);
+
+	/* Create a render texture if requested. */
+	if(flags & GPUTexture::kRenderTarget)
+		m_renderTexture = new RenderTexture(this, 0);
+}
+
+/** Destroy the texture. */
+Texture2D::~Texture2D() {
+	delete m_renderTexture;
 }
 
 /**
@@ -164,4 +187,59 @@ void Texture2D::update(unsigned mip, const IntRect &area, const void *data) {
 	check(mip < mips());
 
 	m_gpu->update(area, data, mip);
+}
+
+/**
+ * Get the render texture for the texture.
+ *
+ * Gets the render texture referring to this texture. The texture must have been
+ * created with the GPUTexture::kRenderTarget flag set.
+ *
+ * @return		Render texture referring to the texture.
+ */
+RenderTexture *Texture2D::renderTexture() {
+	check(m_renderTexture);
+	return m_renderTexture;
+}
+
+/**
+ * Render texture implementation.
+ */
+
+/** Construct the render texture.
+ * @param texture	Texture that this render texture belongs to.
+ * @param layer		Layer that is being targeted. */
+RenderTexture::RenderTexture(TextureBase *texture, unsigned layer) :
+	RenderTarget(kTextureMediumPriority),
+	m_texture(texture),
+	m_layer(layer)
+{
+	/* Create a depth buffer. TODO: depth buffer pooling. */
+	GPUTexture2DDesc desc;
+	desc.width = m_texture->gpu()->width();
+	desc.height = m_texture->gpu()->height();
+	desc.format = PixelFormat::kDepth24Stencil8;
+	desc.mips = 1;
+	desc.flags = GPUTexture::kRenderTarget;
+	m_depthStencil = g_gpu->createTexture(desc);
+}
+
+/** @return		Width of the render target. */
+uint32_t RenderTexture::width() const {
+	return m_texture->gpu()->width();
+}
+
+/** @return		Height of the render target. */
+uint32_t RenderTexture::height() const {
+	return m_texture->gpu()->height();
+}
+
+/** Activate the render target. */
+void RenderTexture::set() {
+	GPURenderTargetDesc target;
+	target.numColours = 1;
+	target.colour[0].texture = m_texture->gpu();
+	target.colour[0].layer = m_layer;
+	target.depthStencil.texture = m_depthStencil;
+	g_gpu->setRenderTarget(&target);
 }

@@ -14,7 +14,7 @@ AssetPtr Texture2DLoader::load() {
 
 	/* Create the texture, with mipmaps. TODO: Some formats will include
 	 * mipmaps and therefore not need them creating here. */
-	Texture2DPtr texture(new Texture2D(m_width, m_height, m_format));
+	Texture2DPtr texture(new Texture2D(m_width, m_height, m_format, GPUTexture::kAutoMipmap | GPUTexture::kRenderTarget));
 	texture->update(m_buffer.get());
 
 	/* Parse parameters. */
