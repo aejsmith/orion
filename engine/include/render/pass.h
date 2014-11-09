@@ -11,7 +11,9 @@
 #include "gpu/pipeline.h"
 
 #include <set>
+#include <vector>
 
+class SceneLight;
 class Shader;
 
 /** Rendering pass. */
@@ -61,16 +63,27 @@ public:
 
 	bool loadStage(GPUShader::Type stage, const Path &path, const KeywordSet &keywords);
 
-	void setDrawState() const;
+	void setDrawState(SceneLight *light) const;
+private:
+	/** Structure holding a shader variation. */
+	struct Variation {
+		/** Array of shaders for this stage. */
+		GPUShaderArray shaders;
+
+		/** Pipeline created for the stage. */
+		GPUPipelinePtr pipeline;
+	};
 private:
 	void finalize();
 private:
-	Shader *m_parent;			/**< Parent shader. */
-	Type m_type;				/**< Type of the pass. */
-	GPUPipelinePtr m_pipeline;		/**< GPU pipeline. */
+	Shader *m_parent;		/**< Parent shader. */
+	Type m_type;			/**< Type of the pass. */
 
-	/** Array of shaders, valid only during initialization. */
-	GPUShaderArray m_loadingShaders;
+	/**
+	 * Array of shader variations. See setDrawState() for how the array is
+	 * indexed.
+	 */
+	std::vector<Variation> m_variations;
 
 	friend class Shader;
 };

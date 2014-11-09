@@ -30,7 +30,7 @@ public:
 	/** @return		Array of shaders used by the pipeline. */
 	const GPUShaderArray &shaders() const { return m_shaders; }
 protected:
-	explicit GPUPipeline(GPUShaderArray &shaders);
+	explicit GPUPipeline(const GPUShaderArray &shaders);
 protected:
 	GPUShaderArray m_shaders;	/**< Array of shaders for each stage. */
 

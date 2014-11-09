@@ -11,11 +11,10 @@
 /** Per-light uniform buffer structure. */
 UNIFORM_STRUCT_BEGIN(LightUniforms)
 	UNIFORM_STRUCT_MEMBER(glm::vec3, position);
-	UNIFORM_STRUCT_MEMBER(int32_t, type);
-	UNIFORM_STRUCT_MEMBER(glm::vec3, direction);
 	UNIFORM_STRUCT_MEMBER(float, intensity);
-	UNIFORM_STRUCT_MEMBER(glm::vec3, colour);
+	UNIFORM_STRUCT_MEMBER(glm::vec3, direction);
 	UNIFORM_STRUCT_MEMBER(float, cosCutoff);
+	UNIFORM_STRUCT_MEMBER(glm::vec3, colour);
 	UNIFORM_STRUCT_MEMBER(float, range);
 	UNIFORM_STRUCT_MEMBER(float, attenuationConstant);
 	UNIFORM_STRUCT_MEMBER(float, attenuationLinear);
@@ -31,6 +30,7 @@ public:
 		kDirectionalLight,	/**< Directional light. */
 		kPointLight,		/**< Point light. */
 		kSpotLight,		/**< Spot light. */
+		kNumTypes,
 	};
 public:
 	explicit SceneLight(Type type);

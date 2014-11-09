@@ -18,9 +18,7 @@ IMPLEMENT_UNIFORM_STRUCT(LightUniforms, "light", UniformSlots::kLightUniforms);
  */
 SceneLight::SceneLight(Type type) :
 	m_type(type)
-{
-	m_uniforms->type = m_type;
-}
+{}
 
 /** Destroy the light. */
 SceneLight::~SceneLight() {}

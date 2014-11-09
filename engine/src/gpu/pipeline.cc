@@ -7,10 +7,9 @@
 #include "gpu/pipeline.h"
 
 /** Initialize the pipeline.
- * @param shaders	Array of shaders for each stage, indexed by stage.
- *			Array is invalidated by the call. */
-GPUPipeline::GPUPipeline(GPUShaderArray &shaders) :
-	m_shaders(std::move(shaders))
+ * @param shaders	Array of shaders for each stage, indexed by stage. */
+GPUPipeline::GPUPipeline(const GPUShaderArray &shaders) :
+	m_shaders(shaders)
 {
 	checkMsg(
 		m_shaders[GPUShader::kVertexShader] && m_shaders[GPUShader::kFragmentShader],

@@ -95,21 +95,15 @@ vec4 spotLightFactor() {
 
 void main() {
 	/* Determine the light factor for our light source. */
-	vec4 lightFactor = vec4(0.0);
-	switch(light.type) {
-	case kAmbientLight:
-		lightFactor = ambientLightFactor();
-		break;
-	case kDirectionalLight:
-		lightFactor = directionalLightFactor();
-		break;
-	case kPointLight:
-		lightFactor = pointLightFactor();
-		break;
-	case kSpotLight:
-		lightFactor = spotLightFactor();
-		break;
-	}
+	#if defined(AMBIENT_LIGHT)
+		vec4 lightFactor = ambientLightFactor();
+	#elif defined(DIRECTIONAL_LIGHT)
+		vec4 lightFactor = directionalLightFactor();
+	#elif defined(POINT_LIGHT)
+		vec4 lightFactor = pointLightFactor();
+	#elif defined(SPOT_LIGHT)
+		vec4 lightFactor = spotLightFactor();
+	#endif
 
 	#ifdef TEXTURED
 	vec4 diffuse = texture(diffuseTexture, vtxTexcoord);

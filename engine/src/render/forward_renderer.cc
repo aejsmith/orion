@@ -51,7 +51,7 @@ void ForwardRenderer::render() {
 
 			Material *material = entity->material();
 			material->shader()->setDrawState(material);
-			material->shader()->pass(Pass::kForwardPass, 0)->setDrawState();
+			material->shader()->pass(Pass::kForwardPass, 0)->setDrawState(light);
 
 			entity->draw();
 		}

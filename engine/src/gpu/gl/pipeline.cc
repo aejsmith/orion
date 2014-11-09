@@ -10,7 +10,7 @@
 
 /** Construct the pipeline object.
  * @param shaders	Array of shaders for each stage. */
-GLPipeline::GLPipeline(GPUShaderArray &shaders) :
+GLPipeline::GLPipeline(const GPUShaderArray &shaders) :
 	GPUPipeline(shaders)
 {
 	glGenProgramPipelines(1, &m_pipeline);
@@ -45,6 +45,6 @@ void GLPipeline::bind() {
 /** Create a pipeline object.
  * @see			GPUPipeline::GPUPipeline().
  * @return		Pointer to created pipeline. */
-GPUPipelinePtr GLGPUInterface::createPipeline(GPUShaderArray &shaders) {
+GPUPipelinePtr GLGPUInterface::createPipeline(const GPUShaderArray &shaders) {
 	return new GLPipeline(shaders);
 }

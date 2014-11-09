@@ -57,7 +57,7 @@ public:
 	/** Create a pipeline object.
 	 * @see			GPUPipeline::GPUPipeline().
 	 * @return		Pointer to created pipeline. */
-	virtual GPUPipelinePtr createPipeline(GPUShaderArray &shaders);
+	virtual GPUPipelinePtr createPipeline(const GPUShaderArray &shaders);
 
 	/** Create a sampler state object.
 	 * @param desc		Descriptor for sampler state.

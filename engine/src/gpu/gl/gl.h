@@ -76,7 +76,7 @@ public:
 	 */
 
 	GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) override;
-	GPUPipelinePtr createPipeline(GPUShaderArray &shaders) override;
+	GPUPipelinePtr createPipeline(const GPUShaderArray &shaders) override;
 	GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) override;
 	GPUTexturePtr createTexture(const GPUTexture2DDesc &desc) override;
 	GPUTexturePtr createTexture(const GPUTexture2DArrayDesc &desc) override;

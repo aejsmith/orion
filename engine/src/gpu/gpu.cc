@@ -31,7 +31,7 @@ GPUIndexDataPtr GPUInterface::createIndexData(GPUBuffer *buffer, GPUIndexData::T
 	return new GPUIndexData(buffer, type, count);
 }
 
-GPUPipelinePtr GPUInterface::createPipeline(GPUShaderArray &shaders) {
+GPUPipelinePtr GPUInterface::createPipeline(const GPUShaderArray &shaders) {
 	return new GPUPipeline(shaders);
 }
 
