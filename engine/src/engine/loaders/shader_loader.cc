@@ -127,28 +127,23 @@ bool ShaderLoader::addPass(const rapidjson::Value &desc) {
 	if(!desc.IsObject()) {
 		logError("%s: Pass descriptor should be an object", m_path);
 		return false;
-	} else if(!desc.HasMember("type")) {
-		logError("%s: Pass 'type' attribute is missing", m_path);
+	} else if(!desc.HasMember("type") || !desc["type"].IsString()) {
+		logError("%s: Pass 'type' attribute is missing/not a string", m_path);
 		return false;
 	}
 
-	const rapidjson::Value &value = desc["type"];
-	if(!value.IsString()) {
-		logError("%s: Pass 'type' attribute should be a string", m_path);
-		return false;
-	}
-
+	const char *typeString = desc["type"].GetString();
 	Pass::Type type;
-	if(strcmp(value.GetString(), "Basic") == 0) {
+	if(strcmp(typeString, "Basic") == 0) {
 		type = Pass::kBasicPass;
-	} else if(strcmp(value.GetString(), "Forward") == 0) {
+	} else if(strcmp(typeString, "Forward") == 0) {
 		type = Pass::kForwardPass;
-	} else if(strcmp(value.GetString(), "DeferredBase") == 0) {
+	} else if(strcmp(typeString, "DeferredBase") == 0) {
 		type = Pass::kDeferredBasePass;
-	} else if(strcmp(value.GetString(), "DeferredOutput") == 0) {
+	} else if(strcmp(typeString, "DeferredOutput") == 0) {
 		type = Pass::kDeferredOutputPass;
 	} else {
-		logError("%s: Pass type '%s' is invalid", m_path, value.GetString());
+		logError("%s: Pass type '%s' is invalid", m_path, typeString);
 		return false;
 	}
 
@@ -156,7 +151,7 @@ bool ShaderLoader::addPass(const rapidjson::Value &desc) {
 	case Pass::kDeferredBasePass:
 	case Pass::kDeferredOutputPass:
 		if(m_shader->numPasses(type)) {
-			logError("%s: Only one pass of type '%s' allowed per shader", m_path, value.GetString());
+			logError("%s: Only one pass of type '%s' allowed per shader", m_path, typeString);
 			return false;
 		}
 	default:
@@ -184,10 +179,35 @@ bool ShaderLoader::addPass(const rapidjson::Value &desc) {
  * @param stage		Type of the stage to load.
  * @param value		Value containing path string. */
 bool ShaderLoader::loadStage(Pass *pass, GPUShader::Type stage, const rapidjson::Value &value) {
-	if(!value.IsString()) {
-		logError("%s: Pass stage should be a path string", m_path);
+	if(!value.IsObject()) {
+		logError("%s: Pass stage should be an object", m_path);
+		return false;
+	} else if(!value.HasMember("source") || !value["source"].IsString()) {
+		logError("%s: Pass stage 'source' attribute is missing/not a string", m_path);
 		return false;
 	}
 
-	return pass->loadStage(stage, value.GetString());
+	Path path(value["source"].GetString());
+
+	/* Get keywords. */
+	Pass::KeywordSet keywords;
+	if(value.HasMember("keywords")) {
+		const rapidjson::Value &keywordsValue = value["keywords"];
+
+		if(!keywordsValue.IsArray()) {
+			logError("%s: Pass stage 'keywords' attribute is not an array", m_path);
+			return false;
+		}
+
+		for(auto it = keywordsValue.Begin(); it != keywordsValue.End(); ++it) {
+			if(!it->IsString()) {
+				logError("%s: Expected string for keyword name", m_path);
+				return false;
+			}
+
+			keywords.insert(it->GetString());
+		}
+	}
+
+	return pass->loadStage(stage, path, keywords);
 }

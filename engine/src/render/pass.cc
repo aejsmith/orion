@@ -4,6 +4,9 @@
  * @brief		Shader pass class.
  *
  * @todo		Having the loading shaders array is a bit irritating.
+ * @todo		Cache of loaded shaders, identify ones which are
+ *			identical and match them (e.g. ones which are the same
+ *			despite not being compiled with the same keywords.
  */
 
 #include "core/filesystem.h"
@@ -36,6 +39,34 @@ Pass::~Pass() {}
 void Pass::setDrawState() const {
 	check(m_pipeline);
 	g_gpu->bindPipeline(m_pipeline);
+}
+
+/** Insert keyword definitions to a source string.
+ * @param source	Source string to add to.
+ * @param type		Pass type.
+ * @param keywords	Keywords to define. */
+static void addKeywordDefinitions(std::string &source, Pass::Type type, const Pass::KeywordSet &keywords) {
+	/* Add pass type definition. */
+	switch(type) {
+	case Pass::kForwardPass:
+		source += "#define FORWARD_PASS 1\n";
+		break;
+	case Pass::kDeferredBasePass:
+		source += "#define DEFERRED_BASE_PASS 1\n";
+		break;
+	case Pass::kDeferredOutputPass:
+		source += "#define DEFERRED_OUTPUT_PASS 1\n";
+		break;
+	default:
+		source += "#define BASIC_PASS 1\n";
+		break;
+	}
+
+	/* Add user-specified keywords. */
+	for(const std::string &keyword : keywords)
+		source += util::format("#define %s 1\n", keyword.c_str());
+
+	source += "\n";
 }
 
 /** Add a uniform block declaration to a source string.
@@ -74,8 +105,9 @@ static void addStandardDeclarations(std::string &source) {
 /** Add a GPU shader to the pass.
  * @param stage		Stage to add this shader to.
  * @param path		Filesystem path to shader source.
+ * @param keywords	Set of shader variation keywords.
  * @return		Whether the stage was loaded successfully. */
-bool Pass::loadStage(GPUShader::Type stage, const Path &path) {
+bool Pass::loadStage(GPUShader::Type stage, const Path &path, const KeywordSet &keywords) {
 	check(!m_loadingShaders[stage]);
 
 	std::unique_ptr<File> file(g_filesystem->openFile(path));
@@ -93,6 +125,7 @@ bool Pass::loadStage(GPUShader::Type stage, const Path &path) {
 
 	/* Add standard declarations to the shader. */
 	std::string source;
+	addKeywordDefinitions(source, m_type, keywords);
 	addStandardDeclarations(source);
 
 	/* If there is a shader-specific uniform structure, add it. */

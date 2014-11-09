@@ -10,6 +10,8 @@
 
 #include "gpu/pipeline.h"
 
+#include <set>
+
 class Shader;
 
 /** Rendering pass. */
@@ -45,6 +47,9 @@ public:
 		/** Number of Pass types. */
 		kNumTypes,
 	};
+
+	/** Set of shader variation keywords. */
+	typedef std::set<std::string> KeywordSet;
 public:
 	Pass(Shader *parent, Type type);
 	~Pass();
@@ -54,7 +59,7 @@ public:
 	/** @return		Type of the pass. */
 	Type type() const { return m_type; }
 
-	bool loadStage(GPUShader::Type stage, const Path &path);
+	bool loadStage(GPUShader::Type stage, const Path &path, const KeywordSet &keywords);
 
 	void setDrawState() const;
 private:

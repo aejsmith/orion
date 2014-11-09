@@ -149,7 +149,7 @@ TestGame::TestGame() {
 
 	m_mirrorTexture = new Texture2D(1024, 1024, PixelFormat::kR8G8B8A8, 1, GPUTexture::kRenderTarget);
 
-	m_mirrorMaterial = new Material(g_assetManager->load<Shader>("engine/shaders/lighting"));
+	m_mirrorMaterial = new Material(g_assetManager->load<Shader>("engine/shaders/lit_specular"));
 	m_mirrorMaterial->setValue("shininess", 32.0f);
 	m_mirrorMaterial->setValue("specularColour", glm::vec3(0.5f, 0.5f, 0.5f));
 	m_mirrorMaterial->setValue("diffuseTexture", TextureBasePtr(m_mirrorTexture));

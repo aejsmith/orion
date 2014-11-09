@@ -10,7 +10,9 @@ layout(location = 2) in vec2 vtxTexcoord;
 
 layout(location = 0) out vec4 fragColour;
 
+#ifdef TEXTURED
 uniform sampler2D diffuseTexture;
+#endif
 
 /** Calculate the lighting contribution of a light.
  * @param direction	Direction from the light to the fragment. */
@@ -26,6 +28,8 @@ vec4 calcLight(vec3 direction) {
 		/* Calculate the diffuse contribution. */
 		totalFactor += vec4(light.colour, 1.0) * light.intensity * angle;
 
+		#ifdef SPECULAR
+
 		/* Do specular reflection using Blinn-Phong. Calculate the
 		 * cosine of the angle between the normal and the half vector. */
 		vec3 halfVactor = normalize(direction - (vtxPosition - view.position));
@@ -36,6 +40,8 @@ vec4 calcLight(vec3 direction) {
 				pow(specularAngle, shininess) *
 				vec4(specularColour, 1.0);
 		}
+
+		#endif
 	}
 
 	return totalFactor;
@@ -105,6 +111,11 @@ void main() {
 		break;
 	}
 
-	vec4 texel = texture(diffuseTexture, vtxTexcoord);
-	fragColour = texel * lightFactor;
+	#ifdef TEXTURED
+	vec4 diffuse = texture(diffuseTexture, vtxTexcoord);
+	#else
+	vec4 diffuse = vec4(diffuseColour, 1.0);
+	#endif
+
+	fragColour = diffuse * lightFactor;
 }
