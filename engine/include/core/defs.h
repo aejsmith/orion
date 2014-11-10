@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Core engine definitions.
+ * @copyright           2014 Alex Smith
+ * @brief               Core engine definitions.
  *
  * This file pulls in commonly used system headers to avoid having to include
  * them everywhere. It also has a few definitions that are used everywhere. If
@@ -30,31 +30,31 @@
  */
 
 #ifdef __GNUC__
-# define PACKED			__attribute__((packed))
-# define ALIGNED(a)		__attribute__((aligned(a)))
-# define NORETURN		__attribute__((noreturn))
-# define FORCEINLINE		__attribute__((always_inline))
-# define likely(x)		__builtin_expect(!!(x), 1)
-# define unlikely(x)		__builtin_expect(!!(x), 0)
-# define unreachable()		__builtin_unreachable()
+# define PACKED             __attribute__((packed))
+# define ALIGNED(a)         __attribute__((aligned(a)))
+# define NORETURN           __attribute__((noreturn))
+# define FORCEINLINE        __attribute__((always_inline))
+# define likely(x)          __builtin_expect(!!(x), 1)
+# define unlikely(x)        __builtin_expect(!!(x), 0)
+# define unreachable()      __builtin_unreachable()
 #else
 # error "Compiler is not supported"
 #endif
 
 /** Target bitness definition. */
 #if INTPTR_MAX == INT32_MAX
-# define ORION_32BIT		1
+# define ORION_32BIT 1
 #elif INTPTR_MAX == INT64_MAX
-# define ORION_64BIT		1
+# define ORION_64BIT 1
 #else
 # error "Cannot determine target bitness"
 #endif
 
 /** Target endianness definition. */
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-# define ORION_LITTLE_ENDIAN	1
+# define ORION_LITTLE_ENDIAN 1
 #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-# define ORION_BIG_ENDIAN	1
+# define ORION_BIG_ENDIAN 1
 #else
 # error "Cannot determine target endianness"
 #endif
@@ -81,11 +81,11 @@ extern void __fatal(const char *file, int line, const char *fmt, ...) NORETURN;
  * on debug builds to allow the error to be caught in a debugger. This function
  * does not return.
  *
- * @param fmt		Error message format string.
- * @param ...		Arguments to substitute into format.
+ * @param fmt           Error message format string.
+ * @param ...           Arguments to substitute into format.
  */
 #define fatal(fmt, ...) \
-	__fatal(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
+    __fatal(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
 /**
  * Check that a condition is true.
@@ -93,13 +93,13 @@ extern void __fatal(const char *file, int line, const char *fmt, ...) NORETURN;
  * Check that a condition is true. If it is not, the engine will abort with an
  * error message giving the condition that failed.
  *
- * @param cond		Condition to check.
+ * @param cond          Condition to check.
  */
 #define check(cond) \
-	do { \
-		if(unlikely(!(cond))) \
-			__fatal(__FILE__, __LINE__, "Assertion failed: %s", #cond); \
-	} while(0)
+    do { \
+        if (unlikely(!(cond))) \
+            __fatal(__FILE__, __LINE__, "Assertion failed: %s", #cond); \
+    } while (0)
 
 /**
  * Check that a condition is true.
@@ -107,15 +107,15 @@ extern void __fatal(const char *file, int line, const char *fmt, ...) NORETURN;
  * Check that a condition is true. If it is not, the engine will abort with the
  * specified message.
  *
- * @param cond		Condition to check.
- * @param fmt		Error message format string.
- * @param ...		Arguments to substitute into format.
+ * @param cond          Condition to check.
+ * @param fmt           Error message format string.
+ * @param ...           Arguments to substitute into format.
  */
 #define checkMsg(cond, fmt, ...) \
-	do { \
-		if(unlikely(!(cond))) \
-			__fatal(__FILE__, __LINE__, fmt, ##__VA_ARGS__); \
-	} while(0)
+    do { \
+        if (unlikely(!(cond))) \
+            __fatal(__FILE__, __LINE__, fmt, ##__VA_ARGS__); \
+    } while (0)
 
 /**
  * Simple utility classes.
@@ -123,7 +123,7 @@ extern void __fatal(const char *file, int line, const char *fmt, ...) NORETURN;
 
 /** Base class ensuring derived classes are not copyable. */
 struct Noncopyable {
-	Noncopyable &operator=(const Noncopyable &) = delete;
-	Noncopyable(const Noncopyable &) = delete;
-	Noncopyable() = default;
+    Noncopyable &operator=(const Noncopyable &) = delete;
+    Noncopyable(const Noncopyable &) = delete;
+    Noncopyable() = default;
 };

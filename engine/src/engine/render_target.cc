@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Render target class.
+ * @copyright           2014 Alex Smith
+ * @brief               Render target class.
  */
 
 #include "engine/engine.h"
@@ -17,31 +17,31 @@
  * and register themselves with the target.
  */
 RenderLayer::RenderLayer() :
-	m_renderTarget(nullptr),
-	m_viewport(0.0f, 0.0f, 1.0f, 1.0f),
-	m_pixelViewport(0, 0, 0, 0),
-	m_layerOrder(0),
-	m_registered(false)
+    m_renderTarget(nullptr),
+    m_viewport(0.0f, 0.0f, 1.0f, 1.0f),
+    m_pixelViewport(0, 0, 0, 0),
+    m_layerOrder(0),
+    m_registered(false)
 {}
 
 /** Destroy the layer. */
 RenderLayer::~RenderLayer() {
-	checkMsg(!m_registered, "Destroying RenderLayer while still registered");
+    checkMsg(!m_registered, "Destroying RenderLayer while still registered");
 }
 
 /** Set the render target.
- * @param target	New render target. */
+ * @param target        New render target. */
 void RenderLayer::setRenderTarget(RenderTarget *target) {
-	if(m_registered)
-		m_renderTarget->removeLayer(this);
+    if (m_registered)
+        m_renderTarget->removeLayer(this);
 
-	m_renderTarget = target;
+    m_renderTarget = target;
 
-	/* Recalculate pixel viewport. */
-	setViewport(m_viewport);
+    /* Recalculate pixel viewport. */
+    setViewport(m_viewport);
 
-	if(m_registered)
-		m_renderTarget->addLayer(this);
+    if (m_registered)
+        m_renderTarget->addLayer(this);
 }
 
 /**
@@ -52,21 +52,21 @@ void RenderLayer::setRenderTarget(RenderTarget *target) {
  * viewport rectangle is calculated automatically based on the render target's
  * dimensions.
  *
- * @param viewport	Normalized viewport rectangle.
+ * @param viewport      Normalized viewport rectangle.
  */
 void RenderLayer::setViewport(const Rect &viewport) {
-	m_viewport = viewport;
+    m_viewport = viewport;
 
-	uint32_t targetWidth = m_renderTarget->width();
-	uint32_t targetHeight = m_renderTarget->height();
+    uint32_t targetWidth = m_renderTarget->width();
+    uint32_t targetHeight = m_renderTarget->height();
 
-	m_pixelViewport = IntRect(
-		m_viewport.x * static_cast<float>(targetWidth),
-		m_viewport.y * static_cast<float>(targetHeight),
-		m_viewport.width * static_cast<float>(targetWidth),
-		m_viewport.height * static_cast<float>(targetHeight));
+    m_pixelViewport = IntRect(
+        m_viewport.x * static_cast<float>(targetWidth),
+        m_viewport.y * static_cast<float>(targetHeight),
+        m_viewport.width * static_cast<float>(targetWidth),
+        m_viewport.height * static_cast<float>(targetHeight));
 
-	viewportChanged();
+    viewportChanged();
 }
 
 /**
@@ -77,91 +77,91 @@ void RenderLayer::setViewport(const Rect &viewport) {
  * Layers with higher order values will appear on top of those with lower
  * values.
  *
- * @param order		New layer order.
+ * @param order         New layer order.
  */
 void RenderLayer::setLayerOrder(unsigned order) {
-	/* If we are registered we have to re-register in the correct place in
-	 * the target's layer list. */
-	if(m_registered)
-		m_renderTarget->removeLayer(this);
+    /* If we are registered we have to re-register in the correct place in
+     * the target's layer list. */
+    if (m_registered)
+        m_renderTarget->removeLayer(this);
 
-	m_layerOrder = order;
+    m_layerOrder = order;
 
-	if(m_registered)
-		m_renderTarget->addLayer(this);
+    if (m_registered)
+        m_renderTarget->addLayer(this);
 }
 
 /** Register the layer with its render target. */
 void RenderLayer::registerLayer() {
-	check(m_renderTarget);
-	check(!m_registered);
+    check(m_renderTarget);
+    check(!m_registered);
 
-	m_renderTarget->addLayer(this);
-	m_registered = true;
+    m_renderTarget->addLayer(this);
+    m_registered = true;
 }
 
 /** Unregister the layer from its render target. */
 void RenderLayer::unregisterLayer() {
-	check(m_registered);
+    check(m_registered);
 
-	m_renderTarget->removeLayer(this);
-	m_registered = false;
+    m_renderTarget->removeLayer(this);
+    m_registered = false;
 }
 
 /** Initialize the render target.
- * @param priority	Rendering priority. */
+ * @param priority      Rendering priority. */
 RenderTarget::RenderTarget(unsigned priority) :
-	m_priority(priority)
+    m_priority(priority)
 {}
 
 /** Destroy the render target. */
 RenderTarget::~RenderTarget() {
-	checkMsg(m_layers.empty(), "Destroying RenderTarget with active layers");
+    checkMsg(m_layers.empty(), "Destroying RenderTarget with active layers");
 }
 
 /** Add a layer to the render target.
- * @param layer		Layer to add. */
+ * @param layer         Layer to add. */
 void RenderTarget::addLayer(RenderLayer *layer) {
-	bool wasEmpty = m_layers.empty();
+    bool wasEmpty = m_layers.empty();
 
-	/* List is sorted by priority. */
-	for(auto it = m_layers.begin(); it != m_layers.end(); ++it) {
-		RenderLayer *exist = *it;
-		if(layer->layerOrder() < exist->layerOrder()) {
-			m_layers.insert(it, layer);
-			return;
-		}
-	}
+    /* List is sorted by priority. */
+    for (auto it = m_layers.begin(); it != m_layers.end(); ++it) {
+        RenderLayer *exist = *it;
+        if (layer->layerOrder() < exist->layerOrder()) {
+            m_layers.insert(it, layer);
+            return;
+        }
+    }
 
-	/* Insertion point not found, add at end. */
-	m_layers.push_back(layer);
+    /* Insertion point not found, add at end. */
+    m_layers.push_back(layer);
 
-	if(wasEmpty)
-		g_engine->addRenderTarget(this);
+    if (wasEmpty)
+        g_engine->addRenderTarget(this);
 }
 
 /** Remove a layer from the render target.
- * @param layer		Layer to remove. */
+ * @param layer         Layer to remove. */
 void RenderTarget::removeLayer(RenderLayer *layer) {
-	m_layers.remove(layer);
+    m_layers.remove(layer);
 
-	if(m_layers.empty())
-		g_engine->removeRenderTarget(this);
+    if (m_layers.empty())
+        g_engine->removeRenderTarget(this);
 }
 
 /** Render the render target. */
 void RenderTarget::render() {
-	/* Make the render target active. */
-	set();
+    /* Make the render target active. */
+    set();
 
-	// FIXME: Where does this go?
-	g_gpu->clear(
-		ClearBuffer::kColourBuffer | ClearBuffer::kDepthBuffer | ClearBuffer::kStencilBuffer,
-		glm::vec4(0.0, 0.0, 0.0, 1.0), 1.0, 0);
+    // FIXME: Where does this go?
+    g_gpu->clear(
+        ClearBuffer::kColourBuffer | ClearBuffer::kDepthBuffer | ClearBuffer::kStencilBuffer,
+        glm::vec4(0.0, 0.0, 0.0, 1.0), 1.0, 0);
 
-	/* Render all our layers. */
-	for(RenderLayer *layer : m_layers) {
-		g_gpu->setViewport(layer->pixelViewport());
-		layer->render();
-	}
+    /* Render all our layers. */
+    for (RenderLayer *layer : m_layers) {
+        g_gpu->setViewport(layer->pixelViewport());
+        layer->render();
+    }
 }

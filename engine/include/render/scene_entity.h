@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Scene entity base class.
+ * @copyright           2014 Alex Smith
+ * @brief               Scene entity base class.
  */
 
 #pragma once
@@ -13,8 +13,8 @@ class Scene;
 
 /** Per-entity uniform buffer structure. */
 UNIFORM_STRUCT_BEGIN(EntityUniforms)
-	UNIFORM_STRUCT_MEMBER(glm::mat4, transform);
-	UNIFORM_STRUCT_MEMBER(glm::vec3, position);
+    UNIFORM_STRUCT_MEMBER(glm::mat4, transform);
+    UNIFORM_STRUCT_MEMBER(glm::vec3, position);
 UNIFORM_STRUCT_END;
 
 /**
@@ -26,39 +26,39 @@ UNIFORM_STRUCT_END;
  */
 class SceneEntity {
 public:
-	virtual ~SceneEntity();
+    virtual ~SceneEntity();
 
-	/** @return		Current transformation. */
-	const Transform &transform() const { return m_transform; }
-	/** @return		Current position. */
-	const glm::vec3 &position() const { return m_transform.position(); }
-	/** @return		Current orientation. */
-	const glm::quat &orientation() const { return m_transform.orientation(); }
-	/** @return		Current scale. */
-	const glm::vec3 &scale() const { return m_transform.scale(); }
-	/** @return		GPU buffer containing entity uniforms. */
-	GPUBuffer *uniforms() const { return m_uniforms.gpu(); }
+    /** @return             Current transformation. */
+    const Transform &transform() const { return m_transform; }
+    /** @return             Current position. */
+    const glm::vec3 &position() const { return m_transform.position(); }
+    /** @return             Current orientation. */
+    const glm::quat &orientation() const { return m_transform.orientation(); }
+    /** @return             Current scale. */
+    const glm::vec3 &scale() const { return m_transform.scale(); }
+    /** @return             GPU buffer containing entity uniforms. */
+    GPUBuffer *uniforms() const { return m_uniforms.gpu(); }
 
-	/** Get the material for the entity.
-	 * @return		Material for the entity. */
-	virtual Material *material() const = 0;
+    /** Get the material for the entity.
+     * @return              Material for the entity. */
+    virtual Material *material() const = 0;
 
-	/**
-	 * Draw the entity.
-	 *
-	 * Submit a GPU draw call for the entity. Shader/resource state for the
-	 * draw is already set prior to calling this.
-	 */
-	virtual void draw() const = 0;
+    /**
+     * Draw the entity.
+     *
+     * Submit a GPU draw call for the entity. Shader/resource state for the
+     * draw is already set prior to calling this.
+     */
+    virtual void draw() const = 0;
 protected:
-	SceneEntity();
+    SceneEntity();
 private:
-	void setTransform(const Transform &transform);
+    void setTransform(const Transform &transform);
 private:
-	Transform m_transform;		/**< Transformation of the entity. */
+    Transform m_transform;          /**< Transformation of the entity. */
 
-	/** Uniform buffer containing per-entity parameters. */
-	UniformBuffer<EntityUniforms> m_uniforms;
+    /** Uniform buffer containing per-entity parameters. */
+    UniformBuffer<EntityUniforms> m_uniforms;
 
-	friend class Scene;
+    friend class Scene;
 };

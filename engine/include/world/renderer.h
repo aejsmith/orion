@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Renderer base component.
+ * @copyright           2014 Alex Smith
+ * @brief               Renderer base component.
  */
 
 #pragma once
@@ -21,31 +21,31 @@ class SceneEntity;
  */
 class RendererComponent : public Component {
 public:
-	DECLARE_COMPONENT(Component::kRendererType);
+    DECLARE_COMPONENT(Component::kRendererType);
 public:
-	~RendererComponent();
+    ~RendererComponent();
 protected:
-	/** Type of a scene entity list. */
-	typedef std::list<SceneEntity *> SceneEntityList;
+    /** Type of a scene entity list. */
+    typedef std::list<SceneEntity *> SceneEntityList;
 protected:
-	explicit RendererComponent(Entity *entity);
+    explicit RendererComponent(Entity *entity);
 
-	void transformed() override;
-	void activated() override;
-	void deactivated() override;
+    void transformed() override;
+    void activated() override;
+    void deactivated() override;
 
-	/**
-	 * Create scene entities.
-	 *
-	 * This function is called each time the component is activated in the
-	 * world to create the SceneEntities which will be added to the renderer.
-	 * The entities' transformations will be set after this has been called.
-	 * The entities are all deleted upon deactivation of the component.
-	 *
-	 * @param entities	List to populate.
-	 */
-	virtual void createSceneEntities(SceneEntityList &entities) = 0;
+    /**
+     * Create scene entities.
+     *
+     * This function is called each time the component is activated in the world
+     * to create the SceneEntities which will be added to the renderer. The
+     * entities' transformations will be set after this has been called. The
+     * entities are all deleted upon deactivation of the component.
+     *
+     * @param entities      List to populate.
+     */
+    virtual void createSceneEntities(SceneEntityList &entities) = 0;
 private:
-	/** List of scene entities. */
-	SceneEntityList m_sceneEntities;
+    /** List of scene entities. */
+    SceneEntityList m_sceneEntities;
 };

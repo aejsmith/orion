@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Rendering pipeline object.
+ * @copyright           2014 Alex Smith
+ * @brief               Rendering pipeline object.
  */
 
 #pragma once
@@ -27,15 +27,15 @@
  */
 class GPUPipeline : public GPUResource {
 public:
-	/** @return		Array of shaders used by the pipeline. */
-	const GPUShaderArray &shaders() const { return m_shaders; }
+    /** @return             Array of shaders used by the pipeline. */
+    const GPUShaderArray &shaders() const { return m_shaders; }
 protected:
-	explicit GPUPipeline(const GPUShaderArray &shaders);
+    explicit GPUPipeline(const GPUShaderArray &shaders);
 protected:
-	GPUShaderArray m_shaders;	/**< Array of shaders for each stage. */
+    GPUShaderArray m_shaders;           /**< Array of shaders for each stage. */
 
-	/* For the default implementation of createPipeline(). */
-	friend class GPUInterface;
+    /* For the default implementation of createPipeline(). */
+    friend class GPUInterface;
 };
 
 /** Type of a reference to GPUPipeline. */

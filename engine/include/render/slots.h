@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Standard resource binding point definitions.
+ * @copyright           2014 Alex Smith
+ * @brief               Standard resource binding point definitions.
  */
 
 #pragma once
@@ -16,16 +16,16 @@
  * shaders.
  */
 namespace UniformSlots {
-	enum {
-		/** Uniforms for the entity currently being rendered. */
-		kEntityUniforms,
-		/** Uniforms for the view the scene is being rendered from. */
-		kViewUniforms,
-		/** Uniforms for the light for the current pass. */
-		kLightUniforms,
-		/** Uniforms for the current material. */
-		kMaterialUniforms,
-	};
+    enum {
+        /** Uniforms for the entity currently being rendered. */
+        kEntityUniforms,
+        /** Uniforms for the view the scene is being rendered from. */
+        kViewUniforms,
+        /** Uniforms for the light for the current pass. */
+        kLightUniforms,
+        /** Uniforms for the current material. */
+        kMaterialUniforms,
+    };
 }
 
 /**
@@ -36,14 +36,14 @@ namespace UniformSlots {
  * others are for standard textures provided by the renderer, e.g. G-Buffer
  * textures, and are bound automatically.
  *
- * @note		Keep shader-specific definitions first, the texture
- *			array in Material is indexed by slot (size is
- *			kCustomTextureEnd).
+ * @note                Keep shader-specific definitions first, the texture
+ *                      array in Material is indexed by slot (size is
+ *                      kCustomTextureEnd).
  */
 namespace TextureSlots {
-	enum {
-		/** Shader-specific texture range. */
-		kMaterialTexturesStart = 0,
-		kMaterialTexturesEnd = 15,
-	};
+    enum {
+        /** Shader-specific texture range. */
+        kMaterialTexturesStart = 0,
+        kMaterialTexturesEnd = 15,
+    };
 }

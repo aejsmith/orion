@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Filesystem interface.
+ * @copyright           2014 Alex Smith
+ * @brief               Filesystem interface.
  */
 
 #include "core/filesystem.h"

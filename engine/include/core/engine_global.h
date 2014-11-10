@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Engine global holder class.
+ * @copyright           2014 Alex Smith
+ * @brief               Engine global holder class.
  */
 
 #pragma once
@@ -13,33 +13,33 @@
 /** Base for an engine global holder. */
 class EngineGlobalBase : Noncopyable {
 public:
-	EngineGlobalBase() : m_initialized(false) {}
-	~EngineGlobalBase();
+    EngineGlobalBase() : m_initialized(false) {}
+    ~EngineGlobalBase();
 
-	static void destroyAll();
+    static void destroyAll();
 protected:
-	void init();
+    void init();
 
-	/** Destroy the object. */
-	virtual void destroy() = 0;
+    /** Destroy the object. */
+    virtual void destroy() = 0;
 private:
-	bool m_initialized;		/**< Whether the object has been initialized. */
+    bool m_initialized;             /**< Whether the object has been initialized. */
 
-	static std::list<EngineGlobalBase *> m_globals;
+    static std::list<EngineGlobalBase *> m_globals;
 };
 
 /** Default pointer type for EngineGlobal. */
 template <typename T>
 class DefaultEngineGlobalPtr {
 public:
-	DefaultEngineGlobalPtr() : m_pointer(nullptr) {}
-	~DefaultEngineGlobalPtr() { reset(); }
+    DefaultEngineGlobalPtr() : m_pointer(nullptr) {}
+    ~DefaultEngineGlobalPtr() { reset(); }
 
-	T *get() const { return m_pointer; }
-	void reset() { delete m_pointer; m_pointer = nullptr; }
-	T *operator =(T *pointer) { m_pointer = pointer; return pointer; }
+    T *get() const { return m_pointer; }
+    void reset() { delete m_pointer; m_pointer = nullptr; }
+    T *operator =(T *pointer) { m_pointer = pointer; return pointer; }
 private:
-	T *m_pointer;
+    T *m_pointer;
 };
 
 /**
@@ -68,42 +68,45 @@ private:
  * A global can only be initialized once: calling operator () more than once
  * results in an abort.
  *
- * @tparam T		Type of the object to store.
- * @tparam PointerType	Type of a pointer to the object. Must be a smart
- *			pointer implementing a reset() method which will be
- *			called to destroy the object. Default implementation
- *			uses delete to destroy the object.
+ * @tparam T            Type of the object to store.
+ * @tparam PointerType  Type of a pointer to the object. Must be a smart
+ *                      pointer implementing a reset() method which will be
+ *                      called to destroy the object. Default implementation
+ *                      uses delete to destroy the object.
  */
 template <typename T, typename PointerType = DefaultEngineGlobalPtr<T>>
 class EngineGlobal : public EngineGlobalBase {
 public:
-	/** @return		Reference to global object. */
-	FORCEINLINE T &operator *() const { return *m_pointer.get(); }
-	/** @return		Pointer to global object. */
-	FORCEINLINE T *operator ->() const { return m_pointer.get(); }
-	/** @return		Whether the global is initialized. */
-	FORCEINLINE operator bool() const { return m_pointer.get(); }
-	/** @return		Pointer value. */
-	FORCEINLINE operator const PointerType &() const { return m_pointer; }
-	/** @return		Pointer value. */
-	FORCEINLINE operator T *() const { return m_pointer.get(); }
+    /** @return         Reference to global object. */
+    FORCEINLINE T &operator *() const { return *m_pointer.get(); }
+    /** @return         Pointer to global object. */
+    FORCEINLINE T *operator ->() const { return m_pointer.get(); }
+    /** @return         Whether the global is initialized. */
+    FORCEINLINE operator bool() const { return m_pointer.get(); }
+    /** @return         Pointer value. */
+    FORCEINLINE operator const PointerType &() const { return m_pointer; }
+    /** @return         Pointer value. */
+    FORCEINLINE operator T *() const { return m_pointer.get(); }
 
-	/**
-	 * Allow initialization of the global object.
-	 *
-	 * Allows initialization of the global object. Registers the global in
-	 * the list of objects to be deleted, then returns a reference to the
-	 * object pointer to allow it to be set. Will abort if the object is
-	 * already initialized.
-	 *
-	 * @return		Reference to object pointer.
-	 */
-	PointerType &operator ()() { init(); return m_pointer; }
+    /**
+     * Allow initialization of the global object.
+     *
+     * Allows initialization of the global object. Registers the global in the
+     * list of objects to be deleted, then returns a reference to the object
+     * pointer to allow it to be set. Will abort if the object is already
+     * initialized.
+     *
+     * @return          Reference to object pointer.
+     */
+    PointerType &operator ()() {
+        init();
+        return m_pointer;
+    }
 protected:
-	/** Destroy the object. */
-	void destroy() override {
-		m_pointer.reset();
-	}
+    /** Destroy the object. */
+    void destroy() override {
+        m_pointer.reset();
+    }
 private:
-	PointerType m_pointer;		/**< Pointer to the object. */
+    PointerType m_pointer;          /**< Pointer to the object. */
 };

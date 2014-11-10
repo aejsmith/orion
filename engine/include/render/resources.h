@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Global rendering resources.
+ * @copyright           2014 Alex Smith
+ * @brief               Global rendering resources.
  */
 
 #pragma once
@@ -11,14 +11,14 @@
 /** Global rendering resources. */
 class RenderResources : Noncopyable {
 public:
-	RenderResources();
-	~RenderResources();
+    RenderResources();
+    ~RenderResources();
 
-	/** Get the GPU vertex format corresponding to SimpleVertex.
-	 * @return		Simple vertex format. */
-	GPUVertexFormat *simpleVertexFormat() const { return m_simpleVertexFormat; }
+    /** Get the GPU vertex format corresponding to SimpleVertex.
+     * @return              Simple vertex format. */
+    GPUVertexFormat *simpleVertexFormat() const { return m_simpleVertexFormat; }
 private:
-	GPUVertexFormatPtr m_simpleVertexFormat;
+    GPUVertexFormatPtr m_simpleVertexFormat;
 };
 
 extern EngineGlobal<RenderResources> g_renderResources;

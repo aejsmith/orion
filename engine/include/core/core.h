@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Core engine header.
+ * @copyright           2014 Alex Smith
+ * @brief               Core engine header.
  *
  * This file pulls in various parts of the core library that are likely to be
  * needed everywhere throughout the engine. Every header outside the core

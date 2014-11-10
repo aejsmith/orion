@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Base asset class.
+ * @copyright           2014 Alex Smith
+ * @brief               Base asset class.
  */
 
 #pragma once
@@ -19,24 +19,24 @@
  */
 class Asset : public Refcounted {
 public:
-	/** @return		Whether the asset is managed. */
-	bool managed() const { return m_path.length(); }
-	/** @return		Path to the asset (empty for unmanaged assets). */
-	const std::string &path() const { return m_path; }
+    /** @return             Whether the asset is managed. */
+    bool managed() const { return m_path.length(); }
+    /** @return             Path to the asset (empty for unmanaged assets). */
+    const std::string &path() const { return m_path; }
 protected:
-	/**
-	 * Initialize an unmanaged asset.
-	 *
-	 * Initializes the asset as an unmanaged asset. The asset manager will
-	 * turn the asset into a managed one if it is loading the asset.
-	 */
-	Asset() {}
+    /**
+     * Initialize an unmanaged asset.
+     *
+     * Initializes the asset as an unmanaged asset. The asset manager will
+     * turn the asset into a managed one if it is loading the asset.
+     */
+    Asset() {}
 
-	void released() override;
+    void released() override;
 private:
-	std::string m_path;		/**< Path to the asset (empty for unmanaged assets). */
+    std::string m_path;             /**< Path to the asset (empty for unmanaged assets). */
 
-	friend class AssetManager;
+    friend class AssetManager;
 };
 
 /** Smart pointer to a certain type of asset. */

@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Material class.
+ * @copyright           2014 Alex Smith
+ * @brief               Material class.
  */
 
 #pragma once
@@ -23,45 +23,45 @@ class UniformBufferBase;
  */
 class Material : public Asset {
 public:
-	explicit Material(Shader *shader);
-	~Material();
+    explicit Material(Shader *shader);
+    ~Material();
 
-	/** @return		Shader for the material. */
-	Shader *shader() const { return m_shader; }
+    /** @return             Shader for the material. */
+    Shader *shader() const { return m_shader; }
 
-	/**
-	 * Parameter value access.
-	 */
+    /**
+     * Parameter value access.
+     */
 
-	void value(const char *name, ShaderParameter::Type type, void *buf) const;
-	void setValue(const char *name, ShaderParameter::Type type, const void *buf);
+    void value(const char *name, ShaderParameter::Type type, void *buf) const;
+    void setValue(const char *name, ShaderParameter::Type type, const void *buf);
 
-	/** Get a parameter value.
-	 * @tparam T		Type of the parameter.
-	 * @param name		Name of the parameter to get.
-	 * @return 		Parameter value. */
-	template <typename T> T value(const char *name) {
-		T ret;
-		value(name, ShaderParameterTypeTraits<T>::kType, std::addressof(ret));
-		return ret;
-	}
+    /** Get a parameter value.
+     * @tparam T            Type of the parameter.
+     * @param name          Name of the parameter to get.
+     * @return              Parameter value. */
+    template <typename T> T value(const char *name) {
+        T ret;
+        value(name, ShaderParameterTypeTraits<T>::kType, std::addressof(ret));
+        return ret;
+    }
 
-	/** Set a parameter value.
-	 * @tparam T		Type of the parameter.
-	 * @param name		Name of the parameter to set.
-	 * @param value		Value to set to. */
-	template <typename T> void setValue(const char *name, const T &value) {
-		setValue(name, ShaderParameterTypeTraits<T>::kType, std::addressof(value));
-	}
+    /** Set a parameter value.
+     * @tparam T            Type of the parameter.
+     * @param name          Name of the parameter to set.
+     * @param value         Value to set to. */
+    template <typename T> void setValue(const char *name, const T &value) {
+        setValue(name, ShaderParameterTypeTraits<T>::kType, std::addressof(value));
+    }
 private:
-	/** Type of the texture array, indexed by slot. */
-	typedef std::array<TextureBasePtr, TextureSlots::kMaterialTexturesEnd + 1> TextureArray;
+    /** Type of the texture array, indexed by slot. */
+    typedef std::array<TextureBasePtr, TextureSlots::kMaterialTexturesEnd + 1> TextureArray;
 private:
-	ShaderPtr m_shader;		/**< Shader being used by the material. */
-	UniformBufferBase *m_uniforms;	/**< Uniform buffer containing material parameters. */
-	TextureArray m_textures;	/**< Array of textures, indexed by slot. */
+    ShaderPtr m_shader;             /**< Shader being used by the material. */
+    UniformBufferBase *m_uniforms;  /**< Uniform buffer containing material parameters. */
+    TextureArray m_textures;        /**< Array of textures, indexed by slot. */
 
-	friend class Shader;
+    friend class Shader;
 };
 
 /** Type of a material pointer. */

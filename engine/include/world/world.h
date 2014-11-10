@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		World class.
+ * @copyright           2014 Alex Smith
+ * @brief               World class.
  */
 
 #pragma once
@@ -21,23 +21,23 @@ class Scene;
  */
 class World : Noncopyable {
 public:
-	World();
-	~World();
+    World();
+    ~World();
 
-	void tick(float dt);
+    void tick(float dt);
 
-	/** @return		Renderer's scene manager. */
-	Scene *scene() const { return m_scene; }
+    /** @return             Renderer's scene manager. */
+    Scene *scene() const { return m_scene; }
 
-	/**
-	 * Entity management.
-	 */
+    /**
+     * Entity management.
+     */
 
-	Entity *createEntity(const std::string &name);
+    Entity *createEntity(const std::string &name);
 
-	/** @return		Root entity of the world. */
-	Entity *root() { return m_root; }
+    /** @return             Root entity of the world. */
+    Entity *root() { return m_root; }
 private:
-	Entity *m_root;			/**< Root of the entity hierarchy. */
-	Scene *m_scene;			/**< Scene manager. */
+    Entity *m_root;                 /**< Root of the entity hierarchy. */
+    Scene *m_scene;                 /**< Scene manager. */
 };

@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Vertex format class.
+ * @copyright           2014 Alex Smith
+ * @brief               Vertex format class.
  */
 
 #pragma once
@@ -21,9 +21,9 @@ static const size_t kMaxVertexAttributes = 16;
  * everything else is described by the attributes.
  */
 struct VertexBufferLayout {
-	size_t stride;			/**< Offset between each vertex. */
+    size_t stride;                  /**< Offset between each vertex. */
 public:
-	VertexBufferLayout() : stride(0) {}
+    VertexBufferLayout() : stride(0) {}
 };
 
 /** Type of a vertex buffer layout array. */
@@ -42,61 +42,61 @@ typedef std::vector<VertexBufferLayout> VertexBufferLayoutArray;
  * count are ignored.
  */
 struct VertexAttribute {
-	/** List of attribute semantics. */
-	enum Semantic {
-		kPositionSemantic,	/**< Vertex position. */
-		kNormalSemantic,	/**< Vertex normal. */
-		kTexcoordSemantic,	/**< Texture coordinates. */
-		kDiffuseSemantic,	/**< Diffuse colour. */
-		kSpecularSemantic,	/**< Specular colour. */
-	};
+    /** List of attribute semantics. */
+    enum Semantic {
+        kPositionSemantic,          /**< Vertex position. */
+        kNormalSemantic,            /**< Vertex normal. */
+        kTexcoordSemantic,          /**< Texture coordinates. */
+        kDiffuseSemantic,           /**< Diffuse colour. */
+        kSpecularSemantic,          /**< Specular colour. */
+    };
 
-	/** Enumeration of attribute data types. */
-	enum Type {
-		kByteType,		/**< Signed 8-bit integer. */
-		kUnsignedByteType,	/**< Unsigned 8-bit integer. */
-		kShortType,		/**< Signed 16-bit integer. */
-		kUnsignedShortType,	/**< Unsigned 16-bit integer. */
-		kIntType,		/**< Signed 32-bit integer. */
-		kUnsignedIntType,	/**< Unsigned 32-bit integer. */
-		kFloatType,		/**< Single-precision floating point. */
-		kDoubleType,		/**< Double-precision floating point. */
-	};
+    /** Enumeration of attribute data types. */
+    enum Type {
+        kByteType,                  /**< Signed 8-bit integer. */
+        kUnsignedByteType,          /**< Unsigned 8-bit integer. */
+        kShortType,                 /**< Signed 16-bit integer. */
+        kUnsignedShortType,         /**< Unsigned 16-bit integer. */
+        kIntType,                   /**< Signed 32-bit integer. */
+        kUnsignedIntType,           /**< Unsigned 32-bit integer. */
+        kFloatType,                 /**< Single-precision floating point. */
+        kDoubleType,                /**< Double-precision floating point. */
+    };
 public:
-	Semantic semantic;		/**< Semantic of the attribute. */
-	unsigned index;			/**< Attribute index. */
-	Type type;			/**< Attribute data types. */
-	size_t count;			/**< Number of elements (for vector types). */
-	unsigned buffer;		/**< Index of buffer that will contain the attribute. */
-	size_t offset;			/**< Offset of the attribute within each vertex in the buffer. */
+    Semantic semantic;              /**< Semantic of the attribute. */
+    unsigned index;                 /**< Attribute index. */
+    Type type;                      /**< Attribute data types. */
+    size_t count;                   /**< Number of elements (for vector types). */
+    unsigned buffer;                /**< Index of buffer that will contain the attribute. */
+    size_t offset;                  /**< Offset of the attribute within each vertex in the buffer. */
 public:
-	VertexAttribute() : count(0) {}
+    VertexAttribute() : count(0) {}
 
-	/** @return		Size of the attribute in bytes. */
-	size_t size() const { return size(type, count); }
+    /** @return             Size of the attribute in bytes. */
+    size_t size() const { return size(type, count); }
 
-	/** Get the size of a vertex attribute type.
-	 * @param type		Type to get size of.
-	 * @param count		Number of elements (for vector types). */
-	static size_t size(Type type, size_t count = 1) {
-		switch(type) {
-		case kByteType:
-		case kUnsignedByteType:
-			return sizeof(uint8_t) * count;
-		case kShortType:
-		case kUnsignedShortType:
-			return sizeof(uint16_t) * count;
-		case kIntType:
-		case kUnsignedIntType:
-			return sizeof(uint32_t) * count;
-		case kFloatType:
-			return sizeof(float) * count;
-		case kDoubleType:
-			return sizeof(double) * count;
-		default:
-			return 0;
-		}
-	}
+    /** Get the size of a vertex attribute type.
+     * @param type          Type to get size of.
+     * @param count         Number of elements (for vector types). */
+    static size_t size(Type type, size_t count = 1) {
+        switch (type) {
+            case kByteType:
+            case kUnsignedByteType:
+                return sizeof(uint8_t) * count;
+            case kShortType:
+            case kUnsignedShortType:
+                return sizeof(uint16_t) * count;
+            case kIntType:
+            case kUnsignedIntType:
+                return sizeof(uint32_t) * count;
+            case kFloatType:
+                return sizeof(float) * count;
+            case kDoubleType:
+                return sizeof(double) * count;
+            default:
+                return 0;
+        }
+    }
 };
 
 /** Type of a vertex attribute array. */
@@ -116,20 +116,20 @@ typedef std::vector<VertexAttribute> VertexAttributeArray;
  */
 class GPUVertexFormat : public GPUResource {
 public:
-	/** @return		Array of buffer descriptors. */
-	const VertexBufferLayoutArray &buffers() const { return m_buffers; }
-	/** @return		List of all attributes. */
-	const VertexAttributeArray &attributes() const { return m_attributes; }
+    /** @return             Array of buffer descriptors. */
+    const VertexBufferLayoutArray &buffers() const { return m_buffers; }
+    /** @return             List of all attributes. */
+    const VertexAttributeArray &attributes() const { return m_attributes; }
 protected:
-	GPUVertexFormat(VertexBufferLayoutArray &buffers, VertexAttributeArray &attributes);
+    GPUVertexFormat(VertexBufferLayoutArray &buffers, VertexAttributeArray &attributes);
 protected:
-	/** Array of buffer descriptors. */
-	VertexBufferLayoutArray m_buffers;
-	/** Array of attributes. */
-	VertexAttributeArray m_attributes;
+    /** Array of buffer descriptors. */
+    VertexBufferLayoutArray m_buffers;
+    /** Array of attributes. */
+    VertexAttributeArray m_attributes;
 
-	/* For the default implementation of createVertexFormat(). */
-	friend class GPUInterface;
+    /* For the default implementation of createVertexFormat(). */
+    friend class GPUInterface;
 };
 
 /** Type of a reference to a GPUVertexFormat. */

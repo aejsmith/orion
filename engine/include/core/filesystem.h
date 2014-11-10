@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Filesystem API.
+ * @copyright           2014 Alex Smith
+ * @brief               Filesystem API.
  *
  * Right now this is just a wrapper for a platform-dependent filesystem
  * implementation. Relative paths are relative to the game base directory.
@@ -26,47 +26,47 @@
 
 /** Filesystem entry type enumeration. */
 enum class FileType {
-	kFile,				/**< Regular file. */
-	kDirectory,			/**< Directory. */
-	kOther,				/**< Other. */
+    kFile,                      /**< Regular file. */
+    kDirectory,                 /**< Directory. */
+    kOther,                     /**< Other. */
 };
 
 /** A handle to a regular file allowing I/O on the file. */
 class File : public DataStream {
 public:
-	/** Access modes. */
-	enum Mode {
-		/** Open for reading. */
-		kRead = (1 << 0),
-		/** Open for writing. */
-		kWrite = (1 << 1),
-	};
+    /** Access modes. */
+    enum Mode {
+        /** Open for reading. */
+        kRead = (1 << 0),
+        /** Open for writing. */
+        kWrite = (1 << 1),
+    };
 protected:
-	File() {}
+    File() {}
 };
 
 /** A handle to a directory allowing the directory contents to be iterated. */
 class Directory : Noncopyable {
 public:
-	/** A structure describing a directory entry. */
-	struct Entry {
-		Path name;		/**< Name of the entry. */
-		FileType type;		/**< Type of the entry. */
-	};
+    /** A structure describing a directory entry. */
+    struct Entry {
+        Path name;              /**< Name of the entry. */
+        FileType type;          /**< Type of the entry. */
+    };
 public:
-	virtual ~Directory() {}
+    virtual ~Directory() {}
 
-	/** Reset the directory to the beginning. */
-	virtual void reset() = 0;
+    /** Reset the directory to the beginning. */
+    virtual void reset() = 0;
 
-	/** Get the next directory entry.
-	 * @note		This API ignores '.' and '..' entries.
-	 * @param entry		Entry to fill in.
-	 * @return		True if entry read, false if the end of the
-	 *			directory has been reached or an error occurred. */
-	virtual bool next(Entry &entry) = 0;
+    /** Get the next directory entry.
+     * @note                This API ignores '.' and '..' entries.
+     * @param entry         Entry to fill in.
+     * @return              True if entry read, false if the end of the
+     *                      directory has been reached or an error occurred. */
+    virtual bool next(Entry &entry) = 0;
 protected:
-	Directory() {}
+    Directory() {}
 };
 
 /**
@@ -85,32 +85,32 @@ protected:
  */
 class Filesystem : Noncopyable {
 public:
-	virtual ~Filesystem() {}
+    virtual ~Filesystem() {}
 
-	/** Open a file.
-	 * @param path		Path to file to open.
-	 * @param mode		Mode to open file with (combination of
-	 *			File::Mode flags, defaults to kRead).
-	 * @return		Pointer to opened file, or null on failure. */
-	virtual File *openFile(const Path &path, unsigned mode = File::kRead) = 0;
+    /** Open a file.
+     * @param path          Path to file to open.
+     * @param mode          Mode to open file with (combination of File::Mode
+     *                      flags, defaults to kRead).
+     * @return              Pointer to opened file, or null on failure. */
+    virtual File *openFile(const Path &path, unsigned mode = File::kRead) = 0;
 
-	/** Open a directory.
-	 * @param path		Path to directory to open.
-	 * @return		Pointer to opened directory, or null on failure. */
-	virtual Directory *openDirectory(const Path &path) = 0;
+    /** Open a directory.
+     * @param path          Path to directory to open.
+     * @return              Pointer to opened directory, or null on failure. */
+    virtual Directory *openDirectory(const Path &path) = 0;
 
-	/** Check if a path exists.
-	 * @param path		Path to check.
-	 * @return		Whether the path exists. */
-	virtual bool exists(const Path &path) = 0;
+    /** Check if a path exists.
+     * @param path          Path to check.
+     * @return              Whether the path exists. */
+    virtual bool exists(const Path &path) = 0;
 
-	/** Check if a path exists and is a certain type.
-	 * @param path		Path to check.
-	 * @param type		Type to check for.
-	 * @return		Whether the path exists and is the specified type. */
-	virtual bool isType(const Path &path, FileType type) = 0;
+    /** Check if a path exists and is a certain type.
+     * @param path          Path to check.
+     * @param type          Type to check for.
+     * @return              Whether the path exists and is the specified type. */
+    virtual bool isType(const Path &path, FileType type) = 0;
 protected:
-	Filesystem() {}
+    Filesystem() {}
 };
 
 extern EngineGlobal<Filesystem> g_filesystem;
@@ -118,7 +118,7 @@ extern EngineGlobal<Filesystem> g_filesystem;
 namespace platform {
 
 /** Initialize the platform filesystem interface.
- * @return		Pointer to Filesystem object. */
+ * @return              Pointer to Filesystem object. */
 extern Filesystem *createFilesystem();
 
 }

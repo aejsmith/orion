@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Reference counted object base class.
+ * @copyright           2014 Alex Smith
+ * @brief               Reference counted object base class.
  */
 
 #include "core/refcounted.h"
@@ -13,7 +13,7 @@
  * 0, this is checked.
  */
 Refcounted::~Refcounted() {
-	check(m_refcount == 0);
+    check(m_refcount == 0);
 }
 
 /**
@@ -23,19 +23,19 @@ Refcounted::~Refcounted() {
  * the released() method will be called. The reference count must not currently
  * be 0.
  *
- * @return		New value of the reference count.
+ * @return              New value of the reference count.
  */
 int32_t Refcounted::release() const {
-	check(m_refcount > 0);
+    check(m_refcount > 0);
 
-	int32_t ret = --m_refcount;
-	if(ret == 0)
-		const_cast<Refcounted *>(this)->released();
+    int32_t ret = --m_refcount;
+    if (ret == 0)
+        const_cast<Refcounted *>(this)->released();
 
-	return ret;
+    return ret;
 }
 
 /** Called when the object is released. */
 void Refcounted::released() {
-	delete this;
+    delete this;
 }

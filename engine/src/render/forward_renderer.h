@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Forward rendering scene renderer.
+ * @copyright           2014 Alex Smith
+ * @brief               Forward rendering scene renderer.
  */
 
 #pragma once
@@ -11,10 +11,10 @@
 /** Scene renderer implementing forward rendering. */
 class ForwardRenderer : public SceneRenderer {
 public:
-	ForwardRenderer(Scene *scene, SceneView *view, RenderTarget *target);
+    ForwardRenderer(Scene *scene, SceneView *view, RenderTarget *target);
 
-	/** @return		Render path this renderer implements. */
-	RenderPath path() const override { return RenderPath::kForward; }
+    /** @return             Render path this renderer implements. */
+    RenderPath path() const override { return RenderPath::kForward; }
 
-	void render() override;
+    void render() override;
 };

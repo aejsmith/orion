@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		OpenGL state management.
+ * @copyright           2014 Alex Smith
+ * @brief               OpenGL state management.
  */
 
 #pragma once
@@ -23,101 +23,105 @@ struct GLFeatures;
  * the constructor.
  */
 struct GLState {
-	/** Class holding buffer bindings. */
-	class BufferBindings {
-	public:
-		BufferBindings() :
-			m_arrayBuffer(0),
-			m_elementArrayBuffer(0),
-			m_uniformBuffer(0)
-		{}
+    /** Class holding buffer bindings. */
+    class BufferBindings {
+    public:
+        BufferBindings() :
+            m_arrayBuffer(0),
+            m_elementArrayBuffer(0),
+            m_uniformBuffer(0)
+        {}
 
-		/** @return		Current binding for the specified target. */
-		GLuint &operator [](GLenum target) {
-			switch(target) {
-			case GL_ARRAY_BUFFER:
-				return m_arrayBuffer;
-			case GL_ELEMENT_ARRAY_BUFFER:
-				return m_elementArrayBuffer;
-			case GL_UNIFORM_BUFFER:
-				return m_uniformBuffer;
-			default:
-				unreachable();
-			}
-		}
-	private:
-		GLuint m_arrayBuffer;
-		GLuint m_elementArrayBuffer;
-		GLuint m_uniformBuffer;
-	};
+        /** @return             Current binding for the specified target. */
+        GLuint &operator [](GLenum target) {
+            switch (target) {
+                case GL_ARRAY_BUFFER:
+                    return m_arrayBuffer;
+                case GL_ELEMENT_ARRAY_BUFFER:
+                    return m_elementArrayBuffer;
+                case GL_UNIFORM_BUFFER:
+                    return m_uniformBuffer;
+                default:
+                    unreachable();
+            }
+        }
+    private:
+        GLuint m_arrayBuffer;
+        GLuint m_elementArrayBuffer;
+        GLuint m_uniformBuffer;
+    };
 
-	/** Structure holding texture unit state. */
-	struct TextureUnit {
-		GLenum target;
-		GLuint texture;
-		GLuint sampler;
-	public:
-		TextureUnit() : target(GL_NONE), texture(0), sampler(0) {}
-	};
+    /** Structure holding texture unit state. */
+    struct TextureUnit {
+        GLenum target;
+        GLuint texture;
+        GLuint sampler;
+    public:
+        TextureUnit() :
+            target(GL_NONE),
+            texture(0),
+            sampler(0)
+        {}
+    };
 public:
-	int swapInterval;		/**< Current swap interval. */
+    int swapInterval;               /**< Current swap interval. */
 
-	/** Render target/viewport state. */
-	IntRect viewport;		/**< Current viewport. */
-	glm::ivec2 currentRTSize;	/**< Current render target size. */
+    /** Render target/viewport state. */
+    IntRect viewport;               /**< Current viewport. */
+    glm::ivec2 currentRTSize;       /**< Current render target size. */
 
-	/** Clear state. */
-	glm::vec4 clearColour;
-	float clearDepth;
-	uint32_t clearStencil;
+    /** Clear state. */
+    glm::vec4 clearColour;
+    float clearDepth;
+    uint32_t clearStencil;
 
-	/** Blending state. */
-	bool blendEnabled;
-	GLenum blendEquation;
-	GLenum blendSourceFactor;
-	GLenum blendDestFactor;
+    /** Blending state. */
+    bool blendEnabled;
+    GLenum blendEquation;
+    GLenum blendSourceFactor;
+    GLenum blendDestFactor;
 
-	/** Depth testing state. */
-	bool depthTestEnabled;
-	bool depthWriteEnabled;
-	GLenum depthFunc;
+    /** Depth testing state. */
+    bool depthTestEnabled;
+    bool depthWriteEnabled;
+    GLenum depthFunc;
 
-	/** Object bindings. */
-	BufferBindings boundBuffers;
-	GLuint boundDrawFramebuffer;
-	GLuint boundReadFramebuffer;
-	GLuint boundPipeline;
-	unsigned activeTexture;
-	TextureUnit *textureUnits;
-	GLuint boundVertexArray;
+    /** Object bindings. */
+    BufferBindings boundBuffers;
+    GLuint boundDrawFramebuffer;
+    GLuint boundReadFramebuffer;
+    GLuint boundPipeline;
+    unsigned activeTexture;
+    TextureUnit *textureUnits;
+    GLuint boundVertexArray;
 public:
-	GLState();
-	~GLState();
+    GLState();
+    ~GLState();
 
-	void initResources(GLFeatures &features);
+    void initResources(GLFeatures &features);
 
-	void setSwapInterval(int interval);
-	void setViewport(const IntRect &viewport);
+    void setSwapInterval(int interval);
+    void setViewport(const IntRect &viewport);
 
-	void setClearColour(const glm::vec4 &colour);
-	void setClearDepth(float depth);
-	void setClearStencil(uint32_t stencil);
+    void setClearColour(const glm::vec4 &colour);
+    void setClearDepth(float depth);
+    void setClearStencil(uint32_t stencil);
 
-	void enableBlend(bool enable);
-	void setBlendEquation(GLenum equation);
-	void setBlendFunc(GLenum sourceFactor, GLenum destFactor);
+    void enableBlend(bool enable);
+    void setBlendEquation(GLenum equation);
+    void setBlendFunc(GLenum sourceFactor, GLenum destFactor);
 
-	void enableDepthTest(bool enable);
-	void enableDepthWrite(bool enable);
-	void setDepthFunc(GLenum func);
+    void enableDepthTest(bool enable);
+    void enableDepthWrite(bool enable);
+    void setDepthFunc(GLenum func);
 
-	void bindBuffer(GLenum target, GLuint buffer);
-	void bindBufferBase(GLenum target, GLuint index, GLuint buffer);
-	void bindFramebuffer(GLenum target, GLuint framebuffer);
-	void bindPipeline(GLuint pipeline);
-	void bindSampler(unsigned unit, GLuint sampler);
-	void bindTexture(unsigned unit, GLenum target, GLuint texture);
-	void bindVertexArray(GLuint array);
+    void bindBuffer(GLenum target, GLuint buffer);
+    void bindBufferBase(GLenum target, GLuint index, GLuint buffer);
+    void bindFramebuffer(GLenum target, GLuint framebuffer);
+    void bindPipeline(GLuint pipeline);
+    void bindSampler(unsigned unit, GLuint sampler);
+    void bindTexture(unsigned unit, GLenum target, GLuint texture);
+    void bindVertexArray(GLuint array);
 };
 
 /**
@@ -127,10 +131,10 @@ public:
 /** OpenGL sampler state object implementation. */
 class GLSamplerState : public GPUSamplerState {
 public:
-	GLSamplerState(const GPUSamplerStateDesc &desc);
-	~GLSamplerState();
+    GLSamplerState(const GPUSamplerStateDesc &desc);
+    ~GLSamplerState();
 
-	void bind(unsigned index);
+    void bind(unsigned index);
 private:
-	GLuint m_sampler;		/**< Sampler object. */
+    GLuint m_sampler;               /**< Sampler object. */
 };

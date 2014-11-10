@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		OpenGL pipeline implementation.
+ * @copyright           2014 Alex Smith
+ * @brief               OpenGL pipeline implementation.
  */
 
 #pragma once
@@ -11,14 +11,14 @@
 /** OpenGL pipeline implementation. */
 class GLPipeline : public GPUPipeline {
 public:
-	explicit GLPipeline(const GPUShaderArray &shaders);
-	~GLPipeline();
+    explicit GLPipeline(const GPUShaderArray &shaders);
+    ~GLPipeline();
 
-	void bind();
+    void bind();
 
-	/** Get the pipeline object ID.
-	 * @return		Pipeline object ID. */
-	GLuint pipeline() const { return m_pipeline; }
+    /** Get the pipeline object ID.
+     * @return              Pipeline object ID. */
+    GLuint pipeline() const { return m_pipeline; }
 private:
-	GLuint m_pipeline;		/**< Pipeline object ID. */
+    GLuint m_pipeline;              /**< Pipeline object ID. */
 };

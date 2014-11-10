@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Scene entity base class.
+ * @copyright           2014 Alex Smith
+ * @brief               Scene entity base class.
  */
 
 #include "render/scene_entity.h"
@@ -15,10 +15,10 @@ SceneEntity::SceneEntity() {}
 SceneEntity::~SceneEntity() {}
 
 /** Private function called from Scene to set the transformation.
- * @param transform	New transformation. */
+ * @param transform     New transformation. */
 void SceneEntity::setTransform(const Transform &transform) {
-	m_transform = transform;
+    m_transform = transform;
 
-	m_uniforms->transform = m_transform.matrix();
-	m_uniforms->position = m_transform.position();
+    m_uniforms->transform = m_transform.matrix();
+    m_uniforms->position = m_transform.position();
 }

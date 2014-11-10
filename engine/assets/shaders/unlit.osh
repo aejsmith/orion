@@ -1,15 +1,15 @@
 {
-	"parameters": {
-		"diffuseTexture": "Texture"
-	},
-	"passes": [
-		{
-			"type": "Forward",
-			"vertex": {"source": "engine/shaders/unlit_vtx.glsl"},
-			"fragment": {
-				"source": "engine/shaders/unlit_frag.glsl",
-				"keywords": ["TEXTURED"]
-			}
-		}
-	]
+    "parameters": {
+        "diffuseTexture": "Texture"
+    },
+    "passes": [
+        {
+            "type": "Forward",
+            "vertex": {"source": "engine/shaders/unlit_vtx.glsl"},
+            "fragment": {
+                "source": "engine/shaders/unlit_frag.glsl",
+                "keywords": ["TEXTURED"]
+            }
+        }
+    ]
 }

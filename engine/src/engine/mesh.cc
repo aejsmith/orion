@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Mesh asset class.
+ * @copyright           2014 Alex Smith
+ * @brief               Mesh asset class.
  */
 
 #include "engine/mesh.h"
@@ -18,22 +18,22 @@ Mesh::Mesh() {}
 
 /** Destroy the mesh and all submeshes. */
 Mesh::~Mesh() {
-	for(SubMesh *subMesh : m_children)
-		delete subMesh;
+    for (SubMesh *subMesh : m_children)
+        delete subMesh;
 }
 
 /** Look up a material index from a name.
- * @param name		Name of the material.
- * @param index		Where to store index.
- * @return		Whether the material name is known. */
+ * @param name          Name of the material.
+ * @param index         Where to store index.
+ * @return              Whether the material name is known. */
 bool Mesh::material(const std::string &name, size_t &index) const {
-	auto ret = m_materials.find(name);
-	if(ret != m_materials.end()) {
-		index = ret->second;
-		return true;
-	} else {
-		return false;
-	}
+    auto ret = m_materials.find(name);
+    if (ret != m_materials.end()) {
+        index = ret->second;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 /**
@@ -45,12 +45,12 @@ bool Mesh::material(const std::string &name, size_t &index) const {
  * mesh has no shared vertex data, vertex data must be specified in the submesh.
  * The indices pointer can be set to specify the vertex indices.
  *
- * @return		Pointer to created submesh.
+ * @return              Pointer to created submesh.
  */
 SubMesh *Mesh::addSubMesh() {
-	SubMesh *subMesh = new SubMesh(this);
-	m_children.push_back(subMesh);
-	return subMesh;
+    SubMesh *subMesh = new SubMesh(this);
+    m_children.push_back(subMesh);
+    return subMesh;
 }
 
 /**
@@ -60,12 +60,12 @@ SubMesh *Mesh::addSubMesh() {
  * which allows materials to be set by name on the mesh renderer. The name maps
  * to an index, which can be set in a SubMesh to refer to the material slot.
  *
- * @param name		Name for the material slot.
+ * @param name          Name for the material slot.
  *
- * @return		Index that the name maps to. If the name already exists,
- *			the existing index will be returned.
+ * @return              Index that the name maps to. If the name already exists,
+ *                      the existing index will be returned.
  */
 size_t Mesh::addMaterial(const std::string &name) {
-	auto ret = m_materials.insert(std::make_pair(name, m_materials.size()));
-	return ret.first->second;
+    auto ret = m_materials.insert(std::make_pair(name, m_materials.size()));
+    return ret.first->second;
 }

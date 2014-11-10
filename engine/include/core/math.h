@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Math library.
+ * @copyright           2014 Alex Smith
+ * @brief               Math library.
  */
 
 #pragma once

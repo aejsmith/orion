@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Vertex data class.
+ * @copyright           2014 Alex Smith
+ * @brief               Vertex data class.
  */
 
 #pragma once
@@ -23,21 +23,21 @@
  */
 class GPUVertexData : public GPUResource {
 public:
-	/** @return		Total number of vertices. */
-	size_t count() const { return m_count; }
-	/** @return		Pointer to vertex format descriptor. */
-	GPUVertexFormat *format() const { return m_format; }
-	/** @return		GPU buffer array. */
-	const GPUBufferArray &buffers() const { return m_buffers; }
+    /** @return             Total number of vertices. */
+    size_t count() const { return m_count; }
+    /** @return             Pointer to vertex format descriptor. */
+    GPUVertexFormat *format() const { return m_format; }
+    /** @return             GPU buffer array. */
+    const GPUBufferArray &buffers() const { return m_buffers; }
 protected:
-	GPUVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers);
+    GPUVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers);
 protected:
-	size_t m_count;			/**< Vertex count. */
-	GPUVertexFormatPtr m_format;	/**< Vertex format. */
-	GPUBufferArray m_buffers;	/**< Vector of vertex buffers. */
+    size_t m_count;                 /**< Vertex count. */
+    GPUVertexFormatPtr m_format;    /**< Vertex format. */
+    GPUBufferArray m_buffers;       /**< Vector of vertex buffers. */
 
-	/* For the default implementation of createVertexData(). */
-	friend class GPUInterface;
+    /* For the default implementation of createVertexData(). */
+    friend class GPUInterface;
 };
 
 /** Type of a reference to GPUVertexData. */

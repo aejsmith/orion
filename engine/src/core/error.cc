@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Error handling functions.
+ * @copyright           2014 Alex Smith
+ * @brief               Error handling functions.
  */
 
 #include "core/core.h"
@@ -18,29 +18,29 @@
  * displays an error message to the user. This function does not return.
  *
  * @param
- * @param fmt		Format string for error message.
- * @param ...		Arguments to substitute into format string.
+ * @param fmt           Format string for error message.
+ * @param ...           Arguments to substitute into format string.
  */
 void __fatal(const char *file, int line, const char *fmt, ...) {
-	va_list args;
+    va_list args;
 
-	va_start(args, fmt);
-	std::string str = util::format("Fatal Error (at %s:%d): ", file, line) + util::format(fmt, args);
-	va_end(args);
+    va_start(args, fmt);
+    std::string str = util::format("Fatal Error (at %s:%d): ", file, line) + util::format(fmt, args);
+    va_end(args);
 
-	if(g_logManager) {
-		g_logManager->write(LogLevel::kError, file, line, "%s", str.c_str());
-	} else {
-		fprintf(stderr, "%s\n", str.c_str());
-	}
+    if (g_logManager) {
+        g_logManager->write(LogLevel::kError, file, line, "%s", str.c_str());
+    } else {
+        fprintf(stderr, "%s\n", str.c_str());
+    }
 
-	#ifdef ORION_BUILD_DEBUG
-		/* For a debug build, we can core dump or break into the
-		 * debugger. */
-		abort();
-	#else
-		/* This works even when SDL is not initialized. */
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal Error", str.c_str(), NULL);
-		_Exit(EXIT_FAILURE);
-	#endif
+    #ifdef ORION_BUILD_DEBUG
+        /* For a debug build, we can core dump or break into the
+         * debugger. */
+        abort();
+    #else
+        /* This works even when SDL is not initialized. */
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal Error", str.c_str(), NULL);
+        _Exit(EXIT_FAILURE);
+    #endif
 }

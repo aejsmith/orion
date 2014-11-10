@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Behaviour component.
+ * @copyright           2014 Alex Smith
+ * @brief               Behaviour component.
  */
 
 #pragma once
@@ -18,8 +18,8 @@
  */
 class BehaviourComponent : public Component {
 public:
-	DECLARE_COMPONENT(Component::kBehaviourType);
+    DECLARE_COMPONENT(Component::kBehaviourType);
 protected:
-	BehaviourComponent(Entity *entity) : Component(Component::kBehaviourType, entity) {}
-	~BehaviourComponent() {}
+    BehaviourComponent(Entity *entity) : Component(Component::kBehaviourType, entity) {}
+    ~BehaviourComponent() {}
 };

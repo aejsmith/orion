@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Index data class.
+ * @copyright           2014 Alex Smith
+ * @brief               Index data class.
  */
 
 #pragma once
@@ -18,46 +18,46 @@
  */
 class GPUIndexData : public GPUResource {
 public:
-	/** Type of index elements. */
-	enum Type {
-		kUnsignedByteType,	/**< Unsigned 8-bit. */
-		kUnsignedShortType,	/**< Unsigned 16-bit. */
-		kUnsignedIntType,	/**< Unsigned 32-bit. */
-	};
+    /** Type of index elements. */
+    enum Type {
+        kUnsignedByteType,          /**< Unsigned 8-bit. */
+        kUnsignedShortType,         /**< Unsigned 16-bit. */
+        kUnsignedIntType,           /**< Unsigned 32-bit. */
+    };
 public:
-	/** @return		Buffer containing index data. */
-	GPUBuffer *buffer() const { return m_buffer; }
-	/** @return		Type of index elements. */
-	Type type() const { return m_type; }
-	/** @return		Number of indices. */
-	size_t count() const { return m_count; }
-	/** @return		Size of a single index element. */
-	size_t elementSize() const { return elementSize(m_type); }
+    /** @return             Buffer containing index data. */
+    GPUBuffer *buffer() const { return m_buffer; }
+    /** @return             Type of index elements. */
+    Type type() const { return m_type; }
+    /** @return             Number of indices. */
+    size_t count() const { return m_count; }
+    /** @return             Size of a single index element. */
+    size_t elementSize() const { return elementSize(m_type); }
 
-	/** Get the size of a buffer element of a certain type.
-	 * @param type		Type of buffer element.
-	 * @return		Size of element. */
-	static size_t elementSize(Type type) {
-		switch(type) {
-		case kUnsignedByteType:
-			return 1;
-		case kUnsignedShortType:
-			return 2;
-		case kUnsignedIntType:
-			return 4;
-		default:
-			return 0;
-		}
-	}
+    /** Get the size of a buffer element of a certain type.
+     * @param type          Type of buffer element.
+     * @return              Size of element. */
+    static size_t elementSize(Type type) {
+        switch (type) {
+        case kUnsignedByteType:
+            return 1;
+        case kUnsignedShortType:
+            return 2;
+        case kUnsignedIntType:
+            return 4;
+        default:
+            return 0;
+        }
+    }
 protected:
-	GPUIndexData(GPUBuffer *buffer, Type type, size_t count);
+    GPUIndexData(GPUBuffer *buffer, Type type, size_t count);
 protected:
-	GPUBufferPtr m_buffer;		/**< Buffer containing index data. */
-	Type m_type;			/**< Type of index elements. */
-	size_t m_count;			/**< Number of indices. */
+    GPUBufferPtr m_buffer;          /**< Buffer containing index data. */
+    Type m_type;                    /**< Type of index elements. */
+    size_t m_count;                 /**< Number of indices. */
 
-	/* For the default implementation of createIndexData(). */
-	friend class GPUInterface;
+    /* For the default implementation of createIndexData(). */
+    friend class GPUInterface;
 };
 
 /** Type of a reference to GPUIndexData */

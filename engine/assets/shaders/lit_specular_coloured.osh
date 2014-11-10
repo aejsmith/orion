@@ -1,17 +1,17 @@
 {
-	"parameters": {
-		"shininess": "Float",
-		"specularColour": "Vec3",
-		"diffuseColour": "Vec3"
-	},
-	"passes": [
-		{
-			"type": "Forward",
-			"vertex": {"source": "engine/shaders/lit_vtx.glsl"},
-			"fragment": {
-				"source": "engine/shaders/lit_frag.glsl",
-				"keywords": ["SPECULAR"]
-			}
-		}
-	]
+    "parameters": {
+        "shininess": "Float",
+        "specularColour": "Vec3",
+        "diffuseColour": "Vec3"
+    },
+    "passes": [
+        {
+            "type": "Forward",
+            "vertex": {"source": "engine/shaders/lit_vtx.glsl"},
+            "fragment": {
+                "source": "engine/shaders/lit_frag.glsl",
+                "keywords": ["SPECULAR"]
+            }
+        }
+    ]
 }

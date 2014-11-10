@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Base asset class.
+ * @copyright           2014 Alex Smith
+ * @brief               Base asset class.
  */
 
 #include "engine/asset.h"
@@ -9,8 +9,8 @@
 
 /** Called when the asset reference count reaches 0. */
 void Asset::released() {
-	if(managed())
-		g_assetManager->unregisterAsset(this);
+    if (managed())
+        g_assetManager->unregisterAsset(this);
 
-	delete this;
+    delete this;
 }

@@ -1,7 +1,7 @@
 /**
  * @file
- * @copyright		2014 Alex Smith
- * @brief		Render target base class.
+ * @copyright           2014 Alex Smith
+ * @brief               Render target base class.
  */
 
 #pragma once
@@ -22,56 +22,56 @@ class RenderTarget;
  */
 class RenderLayer {
 public:
-	/** Standard layer order values. */
-	enum {
-		/** Default camera order. */
-		kCameraLayerOrder = 0,
-		/** GUI order. */
-		kGUILayerOrder = 90,
-		/** Console order. */
-		kConsoleLayerOrder = 100,
-	};
+    /** Standard layer order values. */
+    enum {
+        /** Default camera order. */
+        kCameraLayerOrder = 0,
+        /** GUI order. */
+        kGUILayerOrder = 90,
+        /** Console order. */
+        kConsoleLayerOrder = 100,
+    };
 public:
-	virtual ~RenderLayer();
+    virtual ~RenderLayer();
 
-	void setRenderTarget(RenderTarget *target);
-	void setViewport(const Rect &viewport);
-	void setLayerOrder(unsigned order);
+    void setRenderTarget(RenderTarget *target);
+    void setViewport(const Rect &viewport);
+    void setLayerOrder(unsigned order);
 
-	/** @return		Render target. */
-	RenderTarget *renderTarget() const { return m_renderTarget; }
-	/** @return		Normalized viewport rectangle. */
-	const Rect &viewport() const { return m_viewport; }
-	/** @return		Pixel (screen-space) viewport rectangle. */
-	const IntRect &pixelViewport() const { return m_pixelViewport; }
-	/** @return		Layer order. */
-	unsigned layerOrder() const { return m_layerOrder; }
+    /** @return             Render target. */
+    RenderTarget *renderTarget() const { return m_renderTarget; }
+    /** @return             Normalized viewport rectangle. */
+    const Rect &viewport() const { return m_viewport; }
+    /** @return             Pixel (screen-space) viewport rectangle. */
+    const IntRect &pixelViewport() const { return m_pixelViewport; }
+    /** @return             Layer order. */
+    unsigned layerOrder() const { return m_layerOrder; }
 
-	/**
-	 * Render the layer.
-	 *
-	 * Renders the layer. The render target and viewport will have been set.
-	 * It is up to this function to clear if necessary and to configure
-	 * blending between this layer and the previous layer.
-	 */
-	virtual void render() = 0;
+    /**
+     * Render the layer.
+     *
+     * Renders the layer. The render target and viewport will have been set.
+     * It is up to this function to clear if necessary and to configure
+     * blending between this layer and the previous layer.
+     */
+    virtual void render() = 0;
 protected:
-	RenderLayer();
+    RenderLayer();
 
-	void registerLayer();
-	void unregisterLayer();
+    void registerLayer();
+    void unregisterLayer();
 
-	/** Called when the render target is changed. */
-	virtual void renderTargetChanged() {}
+    /** Called when the render target is changed. */
+    virtual void renderTargetChanged() {}
 
-	/** Called when the viewport is changed. */
-	virtual void viewportChanged() {}
+    /** Called when the viewport is changed. */
+    virtual void viewportChanged() {}
 private:
-	RenderTarget *m_renderTarget;	/**< Render target for the camera. */
-	Rect m_viewport;		/**< Normalized viewport rectangle. */
-	IntRect m_pixelViewport;	/**< Pixel viewport coordinates. */
-	unsigned m_layerOrder;		/**< Layer order value. */
-	bool m_registered;		/**< Whether the layer is registered. */
+    RenderTarget *m_renderTarget;   /**< Render target for the camera. */
+    Rect m_viewport;                /**< Normalized viewport rectangle. */
+    IntRect m_pixelViewport;        /**< Pixel viewport coordinates. */
+    unsigned m_layerOrder;          /**< Layer order value. */
+    bool m_registered;              /**< Whether the layer is registered. */
 };
 
 /**
@@ -88,41 +88,41 @@ private:
  */
 class RenderTarget {
 public:
-	/** Rendering priorities. */
-	enum {
-		/** High priority render texture (rendered first). */
-		kTextureHighPriority,
-		/** Medium priority render texture. */
-		kTextureMediumPriority,
-		/** Low priority render texture. */
-		kTextureLowPriority,
-		/** Main window (rendered last). */
-		kWindowPriority,
-	};
+    /** Rendering priorities. */
+    enum {
+        /** High priority render texture (rendered first). */
+        kTextureHighPriority,
+        /** Medium priority render texture. */
+        kTextureMediumPriority,
+        /** Low priority render texture. */
+        kTextureLowPriority,
+        /** Main window (rendered last). */
+        kWindowPriority,
+    };
 
-	/** Type of the registered layer list. */
-	typedef std::list<RenderLayer *> LayerList;
+    /** Type of the registered layer list. */
+    typedef std::list<RenderLayer *> LayerList;
 public:
-	virtual ~RenderTarget();
+    virtual ~RenderTarget();
 
-	/** @return		Width of the render target (in pixels). */
-	virtual uint32_t width() const = 0;
-	/** @return		Height of the render target (in pixels). */
-	virtual uint32_t height() const = 0;
+    /** @return             Width of the render target (in pixels). */
+    virtual uint32_t width() const = 0;
+    /** @return             Height of the render target (in pixels). */
+    virtual uint32_t height() const = 0;
 
-	/** @return		Rendering priority. */
-	unsigned priority() const { return m_priority; }
+    /** @return             Rendering priority. */
+    unsigned priority() const { return m_priority; }
 
-	void addLayer(RenderLayer *layer);
-	void removeLayer(RenderLayer *layer);
+    void addLayer(RenderLayer *layer);
+    void removeLayer(RenderLayer *layer);
 
-	void render();
+    void render();
 
-	/** Set the render target. */
-	virtual void set() = 0;
+    /** Set the render target. */
+    virtual void set() = 0;
 protected:
-	explicit RenderTarget(unsigned priority);
+    explicit RenderTarget(unsigned priority);
 private:
-	unsigned m_priority;		/**< Rendering priority. */
-	LayerList m_layers;		/**< Registered layers. */
+    unsigned m_priority;            /**< Rendering priority. */
+    LayerList m_layers;             /**< Registered layers. */
 };
