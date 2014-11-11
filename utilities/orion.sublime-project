@@ -1,0 +1,21 @@
+{
+    "folders": [
+        {
+            "path": "..",
+            "folder_exclude_patterns": ["build"],
+            "file_exclude_patterns": [
+                "*.pyc",
+                "*.pyo",
+                ".DS_Store",
+                "*.db",
+                ".hg*",
+                ".git*",
+                ".sconsign.dblite"
+            ]
+        }
+    ],
+    "settings": {
+        "tab_size": 4,
+        "translate_tabs_to_spaces": true
+    }
+}
