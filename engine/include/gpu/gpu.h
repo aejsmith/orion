@@ -44,10 +44,20 @@ public:
      * Resource creation methods.
      */
 
+    /** Create a blend state object.
+     * @param desc          Descriptor for blend state.
+     * @return              Created blend state object. */
+    virtual GPUBlendStatePtr createBlendState(const GPUBlendStateDesc &desc) = 0;
+
     /** Create a GPU buffer.
      * @see                 GPUBuffer::GPUBuffer().
      * @return              Pointer to created buffer. */
     virtual GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) = 0;
+
+    /** Create a depth/stencil state object.
+     * @param desc          Descriptor for depth/stencil state.
+     * @return              Created depth/stencil state object. */
+    virtual GPUDepthStencilStatePtr createDepthStencilState(const GPUDepthStencilStateDesc &desc) = 0;
 
     /** Create an index data object.
      * @see                 GPUIndexData::GPUIndexData().
@@ -134,35 +144,13 @@ public:
      * @param buffer        Buffer to bind. */
     virtual void bindUniformBuffer(unsigned index, GPUBuffer *buffer) = 0;
 
-    /**
-     * Set the blending mode.
-     *
-     * Sets the colour blending mode, which determines how fragment colour
-     * outputs are combined with the values already in the colour buffers. The
-     * default arguments set the blend mode to add, the source factor to one,
-     * and the destination factor to zero. This effectively disables blending.
-     *
-     * @param func          Blending function.
-     * @param sourceFactor  Source blend factor.
-     * @param destFactor    Destination factor.
-     */
-    virtual void setBlendMode(
-        BlendFunc func = BlendFunc::kAdd,
-        BlendFactor sourceFactor = BlendFactor::kOne,
-        BlendFactor destFactor = BlendFactor::kZero) = 0;
+    /** Set the blend state.
+     * @param state         Blend state to set. */
+    virtual void setBlendState(GPUBlendState *state) = 0;
 
-    /**
-     * Set the depth testing mode.
-     *
-     * Sets the depth testing mode. The default arguments set the function
-     * to less than or equal, and enables writes to the depth buffer.
-     *
-     * @param func          Depth comparison function.
-     * @param enableWrite   Whether to enable depth writes.
-     */
-    virtual void setDepthMode(
-        ComparisonFunc func = ComparisonFunc::kLessOrEqual,
-        bool enableWrite = true) = 0;
+    /** Set the depth/stencil state.
+     * @param state         Depth/stencil state to set. */
+    virtual void setDepthStencilState(GPUDepthStencilState *state) = 0;
 
     /**
      * Set the render targets.
@@ -206,8 +194,29 @@ public:
      * @param vertices      Vertex data to use.
      * @param indices       Index data to use (can be null). */
     virtual void draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) = 0;
+
+    /**
+     * Constant state methods.
+     *
+     * These methods are used to set GPU state to constant values known at
+     * compile time. They are a shortcut which avoids a hash lookup for a
+     * matching state object at every call.
+     */
+
+    template <
+        BlendFunc func = BlendFunc::kAdd,
+        BlendFactor sourceFactor = BlendFactor::kOne,
+        BlendFactor destFactor = BlendFactor::kZero>
+    void setBlendState();
+
+    template <
+        ComparisonFunc depthFunc = ComparisonFunc::kLessOrEqual,
+        bool depthWrite = true>
+    void setDepthStencilState();
 protected:
     GPUInterface() {}
 };
 
 extern EngineGlobal<GPUInterface> g_gpu;
+
+#include "gpu/const_state.h"

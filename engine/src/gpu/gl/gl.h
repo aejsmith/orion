@@ -36,8 +36,8 @@ struct GLFeatures {
     std::set<std::string> extensions;
 
     /** Cached glGet* parameters. */
-    GLfloat maxAnisotropy;          /**< GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT */
-    GLint maxTextureUnits;          /**< GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS */
+    GLfloat maxAnisotropy;              /**< GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT */
+    GLint maxTextureUnits;              /**< GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS */
 public:
     /** Check whether an extension is supported.
      * @param extension     Extension to check for.
@@ -49,9 +49,9 @@ public:
 
 /** Structure mapping PixelFormat to GL types. */
 struct GLPixelFormat {
-    GLenum internalFormat;          /**< Internal texture format. */
-    GLenum format;                  /**< Pixel data format. */
-    GLenum type;                    /**< Pixel data type. */
+    GLenum internalFormat;              /**< Internal texture format. */
+    GLenum format;                      /**< Pixel data format. */
+    GLenum type;                        /**< Pixel data type. */
 public:
     GLPixelFormat(GLenum i = GL_NONE, GLenum f = GL_NONE, GLenum t = GL_NONE) :
         internalFormat(i),
@@ -75,7 +75,9 @@ public:
      * GPU interface methods.
      */
 
+    GPUBlendStatePtr createBlendState(const GPUBlendStateDesc &desc) override;
     GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) override;
+    GPUDepthStencilStatePtr createDepthStencilState(const GPUDepthStencilStateDesc &desc) override;
     GPUPipelinePtr createPipeline(const GPUShaderArray &shaders) override;
     GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) override;
     GPUTexturePtr createTexture(const GPUTexture2DDesc &desc) override;
@@ -89,8 +91,8 @@ public:
     void bindPipeline(GPUPipeline *pipeline) override;
     void bindTexture(unsigned index, GPUTexture *texture, GPUSamplerState *sampler) override;
     void bindUniformBuffer(unsigned index, GPUBuffer *buffer) override;
-    void setBlendMode(BlendFunc func, BlendFactor sourceFactor, BlendFactor destFactor) override;
-    void setDepthMode(ComparisonFunc func, bool enableWrite) override;
+    void setBlendState(GPUBlendState *state) override;
+    void setDepthStencilState(GPUDepthStencilState *state) override;
     void setRenderTarget(const GPURenderTargetDesc *target) override;
     void setViewport(const IntRect &viewport) override;
 
@@ -105,10 +107,10 @@ public:
 
     void invalidateFBOs(const GLTexture *texture);
 public:
-    GLFeatures features;            /**< GL feature information. */
-    PixelFormatArray pixelFormats;  /**< Mapping of engine pixel formats to GL types. */
-    GLState state;                  /**< Cached GL state. */
-    GLuint defaultVertexArray;      /**< Default VAO when no object-specific VAO is in use. */
+    GLFeatures features;                /**< GL feature information. */
+    PixelFormatArray pixelFormats;      /**< Mapping of engine pixel formats to GL types. */
+    GLState state;                      /**< Cached GL state. */
+    GLuint defaultVertexArray;          /**< Default VAO when no object-specific VAO is in use. */
 private:
     void initFeatures();
     void initPixelFormats();
@@ -122,9 +124,11 @@ private:
         const GLchar *message,
         const GLvoid *param);
 private:
-    SDL_GLContext m_sdlContext;     /**< SDL GL context. */
+    SDL_GLContext m_sdlContext;         /**< SDL GL context. */
 
-    /** Hash table of created sampler state objects. */
+    /** Hash tables of created state objects. */
+    HashTable<GPUBlendStateDesc, GPUBlendStatePtr> m_blendStates;
+    HashTable<GPUDepthStencilStateDesc, GPUDepthStencilStatePtr> m_depthStencilStates;
     HashTable<GPUSamplerStateDesc, GPUSamplerStatePtr> m_samplerStates;
 
     /** Hash table of cached FBOs. */

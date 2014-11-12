@@ -23,7 +23,57 @@ protected:
     Desc m_desc;                    /**< State descriptor. */
 };
 
-/** GPU sampler state descriptor. */
+/** Blending state descriptor. */
+struct GPUBlendStateDesc {
+    BlendFunc func;                 /**< Blending function. */
+    BlendFactor sourceFactor;       /**< Source factor. */
+    BlendFactor destFactor;         /**< Destination factor. */
+public:
+    /** Compare this descriptor with another. */
+    bool operator ==(const GPUBlendStateDesc &other) const {
+        return func == other.func && sourceFactor == other.sourceFactor && destFactor == other.destFactor;
+    }
+
+    /** Get a hash from a blend state descriptor. */
+    friend size_t hashValue(const GPUBlendStateDesc &desc) {
+        size_t hash = hashValue(desc.func);
+        hash = hashCombine(hash, desc.sourceFactor);
+        hash = hashCombine(hash, desc.destFactor);
+        return hash;
+    }
+};
+
+/** Blend state object. */
+typedef GPUState<GPUBlendStateDesc> GPUBlendState;
+
+/** Type of a pointer to a GPU blend state object. */
+typedef GPUResourcePtr<GPUBlendState> GPUBlendStatePtr;
+
+/** Depth/stencil state descriptor. */
+struct GPUDepthStencilStateDesc {
+    ComparisonFunc depthFunc;       /**< Depth comparison function. */
+    bool depthWrite;                /**< Whether to enable depth buffer writes. */
+public:
+    /** Compare this descriptor with another. */
+    bool operator ==(const GPUDepthStencilStateDesc &other) const {
+        return depthFunc == other.depthFunc && depthWrite == other.depthWrite;
+    }
+
+    /** Get a hash from a depth/stencil state descriptor. */
+    friend size_t hashValue(const GPUDepthStencilStateDesc &desc) {
+        size_t hash = hashValue(desc.depthFunc);
+        hash = hashCombine(hash, desc.depthWrite);
+        return hash;
+    }
+};
+
+/** Depth/stencil state object. */
+typedef GPUState<GPUDepthStencilStateDesc> GPUDepthStencilState;
+
+/** Type of a pointer to a GPU depth/stencil state object. */
+typedef GPUResourcePtr<GPUDepthStencilState> GPUDepthStencilStatePtr;
+
+/** Texture sampler state descriptor. */
 struct GPUSamplerStateDesc {
     SamplerFilterMode filterMode;   /**< Filtering mode. */
     unsigned maxAnisotropy;         /**< Anisotropic filtering level. */
@@ -54,5 +104,5 @@ public:
 /** Texture sampler state object. */
 typedef GPUState<GPUSamplerStateDesc> GPUSamplerState;
 
-/** Type of a pointer to a GPU sampler state. */
+/** Type of a pointer to a GPU sampler state object. */
 typedef GPUResourcePtr<GPUSamplerState> GPUSamplerStatePtr;

@@ -36,8 +36,8 @@ void ForwardRenderer::render() {
     /* For the first light we don't need blending, and want depth writes on.
      * FIXME: These should be defaults for the GPU interface here and when
      * this is called this should be expected to be the current state. */
-    g_gpu->setBlendMode();
-    g_gpu->setDepthMode();
+    g_gpu->setBlendState<>();
+    g_gpu->setDepthStencilState<>();
 
     // FIXME: basic materials
 
@@ -58,7 +58,7 @@ void ForwardRenderer::render() {
 
         /* After the first iteration, we want to blend the remaining lights, and
          * we can turn depth writes off. */
-        g_gpu->setBlendMode(BlendFunc::kAdd, BlendFactor::kOne, BlendFactor::kOne);
-        g_gpu->setDepthMode(ComparisonFunc::kEqual, true);
+        g_gpu->setBlendState<BlendFunc::kAdd, BlendFactor::kOne, BlendFactor::kOne>();
+        g_gpu->setDepthStencilState<ComparisonFunc::kEqual, true>();
     }
 }

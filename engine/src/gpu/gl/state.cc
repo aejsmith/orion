@@ -288,6 +288,69 @@ void GLState::bindVertexArray(GLuint array) {
  * State object management.
  */
 
+/** Create a blend state object.
+ * @param desc          Descriptor for blend state.
+ * @return              Created blend state object. */
+GPUBlendStatePtr GLGPUInterface::createBlendState(const GPUBlendStateDesc &desc) {
+    auto exist = m_blendStates.find(desc);
+    if (exist != m_blendStates.end())
+        return exist->second;
+
+    GLBlendState *state = new GLBlendState(desc);
+
+    state->enable =
+        desc.func != BlendFunc::kAdd ||
+        desc.sourceFactor != BlendFactor::kOne ||
+        desc.destFactor != BlendFactor::kZero;
+    state->blendEquation = gl::convertBlendFunc(desc.func);
+    state->sourceFactor = gl::convertBlendFactor(desc.sourceFactor);
+    state->destFactor = gl::convertBlendFactor(desc.destFactor);
+
+    auto ret = m_blendStates.insert(std::make_pair(desc, GPUBlendStatePtr(state)));
+    return ret.first->second;
+}
+
+/** Set the blend state.
+ * @param state         Blend state to set. */
+void GLGPUInterface::setBlendState(GPUBlendState *state) {
+    GLBlendState *glState = static_cast<GLBlendState *>(state);
+
+    this->state.enableBlend(glState->enable);
+    this->state.setBlendEquation(glState->blendEquation);
+    this->state.setBlendFunc(glState->sourceFactor, glState->destFactor);
+}
+
+/** Create a depth/stencil state object.
+ * @param desc          Descriptor for depth/stencil state.
+ * @return              Created depth/stencil state object. */
+GPUDepthStencilStatePtr GLGPUInterface::createDepthStencilState(const GPUDepthStencilStateDesc &desc) {
+    auto exist = m_depthStencilStates.find(desc);
+    if (exist != m_depthStencilStates.end())
+        return exist->second;
+
+    GLDepthStencilState *state = new GLDepthStencilState(desc);
+
+    /* Documentation for glDepthFunc: "Even if the depth buffer exists and the
+     * depth mask is non-zero, the depth buffer is not updated if the depth test
+     * is disabled". */
+    state->depthEnable = desc.depthFunc != ComparisonFunc::kAlways || desc.depthWrite;
+    state->depthFunc = gl::convertComparisonFunc(desc.depthFunc);
+
+    auto ret = m_depthStencilStates.insert(std::make_pair(desc, GPUDepthStencilStatePtr(state)));
+    return ret.first->second;
+}
+
+/** Set the depth/stencil state.
+ * @param state         State to set. */
+void GLGPUInterface::setDepthStencilState(GPUDepthStencilState *state) {
+    GLDepthStencilState *glState = static_cast<GLDepthStencilState *>(state);
+    const GPUDepthStencilStateDesc &desc = state->desc();
+
+    this->state.enableDepthTest(glState->depthEnable);
+    this->state.enableDepthWrite(desc.depthWrite);
+    this->state.setDepthFunc(glState->depthFunc);
+}
+
 /** Initialize a GL sampler state object.
  * @param desc          Descriptor for sampler state. */
 GLSamplerState::GLSamplerState(const GPUSamplerStateDesc &desc) :

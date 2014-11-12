@@ -128,6 +128,24 @@ public:
  * GPU state objects.
  */
 
+/** OpenGL blend state object implementation. */
+struct GLBlendState : public GPUBlendState {
+    bool enable;                    /**< Whether to enable blending. */
+    GLenum blendEquation;           /**< GL blend equation. */
+    GLenum sourceFactor;            /**< GL source factor. */
+    GLenum destFactor;              /**< GL destination factor. */
+public:
+    GLBlendState(const GPUBlendStateDesc &desc) : GPUBlendState(desc) {}
+};
+
+/** OpenGL depth/stencil state object implementation. */
+struct GLDepthStencilState : public GPUDepthStencilState {
+    bool depthEnable;               /**< Whether to enable depth test. */
+    GLenum depthFunc;               /**< Comparison function. */
+public:
+    GLDepthStencilState(const GPUDepthStencilStateDesc &desc) : GPUDepthStencilState(desc) {}
+};
+
 /** OpenGL sampler state object implementation. */
 class GLSamplerState : public GPUSamplerState {
 public:

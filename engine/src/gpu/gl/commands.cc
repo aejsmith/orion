@@ -40,37 +40,6 @@ void GLGPUInterface::bindUniformBuffer(unsigned index, GPUBuffer *buffer) {
     glBuffer->bindIndexed(index);
 }
 
-/** Set the blending mode.
- * @param func          Blending function.
- * @param sourceFactor  Source blend factor.
- * @param destFactor    Destination factor. */
-void GLGPUInterface::setBlendMode(BlendFunc func, BlendFactor sourceFactor, BlendFactor destFactor) {
-    bool enableBlend =
-        func != BlendFunc::kAdd ||
-        sourceFactor != BlendFactor::kOne ||
-        destFactor != BlendFactor::kZero;
-
-    this->state.enableBlend(enableBlend);
-    this->state.setBlendEquation(gl::convertBlendFunc(func));
-    this->state.setBlendFunc(
-        gl::convertBlendFactor(sourceFactor),
-        gl::convertBlendFactor(destFactor));
-}
-
-/** Set the depth testing mode.
- * @param func          Depth comparison function.
- * @param enableWrite   Whether to enable depth writes. */
-void GLGPUInterface::setDepthMode(ComparisonFunc func, bool enableWrite) {
-    /* Documentation for glDepthFunc: "Even if the depth buffer exists and the
-     * depth mask is non-zero, the depth buffer is not updated if the depth test
-     * is disabled". */
-    bool enableTest = func != ComparisonFunc::kAlways || enableWrite;
-
-    this->state.enableDepthTest(enableTest);
-    this->state.enableDepthWrite(enableWrite);
-    this->state.setDepthFunc(gl::convertComparisonFunc(func));
-}
-
 /** Set the viewport.
  * @param viewport      Viewport rectangle in pixels. */
 void GLGPUInterface::setViewport(const IntRect &viewport) {
