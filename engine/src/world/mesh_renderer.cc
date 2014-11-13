@@ -21,26 +21,21 @@ public:
         m_parent(parent)
     {}
 
-    Material *material() const override;
-    void draw() const override;
+    void drawData(DrawData &data) const override;
 private:
     SubMesh *m_subMesh;             /**< Submesh to render. */
     MeshRenderer *m_parent;         /**< Parent mesh renderer. */
 };
 
-/** Get the material for the entity.
- * @return              Material for the entity. */
-Material *SubMeshSceneEntity::material() const {
-    return m_parent->m_materials[m_subMesh->material].get();
-}
-
-/** Draw the entity. */
-void SubMeshSceneEntity::draw() const {
-    GPUVertexData *vertices = (m_subMesh->vertices)
+/** Get the draw data for the entity.
+ * @param data          Draw data structure to fill in. */
+void SubMeshSceneEntity::drawData(DrawData &data) const {
+    data.vertices = (m_subMesh->vertices)
         ? m_subMesh->vertices
         : m_subMesh->parent()->sharedVertices;
-
-    g_gpu->draw(PrimitiveType::kTriangleList, vertices, m_subMesh->indices);
+    data.indices = m_subMesh->indices;
+    data.primitiveType = PrimitiveType::kTriangleList;
+    data.material = m_parent->m_materials[m_subMesh->material].get();
 }
 
 /** Initialize the mesh renderer.

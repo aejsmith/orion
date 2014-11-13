@@ -17,6 +17,14 @@ UNIFORM_STRUCT_BEGIN(EntityUniforms)
     UNIFORM_STRUCT_MEMBER(glm::vec3, position);
 UNIFORM_STRUCT_END;
 
+/** Data needed to draw a SceneEntity. */
+struct DrawData {
+    GPUVertexData *vertices;            /**< Vertex data to draw. */
+    GPUIndexData *indices;              /**< Indices to draw (optional). */
+    PrimitiveType primitiveType;        /**< Primitive type to draw. */
+    Material *material;                 /**< Material to draw with. */
+};
+
 /**
  * Base class for a scene entity.
  *
@@ -39,17 +47,9 @@ public:
     /** @return             GPU buffer containing entity uniforms. */
     GPUBuffer *uniforms() const { return m_uniforms.gpu(); }
 
-    /** Get the material for the entity.
-     * @return              Material for the entity. */
-    virtual Material *material() const = 0;
-
-    /**
-     * Draw the entity.
-     *
-     * Submit a GPU draw call for the entity. Shader/resource state for the
-     * draw is already set prior to calling this.
-     */
-    virtual void draw() const = 0;
+    /** Get the draw data for the entity.
+     * @param data          Draw data structure to fill in. */
+    virtual void drawData(DrawData &data) const = 0;
 protected:
     SceneEntity();
 private:

@@ -49,11 +49,13 @@ void ForwardRenderer::render() {
         for (SceneEntity *entity : entities) {
             g_gpu->bindUniformBuffer(UniformSlots::kEntityUniforms, entity->uniforms());
 
-            Material *material = entity->material();
-            material->shader()->setDrawState(material);
-            material->shader()->pass(Pass::kForwardPass, 0)->setDrawState(light);
+            DrawData drawData;
+            entity->drawData(drawData);
 
-            entity->draw();
+            drawData.material->shader()->setDrawState(drawData.material);
+            drawData.material->shader()->pass(Pass::kForwardPass, 0)->setDrawState(light);
+
+            g_gpu->draw(drawData.primitiveType, drawData.vertices, drawData.indices);
         }
 
         /* After the first iteration, we want to blend the remaining lights, and
