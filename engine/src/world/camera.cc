@@ -34,47 +34,14 @@ Camera::Camera(Entity *entity) :
     /* Default to the main window as the render target. */
     setRenderTarget(g_mainWindow);
     setLayerOrder(RenderLayer::kCameraLayerOrder);
-
-    /* Create an initial scene renderer. */
-    m_sceneRenderer = SceneRenderer::create(
-        world()->scene(),
-        &m_sceneView,
-        renderTarget(),
-        RenderPath::kDeferred);
-}
-
-/** Destroy the camera. */
-Camera::~Camera() {
-    delete m_sceneRenderer;
-}
-
-/**
- * Set the rendering path.
- *
- * Sets the rendering path to use. If the specified path is not supported by
- * the system we are running on, will fall back on the best supported path.
- *
- * @param path          Rendering path to use.
- */
-void Camera::setRenderPath(RenderPath path) {
-    if (path != m_sceneRenderer->path()) {
-        delete m_sceneRenderer;
-        m_sceneRenderer = SceneRenderer::create(
-            world()->scene(),
-            &m_sceneView,
-            renderTarget(),
-            path);
-    }
 }
 
 /** Render the scene from the camera to its render target. */
 void Camera::render() {
-    m_sceneRenderer->render();
-}
-
-/** Update the render target in the SceneRenderer. */
-void Camera::renderTargetChanged() {
-    m_sceneRenderer->setTarget(renderTarget());
+    /* TODO: Per frame allocator. */
+    SceneRenderer *renderer = SceneRenderer::create(world()->scene(), &m_sceneView, renderTarget(), m_renderPath);
+    renderer->render();
+    delete renderer;
 }
 
 /** Update the viewport in the SceneView. */

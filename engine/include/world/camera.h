@@ -24,10 +24,18 @@ public:
      * Rendering.
      */
 
-    void setRenderPath(RenderPath path);
+    /**
+     * Set the rendering path.
+     *
+     * Sets the rendering path to use. If the specified path is not supported by
+     * the system we are running on, will fall back on the best supported path.
+     *
+     * @param path          Rendering path to use.
+     */
+    void setRenderPath(RenderPath path) { m_renderPath = path; }
 
     /** @return             Rendering path. */
-    RenderPath renderPath() const { return m_sceneRenderer->path(); }
+    RenderPath renderPath() const { return m_renderPath; }
 
     void render() override;
 
@@ -57,17 +65,14 @@ public:
     /** @return             View-to-projection matrix. */
     const glm::mat4 &projection() { return m_sceneView.projection(); }
 protected:
-    ~Camera();
-
     void transformed() override;
     void activated() override;
     void deactivated() override;
 private:
-    void renderTargetChanged() override;
     void viewportChanged() override;
 private:
     SceneView m_sceneView;              /**< Scene view implementing this camera. */
-    SceneRenderer *m_sceneRenderer;     /**< Scene renderer that this camera uses. */
+    RenderPath m_renderPath;            /**< Render path to use for the camera. */
 };
 
 /** Set up a perspective projection.

@@ -1,4 +1,5 @@
 sources = map(File, [
+    'draw_list.cc',
     'forward_renderer.cc',
     'pass.cc',
     'resources.cc',
