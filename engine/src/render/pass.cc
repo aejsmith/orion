@@ -59,7 +59,7 @@ Pass::~Pass() {}
  */
 void Pass::setDrawState(SceneLight *light) const {
     /* Bind the shader variation for this light type. */
-    const Variation &variation = m_variations[(m_type == kBasicPass) ? 1 : light->type()];
+    const Variation &variation = m_variations[(m_type == kBasicPass) ? 0 : light->type()];
     check(variation.pipeline);
     g_gpu->bindPipeline(variation.pipeline);
 }

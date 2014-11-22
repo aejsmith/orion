@@ -4,7 +4,7 @@
     },
     "passes": [
         {
-            "type": "Forward",
+            "type": "Basic",
             "vertex": {"source": "engine/shaders/unlit_vtx.glsl"},
             "fragment": {"source": "engine/shaders/unlit_frag.glsl"}
         }
