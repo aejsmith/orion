@@ -33,7 +33,6 @@ struct LightingData {
  * @return              Calculated pixel colour. */
 vec4 calcLightBlinnPhong(LightingData data, vec3 direction, float attenuation) {
     vec3 colour = vec3(0.0);
-    vec3 normal = normalize(data.normal);
 
     /* Calculate the cosine of the angle between the normal and the light
      * direction. If the surface is facing away from the light this will be <= 0. */
