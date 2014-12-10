@@ -136,8 +136,6 @@ void SceneRenderer::renderDeferred() {
     setOutputRenderTarget();
     g_gpu->setBlendState<BlendFunc::kAdd, BlendFactor::kOne, BlendFactor::kOne>();
     for (LightRenderState &lightState : m_lights) {
-        g_gpu->bindUniformBuffer(UniformSlots::kLightUniforms, lightState.light->uniforms());
-
         /* Set up rasterizer/depth testing state. No depth writes here, the
          * light volumes should not affect our depth buffer. FIXME: If Pass ever
          * sets up depth/rasterizer state itself, we need to make sure these
@@ -161,6 +159,8 @@ void SceneRenderer::renderDeferred() {
                 g_gpu->setRasterizerState<CullMode::kFront, true>();
                 break;
         }
+
+        g_gpu->bindUniformBuffer(UniformSlots::kLightUniforms, lightState.light->uniforms());
 
         /* Build up a draw call for the light volume. */
         DrawData data;
@@ -194,6 +194,9 @@ void SceneRenderer::renderForward() {
     /* Now render lit entities for each light to accumulate all lighting
      * contributions. */
     for (LightRenderState &lightState : m_lights) {
+        if (lightState.drawList.empty())
+            continue;
+
         g_gpu->bindUniformBuffer(UniformSlots::kLightUniforms, lightState.light->uniforms());
 
         /* Draw all entities. */
