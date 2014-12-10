@@ -38,12 +38,20 @@ namespace UniformSlots {
  *
  * @note                Keep shader-specific definitions first, the texture
  *                      array in Material is indexed by slot (size is
- *                      kCustomTextureEnd).
+ *                      kMaterialTexturesEnd). Also, be careful reordering,
+ *                      slot numbers are currently hardcoded in shader
+ *                      definitions.
  */
 namespace TextureSlots {
     enum {
         /** Shader-specific texture range. */
         kMaterialTexturesStart = 0,
         kMaterialTexturesEnd = 15,
+
+        /** Deferred G-Buffer textures. */
+        kDeferredBufferA = 16,
+        kDeferredBufferB = 17,
+        kDeferredBufferC = 18,
+        kDeferredBufferD = 19,
     };
 }

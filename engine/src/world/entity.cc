@@ -250,6 +250,10 @@ void Entity::transformed() {
         position = (parentOrientation * (parentScale * position)) + parentPosition;
         orientation = parentOrientation * orientation;
         scale = parentScale * scale;
+    } else {
+        checkMsg(
+            position == glm::vec3() && orientation == glm::quat() && scale == glm::vec3(),
+            "Cannot transform root entity");
     }
 
     m_worldTransform.set(position, orientation, scale);

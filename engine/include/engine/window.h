@@ -17,7 +17,7 @@ public:
     Window(const EngineConfiguration &config);
     ~Window();
 
-    void set() override;
+    void gpu(GPUTextureImageRef &ref) override;
 
     void setTitle(const std::string &title);
 

@@ -113,7 +113,7 @@ enum class ComparisonFunc {
  */
 
 /** Face culling mode. */
-enum class RasterizerCullMode {
+enum class CullMode {
     kDisabled,                  /**< Disable face culling. */
     kBack,                      /**< Cull back-facing polygons. */
     kFront,                     /**< Cull front-facing polygons. */

@@ -1,0 +1,15 @@
+{
+    "parameters": {
+        "deferredBufferA": {"type": "Texture", "slot": 16},
+        "deferredBufferB": {"type": "Texture", "slot": 17},
+        "deferredBufferC": {"type": "Texture", "slot": 18},
+        "deferredBufferD": {"type": "Texture", "slot": 19}
+    },
+    "passes": [
+        {
+            "type": "Forward",
+            "vertex": {"source": "engine/shaders/deferred_light_vtx.glsl"},
+            "fragment": {"source": "engine/shaders/deferred_light_frag.glsl"}
+        }
+    ]
+}

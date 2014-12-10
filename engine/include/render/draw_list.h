@@ -32,6 +32,9 @@ public:
     void addDrawCalls(const DrawData &source, Pass::Type passType, GPUBuffer *uniforms);
 
     void draw(SceneLight *light = nullptr) const;
+
+    /** @return             Whether the draw list is empty. */
+    bool empty() const { return m_drawCalls.empty(); }
 private:
     /** List of draw calls. */
     std::list<DrawCall> m_drawCalls;

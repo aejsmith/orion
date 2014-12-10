@@ -106,11 +106,11 @@ void GLGPUInterface::init() {
     this->state.bindVertexArray(this->defaultVertexArray);
 
     /* Set up initial render target/viewport state (main window). */
-    setRenderTarget(nullptr);
+    setRenderTarget(nullptr, nullptr);
 
-    /* Set up some default state. FIXME */
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
+    /* Set up some default state. FIXME? */
+    this->state.enableCullFace(true);
+    this->state.setCullFace(GL_BACK);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 }

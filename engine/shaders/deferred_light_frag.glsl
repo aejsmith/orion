@@ -1,21 +1,15 @@
 /**
  * @file
  * @copyright           2014 Alex Smith
- * @brief               Forward lighting fragment shader.
+ * @brief               Deferred light volume fragment shader.
  */
-
-layout(location = 0) in vec3 vtxPosition;
-layout(location = 1) in vec3 vtxNormal;
-layout(location = 2) in vec2 vtxTexcoord;
 
 layout(location = 0) out vec4 fragColour;
 
-#ifdef TEXTURED
-uniform sampler2D diffuseTexture;
-#endif
-
-// Merge notes: enable SPECULAR for deferred version
-// handle alpha for forward version (see unity)
+uniform sampler2D deferredBufferA;
+uniform sampler2D deferredBufferB;
+uniform sampler2D deferredBufferC;
+uniform sampler2D deferredBufferD;
 
 /** Structure containing data for lighting calculation. */
 struct LightingData {
@@ -42,14 +36,12 @@ vec4 calcLightBlinnPhong(LightingData data, vec3 direction, float attenuation) {
         /* Calculate the diffuse contribution. */
         colour = data.diffuseColour * light.colour * light.intensity * angle;
 
-        #ifdef SPECULAR
-            /* Do specular reflection using Blinn-Phong. Calculate the cosine of
-             * the angle between the normal and the half vector. */
-            vec3 halfVector = normalize(direction - (data.position - view.position));
-            float specularAngle = dot(data.normal, halfVector);
-            if (specularAngle > 0.0)
-                colour += data.specularColour * light.colour * light.intensity * pow(specularAngle, data.shininess);
-        #endif
+        /* Do specular reflection using Blinn-Phong. Calculate the cosine of
+         * the angle between the normal and the half vector. */
+        vec3 halfVector = normalize(direction - (data.position - view.position));
+        float specularAngle = dot(data.normal, halfVector);
+        if (specularAngle > 0.0)
+            colour += data.specularColour * light.colour * light.intensity * pow(specularAngle, data.shininess);
     }
 
     return vec4(colour * attenuation, 1.0);
@@ -96,22 +88,53 @@ vec4 calcLight(LightingData data) {
     #endif
 }
 
+/** Decode the G-Buffer data.
+ * @param data          Lighting data structure to fill in. */
+void decodeGBuffer(out LightingData data) {
+    /* Determine G-Buffer texture coordinates. */
+    vec2 size = textureSize(deferredBufferA, 0);
+    vec2 texcoord = gl_FragCoord.xy / size;
+
+    /* Sample the normal. Normal is scaled into the [0, 1] range, change it back
+     * to [-1, 1]. */
+    data.normal = (texture(deferredBufferA, texcoord).rgb * 2.0) - 1.0;
+
+    /* Sample the diffuse colour buffer. */
+    data.diffuseColour = texture(deferredBufferB, texcoord).rgb;
+
+    /* Sample specular colour/exponent. Exponent is stored as reciprocal. */
+    vec4 specular = texture(deferredBufferC, texcoord);
+    data.specularColour = specular.rgb;
+    data.shininess = 1.0 / specular.a;
+
+    /* Sample the depth buffer. */
+    float bufferDepth = texture(deferredBufferD, texcoord).r;
+
+    /*
+     * Reconstruct the world space position from the depth buffer value. First
+     * calculate the NDC position of this fragment. Note that the G-Buffer may
+     * be larger than the viewport so take this into account. Then, we transform
+     * that by the inverse of the view-projection matrix, and finally divide
+     * that by the resulting w component.
+     *
+     * Reference:
+     *  - http://mynameismjp.wordpress.com/2009/03/10/reconstructing-position-from-depth/
+     *  - http://http.developer.nvidia.com/GPUGems3/gpugems3_ch27.html
+     *  - http://www.songho.ca/opengl/gl_projectionmatrix.html
+     */
+    vec4 ndcPosition = vec4(
+        (((gl_FragCoord.xy - view.viewportPosition) / view.viewportSize) * 2.0) - 1.0,
+        (bufferDepth * 2.0) - 1.0,
+        1.0);
+    vec4 homogeneousPosition = view.inverseViewProjection * ndcPosition;
+    data.position = homogeneousPosition.xyz / homogeneousPosition.w;
+}
+
 void main() {
-    /* Fill in lighting data. */
+    /* Decode the G-Buffer data. */
     LightingData data;
-    data.normal = normalize(vtxNormal);
-    data.position = vtxPosition;
+    decodeGBuffer(data);
 
-    #ifdef TEXTURED
-        data.diffuseColour = texture(diffuseTexture, vtxTexcoord).rgb;
-    #else
-        data.diffuseColour = diffuseColour;
-    #endif
-
-    #ifdef SPECULAR
-        data.specularColour = specularColour.rgb;
-        data.shininess = shininess;
-    #endif
-
+    /* Calculate fragment colour. */
     fragColour = calcLight(data);
 }

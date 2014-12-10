@@ -133,20 +133,50 @@ GPUShaderPtr GLGPUInterface::compileShader(GPUShader::Type type, const std::stri
     }
 
     /* Compile the shader. */
+    GLuint shader = glCreateShader(gl::convertShaderType(type));
+    if (!shader) {
+        logError("GL: Failed to create shader object");
+        return nullptr;
+    }
+
     const GLchar *strings[] = { preamble.c_str(), source.c_str() };
-    GLuint program = glCreateShaderProgramv(
-        gl::convertShaderType(type),
-        util::arraySize(strings),
-        strings);
+    glShaderSource(shader, util::arraySize(strings), strings, NULL);
+    glCompileShader(shader);
+
+    /* Check whether the compilation succeeded. */
+    GLint result = GL_FALSE;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
+    if (result != GL_TRUE) {
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &result);
+        std::unique_ptr<char[]> log(new char[result]);
+        glGetShaderInfoLog(shader, result, &result, log.get());
+        glDeleteShader(shader);
+
+        logError("GL: Failed to compile shader");
+        logInfo("GL: Compiler log:\n%s", log.get());
+        return nullptr;
+    }
+
+    GLuint program = glCreateProgram();
     if (!program) {
         logError("GL: Failed to create program object");
         return nullptr;
     }
 
-    /* Check whether it succeeded. glCreateShaderProgramv() appends the compiler
-     * log to the program info log if compilation fails, so this gets both
-     * compiler and linker errors. */
-    GLint result;
+    /* Mark it as separable and link it. */
+    glProgramParameteri(program, GL_PROGRAM_SEPARABLE, GL_TRUE);
+    glAttachShader(program, shader);
+    glLinkProgram(program);
+
+    /* Keep around the shader object if enabled. This means that the shader
+     * objects will show up in OpenGL Profiler and allow their source to be
+     * examined easily. */
+    #if !ORION_GL_KEEP_SHADER_OBJECTS
+        glDetachShader(program, shader);
+        glDeleteShader(shader);
+    #endif
+
+    /* Check whether the linking succeeded. */
     glGetProgramiv(program, GL_LINK_STATUS, &result);
     if (result != GL_TRUE) {
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &result);
@@ -154,8 +184,8 @@ GPUShaderPtr GLGPUInterface::compileShader(GPUShader::Type type, const std::stri
         glGetProgramInfoLog(program, result, &result, log.get());
         glDeleteProgram(program);
 
-        logError("GL: Failed to compile shader");
-        logInfo("GL: Compiler log:\n%s", log.get());
+        logError("GL: Failed to link shader");
+        logInfo("GL: Linker log:\n%s", log.get());
         return nullptr;
     }
 

@@ -48,7 +48,7 @@ void RenderLayer::setRenderTarget(RenderTarget *target) {
  * Set the viewport.
  *
  * Sets the viewport rectangle. Coordinates are normalized, range from (0, 0)
- * in the top left corner to (1, 1) in the bottom right corner. The actual
+ * in the bottom left corner to (1, 1) in the top right corner. The actual
  * viewport rectangle is calculated automatically based on the render target's
  * dimensions.
  *
@@ -151,14 +151,6 @@ void RenderTarget::removeLayer(RenderLayer *layer) {
 
 /** Render the render target. */
 void RenderTarget::render() {
-    /* Make the render target active. */
-    set();
-
-    // FIXME: Where does this go?
-    g_gpu->clear(
-        ClearBuffer::kColourBuffer | ClearBuffer::kDepthBuffer | ClearBuffer::kStencilBuffer,
-        glm::vec4(0.0, 0.0, 0.0, 1.0), 1.0, 0);
-
     /* Render all our layers. */
     for (RenderLayer *layer : m_layers) {
         g_gpu->setViewport(layer->pixelViewport());

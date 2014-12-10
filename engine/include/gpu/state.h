@@ -73,6 +73,30 @@ typedef GPUState<GPUDepthStencilStateDesc> GPUDepthStencilState;
 /** Type of a pointer to a GPU depth/stencil state object. */
 typedef GPUResourcePtr<GPUDepthStencilState> GPUDepthStencilStatePtr;
 
+/** Rasterizer state descriptor. */
+struct GPURasterizerStateDesc {
+    CullMode cullMode;              /**< Face culling mode. */
+    bool depthClamp;                /**< Whether to enable depth clamping. */
+public:
+    /** Compare this descriptor with another. */
+    bool operator ==(const GPURasterizerStateDesc &other) const {
+        return cullMode == other.cullMode && depthClamp == other.depthClamp;
+    }
+
+    /** Get a hash from a rasterizer state descriptor. */
+    friend size_t hashValue(const GPURasterizerStateDesc &desc) {
+        size_t hash = hashValue(desc.cullMode);
+        hash = hashCombine(hash, desc.depthClamp);
+        return hash;
+    }
+};
+
+/** Rasterizer state object. */
+typedef GPUState<GPURasterizerStateDesc> GPURasterizerState;
+
+/** Type of a pointer to a GPU rasterizer state object. */
+typedef GPUResourcePtr<GPURasterizerState> GPURasterizerStatePtr;
+
 /** Texture sampler state descriptor. */
 struct GPUSamplerStateDesc {
     SamplerFilterMode filterMode;   /**< Filtering mode. */

@@ -86,6 +86,11 @@ public:
     bool depthWriteEnabled;
     GLenum depthFunc;
 
+    /** Rasterizer state. */
+    bool cullFaceEnabled;
+    GLenum cullFace;
+    bool depthClampEnabled;
+
     /** Object bindings. */
     BufferBindings boundBuffers;
     GLuint boundDrawFramebuffer;
@@ -114,6 +119,10 @@ public:
     void enableDepthTest(bool enable);
     void enableDepthWrite(bool enable);
     void setDepthFunc(GLenum func);
+
+    void enableCullFace(bool enable);
+    void setCullFace(GLenum mode);
+    void enableDepthClamp(bool enable);
 
     void bindBuffer(GLenum target, GLuint buffer);
     void bindBufferBase(GLenum target, GLuint index, GLuint buffer);
@@ -144,6 +153,13 @@ struct GLDepthStencilState : public GPUDepthStencilState {
     GLenum depthFunc;               /**< Comparison function. */
 public:
     GLDepthStencilState(const GPUDepthStencilStateDesc &desc) : GPUDepthStencilState(desc) {}
+};
+
+/** OpenGL rasterizer state object implementation. */
+struct GLRasterizerState : public GPURasterizerState {
+    GLenum cullMode;                /**< Face culling mode. */
+public:
+    GLRasterizerState(const GPURasterizerStateDesc &desc) : GPURasterizerState(desc) {}
 };
 
 /** OpenGL sampler state object implementation. */

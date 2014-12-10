@@ -50,6 +50,27 @@ struct PixelFormat {
     constexpr PixelFormat() : m_value(kUnknown) {}
     constexpr PixelFormat(Impl value) : m_value(value) {}
     constexpr operator Impl() const { return m_value; }
+
+    /** Check if a format is a colour format.
+     * @param format        Format to check.
+     * @return              Whether the format is a colour format. */
+    static bool isColour(PixelFormat format) {
+        return !isDepth(format);
+    }
+
+    /** Check if a format is a depth format.
+     * @param format        Format to check.
+     * @return              Whether the format is a depth format. */
+    static bool isDepth(PixelFormat format) {
+        switch (format) {
+            case kDepth16:
+            case kDepth24:
+            case kDepth24Stencil8:
+                return true;
+            default:
+                return false;
+        }
+    }
 private:
     Impl m_value;
 };

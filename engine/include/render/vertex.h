@@ -13,7 +13,7 @@
  *
  * Simple vertex structure providing a position, normal, and a single set of
  * texture coordinates. The GPU vertex format matching this structure is
- * available from RenderResources::simpleVertexFormat().
+ * available from RenderManager::simpleVertexFormat().
  */
 struct SimpleVertex {
     float x, y, z, _pad1;

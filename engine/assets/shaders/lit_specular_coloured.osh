@@ -1,11 +1,18 @@
 {
     "parameters": {
-        "shininess": "Float",
-        "specularColour": "Vec3",
-        "diffuseColour": "Vec3"
+        "shininess": {"type": "Float"},
+        "specularColour": {"type": "Vec3"},
+        "diffuseColour": {"type": "Vec3"}
     },
     "passes": [
         {
+            "type": "Deferred",
+            "vertex": {"source": "engine/shaders/lit_vtx.glsl"},
+            "fragment": {
+                "source": "engine/shaders/lit_deferred_frag.glsl",
+                "keywords": ["SPECULAR"]
+            }
+        }, {
             "type": "Forward",
             "vertex": {"source": "engine/shaders/lit_vtx.glsl"},
             "fragment": {

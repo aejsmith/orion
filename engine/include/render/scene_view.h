@@ -13,6 +13,9 @@ UNIFORM_STRUCT_BEGIN(ViewUniforms)
     UNIFORM_STRUCT_MEMBER(glm::mat4, view);
     UNIFORM_STRUCT_MEMBER(glm::mat4, projection);
     UNIFORM_STRUCT_MEMBER(glm::mat4, viewProjection);
+    UNIFORM_STRUCT_MEMBER(glm::mat4, inverseViewProjection);
+    UNIFORM_STRUCT_MEMBER(glm::ivec2, viewportPosition);
+    UNIFORM_STRUCT_MEMBER(glm::ivec2, viewportSize);
     UNIFORM_STRUCT_MEMBER(glm::vec3, position);
 UNIFORM_STRUCT_END;
 

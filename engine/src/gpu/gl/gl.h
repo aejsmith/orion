@@ -18,10 +18,13 @@
 #include <set>
 
 /** Define to 1 to enable ARB_debug_output. */
-#define ORION_GL_DEBUG          1
+#define ORION_GL_DEBUG                  1
 
 /** Define to 1 to enable ARB_debug_output notification messages (excessive). */
 #define ORION_GL_DEBUG_NOTIFICATIONS    0
+
+/** Define to 1 to keep shader objects around, to allow examination in OpenGL Profiler. */
+#define ORION_GL_KEEP_SHADER_OBJECTS    0
 
 #include "state.h"
 
@@ -79,6 +82,7 @@ public:
     GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) override;
     GPUDepthStencilStatePtr createDepthStencilState(const GPUDepthStencilStateDesc &desc) override;
     GPUPipelinePtr createPipeline(const GPUShaderArray &shaders) override;
+    GPURasterizerStatePtr createRasterizerState(const GPURasterizerStateDesc &desc) override;
     GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) override;
     GPUTexturePtr createTexture(const GPUTexture2DDesc &desc) override;
     GPUTexturePtr createTexture(const GPUTexture2DArrayDesc &desc) override;
@@ -93,11 +97,18 @@ public:
     void bindUniformBuffer(unsigned index, GPUBuffer *buffer) override;
     void setBlendState(GPUBlendState *state) override;
     void setDepthStencilState(GPUDepthStencilState *state) override;
-    void setRenderTarget(const GPURenderTargetDesc *target) override;
+    void setRasterizerState(GPURasterizerState *state) override;
+    void setRenderTarget(const GPURenderTargetDesc *desc, const IntRect *viewport) override;
     void setViewport(const IntRect &viewport) override;
 
     void endFrame(bool vsync) override;
 
+    void blit(
+        const GPUTextureImageRef *source,
+        const GPUTextureImageRef *dest,
+        glm::ivec2 sourcePos,
+        glm::ivec2 destPos,
+        glm::ivec2 size) override;
     void clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil) override;
     void draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) override;
 
@@ -105,6 +116,7 @@ public:
      * Internal methods.
      */
 
+    GLuint createFBO(const GPURenderTargetDesc &desc);
     void invalidateFBOs(const GLTexture *texture);
 public:
     GLFeatures features;                /**< GL feature information. */
@@ -129,6 +141,7 @@ private:
     /** Hash tables of created state objects. */
     HashTable<GPUBlendStateDesc, GPUBlendStatePtr> m_blendStates;
     HashTable<GPUDepthStencilStateDesc, GPUDepthStencilStatePtr> m_depthStencilStates;
+    HashTable<GPURasterizerStateDesc, GPURasterizerStatePtr> m_rasterizerStates;
     HashTable<GPUSamplerStateDesc, GPUSamplerStatePtr> m_samplerStates;
 
     /** Hash table of cached FBOs. */
@@ -285,6 +298,20 @@ static inline GLenum convertComparisonFunc(ComparisonFunc func) {
             return GL_GREATER;
         case ComparisonFunc::kGreaterOrEqual:
             return GL_GEQUAL;
+        default:
+            return 0;
+    }
+}
+
+/** Convert a cull mode to a GL culling mode.
+ * @param mode          Mode to convert.
+ * @return              GL culling mode. */
+static inline GLenum convertCullMode(CullMode mode) {
+    switch (mode) {
+        case CullMode::kFront:
+            return GL_FRONT;
+        case CullMode::kBack:
+            return GL_BACK;
         default:
             return 0;
     }

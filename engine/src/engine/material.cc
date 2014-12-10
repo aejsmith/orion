@@ -34,6 +34,7 @@ void Material::value(const char *name, ShaderParameter::Type type, void *buf) co
     checkMsg(param->type == type, "Incorrect type for parameter '%s' in '%s'", name, m_shader->path().c_str());
 
     if (param->type == ShaderParameter::kTextureType) {
+        check(param->textureSlot <= TextureSlots::kMaterialTexturesEnd);
         new(buf) TextureBasePtr(m_textures[param->textureSlot]);
     } else {
         m_uniforms->readMember(param->uniformMember, buf);
@@ -50,6 +51,7 @@ void Material::setValue(const char *name, ShaderParameter::Type type, const void
     checkMsg(param->type == type, "Incorrect type for parameter '%s' in '%s'", name, m_shader->path().c_str());
 
     if (param->type == ShaderParameter::kTextureType) {
+        check(param->textureSlot <= TextureSlots::kMaterialTexturesEnd);
         m_textures[param->textureSlot] = *reinterpret_cast<const TextureBasePtr *>(buf);
     } else {
         m_uniforms->writeMember(param->uniformMember, buf);

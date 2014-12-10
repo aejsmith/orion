@@ -46,8 +46,12 @@ void Shader::setDrawState(Material *material) const {
 
 /** Add a parameter to the shader.
  * @param name          Name of the parameter to add.
- * @param type          Type of the parameter. */
-void Shader::addParameter(const std::string &name, ShaderParameter::Type type) {
+ * @param type          Type of the parameter.
+ * @param textureSlot   For textures, a specific slot to bind to. If -1, will be
+ *                      assigned a material texture slot. Otherwise, should be
+ *                      a special texture slot, in which case the parameter will
+ *                      not be settable in materials. */
+void Shader::addParameter(const std::string &name, ShaderParameter::Type type, unsigned textureSlot) {
     auto ret = m_parameters.emplace(std::make_pair(name, ShaderParameter()));
     checkMsg(ret.second, "Adding duplicate shader parameter '%s'", name.c_str());
 
@@ -55,12 +59,17 @@ void Shader::addParameter(const std::string &name, ShaderParameter::Type type) {
     param.type = type;
 
     if (type == ShaderParameter::kTextureType) {
-        /* Assign a texture slot. */
-        checkMsg(
-            m_nextTextureSlot <= TextureSlots::kMaterialTexturesEnd,
-            "Parameter '%s' exceeds maximum number of textures", name.c_str());
+        if (textureSlot != -1u) {
+            check(textureSlot > TextureSlots::kMaterialTexturesEnd);
+            param.textureSlot = textureSlot;
+        } else {
+            /* Assign a texture slot. */
+            checkMsg(
+                m_nextTextureSlot <= TextureSlots::kMaterialTexturesEnd,
+                "Parameter '%s' exceeds maximum number of textures", name.c_str());
 
-        param.textureSlot = m_nextTextureSlot++;
+            param.textureSlot = m_nextTextureSlot++;
+        }
     } else {
         /* Add a uniform struct member for it. Create struct if we don't already
          * have one. */
@@ -87,11 +96,10 @@ const ShaderParameter *Shader::lookupParameter(const std::string &name) const {
  *                      deleted when the shader is destroyed. */
 void Shader::addPass(Pass *pass) {
     switch (pass->type()) {
-        case Pass::kDeferredBasePass:
-        case Pass::kDeferredOutputPass:
+        case Pass::kDeferredPass:
             checkMsg(
                 m_passes[pass->type()].size() == 0,
-                "Only one deferred base/output pass is allowed per shader");
+                "Only one deferred pass is allowed per shader");
             break;
         default:
             break;

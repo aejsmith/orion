@@ -13,7 +13,7 @@
 
 #include "gpu/gpu.h"
 
-#include "render/resources.h"
+#include "render/render_manager.h"
 
 #include "world/world.h"
 
@@ -51,8 +51,9 @@ Engine::Engine(const EngineConfiguration &config) :
     g_gpu->init();
 
     /* Initialize other global systems. */
-    g_renderResources() = new RenderResources;
     g_assetManager() = new AssetManager;
+    g_renderManager() = new RenderManager;
+    g_renderManager->init();
 
     /* Create the game instance. */
     m_game = game::createGame();

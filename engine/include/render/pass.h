@@ -35,16 +35,11 @@ public:
         kForwardPass,
 
         /**
-         * Deferred base pass. Accumulates material properties into the G-Buffer.
-         * Only one pass of this type should be specified.
+         * Deferred shading pass. Outputs material colours and properties to the
+         * G-Buffer, which will be used to compute lighting. Only one pass of
+         * this type should be specified.
          */
-        kDeferredBasePass,
-
-        /**
-         * Deferred output pass. Combines calculated lighting with textures.
-         * Only one pass of this type should be specified.
-         */
-        kDeferredOutputPass,
+        kDeferredPass,
 
         /** Number of Pass types. */
         kNumTypes,

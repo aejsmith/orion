@@ -29,6 +29,12 @@ size_t ShaderParameter::size(Type type) {
             return sizeof(glm::mat3);
         case kMat4Type:
             return sizeof(glm::mat4);
+        case kIntVec2Type:
+            return sizeof(glm::ivec2);
+        case kIntVec3Type:
+            return sizeof(glm::ivec3);
+        case kIntVec4Type:
+            return sizeof(glm::ivec4);
         default:
             unreachable();
     }
@@ -57,6 +63,12 @@ size_t ShaderParameter::alignment(Type type) {
             return ShaderParameterTypeTraits<glm::mat3>::kAlignment;
         case kMat4Type:
             return ShaderParameterTypeTraits<glm::mat4>::kAlignment;
+        case kIntVec2Type:
+            return ShaderParameterTypeTraits<glm::ivec2>::kAlignment;
+        case kIntVec3Type:
+            return ShaderParameterTypeTraits<glm::ivec3>::kAlignment;
+        case kIntVec4Type:
+            return ShaderParameterTypeTraits<glm::ivec4>::kAlignment;
         default:
             unreachable();
     }
@@ -85,6 +97,12 @@ const char *ShaderParameter::glslType(Type type) {
             return "mat3";
         case kMat4Type:
             return "mat4";
+        case kIntVec2Type:
+            return "ivec2";
+        case kIntVec3Type:
+            return "ivec3";
+        case kIntVec4Type:
+            return "ivec4";
         default:
             unreachable();
     }

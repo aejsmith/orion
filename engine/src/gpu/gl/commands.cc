@@ -43,19 +43,16 @@ void GLGPUInterface::bindUniformBuffer(unsigned index, GPUBuffer *buffer) {
 /** Set the viewport.
  * @param viewport      Viewport rectangle in pixels. */
 void GLGPUInterface::setViewport(const IntRect &viewport) {
-    /* We use (0, 0) as top left, in GL that is bottom left. */
-    IntRect realViewport(
-        viewport.x,
-        this->state.currentRTSize.y - viewport.y - viewport.height,
-        viewport.width,
-        viewport.height);
-
-    this->state.setViewport(realViewport);
+    this->state.setViewport(viewport);
 }
 
 /** End a frame and present it on screen.
  * @param vsync         Whether to wait for vertical sync. */
 void GLGPUInterface::endFrame(bool vsync) {
+    /* On OS X, CGLFlushDrawable will swap whichever framebuffer is currently
+     * active. So, to flush the main window, we must bind it here. */
+    this->state.bindFramebuffer(GL_FRAMEBUFFER, 0);
+
     this->state.setSwapInterval(vsync);
     SDL_GL_SwapWindow(g_mainWindow->sdlWindow());
 }

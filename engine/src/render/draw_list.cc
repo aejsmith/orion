@@ -6,7 +6,7 @@
 
 #include "engine/material.h"
 
-#include "draw_list.h"
+#include "render/draw_list.h"
 
 /** Add a draw call to the list.
  * @param source        Source draw data.
@@ -41,7 +41,8 @@ void DrawList::draw(SceneLight *light) const {
         drawCall.pass->setDrawState(light);
 
         /* Bind the entity uniforms. */
-        g_gpu->bindUniformBuffer(UniformSlots::kEntityUniforms, drawCall.uniforms);
+        if (drawCall.uniforms)
+            g_gpu->bindUniformBuffer(UniformSlots::kEntityUniforms, drawCall.uniforms);
 
         g_gpu->draw(drawCall.primitiveType, drawCall.vertices, drawCall.indices);
     }

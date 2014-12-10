@@ -22,8 +22,7 @@
 static const char *passShaderVariations[Pass::kNumTypes] = {
     "BASIC_PASS",
     "FORWARD_PASS",
-    "DEFERRED_BASE_PASS",
-    "DEFERRED_OUTPUT_PASS",
+    "DEFERRED_PASS",
 };
 
 /** Array of light variation strings, indexed by light type. */
@@ -40,7 +39,7 @@ static const char *lightShaderVariations[SceneLight::kNumTypes] = {
 Pass::Pass(Shader *parent, Type type) :
     m_parent(parent),
     m_type(type),
-    m_variations((type == kBasicPass) ? 1 : util::arraySize(lightShaderVariations))
+    m_variations((type == kForwardPass) ? util::arraySize(lightShaderVariations) : 1)
 {}
 
 /** Destroy the pass. */
@@ -59,7 +58,7 @@ Pass::~Pass() {}
  */
 void Pass::setDrawState(SceneLight *light) const {
     /* Bind the shader variation for this light type. */
-    const Variation &variation = m_variations[(m_type == kBasicPass) ? 0 : light->type()];
+    const Variation &variation = m_variations[(m_type == kForwardPass) ? light->type() : 0];
     check(variation.pipeline);
     g_gpu->bindPipeline(variation.pipeline);
 }
@@ -173,12 +172,7 @@ bool Pass::loadStage(GPUShader::Type stage, const Path &path, const KeywordSet &
 
     source += buf.get();
 
-    if (m_type == kBasicPass) {
-        /* Single variation. */
-        m_variations[0].shaders[stage] = compileVariation(source, stage, m_parent, path);
-        if (!m_variations[0].shaders[stage])
-            return false;
-    } else {
+    if (m_type == kForwardPass) {
         /* Build each of the light type variations. */
         for (size_t i = 0; i < m_variations.size(); i++) {
             /* Build a source string with this variation defined. */
@@ -190,6 +184,11 @@ bool Pass::loadStage(GPUShader::Type stage, const Path &path, const KeywordSet &
             if (!m_variations[i].shaders[stage])
                 return false;
         }
+    } else {
+        /* Single variation. */
+        m_variations[0].shaders[stage] = compileVariation(source, stage, m_parent, path);
+        if (!m_variations[0].shaders[stage])
+            return false;
     }
 
     return true;

@@ -15,7 +15,7 @@
 
 #include "gpu/gpu.h"
 
-#include "render/resources.h"
+#include "render/render_manager.h"
 #include "render/utility.h"
 #include "render/vertex.h"
 
@@ -152,7 +152,7 @@ AssetPtr OBJLoader::load() {
     buffers[0] = buildGPUBuffer(GPUBuffer::kVertexBuffer, m_vertices);
     mesh->sharedVertices = g_gpu->createVertexData(
         m_vertices.size(),
-        g_renderResources->simpleVertexFormat(),
+        g_renderManager->simpleVertexFormat(),
         buffers);
 
     /* Register all submeshes. */

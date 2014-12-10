@@ -67,7 +67,7 @@ public:
 private:
     Shader();
 
-    void addParameter(const std::string &name, ShaderParameter::Type type);
+    void addParameter(const std::string &name, ShaderParameter::Type type, unsigned textureSlot = -1);
     void addPass(Pass *pass);
 private:
     UniformStruct *m_uniformStruct;     /**< Uniform structure used by the shader. */

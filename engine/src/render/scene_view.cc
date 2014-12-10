@@ -55,6 +55,9 @@ void SceneView::perspective(float fov, float zNear, float zFar) {
 void SceneView::setViewport(const IntRect &viewport) {
     m_viewport = viewport;
 
+    m_uniforms->viewportPosition = viewport.pos();
+    m_uniforms->viewportSize = viewport.size();
+
     /* Calculate aspect ratio. If it changes, we must recalculate the projection
      * matrix. */
     float aspect = static_cast<float>(viewport.width) / static_cast<float>(viewport.height);
@@ -107,8 +110,10 @@ GPUBuffer *SceneView::uniforms() {
         view();
     if (m_projectionOutdated)
         projection();
-    if (wasOutdated)
+    if (wasOutdated) {
         m_uniforms->viewProjection = m_projection * m_view;
+        m_uniforms->inverseViewProjection = glm::inverse(m_uniforms->viewProjection);
+    }
 
     return m_uniforms.gpu();
 }

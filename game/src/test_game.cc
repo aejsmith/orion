@@ -13,7 +13,7 @@
 
 #include "gpu/gpu.h"
 
-#include "render/resources.h"
+#include "render/render_manager.h"
 #include "render/utility.h"
 #include "render/vertex.h"
 
@@ -49,8 +49,8 @@ private:
     /** Rendering resources. */
     MaterialPtr m_cubeMaterial;
     MeshPtr m_cubeMesh;
-    Texture2DPtr m_mirrorTexture;
-    MaterialPtr m_mirrorMaterial;
+    //Texture2DPtr m_mirrorTexture;
+    //MaterialPtr m_mirrorMaterial;
 };
 
 /** Create a 2D plane centered at the origin extending in the X/Y direction.
@@ -60,7 +60,7 @@ private:
  * @param tiles         Texture tiling count. */
 Entity *TestGame::createPlane(Entity *parent, const std::string &name, Material *material, float tiles) {
     /* Vertices of the plane. */
-    static glm::vec3 vertices[] = {
+    glm::vec3 vertices[] = {
         glm::vec3(-0.5f, -0.5f, 0.0f),
         glm::vec3(0.5f, -0.5f, 0.0f),
         glm::vec3(0.5f, 0.5f, 0.0f),
@@ -68,7 +68,7 @@ Entity *TestGame::createPlane(Entity *parent, const std::string &name, Material 
     };
 
     /* We only have a single normal. */
-    static glm::vec3 normal(0.0f, 0.0f, 1.0f);
+    glm::vec3 normal(0.0f, 0.0f, 1.0f);
 
     /* Texture coordinates. */
     glm::vec2 texcoords[] = {
@@ -92,7 +92,7 @@ Entity *TestGame::createPlane(Entity *parent, const std::string &name, Material 
     buffers[0] = buildGPUBuffer(GPUBuffer::kVertexBuffer, data);
     subMesh->vertices = g_gpu->createVertexData(
         data.size(),
-        g_renderResources->simpleVertexFormat(),
+        g_renderManager->simpleVertexFormat(),
         buffers);
 
     Entity *entity = parent->createChild(name);
@@ -111,7 +111,7 @@ TestGame::TestGame() {
     m_world = g_engine->createWorld();
 
     AmbientLight *ambientLight = m_world->root()->createComponent<AmbientLight>();
-    ambientLight->setIntensity(0.1f);
+    ambientLight->setIntensity(0.05f);
     ambientLight->setActive(true);
 
     Entity *floor = createPlane(
@@ -124,7 +124,7 @@ TestGame::TestGame() {
     floor->setActive(true);
 
     Entity *cube = m_world->createEntity("cube");
-    cube->setPosition(glm::vec3(0.0f, 1.0f, -5.0f));
+    cube->setPosition(glm::vec3(0.0f, 1.0f, -6.0f));
     cube->setScale(glm::vec3(0.2f, 0.2f, 0.2f));
     cube->rotate(45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
     cube->setActive(true);
@@ -138,7 +138,7 @@ TestGame::TestGame() {
     camEntity->setPosition(glm::vec3(0.0f, 2.0f, 0.0f));
     camEntity->setActive(true);
     Camera *camera = camEntity->createComponent<Camera>();
-    camera->perspective(90.0f, 0.1f, 1000.0f);
+    camera->perspective(90.0f, 0.25f, 100.0f);
     camera->setActive(true);
 
     Entity *lightEntity = m_world->createEntity("light");
@@ -147,25 +147,55 @@ TestGame::TestGame() {
     PointLight *pointLight = lightEntity->createComponent<PointLight>();
     pointLight->setActive(true);
 
-    m_mirrorTexture = new Texture2D(1024, 1024, PixelFormat::kR8G8B8A8, 1, GPUTexture::kRenderTarget);
+    lightEntity = m_world->createEntity("light2");
+    lightEntity->setPosition(glm::vec3(-2.0f, 3.0f, -3.5f));
+    lightEntity->setActive(true);
+    pointLight = lightEntity->createComponent<PointLight>();
+    pointLight->setColour(glm::vec3(0.0f, 0.0f, 1.0f));
+    pointLight->setIntensity(1.0f);
+    pointLight->setRange(50.0f);
+    pointLight->setAttenuation(1.0f, 0.09f, 0.032f);
+    pointLight->setActive(true);
 
-    m_mirrorMaterial = new Material(g_assetManager->load<Shader>("engine/shaders/lit_specular"));
-    m_mirrorMaterial->setValue("shininess", 32.0f);
-    m_mirrorMaterial->setValue("specularColour", glm::vec3(0.5f, 0.5f, 0.5f));
-    m_mirrorMaterial->setValue("diffuseTexture", TextureBasePtr(m_mirrorTexture));
+    lightEntity = m_world->createEntity("light3");
+    lightEntity->setPosition(glm::vec3(2.0f, 3.0f, -3.5f));
+    lightEntity->setActive(true);
+    pointLight = lightEntity->createComponent<PointLight>();
+    pointLight->setColour(glm::vec3(0.0f, 1.0f, 0.0f));
+    pointLight->setIntensity(1.0f);
+    pointLight->setRange(50.0f);
+    pointLight->setAttenuation(1.0f, 0.09f, 0.032f);
+    pointLight->setActive(true);
 
-    Entity *mirror = createPlane(m_world->root(), "mirror", m_mirrorMaterial, 1.0f);
-    mirror->setPosition(glm::vec3(0.0f, 2.5f, -10.0f));
-    mirror->setScale(glm::vec3(5.0f, 5.0f, 5.0f));
-    mirror->setActive(true);
+    lightEntity = m_world->createEntity("light4");
+    lightEntity->setPosition(glm::vec3(0.0f, 3.0f, -8.0f));
+    lightEntity->setActive(true);
+    pointLight = lightEntity->createComponent<PointLight>();
+    pointLight->setColour(glm::vec3(1.0f, 0.0f, 0.0f));
+    pointLight->setIntensity(1.0f);
+    pointLight->setRange(50.0f);
+    pointLight->setAttenuation(1.0f, 0.09f, 0.032f);
+    pointLight->setActive(true);
 
-    camEntity = mirror->createChild("camera");
-    camEntity->rotate(180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-    camEntity->setActive(true);
-    camera = camEntity->createComponent<Camera>();
-    camera->perspective(70.0f, 0.1f, 1000.0f);
-    camera->setRenderTarget(m_mirrorTexture->renderTexture());
-    camera->setActive(true);
+    //m_mirrorTexture = new Texture2D(256, 256, PixelFormat::kR8G8B8A8, 1, GPUTexture::kRenderTarget);
+
+    //m_mirrorMaterial = new Material(g_assetManager->load<Shader>("engine/shaders/lit_specular"));
+    //m_mirrorMaterial->setValue("shininess", 32.0f);
+    //m_mirrorMaterial->setValue("specularColour", glm::vec3(0.5f, 0.5f, 0.5f));
+    //m_mirrorMaterial->setValue("diffuseTexture", TextureBasePtr(m_mirrorTexture));
+
+    //Entity *mirror = createPlane(m_world->root(), "mirror", m_mirrorMaterial, 1.0f);
+    //mirror->setPosition(glm::vec3(0.0f, 2.5f, -10.0f));
+    //mirror->setScale(glm::vec3(5.0f, 5.0f, 5.0f));
+    //mirror->setActive(true);
+
+    //camEntity = mirror->createChild("camera");
+    //camEntity->rotate(180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+    //camEntity->setActive(true);
+    //camera = camEntity->createComponent<Camera>();
+    //camera->perspective(70.0f, 0.1f, 1000.0f);
+    //camera->setRenderTarget(m_mirrorTexture->renderTexture());
+    //camera->setActive(true);
 }
 
 /**

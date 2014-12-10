@@ -12,6 +12,8 @@
 
 class RenderTarget;
 
+struct GPUTextureImageRef;
+
 /**
  * Render target layer class.
  *
@@ -50,9 +52,9 @@ public:
     /**
      * Render the layer.
      *
-     * Renders the layer. The render target and viewport will have been set.
-     * It is up to this function to clear if necessary and to configure
-     * blending between this layer and the previous layer.
+     * Renders the layer. It is up to this function to set the render target
+     * and viewport, as well as to clear if necessary or configure blending
+     * between this layer and the previous layer.
      */
     virtual void render() = 0;
 protected:
@@ -115,8 +117,10 @@ public:
 
     void render();
 
-    /** Set the render target. */
-    virtual void set() = 0;
+    /** Get the target GPU texture image reference for this render target.
+     * @param ref           Image reference structure to fill in. If the texture
+     *                      is set to null, the main window will be used. */
+    virtual void gpu(GPUTextureImageRef &ref) = 0;
 protected:
     explicit RenderTarget(unsigned priority);
 private:

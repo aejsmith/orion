@@ -6,10 +6,11 @@
 
 #pragma once
 
-#include "core/core.h"
+#include "render/draw_list.h"
 
 class RenderTarget;
 class Scene;
+class SceneLight;
 class SceneView;
 
 /** Rendering path enumeration. */
@@ -18,26 +19,49 @@ enum class RenderPath {
     kDeferred,                      /**< Deferred lighting. */
 };
 
-/** Class to render a scene. */
+/** Structure containing light rendering state. */
+struct LightRenderState {
+    SceneLight *light;              /**< Light being rendered. */
+    DrawList drawList;              /**< List of all draw calls affected by this light. */
+};
+
+/**
+ * Class which renders a scene.
+ *
+ * This class renders a scene from a view into a render target. A new instance
+ * is created each time a scene is rendered, it stores temporary state for only
+ * that rendering pass. Persistent state across rendering passes is stored by
+ * Scene/SceneView instead.
+ */
 class SceneRenderer {
 public:
-    static SceneRenderer *create(Scene *scene, SceneView *view, RenderTarget *target, RenderPath path);
-
-    virtual ~SceneRenderer() {}
+    SceneRenderer(Scene *scene, SceneView *view, RenderTarget *target, RenderPath path);
+    ~SceneRenderer();
 
     /** Set the render target.
      * @param target        New render target. */
     void setTarget(RenderTarget *target) { m_target = target; }
 
-    /** @return             Render path this renderer implements. */
-    virtual RenderPath path() const = 0;
+    void render();
+private:
+    void addLight(SceneLight *light);
+    void addEntity(SceneEntity *entity);
 
-    /** Render the scene. */
-    virtual void render() = 0;
-protected:
-    SceneRenderer(Scene *scene, SceneView *view, RenderTarget *target);
-protected:
-    Scene *m_scene;             /**< Scene being rendered. */
-    SceneView *m_view;          /**< View into the scene to render from. */
-    RenderTarget *m_target;     /**< Render target. */
+    void renderDeferred();
+    void renderForward();
+
+    void setOutputRenderTarget();
+    void setDeferredRenderTarget();
+private:
+    Scene *m_scene;                 /**< Scene being rendered. */
+    SceneView *m_view;              /**< View into the scene to render from. */
+    RenderTarget *m_target;         /**< Render target. */
+    RenderPath m_path;              /**< Rendering path to use. */
+
+    /** Draw lists. */
+    DrawList m_basicDrawList;       /**< Basic material draw list (drawn first). */
+    DrawList m_deferredDrawList;    /**< Deferred material draw list. */
+
+    /** List of lights affecting the view. */
+    std::list<LightRenderState> m_lights;
 };

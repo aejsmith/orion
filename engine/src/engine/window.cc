@@ -42,9 +42,11 @@ Window::~Window() {
     SDL_DestroyWindow(m_sdlWindow);
 }
 
-/** Set the window as the render target. */
-void Window::set() {
-    g_gpu->setRenderTarget(nullptr);
+/** Get the target GPU texture image reference for this render target.
+ * @param ref           Image reference structure to fill in. */
+void Window::gpu(GPUTextureImageRef &ref) {
+    ref.texture = nullptr;
+    ref.layer = 0;
 }
 
 /** Set the window title.

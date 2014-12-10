@@ -1,6 +1,6 @@
 {
     "parameters": {
-        "diffuseColour": "Vec3"
+        "diffuseColour": {"type": "Vec3"}
     },
     "passes": [
         {

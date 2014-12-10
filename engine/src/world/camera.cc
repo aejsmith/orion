@@ -26,7 +26,8 @@
  * @param entity        Entity to attach the camera to.
  */
 Camera::Camera(Entity *entity) :
-    Component(Component::kCameraType, entity)
+    Component(Component::kCameraType, entity),
+    m_renderPath(RenderPath::kDeferred)
 {
     /* Initialize the scene view with a default projection. */
     perspective();
@@ -39,7 +40,7 @@ Camera::Camera(Entity *entity) :
 /** Render the scene from the camera to its render target. */
 void Camera::render() {
     /* TODO: Per frame allocator. */
-    SceneRenderer *renderer = SceneRenderer::create(world()->scene(), &m_sceneView, renderTarget(), m_renderPath);
+    SceneRenderer *renderer = new SceneRenderer(world()->scene(), &m_sceneView, renderTarget(), m_renderPath);
     renderer->render();
     delete renderer;
 }

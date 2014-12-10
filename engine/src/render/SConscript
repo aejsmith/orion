@@ -1,8 +1,7 @@
 sources = map(File, [
     'draw_list.cc',
-    'forward_renderer.cc',
     'pass.cc',
-    'resources.cc',
+    'render_manager.cc',
     'scene.cc',
     'scene_entity.cc',
     'scene_light.cc',
@@ -11,6 +10,7 @@ sources = map(File, [
     'shader.cc',
     'shader_parameter.cc',
     'uniform_buffer.cc',
+    'utility.cc',
 ])
 
 Return('sources')

@@ -69,6 +69,11 @@ public:
      * @return              Pointer to created pipeline. */
     virtual GPUPipelinePtr createPipeline(const GPUShaderArray &shaders);
 
+    /** Create a rasterizer state object.
+     * @param desc          Descriptor for rasterizer state.
+     * @return              Created rasterizer state object. */
+    virtual GPURasterizerStatePtr createRasterizerState(const GPURasterizerStateDesc &desc) = 0;
+
     /** Create a sampler state object.
      * @param desc          Descriptor for sampler state.
      * @return              Pointer to created sampler state object. */
@@ -152,18 +157,23 @@ public:
      * @param state         Depth/stencil state to set. */
     virtual void setDepthStencilState(GPUDepthStencilState *state) = 0;
 
+    /** Set the rasterizer state.
+     * @param state         Rasterizer state to set. */
+    virtual void setRasterizerState(GPURasterizerState *state) = 0;
+
     /**
      * Set the render targets.
      *
      * Sets the current render target. A render target is described by a
      * GPURenderTargetDesc, which specifies a number of texture colour targets
      * and a depth/stencil target. If the descriptor pointer is given as null,
-     * the render target will be set to the main window. This function will
-     * reset the viewport to the size of the new render target.
+     * the render target will be set to the main window. If a viewport rectangle
+     * is provided, that viewport will be set, else this function will reset the
+     * viewport to the size of the new render target.
      *
-     * @param target        Pointer to render target descriptor.
+     * @param desc          Pointer to render target descriptor.
      */
-    virtual void setRenderTarget(const GPURenderTargetDesc *target) = 0;
+    virtual void setRenderTarget(const GPURenderTargetDesc *desc, const IntRect *viewport = nullptr) = 0;
 
     /** Set the viewport.
      * @param viewport      Viewport rectangle in pixels. Must be <= size of
@@ -181,6 +191,25 @@ public:
     /**
      * Rendering methods.
      */
+
+    /**
+     * Copy pixels from one texture to another.
+     *
+     * Copies a rectangle of pixels from one texture to another. If either the
+     * source or dest arguments are nullptr, the main window will be used.
+     *
+     * @param source        Source texture image reference.
+     * @param dest          Destination texture image reference.
+     * @param sourcePos     Position in source texture to copy from.
+     * @param destPos       Position in destination texture to copy to.
+     * @param size          Size of area to copy.
+     */
+    virtual void blit(
+        const GPUTextureImageRef *source,
+        const GPUTextureImageRef *dest,
+        glm::ivec2 sourcePos,
+        glm::ivec2 destPos,
+        glm::ivec2 size) = 0;
 
     /** Clear rendering buffers.
      * @param buffers       Buffers to clear (bitmask of ClearBuffer values).
@@ -213,6 +242,11 @@ public:
         ComparisonFunc depthFunc = ComparisonFunc::kLessOrEqual,
         bool depthWrite = true>
     void setDepthStencilState();
+
+    template <
+        CullMode cullMode = CullMode::kBack,
+        bool depthClamp = false>
+    void setRasterizerState();
 protected:
     GPUInterface() {}
 };

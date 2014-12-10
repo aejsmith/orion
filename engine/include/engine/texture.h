@@ -58,7 +58,7 @@ class RenderTexture : public RenderTarget {
 public:
     uint32_t width() const override;
     uint32_t height() const override;
-    void set() override;
+    void gpu(GPUTextureImageRef &ref) override;
 
     /** @return             Texture referred to by this render target. */
     TextureBase *texture() const { return m_texture; }
@@ -67,7 +67,6 @@ protected:
 private:
     TextureBase *m_texture;             /**< Texture that this target refers to. */
     unsigned m_layer;                   /**< Layer of texture. */
-    GPUTexturePtr m_depthStencil;       /**< Depth/stencil buffer. */
 
     friend class Texture2D;
 };

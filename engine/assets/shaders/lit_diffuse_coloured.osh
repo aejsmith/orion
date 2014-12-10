@@ -1,9 +1,13 @@
 {
     "parameters": {
-        "diffuseColour": "Vec3"
+        "diffuseColour": {"type": "Vec3"}
     },
     "passes": [
         {
+            "type": "Deferred",
+            "vertex": {"source": "engine/shaders/lit_vtx.glsl"},
+            "fragment": {"source": "engine/shaders/lit_deferred_frag.glsl"}
+        }, {
             "type": "Forward",
             "vertex": {"source": "engine/shaders/lit_vtx.glsl"},
             "fragment": {"source": "engine/shaders/lit_frag.glsl"}

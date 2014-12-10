@@ -24,3 +24,7 @@ inline GPUBufferPtr buildGPUBuffer(
     buffer->write(0, size, &data[0]);
     return buffer;
 }
+
+extern void makeQuad(GPUVertexDataPtr &vertices);
+extern void makeSphere(unsigned rings, unsigned sectors, GPUVertexDataPtr &vertices, GPUIndexDataPtr &indices);
+extern void makeCone(unsigned baseVertices, GPUVertexDataPtr &vertices, GPUIndexDataPtr &indices);

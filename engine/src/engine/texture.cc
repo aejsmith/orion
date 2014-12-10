@@ -213,16 +213,7 @@ RenderTexture::RenderTexture(TextureBase *texture, unsigned layer) :
     RenderTarget(kTextureMediumPriority),
     m_texture(texture),
     m_layer(layer)
-{
-    /* Create a depth buffer. TODO: depth buffer pooling. */
-    GPUTexture2DDesc desc;
-    desc.width = m_texture->gpu()->width();
-    desc.height = m_texture->gpu()->height();
-    desc.format = PixelFormat::kDepth24Stencil8;
-    desc.mips = 1;
-    desc.flags = GPUTexture::kRenderTarget;
-    m_depthStencil = g_gpu->createTexture(desc);
-}
+{}
 
 /** @return             Width of the render target. */
 uint32_t RenderTexture::width() const {
@@ -234,12 +225,9 @@ uint32_t RenderTexture::height() const {
     return m_texture->gpu()->height();
 }
 
-/** Activate the render target. */
-void RenderTexture::set() {
-    GPURenderTargetDesc target;
-    target.numColours = 1;
-    target.colour[0].texture = m_texture->gpu();
-    target.colour[0].layer = m_layer;
-    target.depthStencil.texture = m_depthStencil;
-    g_gpu->setRenderTarget(&target);
+/** Get the target GPU texture image reference for this render target.
+ * @param ref           Image reference structure to fill in. */
+void RenderTexture::gpu(GPUTextureImageRef &ref) {
+    ref.texture = m_texture->gpu();
+    ref.layer = m_layer;
 }

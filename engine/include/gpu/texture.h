@@ -149,6 +149,13 @@ public:
         mip(inMip)
     {}
 
+    /** Initialize to a texture. */
+    GPUTextureImageRef(const GPUTexturePtr &inTexture, unsigned inLayer = 0, unsigned inMip = 0) :
+        texture(inTexture),
+        layer(inLayer),
+        mip(inMip)
+    {}
+
     /** Compare this reference with another. */
     bool operator ==(const GPUTextureImageRef &other) const {
         return texture == other.texture && layer == other.layer && mip == other.mip;

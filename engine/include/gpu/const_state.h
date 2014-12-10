@@ -74,6 +74,22 @@ public:
     }
 };
 
+/** Holder of a constant rasterizer state. */
+template <CullMode cullMode, bool depthClamp>
+class GPUConstRasterizerState :
+    public GPUConstState<GPURasterizerState, GPUConstRasterizerState<cullMode, depthClamp>> {
+public:
+    /** @return             Created rasterizer state object. */
+    static GPURasterizerState *create() {
+        GPURasterizerStateDesc desc;
+        desc.cullMode = cullMode;
+        desc.depthClamp = depthClamp;
+
+        static GPURasterizerStatePtr instance = g_gpu->createRasterizerState(desc);
+        return instance;
+    }
+};
+
 /**
  * GPU interface methods.
  */
@@ -93,4 +109,12 @@ inline void GPUInterface::setBlendState() {
 template <ComparisonFunc depthFunc, bool depthWrite>
 inline void GPUInterface::setDepthStencilState() {
     setDepthStencilState(GPUConstDepthStencilState<depthFunc, depthWrite>::get());
+}
+
+/** Set the rasterizer state to constant values.
+ * @tparam cullMode     Face culling mode.
+ * @tparam depthClamp   Whether to enable depth clamping. */
+template <CullMode cullMode, bool depthClamp>
+inline void GPUInterface::setRasterizerState() {
+    setRasterizerState(GPUConstRasterizerState<cullMode, depthClamp>::get());
 }

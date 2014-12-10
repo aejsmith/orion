@@ -1,6 +1,6 @@
 {
     "parameters": {
-        "diffuseTexture": "Texture"
+        "diffuseTexture": {"type": "Texture"}
     },
     "passes": [
         {

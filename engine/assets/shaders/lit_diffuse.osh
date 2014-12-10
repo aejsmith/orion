@@ -1,9 +1,16 @@
 {
     "parameters": {
-        "diffuseTexture": "Texture"
+        "diffuseTexture": {"type": "Texture"}
     },
     "passes": [
         {
+            "type": "Deferred",
+            "vertex": {"source": "engine/shaders/lit_vtx.glsl"},
+            "fragment": {
+                "source": "engine/shaders/lit_deferred_frag.glsl",
+                "keywords": ["TEXTURED"]
+            }
+        }, {
             "type": "Forward",
             "vertex": {"source": "engine/shaders/lit_vtx.glsl"},
             "fragment": {

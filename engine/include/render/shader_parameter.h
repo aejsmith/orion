@@ -26,6 +26,9 @@ struct ShaderParameter {
         kMat2Type,                  /**< 2x2 floating point matrix. */
         kMat3Type,                  /**< 3x3 floating point matrix. */
         kMat4Type,                  /**< 4x4 floating point matrix. */
+        kIntVec2Type,               /**< 2 component integer vector. */
+        kIntVec3Type,               /**< 3 component integer vector. */
+        kIntVec4Type,               /**< 4 component integer vector. */
 
         /** Special types (cannot be used in uniform structures). */
         kTextureType,               /**< Texture. */
@@ -115,6 +118,24 @@ struct ShaderParameterTypeTraits<glm::mat3> {
 template <>
 struct ShaderParameterTypeTraits<glm::mat4> {
     static constexpr ShaderParameter::Type kType = ShaderParameter::kMat4Type;
+    static constexpr size_t kAlignment = 16;
+};
+
+template <>
+struct ShaderParameterTypeTraits<glm::ivec2> {
+    static constexpr ShaderParameter::Type kType = ShaderParameter::kIntVec2Type;
+    static constexpr size_t kAlignment = 8;
+};
+
+template <>
+struct ShaderParameterTypeTraits<glm::ivec3> {
+    static constexpr ShaderParameter::Type kType = ShaderParameter::kIntVec3Type;
+    static constexpr size_t kAlignment = 16;
+};
+
+template <>
+struct ShaderParameterTypeTraits<glm::ivec4> {
+    static constexpr ShaderParameter::Type kType = ShaderParameter::kIntVec4Type;
     static constexpr size_t kAlignment = 16;
 };
 

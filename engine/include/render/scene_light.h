@@ -16,6 +16,7 @@ UNIFORM_STRUCT_BEGIN(LightUniforms)
     UNIFORM_STRUCT_MEMBER(float, cosCutoff);
     UNIFORM_STRUCT_MEMBER(glm::vec3, colour);
     UNIFORM_STRUCT_MEMBER(float, range);
+    UNIFORM_STRUCT_MEMBER(glm::mat4, volumeTransform);
     UNIFORM_STRUCT_MEMBER(float, attenuationConstant);
     UNIFORM_STRUCT_MEMBER(float, attenuationLinear);
     UNIFORM_STRUCT_MEMBER(float, attenuationExp);
@@ -66,8 +67,11 @@ public:
 
     /** @return             GPU buffer containing light uniforms. */
     GPUBuffer *uniforms() const { return m_uniforms.gpu(); }
+
+    void volumeGeometry(GPUVertexData *&vertices, GPUIndexData *&indices) const;
 private:
     void setPosition(const glm::vec3 &position);
+    void updateVolumeTransform();
 private:
     Type m_type;                    /**< Type of the light. */
 
@@ -80,6 +84,9 @@ private:
     float m_attenuationConstant;    /**< Constant attenuation factor (point/spot). */
     float m_attenuationLinear;      /**< Linear attenuation factor (point/spot). */
     float m_attenuationExp;         /**< Exponential attenuation factor (point/spot). */
+
+    /** Deferred light volume transformation. */
+    Transform m_volumeTransform;
 
     /** Uniform buffer containing lighting parameters. */
     UniformBuffer<LightUniforms> m_uniforms;

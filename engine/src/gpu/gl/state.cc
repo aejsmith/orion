@@ -29,6 +29,9 @@ GLState::GLState() :
     depthTestEnabled(false),
     depthWriteEnabled(true),
     depthFunc(GL_LESS),
+    cullFaceEnabled(false),
+    cullFace(GL_BACK),
+    depthClampEnabled(false),
     boundDrawFramebuffer(0),
     boundReadFramebuffer(0),
     boundPipeline(0),
@@ -157,6 +160,43 @@ void GLState::setDepthFunc(GLenum func) {
     if (func != this->depthFunc) {
         glDepthFunc(func);
         this->depthFunc = func;
+    }
+}
+
+/** Set whether face culling is enabled.
+ * @param enable        Whether to enable face culling. */
+void GLState::enableCullFace(bool enable) {
+    if (enable != this->cullFaceEnabled) {
+        if (enable) {
+            glEnable(GL_CULL_FACE);
+        } else {
+            glDisable(GL_CULL_FACE);
+        }
+
+        this->cullFaceEnabled = enable;
+    }
+}
+
+/** Set the face culling mode.
+ * @param mode          Face culling mode. */
+void GLState::setCullFace(GLenum mode) {
+    if (mode != this->cullFace) {
+        glCullFace(mode);
+        this->cullFace = mode;
+    }
+}
+
+/** Set whether depth clamping is enabled.
+ * @param enable        Whether to enable depth clamping. */
+void GLState::enableDepthClamp(bool enable) {
+    if (enable != this->depthClampEnabled) {
+        if (enable) {
+            glEnable(GL_DEPTH_CLAMP);
+        } else {
+            glDisable(GL_DEPTH_CLAMP);
+        }
+
+        this->depthClampEnabled = enable;
     }
 }
 
@@ -351,6 +391,38 @@ void GLGPUInterface::setDepthStencilState(GPUDepthStencilState *state) {
     this->state.setDepthFunc(glState->depthFunc);
 }
 
+/** Create a rasterizer state object.
+ * @param desc          Descriptor for rasterizer state.
+ * @return              Created rasterizer state object. */
+GPURasterizerStatePtr GLGPUInterface::createRasterizerState(const GPURasterizerStateDesc &desc) {
+    auto exist = m_rasterizerStates.find(desc);
+    if (exist != m_rasterizerStates.end())
+        return exist->second;
+
+    GLRasterizerState *state = new GLRasterizerState(desc);
+
+    state->cullMode = gl::convertCullMode(desc.cullMode);
+
+    auto ret = m_rasterizerStates.insert(std::make_pair(desc, GPURasterizerStatePtr(state)));
+    return ret.first->second;
+}
+
+/** Set the rasterizer state.
+ * @param state         State to set. */
+void GLGPUInterface::setRasterizerState(GPURasterizerState *state) {
+    GLRasterizerState *glState = static_cast<GLRasterizerState *>(state);
+    const GPURasterizerStateDesc &desc = state->desc();
+
+    if (desc.cullMode != CullMode::kDisabled) {
+        this->state.enableCullFace(true);
+        this->state.setCullFace(glState->cullMode);
+    } else {
+        this->state.enableCullFace(false);
+    }
+
+    this->state.enableDepthClamp(desc.depthClamp);
+}
+
 /** Initialize a GL sampler state object.
  * @param desc          Descriptor for sampler state. */
 GLSamplerState::GLSamplerState(const GPUSamplerStateDesc &desc) :
@@ -380,7 +452,9 @@ GLSamplerState::GLSamplerState(const GPUSamplerStateDesc &desc) :
             glSamplerParameteri(m_sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
             glSamplerParameteri(m_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-            /* Set maximum anisotropy. TODO: global default if set to 0. */
+            /* Set maximum anisotropy. TODO: global default if set to 0. In
+             * this case we should insert the object into the hash table with
+             * 0 replaced with setting, so we don't dup the same object. */
             glSamplerParameterf(m_sampler, GL_TEXTURE_MAX_ANISOTROPY_EXT, glm::clamp(
                 static_cast<float>(m_desc.maxAnisotropy),
                 1.0f,

@@ -58,56 +58,67 @@ AssetPtr ShaderLoader::load() {
             return nullptr;
     }
 
-    /* Sanity check. */
-    if ((m_shader->numPasses(Pass::kDeferredBasePass) != 0) != (m_shader->numPasses(Pass::kDeferredOutputPass) != 0)) {
-        logError("%s: Cannot have just one of deferred base and output passes", m_path);
-        return nullptr;
-    }
-
     return m_shader;
 }
 
 /** Add a shader parameter.
  * @param name          Name of the parameter.
- * @param value         Parameter value.
+ * @param desc          Parameter descriptor.
  * @return              Whether the parameter was successfully added. */
-bool ShaderLoader::addParameter(const char *name, const rapidjson::Value &value) {
+bool ShaderLoader::addParameter(const char *name, const rapidjson::Value &desc) {
     if (strlen(name) == 0) {
         logError("%s: Parameter name is empty", m_path);
         return false;
-    } else if (!value.IsString()) {
-        logError("%s: Parameter '%s' type should be a string", m_path, name);
+    } else if (!desc.IsObject()) {
+        logError("%s: Parameter '%s' descriptor should be an object", m_path, name);
+        return false;
+    } else if (!desc.HasMember("type") || !desc["type"].IsString()) {
+        logError("%s: Parameter '%s' 'type' attribute is missing/not a string", m_path, name);
         return false;
     }
 
+    const char *typeString = desc["type"].GetString();
     ShaderParameter::Type type;
-    if (strcmp(value.GetString(), "Int") == 0) {
+    unsigned textureSlot = -1u;
+    if (strcmp(typeString, "Int") == 0) {
         type = ShaderParameter::kIntType;
-    } else if (strcmp(value.GetString(), "UnsignedInt") == 0) {
+    } else if (strcmp(typeString, "UnsignedInt") == 0) {
         type = ShaderParameter::kUnsignedIntType;
-    } else if (strcmp(value.GetString(), "Float") == 0) {
+    } else if (strcmp(typeString, "Float") == 0) {
         type = ShaderParameter::kFloatType;
-    } else if (strcmp(value.GetString(), "Vec2") == 0) {
+    } else if (strcmp(typeString, "Vec2") == 0) {
         type = ShaderParameter::kVec2Type;
-    } else if (strcmp(value.GetString(), "Vec3") == 0) {
+    } else if (strcmp(typeString, "Vec3") == 0) {
         type = ShaderParameter::kVec3Type;
-    } else if (strcmp(value.GetString(), "Vec4") == 0) {
+    } else if (strcmp(typeString, "Vec4") == 0) {
         type = ShaderParameter::kVec4Type;
-    } else if (strcmp(value.GetString(), "Mat2") == 0) {
+    } else if (strcmp(typeString, "Mat2") == 0) {
         type = ShaderParameter::kMat2Type;
-    } else if (strcmp(value.GetString(), "Mat3") == 0) {
+    } else if (strcmp(typeString, "Mat3") == 0) {
         type = ShaderParameter::kMat3Type;
-    } else if (strcmp(value.GetString(), "Mat4") == 0) {
+    } else if (strcmp(typeString, "Mat4") == 0) {
         type = ShaderParameter::kMat4Type;
-    } else if (strcmp(value.GetString(), "Texture") == 0) {
+    } else if (strcmp(typeString, "Texture") == 0) {
         type = ShaderParameter::kTextureType;
 
-        if (m_shader->numTextures() > TextureSlots::kMaterialTexturesEnd) {
+        /* Check if a slot is specified. */
+        if (desc.HasMember("slot")) {
+            if (!desc["slot"].IsUint()) {
+                logError("%s: Parameter '%s' 'slot' attribute is not an integer", m_path, name);
+                return false;
+            }
+
+            textureSlot = desc["slot"].GetUint();
+            if (textureSlot <= TextureSlots::kMaterialTexturesEnd) {
+                logError("%s: Parameter '%s' texture slot is not valid", m_path, name);
+                return false;
+            }
+        } else if (m_shader->numTextures() > TextureSlots::kMaterialTexturesEnd) {
             logError("%s: Maximum number of textures exceeded", m_path);
             return false;
         }
     } else {
-        logError("%s: Parameter '%s' type '%s' is invalid", m_path, name, value.GetString());
+        logError("%s: Parameter '%s' type '%s' is invalid", m_path, name, typeString);
         return false;
     }
 
@@ -116,7 +127,7 @@ bool ShaderLoader::addParameter(const char *name, const rapidjson::Value &value)
         return false;
     }
 
-    m_shader->addParameter(name, type);
+    m_shader->addParameter(name, type, textureSlot);
     return true;
 }
 
@@ -138,18 +149,15 @@ bool ShaderLoader::addPass(const rapidjson::Value &desc) {
         type = Pass::kBasicPass;
     } else if (strcmp(typeString, "Forward") == 0) {
         type = Pass::kForwardPass;
-    } else if (strcmp(typeString, "DeferredBase") == 0) {
-        type = Pass::kDeferredBasePass;
-    } else if (strcmp(typeString, "DeferredOutput") == 0) {
-        type = Pass::kDeferredOutputPass;
+    } else if (strcmp(typeString, "Deferred") == 0) {
+        type = Pass::kDeferredPass;
     } else {
         logError("%s: Pass type '%s' is invalid", m_path, typeString);
         return false;
     }
 
     switch (type) {
-        case Pass::kDeferredBasePass:
-        case Pass::kDeferredOutputPass:
+        case Pass::kDeferredPass:
             if (m_shader->numPasses(type)) {
                 logError("%s: Only one pass of type '%s' allowed per shader", m_path, typeString);
                 return false;
