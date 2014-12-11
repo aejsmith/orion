@@ -119,6 +119,9 @@ void decodeGBuffer(out LightingData data) {
      *  - http://mynameismjp.wordpress.com/2009/03/10/reconstructing-position-from-depth/
      *  - http://http.developer.nvidia.com/GPUGems3/gpugems3_ch27.html
      *  - http://www.songho.ca/opengl/gl_projectionmatrix.html
+     *
+     * TODO: Can this be optimised? The matrix multiplication is a bit of a
+     * perf killer on Intel HD 3000.
      */
     vec4 ndcPosition = vec4(
         (((gl_FragCoord.xy - view.viewportPosition) / view.viewportSize) * 2.0) - 1.0,

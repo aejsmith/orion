@@ -106,14 +106,31 @@ void RenderManager::allocRenderTargets(RenderPath path, glm::ivec2 size) {
             "Resizing deferred buffers to %dx%d (for %dx%d)",
             rt.deferredBufferSize.x, rt.deferredBufferSize.y, size.x, size.y);
 
-        /* Allocate the buffers. */
+        /*
+         * Allocate the buffers. The buffer layout is as follows:
+         *
+         *     | Format      | R          | G          | B          | A
+         *  ---|-------------|------------|------------|------------|------------
+         *   A | R10G10B10A2 | Normal.x   | Normal.y   | Normal.z   | -
+         *  ---|-------------|------------|------------|------------|------------
+         *   B | R8G8B8A8    | Diffuse.r  | Diffuse.g  | Diffuse.b  | -
+         *  ---|-------------|------------|------------|------------|------------
+         *   C | R8G8B8A8    | Specular.r | Specular.g | Specular.b | 1/Shininess
+         *  ---|-------------|------------|------------|------------|------------
+         *   D | D24S8       | Depth      | -          | -          | -
+         *
+         * These are all unsigned normalized textures, therefore the normals are
+         * scaled to fit into the [0, 1] range, and the shininess is stored as
+         * its reciprocal. Position is reconstructed from the depth buffer.
+         */
         GPUTexture2DDesc desc;
         desc.width = rt.deferredBufferSize.x;
         desc.height = rt.deferredBufferSize.y;
         desc.mips = 1;
         desc.flags = GPUTexture::kRenderTarget;
-        desc.format = PixelFormat::kR8G8B8A8;
+        desc.format = PixelFormat::kR10G10B10A2;
         rt.deferredBufferA = g_gpu->createTexture(desc);
+        desc.format = PixelFormat::kR8G8B8A8;
         rt.deferredBufferB = g_gpu->createTexture(desc);
         rt.deferredBufferC = g_gpu->createTexture(desc);
         desc.format = PixelFormat::kDepth24Stencil8;

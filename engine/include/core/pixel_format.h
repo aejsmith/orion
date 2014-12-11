@@ -29,6 +29,7 @@ struct PixelFormat {
         kR8,                    /**< R, unsigned normalized, 8 bits per component. */
         kB8G8R8A8,              /**< BGRA, unsigned normalized, 8 bits per component. */
         kB8G8R8,                /**< BGR, unsigned normalized, 8 bits per component. */
+        kR10G10B10A2,           /**< RGBA, unsigned normalized, 10 bits RGB, 2 bits A. */
         kFloatR16G16B16A16,     /**< RGBA, float, 16 bits per component. */
         kFloatR16G16B16,        /**< RGB, float, 16 bits per component. */
         kFloatR16G16,           /**< RG, float, 16 bits per component. */

@@ -170,6 +170,7 @@ void GLGPUInterface::initPixelFormats() {
     f[PixelFormat::kR8]                = { GL_R8,                GL_RED,             GL_UNSIGNED_BYTE };
     f[PixelFormat::kB8G8R8A8]          = { GL_RGBA8,             GL_BGRA,            GL_UNSIGNED_INT_8_8_8_8_REV };
     f[PixelFormat::kB8G8R8]            = { GL_RGB8,              GL_BGR,             GL_UNSIGNED_BYTE };
+    f[PixelFormat::kR10G10B10A2]       = { GL_RGB10_A2,          GL_RGBA,            GL_UNSIGNED_INT_2_10_10_10_REV };
     f[PixelFormat::kFloatR16G16B16A16] = { GL_RGBA16F,           GL_RGBA,            GL_HALF_FLOAT };
     f[PixelFormat::kFloatR16G16B16]    = { GL_RGB16F,            GL_RGB,             GL_HALF_FLOAT };
     f[PixelFormat::kFloatR16G16]       = { GL_RG16F,             GL_RG,              GL_HALF_FLOAT };
