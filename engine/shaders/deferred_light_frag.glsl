@@ -26,22 +26,18 @@ struct LightingData {
  * @param attenuation   Attenuation factor.
  * @return              Calculated pixel colour. */
 vec4 calcLightBlinnPhong(LightingData data, vec3 direction, float attenuation) {
-    vec3 colour = vec3(0.0);
-
     /* Calculate the cosine of the angle between the normal and the light
      * direction. If the surface is facing away from the light this will be <= 0. */
-    float angle = dot(data.normal, -direction);
-    if (angle > 0.0) {
-        /* Calculate the diffuse contribution. */
-        colour = data.diffuseColour * light.colour * light.intensity * angle;
+    float angle = max(dot(data.normal, -direction), 0.0);
 
-        /* Do specular reflection using Blinn-Phong. Calculate the cosine of
-         * the angle between the normal and the half vector. */
-        vec3 halfVector = normalize(direction - (data.position - view.position));
-        float specularAngle = dot(data.normal, halfVector);
-        if (specularAngle > 0.0)
-            colour += data.specularColour * light.colour * light.intensity * pow(specularAngle, data.shininess);
-    }
+    /* Calculate the diffuse contribution. */
+    vec3 colour = (data.diffuseColour * light.colour) * (light.intensity * angle);
+
+    /* Do specular reflection using Blinn-Phong. Calculate the cosine of the
+     * angle between the normal and the half vector. */
+    vec3 halfVector = normalize(-direction + (view.position - data.position));
+    float specularAngle = max(dot(data.normal, halfVector), 0.0);
+    colour += (data.specularColour * light.colour) * (light.intensity * pow(specularAngle, data.shininess));
 
     return vec4(colour * attenuation, 1.0);
 }
@@ -61,9 +57,10 @@ vec4 calcLight(LightingData data) {
         float distance = length(lightToFragment);
         vec3 direction = normalize(lightToFragment);
 
-        /* Ignore lights out of range. */
-        if (distance > light.range)
-            return vec4(0.0);
+        /* Ignore pixels out of range. This gives 1 if the pixel is in range, 0
+         * otherwise. This is in fact significantly faster than using a branch
+         * to return if the light is not in range. */
+        float attenuation = clamp(floor(light.range / distance), 0.0, 1.0);
 
         #ifdef SPOT_LIGHT
             float spotFactor = dot(direction, light.direction);
@@ -71,9 +68,7 @@ vec4 calcLight(LightingData data) {
                 return vec4(0.0);
 
             /* Soften the cone edge. */
-            float attenuation = 1.0 - (1.0 - spotFactor) * (1.0 / (1.0 - light.cosCutoff));
-        #else
-            float attenuation = 1.0;
+            attenuation *= 1.0 - (1.0 - spotFactor) * (1.0 / (1.0 - light.cosCutoff));
         #endif
 
         /* Apply attenuation. */
@@ -94,20 +89,24 @@ void decodeGBuffer(out LightingData data) {
     vec2 size = textureSize(deferredBufferA, 0);
     vec2 texcoord = gl_FragCoord.xy / size;
 
-    /* Sample the normal. Normal is scaled into the [0, 1] range, change it back
-     * to [-1, 1]. */
-    data.normal = (texture(deferredBufferA, texcoord).rgb * 2.0) - 1.0;
+    /* Sample the textures. */
+    vec4 sampleA = texture(deferredBufferA, texcoord);
+    vec4 sampleB = texture(deferredBufferB, texcoord);
+    vec4 sampleC = texture(deferredBufferC, texcoord);
+    vec4 sampleD = texture(deferredBufferD, texcoord);
+
+    /* Normal is scaled into the [0, 1] range, change it back to [-1, 1]. */
+    data.normal = (sampleA.rgb * 2.0) - 1.0;
 
     /* Sample the diffuse colour buffer. */
-    data.diffuseColour = texture(deferredBufferB, texcoord).rgb;
+    data.diffuseColour = sampleB.rgb;
 
     /* Sample specular colour/exponent. Exponent is stored as reciprocal. */
-    vec4 specular = texture(deferredBufferC, texcoord);
-    data.specularColour = specular.rgb;
-    data.shininess = 1.0 / specular.a;
+    data.specularColour = sampleC.rgb;
+    data.shininess = 1.0 / sampleC.a;
 
     /* Sample the depth buffer. */
-    float bufferDepth = texture(deferredBufferD, texcoord).r;
+    float bufferDepth = sampleD.r;
 
     /*
      * Reconstruct the world space position from the depth buffer value. First
