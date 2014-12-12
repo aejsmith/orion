@@ -26,16 +26,19 @@ struct LightingData {
  * @param attenuation   Attenuation factor.
  * @return              Calculated pixel colour. */
 vec4 calcLightBlinnPhong(LightingData data, vec3 direction, float attenuation) {
+    vec3 toLight = -direction;
+    vec3 toView = normalize(view.position - data.position);
+
     /* Calculate the cosine of the angle between the normal and the light
      * direction. If the surface is facing away from the light this will be <= 0. */
-    float angle = max(dot(data.normal, -direction), 0.0);
+    float angle = max(dot(data.normal, toLight), 0.0);
 
     /* Calculate the diffuse contribution. */
     vec3 colour = (data.diffuseColour * light.colour) * (light.intensity * angle);
 
     /* Do specular reflection using Blinn-Phong. Calculate the cosine of the
      * angle between the normal and the half vector. */
-    vec3 halfVector = normalize(-direction + (view.position - data.position));
+    vec3 halfVector = normalize(toLight + toView);
     float specularAngle = max(dot(data.normal, halfVector), 0.0);
     colour += (data.specularColour * light.colour) * (light.intensity * pow(specularAngle, data.shininess));
 
