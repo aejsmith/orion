@@ -1,6 +1,6 @@
 /**
  * @file
- * @copyright           2014 Alex Smith
+ * @copyright           2015 Alex Smith
  * @brief               TGA texture loader.
  *
  * @todo                Support compressed images, 16bpp images (need 16-bit

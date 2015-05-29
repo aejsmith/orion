@@ -1,6 +1,6 @@
 /**
  * @file
- * @copyright           2014 Alex Smith
+ * @copyright           2015 Alex Smith
  * @brief               Filesystem API.
  *
  * Right now this is just a wrapper for a platform-dependent filesystem

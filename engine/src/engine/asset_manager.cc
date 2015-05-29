@@ -1,6 +1,6 @@
 /**
  * @file
- * @copyright           2014 Alex Smith
+ * @copyright           2015 Alex Smith
  * @brief               Engine asset manager.
  *
  * The way this works now is somewhat temporary. At the moment we always load

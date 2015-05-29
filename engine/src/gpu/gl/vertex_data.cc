@@ -1,6 +1,6 @@
 /**
  * @file
- * @copyright           2014 Alex Smith
+ * @copyright           2015 Alex Smith
  * @brief               GL vertex data implementation.
  *
  * GL vertex array objects store the bindings of vertex attributes to source

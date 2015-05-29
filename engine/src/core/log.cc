@@ -1,6 +1,6 @@
 /**
  * @file
- * @copyright           2014 Alex Smith
+ * @copyright           2015 Alex Smith
  * @brief               Logging functions.
  *
  * @todo                This is pretty simple for now. In future it will support

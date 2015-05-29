@@ -1,6 +1,6 @@
 /**
  * @file
- * @copyright           2014 Alex Smith
+ * @copyright           2015 Alex Smith
  * @brief               Core engine definitions.
  *
  * This file pulls in commonly used system headers to avoid having to include

@@ -1,6 +1,6 @@
 /**
  * @file
- * @copyright           2014 Alex Smith
+ * @copyright           2015 Alex Smith
  * @brief               GL texture implementation.
  *
  * @todo                Code paths for where we don't have ARB_texture_storage?

@@ -1,6 +1,6 @@
 /**
  * @file
- * @copyright           2014 Alex Smith
+ * @copyright           2015 Alex Smith
  * @brief               Constant state holders.
  *
  * @note                This header is not to be included directly, it is

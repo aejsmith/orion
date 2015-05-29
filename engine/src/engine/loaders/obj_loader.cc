@@ -1,6 +1,6 @@
 /**
  * @file
- * @copyright           2014 Alex Smith
+ * @copyright           2015 Alex Smith
  * @brief               Wavefront mesh loader.
  *
  * @todo                This is hideously slow. readLine() reads individual

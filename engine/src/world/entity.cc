@@ -1,6 +1,6 @@
 /**
  * @file
- * @copyright           2014 Alex Smith
+ * @copyright           2015 Alex Smith
  * @brief               World entity class.
  *
  * @todo                Lookup function for entities based on hierarchy (use

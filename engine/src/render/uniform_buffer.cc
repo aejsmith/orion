@@ -1,6 +1,6 @@
 /**
  * @file
- * @copyright           2014 Alex Smith
+ * @copyright           2015 Alex Smith
  * @brief               Uniform buffer classes.
  *
  * @todo                Can we optimize updates of buffers by determining the
