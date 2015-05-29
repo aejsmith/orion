@@ -22,5 +22,5 @@ bool DataStream::readLine(std::string &line) {
 
     /* Shrink down to actual size. */
     line.reserve();
-    return ch == '\n';
+    return ch == '\n' || line.length() != 0;
 }
