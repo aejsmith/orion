@@ -146,7 +146,7 @@ bool Pass::loadStage(GPUShader::Type stage, const Path &path, const KeywordSet &
     }
 
     std::string source;
-    
+
     /* Add pass type definition and user-specified keywords. */
     defineKeyword(source, passShaderVariations[m_type]);
     for (const std::string &keyword : keywords)
