@@ -10,10 +10,9 @@
 #include "engine/window.h"
 
 /** Set an FBO attachment.
- * @param fbo           FBO to set in.
  * @param attachment    Attachment point to set.
  * @param texture       Texture reference. */
-static void setAttachment(GLuint fbo, GLenum attachment, const GPUTextureImageRef &texture) {
+static void setAttachment(GLenum attachment, const GPUTextureImageRef &texture) {
     GLTexture *glTexture = static_cast<GLTexture *>(texture.texture);
 
     check(glTexture->flags() & GPUTexture::kRenderTarget);
@@ -67,7 +66,7 @@ GLuint GLGPUInterface::createFBO(const GPURenderTargetDesc &desc) {
     GLenum buffers[kMaxColourRenderTargets];
 
     for (size_t i = 0; i < desc.numColours; i++) {
-        setAttachment(fbo, GL_COLOR_ATTACHMENT0 + i, desc.colour[i]);
+        setAttachment(GL_COLOR_ATTACHMENT0 + i, desc.colour[i]);
         buffers[i] = GL_COLOR_ATTACHMENT0 + i;
     }
 
@@ -75,7 +74,7 @@ GLuint GLGPUInterface::createFBO(const GPURenderTargetDesc &desc) {
     glDrawBuffers(desc.numColours, buffers);
 
     if (desc.depthStencil.texture)
-        setAttachment(fbo, GL_DEPTH_STENCIL_ATTACHMENT, desc.depthStencil);
+        setAttachment(GL_DEPTH_STENCIL_ATTACHMENT, desc.depthStencil);
 
     /* Check for error. */
     GLenum status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
@@ -243,6 +242,12 @@ void GLGPUInterface::invalidateFBOs(const GLTexture *texture) {
         }
 
         if (invalidate) {
+            if (this->state.boundDrawFramebuffer == it->second || this->state.boundReadFramebuffer == it->second) {
+                this->state.bindFramebuffer(GL_FRAMEBUFFER, 0);
+                this->state.currentRTSize.x = g_mainWindow->width();
+                this->state.currentRTSize.y = g_mainWindow->height();
+            }
+
             glDeleteFramebuffers(1, &it->second);
             it = m_fbos.erase(it);
         } else {
