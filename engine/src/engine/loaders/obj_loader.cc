@@ -14,7 +14,7 @@
 #include "engine/asset_loader.h"
 #include "engine/mesh.h"
 
-#include "gpu/gpu.h"
+#include "gpu/gpu_manager.h"
 
 #include "render/render_manager.h"
 #include "render/utility.h"
@@ -151,7 +151,7 @@ AssetPtr OBJLoader::load() {
     /* Create the vertex buffer. */
     GPUBufferArray buffers(1);
     buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, m_vertices);
-    mesh->sharedVertices = g_gpu->createVertexData(
+    mesh->sharedVertices = g_gpuManager->createVertexData(
         m_vertices.size(),
         g_renderManager->simpleVertexFormat(),
         buffers);
@@ -165,7 +165,7 @@ AssetPtr OBJLoader::load() {
         subMesh->material = mesh->addMaterial(desc.material);
 
         /* Create an index buffer. */
-        subMesh->indices = g_gpu->createIndexData(
+        subMesh->indices = g_gpuManager->createIndexData(
             RenderUtil::buildGPUBuffer(GPUBuffer::kIndexBuffer, desc.indices),
             GPUIndexData::kUnsignedShortType,
             desc.indices.size());

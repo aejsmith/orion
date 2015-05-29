@@ -14,7 +14,7 @@
 
 /** Bind a pipeline for rendering.
  * @param pipeline      Pipeline to use. */
-void GLGPUInterface::bindPipeline(GPUPipeline *pipeline) {
+void GLGPUManager::bindPipeline(GPUPipeline *pipeline) {
     GLPipeline *glPipeline = static_cast<GLPipeline *>(pipeline);
     glPipeline->bind();
 }
@@ -23,7 +23,7 @@ void GLGPUInterface::bindPipeline(GPUPipeline *pipeline) {
  * @param index         Texture unit index to bind to.
  * @param texture       Texture to bind.
  * @param sampler       Sampler state to bind with. */
-void GLGPUInterface::bindTexture(unsigned index, GPUTexture *texture, GPUSamplerState *sampler) {
+void GLGPUManager::bindTexture(unsigned index, GPUTexture *texture, GPUSamplerState *sampler) {
     GLTexture *glTexture = static_cast<GLTexture *>(texture);
     glTexture->bind(index);
     GLSamplerState *glSampler = static_cast<GLSamplerState *>(sampler);
@@ -33,7 +33,7 @@ void GLGPUInterface::bindTexture(unsigned index, GPUTexture *texture, GPUSampler
 /** Bind a uniform buffer.
  * @param index         Uniform block index to bind to.
  * @param buffer        Buffer to bind. */
-void GLGPUInterface::bindUniformBuffer(unsigned index, GPUBuffer *buffer) {
+void GLGPUManager::bindUniformBuffer(unsigned index, GPUBuffer *buffer) {
     check(buffer->type() == GPUBuffer::kUniformBuffer);
 
     GLBuffer *glBuffer = static_cast<GLBuffer *>(buffer);
@@ -42,13 +42,13 @@ void GLGPUInterface::bindUniformBuffer(unsigned index, GPUBuffer *buffer) {
 
 /** Set the viewport.
  * @param viewport      Viewport rectangle in pixels. */
-void GLGPUInterface::setViewport(const IntRect &viewport) {
+void GLGPUManager::setViewport(const IntRect &viewport) {
     this->state.setViewport(viewport);
 }
 
 /** End a frame and present it on screen.
  * @param vsync         Whether to wait for vertical sync. */
-void GLGPUInterface::endFrame(bool vsync) {
+void GLGPUManager::endFrame(bool vsync) {
     /* On OS X, CGLFlushDrawable will swap whichever framebuffer is currently
      * active. So, to flush the main window, we must bind it here. */
     this->state.bindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -62,7 +62,7 @@ void GLGPUInterface::endFrame(bool vsync) {
  * @param colour        Colour to clear to.
  * @param depth         Depth value to clear to.
  * @param stencil       Stencil value to clear to. */
-void GLGPUInterface::clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil) {
+void GLGPUManager::clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil) {
     GLbitfield mask = 0;
 
     if (buffers & ClearBuffer::kColourBuffer) {
@@ -87,7 +87,7 @@ void GLGPUInterface::clear(unsigned buffers, const glm::vec4 &colour, float dept
  * @param type          Primitive type to render.
  * @param _vertices     Vertex data to use.
  * @param indices       Index data to use (can be null). */
-void GLGPUInterface::draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) {
+void GLGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) {
     GLVertexData *glVertices = static_cast<GLVertexData *>(vertices);
 
     /* Bind the VAO and the index buffer (if any). */

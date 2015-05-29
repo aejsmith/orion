@@ -39,12 +39,12 @@ void SceneRenderer::render() {
     m_scene->visitVisibleEntities(m_view, [this] (SceneEntity *e) { addEntity(e); });
 
     /* Set view uniforms once per frame. */
-    g_gpu->bindUniformBuffer(UniformSlots::kViewUniforms, m_view->uniforms());
+    g_gpuManager->bindUniformBuffer(UniformSlots::kViewUniforms, m_view->uniforms());
 
     /* Set the primary render target and clear it. FIXME: Better place for clear
      * and clear settings. */
     setOutputRenderTarget();
-    g_gpu->clear(
+    g_gpuManager->clear(
         ClearBuffer::kColourBuffer | ClearBuffer::kDepthBuffer | ClearBuffer::kStencilBuffer,
         glm::vec4(0.0, 0.0, 0.0, 1.0), 1.0, 0);
 
@@ -57,7 +57,7 @@ void SceneRenderer::render() {
     GPUTextureImageRef source(targets.colourBuffer);
     GPUTextureImageRef dest;
     m_target->gpu(dest);
-    g_gpu->blit(
+    g_gpuManager->blit(
         &source,
         (dest.texture) ? &dest : nullptr,
         m_view->viewport().pos(),
@@ -112,14 +112,14 @@ void SceneRenderer::renderDeferred() {
 
     /* Set the render target to the G-Buffer and clear it. */
     setDeferredRenderTarget();
-    g_gpu->clear(
+    g_gpuManager->clear(
         ClearBuffer::kColourBuffer | ClearBuffer::kDepthBuffer | ClearBuffer::kStencilBuffer,
         glm::vec4(0.0, 0.0, 0.0, 0.0), 1.0, 0);
 
     /* Disable blending, enable depth testing/writing. FIXME: State push/pop. */
-    g_gpu->setBlendState<>();
-    g_gpu->setDepthStencilState<>();
-    g_gpu->setRasterizerState<>();
+    g_gpuManager->setBlendState<>();
+    g_gpuManager->setDepthStencilState<>();
+    g_gpuManager->setRasterizerState<>();
 
     /* Render everything to the G-Buffer. */
     m_deferredDrawList.draw();
@@ -130,11 +130,11 @@ void SceneRenderer::renderDeferred() {
      * target while also sampling it. */
     GPUTextureImageRef source(targets.depthBuffer);
     GPUTextureImageRef dest(targets.deferredBufferD);
-    g_gpu->blit(&source, &dest, glm::ivec2(0, 0), glm::ivec2(0, 0), targets.deferredBufferSize);
+    g_gpuManager->blit(&source, &dest, glm::ivec2(0, 0), glm::ivec2(0, 0), targets.deferredBufferSize);
 
     /* Now restore primary render target and render light volumes. */
     setOutputRenderTarget();
-    g_gpu->setBlendState<BlendFunc::kAdd, BlendFactor::kOne, BlendFactor::kOne>();
+    g_gpuManager->setBlendState<BlendFunc::kAdd, BlendFactor::kOne, BlendFactor::kOne>();
     for (LightRenderState &lightState : m_lights) {
         /* Set up rasterizer/depth testing state. No depth writes here, the
          * light volumes should not affect our depth buffer. FIXME: If Pass ever
@@ -145,8 +145,8 @@ void SceneRenderer::renderDeferred() {
             case SceneLight::kDirectionalLight:
                 /* These are rendered as full-screen quads and should have their
                  * front faces unconditionally rendered. */
-                g_gpu->setDepthStencilState<ComparisonFunc::kAlways, false>();
-                g_gpu->setRasterizerState<CullMode::kBack>();
+                g_gpuManager->setDepthStencilState<ComparisonFunc::kAlways, false>();
+                g_gpuManager->setRasterizerState<CullMode::kBack>();
                 break;
             default:
                 /* For others we want to render their back faces, so that they
@@ -155,12 +155,12 @@ void SceneRenderer::renderDeferred() {
                  * of the light volume so that only pixels in front of it are
                  * touched. Additionally, enable depth clamping so that the
                  * light volume is not clipped. */
-                g_gpu->setDepthStencilState<ComparisonFunc::kGreaterOrEqual, false>();
-                g_gpu->setRasterizerState<CullMode::kFront, true>();
+                g_gpuManager->setDepthStencilState<ComparisonFunc::kGreaterOrEqual, false>();
+                g_gpuManager->setRasterizerState<CullMode::kFront, true>();
                 break;
         }
 
-        g_gpu->bindUniformBuffer(UniformSlots::kLightUniforms, lightState.light->uniforms());
+        g_gpuManager->bindUniformBuffer(UniformSlots::kLightUniforms, lightState.light->uniforms());
 
         /* Build up a draw call for the light volume. */
         DrawData data;
@@ -184,9 +184,9 @@ void SceneRenderer::renderForward() {
      * blending. Depth buffer writes should be on. FIXME: These should be
      * defaults for the GPU interface here and when this is called this should
      * be expected to be the current state. */
-    g_gpu->setBlendState<>();
-    g_gpu->setDepthStencilState<>();
-    g_gpu->setRasterizerState<>();
+    g_gpuManager->setBlendState<>();
+    g_gpuManager->setDepthStencilState<>();
+    g_gpuManager->setRasterizerState<>();
 
     /* Render all entities with basic materials. */
     m_basicDrawList.draw();
@@ -197,15 +197,15 @@ void SceneRenderer::renderForward() {
         if (lightState.drawList.empty())
             continue;
 
-        g_gpu->bindUniformBuffer(UniformSlots::kLightUniforms, lightState.light->uniforms());
+        g_gpuManager->bindUniformBuffer(UniformSlots::kLightUniforms, lightState.light->uniforms());
 
         /* Draw all entities. */
         lightState.drawList.draw(lightState.light);
 
         /* After the first iteration, we want to blend the remaining lights, and
          * we can turn depth writes off. */
-        g_gpu->setBlendState<BlendFunc::kAdd, BlendFactor::kOne, BlendFactor::kOne>();
-        g_gpu->setDepthStencilState<ComparisonFunc::kEqual, true>();
+        g_gpuManager->setBlendState<BlendFunc::kAdd, BlendFactor::kOne, BlendFactor::kOne>();
+        g_gpuManager->setDepthStencilState<ComparisonFunc::kEqual, true>();
     }
 }
 
@@ -217,7 +217,7 @@ void SceneRenderer::setOutputRenderTarget() {
     desc.numColours = 1;
     desc.colour[0].texture = targets.colourBuffer;
     desc.depthStencil.texture = targets.depthBuffer;
-    g_gpu->setRenderTarget(&desc, &m_view->viewport());
+    g_gpuManager->setRenderTarget(&desc, &m_view->viewport());
 }
 
 /** Set the G-Buffer as the render target. */
@@ -234,5 +234,5 @@ void SceneRenderer::setDeferredRenderTarget() {
      * completed, it is copied into deferredBufferD. */
     desc.depthStencil.texture = targets.depthBuffer;
 
-    g_gpu->setRenderTarget(&desc, &m_view->viewport());
+    g_gpuManager->setRenderTarget(&desc, &m_view->viewport());
 }

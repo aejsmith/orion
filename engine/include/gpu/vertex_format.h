@@ -38,7 +38,7 @@ typedef std::vector<VertexBufferLayout> VertexBufferLayoutArray;
  * The index allows multiple attributes with the same semantic (for example,
  * multiple sets of texture coordinates).
  *
- * In the array passed to GPUInterface::createVertexData(), entries with a zero
+ * In the array passed to GPUManager::createVertexData(), entries with a zero
  * count are ignored.
  */
 struct VertexAttribute {
@@ -111,7 +111,7 @@ typedef std::vector<VertexAttribute> VertexAttributeArray;
  * buffers.
  *
  * Once created, a vertex format is immutable. Creation is performed through
- * GPUInterface::createVertexFormat(), which should be supplied with arrays
+ * GPUManager::createVertexFormat(), which should be supplied with arrays
  * describing the buffer layouts and the attributes.
  */
 class GPUVertexFormat : public GPUResource {
@@ -129,7 +129,7 @@ protected:
     VertexAttributeArray m_attributes;
 
     /* For the default implementation of createVertexFormat(). */
-    friend class GPUInterface;
+    friend class GPUManager;
 };
 
 /** Type of a reference to a GPUVertexFormat. */

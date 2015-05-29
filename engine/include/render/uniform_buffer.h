@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "gpu/gpu.h"
+#include "gpu/gpu_manager.h"
 
 #include "render/shader_parameter.h"
 #include "render/slots.h"
@@ -200,7 +200,7 @@ public:
      *
      *  MyUniforms *uniforms = m_uniforms.write();
      *  uniforms->foo = 42;
-     *  g_gpu->bind_uniform_buffer(m_uniforms.gpu());
+     *  g_gpuManager->bindUniformBuffer(m_uniforms.gpu());
      *  uniforms->bar = 1234;
      *
      * After the above sequence, the final write may not be flushed by the

@@ -12,7 +12,7 @@
 #include "core/filesystem.h"
 #include "core/string.h"
 
-#include "gpu/gpu.h"
+#include "gpu/gpu_manager.h"
 
 #include "render/pass.h"
 #include "render/scene_light.h"
@@ -61,7 +61,7 @@ void Pass::setDrawState(SceneLight *light) const {
     /* Bind the shader variation for this light type. */
     const Variation &variation = m_variations[(m_type == kForwardPass) ? light->type() : 0];
     check(variation.pipeline);
-    g_gpu->bindPipeline(variation.pipeline);
+    g_gpuManager->bindPipeline(variation.pipeline);
 }
 
 /** Add a keyword definition.
@@ -98,7 +98,7 @@ static void declareUniformBlock(std::string &source, const UniformStruct *unifor
  * @return              Pointer to compiled shader, null on failure. */
 static GPUShaderPtr compileVariation(const std::string &source, GPUShader::Type stage, Shader *parent, const Path &path) {
     /* Compile the shader. */
-    GPUShaderPtr shader = g_gpu->compileShader(stage, source);
+    GPUShaderPtr shader = g_gpuManager->compileShader(stage, source);
     if (!shader)
         return nullptr;
 
@@ -198,5 +198,5 @@ bool Pass::loadStage(GPUShader::Type stage, const Path &path, const KeywordSet &
 /** Finalize the pass (called from Shader::addPass). */
 void Pass::finalize() {
     for (size_t i = 0; i < m_variations.size(); i++)
-        m_variations[i].pipeline = g_gpu->createPipeline(m_variations[i].shaders);
+        m_variations[i].pipeline = g_gpuManager->createPipeline(m_variations[i].shaders);
 }

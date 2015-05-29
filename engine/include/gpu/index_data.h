@@ -14,7 +14,7 @@
  * This class holds a buffer containing index data and information about the
  * format of that buffer. It is used to provide indices into vertex data to be
  * used for rendering. Since this class may have an API-specific implementation,
- * instances must be created with GPUInterface::createIndexData().
+ * instances must be created with GPUManager::createIndexData().
  */
 class GPUIndexData : public GPUResource {
 public:
@@ -57,7 +57,7 @@ protected:
     size_t m_count;                 /**< Number of indices. */
 
     /* For the default implementation of createIndexData(). */
-    friend class GPUInterface;
+    friend class GPUManager;
 };
 
 /** Type of a reference to GPUIndexData */

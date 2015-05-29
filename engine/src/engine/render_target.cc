@@ -7,7 +7,7 @@
 #include "engine/engine.h"
 #include "engine/render_target.h"
 
-#include "gpu/gpu.h"
+#include "gpu/gpu_manager.h"
 
 /**
  * Initialize the layer.
@@ -153,7 +153,7 @@ void RenderTarget::removeLayer(RenderLayer *layer) {
 void RenderTarget::render() {
     /* Render all our layers. */
     for (RenderLayer *layer : m_layers) {
-        g_gpu->setViewport(layer->pixelViewport());
+        g_gpuManager->setViewport(layer->pixelViewport());
         layer->render();
     }
 }

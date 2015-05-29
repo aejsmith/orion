@@ -137,6 +137,6 @@ bool GLVertexData::mapAttribute(VertexAttribute::Semantic semantic, unsigned ind
 /** Create a vertex data object.
  * @see             GPUVertexData::GPUVertexData().
  * @return          Pointer to created vertex data object. */
-GPUVertexDataPtr GLGPUInterface::createVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers) {
+GPUVertexDataPtr GLGPUManager::createVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers) {
     return new GLVertexData(count, format, buffers);
 }

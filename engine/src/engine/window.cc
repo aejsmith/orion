@@ -7,7 +7,7 @@
 #include "engine/engine.h"
 #include "engine/window.h"
 
-#include "gpu/gpu.h"
+#include "gpu/gpu_manager.h"
 
 #include <SDL.h>
 

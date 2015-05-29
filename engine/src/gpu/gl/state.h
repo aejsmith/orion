@@ -16,7 +16,7 @@ struct GLFeatures;
  * OpenGL state cache.
  *
  * This class caches current OpenGL state, to avoid unnecessary API calls to
- * change state. GLGPUInterface holds an instance of it, GL state changes should
+ * change state. GLGPUManager holds an instance of it, GL state changes should
  * be made by calling functions on that.
  *
  * When adding state to this structure, be sure to add default initializers to

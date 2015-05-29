@@ -10,7 +10,7 @@
 
 #include "core/hash_table.h"
 
-#include "gpu/gpu.h"
+#include "gpu/gpu_manager.h"
 
 #include <SDL.h>
 
@@ -64,13 +64,13 @@ public:
 };
 
 /** OpenGL GPU interface implementation. */
-class GLGPUInterface : public GPUInterface {
+class GLGPUManager : public GPUManager {
 public:
     /** Type of the pixel format mapping array. */
     typedef std::array<GLPixelFormat, PixelFormat::kNumFormats> PixelFormatArray;
 public:
-    GLGPUInterface();
-    ~GLGPUInterface();
+    GLGPUManager();
+    ~GLGPUManager();
 
     void init() override;
 
@@ -148,7 +148,7 @@ private:
     HashTable<GPURenderTargetDesc, GLuint> m_fbos;
 };
 
-extern GLGPUInterface *g_opengl;
+extern GLGPUManager *g_opengl;
 
 /**
  * Utility functions.

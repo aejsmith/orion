@@ -4,7 +4,7 @@
  * @brief               Mesh renderer component.
  */
 
-#include "gpu/gpu.h"
+#include "gpu/gpu_manager.h"
 
 #include "render/scene_entity.h"
 

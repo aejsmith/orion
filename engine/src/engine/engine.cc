@@ -11,7 +11,7 @@
 #include "engine/game.h"
 #include "engine/window.h"
 
-#include "gpu/gpu.h"
+#include "gpu/gpu_manager.h"
 
 #include "render/render_manager.h"
 
@@ -44,11 +44,11 @@ Engine::Engine(const EngineConfiguration &config) :
     /* Initialize platform systems. */
     g_filesystem() = Platform::createFilesystem();
 
-    /* Create the GPU interface, create the main window, and finally properly
+    /* Create the GPU manager, create the main window, and finally properly
      * initialize the GPU interface. */
-    g_gpu() = GPUInterface::create(config);
+    g_gpuManager() = GPUManager::create(config);
     g_mainWindow() = new Window(config);
-    g_gpu->init();
+    g_gpuManager->init();
 
     /* Initialize other global systems. */
     g_assetManager() = new AssetManager;
@@ -84,7 +84,7 @@ void Engine::run() {
         renderAllTargets();
 
         /* Present the final rendered frame. */
-        g_gpu->endFrame(m_config.displayVsync);
+        g_gpuManager->endFrame(m_config.displayVsync);
         m_frames++;
     }
 }

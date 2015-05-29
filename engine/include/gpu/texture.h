@@ -54,7 +54,7 @@ struct GPUTexture3DDesc {
  * This class stores texture data on the GPU. In most cases you should not use
  * this directly, rather you should use the texture asset classes. Since this
  * class has an API-specific implementation, instances must be created with
- * GPUInterface::createTexture().
+ * GPUManager::createTexture().
  */
 class GPUTexture : public GPUResource {
 public:

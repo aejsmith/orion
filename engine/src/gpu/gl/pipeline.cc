@@ -43,6 +43,6 @@ void GLPipeline::bind() {
 /** Create a pipeline object.
  * @see             GPUPipeline::GPUPipeline().
  * @return          Pointer to created pipeline. */
-GPUPipelinePtr GLGPUInterface::createPipeline(const GPUShaderArray &shaders) {
+GPUPipelinePtr GLGPUManager::createPipeline(const GPUShaderArray &shaders) {
     return new GLPipeline(shaders);
 }

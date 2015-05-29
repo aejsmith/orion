@@ -28,7 +28,10 @@ void RenderUtil::makeQuad(GPUVertexDataPtr &vertices) {
 
     GPUBufferArray buffers(1);
     buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
-    vertices = g_gpu->createVertexData(vb.size(), g_renderManager->simpleVertexFormat(), buffers);
+    vertices = g_gpuManager->createVertexData(
+        vb.size(),
+        g_renderManager->simpleVertexFormat(),
+        buffers);
 }
 
 /**
@@ -63,7 +66,10 @@ void RenderUtil::makeSphere(unsigned rings, unsigned sides, GPUVertexDataPtr &ve
 
     GPUBufferArray buffers(1);
     buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
-    vertices = g_gpu->createVertexData(vb.size(), g_renderManager->simpleVertexFormat(), buffers);
+    vertices = g_gpuManager->createVertexData(
+        vb.size(),
+        g_renderManager->simpleVertexFormat(),
+        buffers);
 
     std::vector<uint16_t> ib;
     ib.reserve(rings * sides * 6);
@@ -79,7 +85,7 @@ void RenderUtil::makeSphere(unsigned rings, unsigned sides, GPUVertexDataPtr &ve
         }
     }
 
-    indices = g_gpu->createIndexData(
+    indices = g_gpuManager->createIndexData(
         RenderUtil::buildGPUBuffer(GPUBuffer::kIndexBuffer, ib),
         GPUIndexData::kUnsignedShortType,
         ib.size());
@@ -113,7 +119,10 @@ void RenderUtil::makeCone(unsigned baseVertices, GPUVertexDataPtr &vertices, GPU
 
     GPUBufferArray buffers(1);
     buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
-    vertices = g_gpu->createVertexData(vb.size(), g_renderManager->simpleVertexFormat(), buffers);
+    vertices = g_gpuManager->createVertexData(
+        vb.size(),
+        g_renderManager->simpleVertexFormat(),
+        buffers);
 
     std::vector<uint16_t> ib;
     ib.reserve((3 * baseVertices) + (3 * (baseVertices - 2)));
@@ -130,7 +139,7 @@ void RenderUtil::makeCone(unsigned baseVertices, GPUVertexDataPtr &vertices, GPU
         ib.emplace_back(i + 2);
     }
 
-    indices = g_gpu->createIndexData(
+    indices = g_gpuManager->createIndexData(
         RenderUtil::buildGPUBuffer(GPUBuffer::kIndexBuffer, ib),
         GPUIndexData::kUnsignedShortType,
         ib.size());

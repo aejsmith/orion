@@ -52,7 +52,7 @@ static void setAttachment(GLenum attachment, const GPUTextureImageRef &texture) 
  * @note                May trash current FBO binding state.
  * @param desc          Render target descriptor. Should be validated.
  * @return              Created framebuffer object. */
-GLuint GLGPUInterface::createFBO(const GPURenderTargetDesc &desc) {
+GLuint GLGPUManager::createFBO(const GPURenderTargetDesc &desc) {
     /* See if we have a cached FBO available. */
     auto ret = m_fbos.find(desc);
     if (ret != m_fbos.end())
@@ -90,7 +90,7 @@ GLuint GLGPUInterface::createFBO(const GPURenderTargetDesc &desc) {
 /** Set the render target.
  * @param desc          Render target descriptor.
  * @param viewport      Optional viewport rectangle. */
-void GLGPUInterface::setRenderTarget(const GPURenderTargetDesc *desc, const IntRect *viewport) {
+void GLGPUManager::setRenderTarget(const GPURenderTargetDesc *desc, const IntRect *viewport) {
     if (!desc) {
         /* Main window. */
         this->state.bindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -155,7 +155,7 @@ void GLGPUInterface::setRenderTarget(const GPURenderTargetDesc *desc, const IntR
  * @param sourcePos     Position in source texture to copy from.
  * @param destPos       Position in destination texture to copy to.
  * @param size          Size of area to copy. */
-void GLGPUInterface::blit(
+void GLGPUManager::blit(
     const GPUTextureImageRef *source,
     const GPUTextureImageRef *dest,
     glm::ivec2 sourcePos,
@@ -227,7 +227,7 @@ void GLGPUInterface::blit(
 
 /** Invalidate FBOs referring to a texture.
  * @param texture       Texture being destroyed. */
-void GLGPUInterface::invalidateFBOs(const GLTexture *texture) {
+void GLGPUManager::invalidateFBOs(const GLTexture *texture) {
     for (auto it = m_fbos.begin(); it != m_fbos.end();) {
         const GPURenderTargetDesc &target = it->first;
         bool invalidate = false;

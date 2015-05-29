@@ -9,7 +9,7 @@
 #include "engine/window.h"
 
 /** Global GL GPU interface. */
-GLGPUInterface *g_opengl = nullptr;
+GLGPUManager *g_opengl = nullptr;
 
 /** Target GL major version. */
 static const int kGLMajorVersion = 3;
@@ -25,7 +25,7 @@ static const char *g_requiredGLExtensions[] = {
 };
 
 /** Initialize the GPU interface. */
-GLGPUInterface::GLGPUInterface() :
+GLGPUManager::GLGPUManager() :
     defaultVertexArray(0),
     m_sdlContext(nullptr)
 {
@@ -64,7 +64,7 @@ GLGPUInterface::GLGPUInterface() :
 }
 
 /** Shut down the GPU interface. */
-GLGPUInterface::~GLGPUInterface() {
+GLGPUManager::~GLGPUManager() {
     if (m_sdlContext)
         SDL_GL_DeleteContext(m_sdlContext);
 
@@ -72,7 +72,7 @@ GLGPUInterface::~GLGPUInterface() {
 }
 
 /** Initialize the GPU interface. */
-void GLGPUInterface::init() {
+void GLGPUManager::init() {
     m_sdlContext = SDL_GL_CreateContext(g_mainWindow->sdlWindow());
     if (!m_sdlContext)
         fatal("Failed to create GL context: %s", SDL_GetError());
@@ -116,7 +116,7 @@ void GLGPUInterface::init() {
 }
 
 /** Detect GL features and check requirements. */
-void GLGPUInterface::initFeatures() {
+void GLGPUManager::initFeatures() {
     GLFeatures &features = this->features;
 
     /* Log some OpenGL details. */
@@ -156,7 +156,7 @@ void GLGPUInterface::initFeatures() {
 }
 
 /** Initialize the supported pixel format conversion table. */
-void GLGPUInterface::initPixelFormats() {
+void GLGPUManager::initPixelFormats() {
     PixelFormatArray &f = this->pixelFormats;
 
     /* TODO: For now this is a static table. We should identify the formats
@@ -194,7 +194,7 @@ void GLGPUInterface::initPixelFormats() {
  * @param length        Length of the message.
  * @param message       Message text.
  * @param param         User-defined parameter (unused). */
-GLEWAPIENTRY void GLGPUInterface::debugCallback(
+GLEWAPIENTRY void GLGPUManager::debugCallback(
     GLenum source,
     GLenum type,
     GLuint id,

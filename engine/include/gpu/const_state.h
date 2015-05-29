@@ -5,7 +5,7 @@
  *
  * @note                This header is not to be included directly, it is
  *                      included from gpu.h, due to circular dependencies
- *                      between this and GPUInterface.
+ *                      between this and GPUManager.
  */
 
 #pragma once
@@ -16,7 +16,7 @@
  * Constant state holder.
  *
  * This and derived classes are used in the implementation of the templated
- * state set methods in GPUInterface. They avoid a hash lookup for the state
+ * state set methods in GPUManager. They avoid a hash lookup for the state
  * object by holding a pointer to the state object corresponding to the template
  * arguments.
  */
@@ -53,7 +53,7 @@ public:
         desc.sourceFactor = sourceFactor;
         desc.destFactor = destFactor;
 
-        static GPUBlendStatePtr instance = g_gpu->createBlendState(desc);
+        static GPUBlendStatePtr instance = g_gpuManager->createBlendState(desc);
         return instance;
     }
 };
@@ -69,7 +69,7 @@ public:
         desc.depthFunc = depthFunc;
         desc.depthWrite = depthWrite;
 
-        static GPUDepthStencilStatePtr instance = g_gpu->createDepthStencilState(desc);
+        static GPUDepthStencilStatePtr instance = g_gpuManager->createDepthStencilState(desc);
         return instance;
     }
 };
@@ -85,7 +85,7 @@ public:
         desc.cullMode = cullMode;
         desc.depthClamp = depthClamp;
 
-        static GPURasterizerStatePtr instance = g_gpu->createRasterizerState(desc);
+        static GPURasterizerStatePtr instance = g_gpuManager->createRasterizerState(desc);
         return instance;
     }
 };
@@ -99,7 +99,7 @@ public:
  * @tparam sourceFactor Source blend factor.
  * @tparam destFactor   Destination factor. */
 template <BlendFunc func, BlendFactor sourceFactor, BlendFactor destFactor>
-inline void GPUInterface::setBlendState() {
+inline void GPUManager::setBlendState() {
     setBlendState(GPUConstBlendState<func, sourceFactor, destFactor>::get());
 }
 
@@ -107,7 +107,7 @@ inline void GPUInterface::setBlendState() {
  * @tparam depthFunc    Depth comparison function.
  * @tparam depthWrite   Whether to enable depth buffer writes. */
 template <ComparisonFunc depthFunc, bool depthWrite>
-inline void GPUInterface::setDepthStencilState() {
+inline void GPUManager::setDepthStencilState() {
     setDepthStencilState(GPUConstDepthStencilState<depthFunc, depthWrite>::get());
 }
 
@@ -115,6 +115,6 @@ inline void GPUInterface::setDepthStencilState() {
  * @tparam cullMode     Face culling mode.
  * @tparam depthClamp   Whether to enable depth clamping. */
 template <CullMode cullMode, bool depthClamp>
-inline void GPUInterface::setRasterizerState() {
+inline void GPUManager::setRasterizerState() {
     setRasterizerState(GPUConstRasterizerState<cullMode, depthClamp>::get());
 }

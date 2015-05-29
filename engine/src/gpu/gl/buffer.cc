@@ -99,6 +99,6 @@ void GLBuffer::unmapImpl() {
 /** Create a GPU buffer.
  * @see                 GPUBuffer::GPUBuffer().
  * @return              Pointer to created vertex buffer. */
-GPUBufferPtr GLGPUInterface::createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) {
+GPUBufferPtr GLGPUManager::createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) {
     return new GLBuffer(type, usage, size);
 }

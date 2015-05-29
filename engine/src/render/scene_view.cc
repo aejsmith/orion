@@ -4,7 +4,7 @@
  * @brief               Scene view class.
  */
 
-#include "gpu/gpu.h"
+#include "gpu/gpu_manager.h"
 
 #include "render/scene.h"
 #include "render/scene_view.h"

@@ -15,7 +15,7 @@
  *
  * This class groups together a set of GPU shaders to use for each pipeline
  * stage. Once created, a pipeline is immutable. Creation is performed through
- * GPUInterface::createPipeline().
+ * GPUManager::createPipeline().
  *
  * Modern APIs (DX12, Metal, Mantle) have the concept of pipeline state objects
  * that bundle up shaders along with some bits of state like blend mode, output
@@ -35,7 +35,7 @@ protected:
     GPUShaderArray m_shaders;           /**< Array of shaders for each stage. */
 
     /* For the default implementation of createPipeline(). */
-    friend class GPUInterface;
+    friend class GPUManager;
 };
 
 /** Type of a reference to GPUPipeline. */

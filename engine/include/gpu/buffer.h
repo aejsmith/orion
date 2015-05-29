@@ -16,7 +16,7 @@
  * This class encapsulates a buffer in GPU memory. There are multiple buffer
  * types, the type of the buffer must be declared at creation time. The
  * implementation of the class is API-specific, therefore instances must be
- * created with GPUInterface::createBuffer().
+ * created with GPUManager::createBuffer().
  */
 class GPUBuffer : public GPUResource {
 public:

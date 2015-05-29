@@ -115,7 +115,7 @@ void GLShader::bindSampler(unsigned index, unsigned slot) {
  * @param type          Type of the shader.
  * @param source        Shader source string.
  * @return              Pointer to created shader. */
-GPUShaderPtr GLGPUInterface::compileShader(GPUShader::Type type, const std::string &source) {
+GPUShaderPtr GLGPUManager::compileShader(GPUShader::Type type, const std::string &source) {
     /* Add a version string at the start, and enable SSO. */
     std::string preamble = String::format("#version %s\n", kTargetGLSLVersion);
     preamble += "#extension GL_ARB_separate_shader_objects : enable\n";

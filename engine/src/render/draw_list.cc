@@ -42,8 +42,8 @@ void DrawList::draw(SceneLight *light) const {
 
         /* Bind the entity uniforms. */
         if (drawCall.uniforms)
-            g_gpu->bindUniformBuffer(UniformSlots::kEntityUniforms, drawCall.uniforms);
+            g_gpuManager->bindUniformBuffer(UniformSlots::kEntityUniforms, drawCall.uniforms);
 
-        g_gpu->draw(drawCall.primitiveType, drawCall.vertices, drawCall.indices);
+        g_gpuManager->draw(drawCall.primitiveType, drawCall.vertices, drawCall.indices);
     }
 }

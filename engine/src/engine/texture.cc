@@ -18,7 +18,7 @@
 
 #include "engine/texture.h"
 
-#include "gpu/gpu.h"
+#include "gpu/gpu_manager.h"
 
 /** Private constructor, does not actually create the texture. */
 TextureBase::TextureBase() :
@@ -86,7 +86,7 @@ void TextureBase::updateSamplerState() {
     desc.filterMode = m_filterMode;
     desc.maxAnisotropy = m_anisotropy;
     desc.addressU = desc.addressV = desc.addressW = m_addressMode;
-    m_sampler = g_gpu->createSamplerState(desc);
+    m_sampler = g_gpuManager->createSamplerState(desc);
 }
 
 /**
@@ -112,7 +112,7 @@ Texture2D::Texture2D(uint32_t width, uint32_t height, PixelFormat format, unsign
     desc.mips = mips;
     desc.flags = flags;
 
-    m_gpu = g_gpu->createTexture(desc);
+    m_gpu = g_gpuManager->createTexture(desc);
 
     /* Create a render texture if requested. */
     if (flags & GPUTexture::kRenderTarget)

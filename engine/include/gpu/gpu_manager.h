@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright           2015 Alex Smith
- * @brief               GPU interface class.
+ * @brief               GPU manager class.
  */
 
 #pragma once
@@ -19,16 +19,16 @@ struct EngineConfiguration;
 /**
  * Low-level GPU interface.
  *
- * The purpose of this interface is to provide a low level interface for
- * accessing the GPU. It wraps the graphics API in use (GL, D3D, etc.) and
- * provides an interface on top of that which the high level renderer can use
- * without having to care about the API in use.
+ * The purpose of this class is to provide a low level interface for accessing
+ * the GPU. It wraps the graphics API in use (GL, D3D, etc.) and provides an
+ * interface on top of that which the high level renderer can use without having
+ * to care about the API in use.
  */
-class GPUInterface : Noncopyable {
+class GPUManager : Noncopyable {
 public:
-    static GPUInterface *create(const EngineConfiguration &config);
+    static GPUManager *create(const EngineConfiguration &config);
 
-    virtual ~GPUInterface() {}
+    virtual ~GPUManager() {}
 
     /**
      * Initialize the GPU interface.
@@ -119,7 +119,7 @@ public:
     /** Compile a GPU shader from GLSL source.
      * @note                In future I expect that this will exist only for
      *                      non-cooked builds (it may possibly even be moved
-     *                      out of GPUInterface). It would return a blob that
+     *                      out of GPUManager). It would return a blob that
      *                      can be passed to a different method. For GL this
      *                      would be just the GLSL source with some pre-
      *                      processing done, but for D3D and other APIs we can
@@ -248,9 +248,9 @@ public:
         bool depthClamp = false>
     void setRasterizerState();
 protected:
-    GPUInterface() {}
+    GPUManager() {}
 };
 
-extern EngineGlobal<GPUInterface> g_gpu;
+extern EngineGlobal<GPUManager> g_gpuManager;
 
 #include "gpu/const_state.h"

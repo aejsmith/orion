@@ -355,7 +355,7 @@ void GLState::invalidateTexture(GLuint texture) {
 /** Create a blend state object.
  * @param desc          Descriptor for blend state.
  * @return              Created blend state object. */
-GPUBlendStatePtr GLGPUInterface::createBlendState(const GPUBlendStateDesc &desc) {
+GPUBlendStatePtr GLGPUManager::createBlendState(const GPUBlendStateDesc &desc) {
     auto exist = m_blendStates.find(desc);
     if (exist != m_blendStates.end())
         return exist->second;
@@ -376,7 +376,7 @@ GPUBlendStatePtr GLGPUInterface::createBlendState(const GPUBlendStateDesc &desc)
 
 /** Set the blend state.
  * @param state         Blend state to set. */
-void GLGPUInterface::setBlendState(GPUBlendState *state) {
+void GLGPUManager::setBlendState(GPUBlendState *state) {
     GLBlendState *glState = static_cast<GLBlendState *>(state);
 
     this->state.enableBlend(glState->enable);
@@ -387,7 +387,7 @@ void GLGPUInterface::setBlendState(GPUBlendState *state) {
 /** Create a depth/stencil state object.
  * @param desc          Descriptor for depth/stencil state.
  * @return              Created depth/stencil state object. */
-GPUDepthStencilStatePtr GLGPUInterface::createDepthStencilState(const GPUDepthStencilStateDesc &desc) {
+GPUDepthStencilStatePtr GLGPUManager::createDepthStencilState(const GPUDepthStencilStateDesc &desc) {
     auto exist = m_depthStencilStates.find(desc);
     if (exist != m_depthStencilStates.end())
         return exist->second;
@@ -406,7 +406,7 @@ GPUDepthStencilStatePtr GLGPUInterface::createDepthStencilState(const GPUDepthSt
 
 /** Set the depth/stencil state.
  * @param state         State to set. */
-void GLGPUInterface::setDepthStencilState(GPUDepthStencilState *state) {
+void GLGPUManager::setDepthStencilState(GPUDepthStencilState *state) {
     GLDepthStencilState *glState = static_cast<GLDepthStencilState *>(state);
     const GPUDepthStencilStateDesc &desc = state->desc();
 
@@ -418,7 +418,7 @@ void GLGPUInterface::setDepthStencilState(GPUDepthStencilState *state) {
 /** Create a rasterizer state object.
  * @param desc          Descriptor for rasterizer state.
  * @return              Created rasterizer state object. */
-GPURasterizerStatePtr GLGPUInterface::createRasterizerState(const GPURasterizerStateDesc &desc) {
+GPURasterizerStatePtr GLGPUManager::createRasterizerState(const GPURasterizerStateDesc &desc) {
     auto exist = m_rasterizerStates.find(desc);
     if (exist != m_rasterizerStates.end())
         return exist->second;
@@ -433,7 +433,7 @@ GPURasterizerStatePtr GLGPUInterface::createRasterizerState(const GPURasterizerS
 
 /** Set the rasterizer state.
  * @param state         State to set. */
-void GLGPUInterface::setRasterizerState(GPURasterizerState *state) {
+void GLGPUManager::setRasterizerState(GPURasterizerState *state) {
     GLRasterizerState *glState = static_cast<GLRasterizerState *>(state);
     const GPURasterizerStateDesc &desc = state->desc();
 
@@ -510,7 +510,7 @@ void GLSamplerState::bind(unsigned index) {
 /** Create a sampler state object.
  * @param desc          Descriptor for sampler state.
  * @return              Pointer to created sampler state object. */
-GPUSamplerStatePtr GLGPUInterface::createSamplerState(const GPUSamplerStateDesc &desc) {
+GPUSamplerStatePtr GLGPUManager::createSamplerState(const GPUSamplerStateDesc &desc) {
     auto ret = m_samplerStates.find(desc);
     if (ret != m_samplerStates.end())
         return ret->second;

@@ -19,7 +19,7 @@
  * vertex data object is immutable. The vertex buffer contents can be changed,
  * but to change the vertex count or the buffers in use, a new vertex data
  * object must be created. Creation is performed through
- * GPUInterface::createVertexData().
+ * GPUManager::createVertexData().
  */
 class GPUVertexData : public GPUResource {
 public:
@@ -37,7 +37,7 @@ protected:
     GPUBufferArray m_buffers;       /**< Vector of vertex buffers. */
 
     /* For the default implementation of createVertexData(). */
-    friend class GPUInterface;
+    friend class GPUManager;
 };
 
 /** Type of a reference to GPUVertexData. */

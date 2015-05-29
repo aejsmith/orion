@@ -11,7 +11,7 @@
 #include "engine/mesh.h"
 #include "engine/texture.h"
 
-#include "gpu/gpu.h"
+#include "gpu/gpu_manager.h"
 
 #include "render/render_manager.h"
 #include "render/utility.h"
@@ -90,7 +90,7 @@ Entity *TestGame::createPlane(Entity *parent, const std::string &name, Material 
 
     GPUBufferArray buffers(1);
     buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, data);
-    subMesh->vertices = g_gpu->createVertexData(
+    subMesh->vertices = g_gpuManager->createVertexData(
         data.size(),
         g_renderManager->simpleVertexFormat(),
         buffers);

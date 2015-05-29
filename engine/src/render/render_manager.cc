@@ -6,7 +6,7 @@
 
 #include "engine/asset_manager.h"
 
-#include "gpu/gpu.h"
+#include "gpu/gpu_manager.h"
 
 #include "render/render_manager.h"
 #include "render/utility.h"
@@ -39,7 +39,7 @@ void RenderManager::init() {
     attributes[2].count = 2;
     attributes[2].buffer = 0;
     attributes[2].offset = offsetof(SimpleVertex, u);
-    m_simpleVertexFormat = g_gpu->createVertexFormat(buffers, attributes);
+    m_simpleVertexFormat = g_gpuManager->createVertexFormat(buffers, attributes);
 
     /* Create the utility geometry. */
     RenderUtil::makeQuad(m_quadVertexData);
@@ -85,9 +85,9 @@ void RenderManager::allocRenderTargets(RenderPath path, glm::ivec2 size) {
         desc.mips = 1;
         desc.flags = GPUTexture::kRenderTarget;
         desc.format = PixelFormat::kR8G8B8A8;
-        rt.colourBuffer = g_gpu->createTexture(desc);
+        rt.colourBuffer = g_gpuManager->createTexture(desc);
         desc.format = PixelFormat::kDepth24Stencil8;
-        rt.depthBuffer = g_gpu->createTexture(desc);
+        rt.depthBuffer = g_gpuManager->createTexture(desc);
     }
 
     /* Re-allocate G-Buffer textures if necessary. */
@@ -129,24 +129,24 @@ void RenderManager::allocRenderTargets(RenderPath path, glm::ivec2 size) {
         desc.mips = 1;
         desc.flags = GPUTexture::kRenderTarget;
         desc.format = PixelFormat::kR10G10B10A2;
-        rt.deferredBufferA = g_gpu->createTexture(desc);
+        rt.deferredBufferA = g_gpuManager->createTexture(desc);
         desc.format = PixelFormat::kR8G8B8A8;
-        rt.deferredBufferB = g_gpu->createTexture(desc);
-        rt.deferredBufferC = g_gpu->createTexture(desc);
+        rt.deferredBufferB = g_gpuManager->createTexture(desc);
+        rt.deferredBufferC = g_gpuManager->createTexture(desc);
         desc.format = PixelFormat::kDepth24Stencil8;
-        rt.deferredBufferD = g_gpu->createTexture(desc);
+        rt.deferredBufferD = g_gpuManager->createTexture(desc);
 
         // FIXME: separate bindTexture/Sampler, and do this only once.
         GPUSamplerStateDesc samplerDesc;
         samplerDesc.filterMode = SamplerFilterMode::kNearest;
         samplerDesc.maxAnisotropy = 1;
         samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
-        GPUSamplerStatePtr sampler = g_gpu->createSamplerState(samplerDesc);
+        GPUSamplerStatePtr sampler = g_gpuManager->createSamplerState(samplerDesc);
 
         /* Update deferred buffer texture bindings. */
-        g_gpu->bindTexture(TextureSlots::kDeferredBufferA, rt.deferredBufferA, sampler);
-        g_gpu->bindTexture(TextureSlots::kDeferredBufferB, rt.deferredBufferB, sampler);
-        g_gpu->bindTexture(TextureSlots::kDeferredBufferC, rt.deferredBufferC, sampler);
-        g_gpu->bindTexture(TextureSlots::kDeferredBufferD, rt.deferredBufferD, sampler);
+        g_gpuManager->bindTexture(TextureSlots::kDeferredBufferA, rt.deferredBufferA, sampler);
+        g_gpuManager->bindTexture(TextureSlots::kDeferredBufferB, rt.deferredBufferB, sampler);
+        g_gpuManager->bindTexture(TextureSlots::kDeferredBufferC, rt.deferredBufferC, sampler);
+        g_gpuManager->bindTexture(TextureSlots::kDeferredBufferD, rt.deferredBufferD, sampler);
     }
 }

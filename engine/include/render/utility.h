@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "gpu/gpu.h"
+#include "gpu/gpu_manager.h"
 
 namespace RenderUtil {
     /** Create a GPU buffer from an array of data.
@@ -21,7 +21,7 @@ namespace RenderUtil {
         GPUBuffer::Usage usage = GPUBuffer::kStaticDrawUsage)
     {
         size_t size = data.size() * sizeof(ElementType);
-        GPUBufferPtr buffer = g_gpu->createBuffer(type, usage, size);
+        GPUBufferPtr buffer = g_gpuManager->createBuffer(type, usage, size);
         buffer->write(0, size, &data[0]);
         return buffer;
     }

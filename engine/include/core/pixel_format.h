@@ -4,7 +4,7 @@
  * @brief               Pixel format definitions.
  *
  * @todo                Format information functions, supported pixel format
- *                      information in GPUInterface.
+ *                      information in GPUManager.
  */
 
 #pragma once
