@@ -244,7 +244,7 @@ bool POSIXFilesystem::isType(const Path &path, FileType type) {
 
 /** Initialize the platform filesystem interface.
  * @return              Pointer to Filesystem object. */
-Filesystem *platform::createFilesystem() {
+Filesystem *Platform::createFilesystem() {
     /* Switch to the engine base directory. SDL_GetBasePath returns the
      * binary directory, the base directory is above that. */
     char *basePath = SDL_GetBasePath();

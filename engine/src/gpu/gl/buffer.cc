@@ -13,8 +13,8 @@
  * @param size          Buffer size. */
 GLBuffer::GLBuffer(Type type, Usage usage, size_t size) :
     GPUBuffer(type, usage, size),
-    m_glTarget(gl::convertBufferType(type)),
-    m_glUsage(gl::convertBufferUsage(usage))
+    m_glTarget(GLUtil::convertBufferType(type)),
+    m_glUsage(GLUtil::convertBufferUsage(usage))
 {
     glGenBuffers(1, &m_buffer);
 

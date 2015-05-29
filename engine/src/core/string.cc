@@ -1,20 +1,18 @@
 /**
  * @file
  * @copyright           2014 Alex Smith
- * @brief               Utility functions.
+ * @brief               String utility functions.
  */
 
-#include "core/utility.h"
+#include "core/string.h"
 
 #include <cstdio>
-
-namespace util {
 
 /** Format a string and return it in a std::string.
  * @param fmt           Format string.
  * @param args          Values to substitute into string.
  * @return              Formatted string. */
-std::string format(const char *fmt, va_list args) {
+std::string String::format(const char *fmt, va_list args) {
     char buf[8192];
     vsnprintf(buf, 8192, fmt, args);
     return std::string(buf);
@@ -24,7 +22,7 @@ std::string format(const char *fmt, va_list args) {
  * @param fmt           Format string.
  * @param ...           Values to substitute into string.
  * @return              Formatted string. */
-std::string format(const char *fmt, ...) {
+std::string String::format(const char *fmt, ...) {
     char buf[8192];
     va_list args;
 
@@ -33,6 +31,4 @@ std::string format(const char *fmt, ...) {
     va_end(args);
 
     return std::string(buf);
-}
-
 }

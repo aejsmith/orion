@@ -145,7 +145,7 @@ void GLGPUInterface::initFeatures() {
         fatal("OpenGL version %d.%d is required", kGLMajorVersion, kGLMinorVersion);
 
     /* Check for required extensions. */
-    for (size_t i = 0; i < util::arraySize(g_requiredGLExtensions); i++) {
+    for (size_t i = 0; i < arraySize(g_requiredGLExtensions); i++) {
         if (!this->features[g_requiredGLExtensions[i]])
             fatal("Required OpenGL extension '%s' is not supported", g_requiredGLExtensions[i]);
     }

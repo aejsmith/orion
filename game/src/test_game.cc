@@ -89,7 +89,7 @@ Entity *TestGame::createPlane(Entity *parent, const std::string &name, Material 
     data.emplace_back(vertices[0], normal, texcoords[0]);
 
     GPUBufferArray buffers(1);
-    buffers[0] = buildGPUBuffer(GPUBuffer::kVertexBuffer, data);
+    buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, data);
     subMesh->vertices = g_gpu->createVertexData(
         data.size(),
         g_renderManager->simpleVertexFormat(),

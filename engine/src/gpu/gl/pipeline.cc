@@ -20,7 +20,7 @@ GLPipeline::GLPipeline(const GPUShaderArray &shaders) :
             continue;
 
         GLShader *shader = static_cast<GLShader *>(m_shaders[i].get());
-        GLbitfield stage = gl::convertShaderTypeBitfield(shader->type());
+        GLbitfield stage = GLUtil::convertShaderTypeBitfield(shader->type());
         glUseProgramStages(m_pipeline, stage, shader->program());
     }
 }

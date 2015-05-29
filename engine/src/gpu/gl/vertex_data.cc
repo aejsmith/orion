@@ -40,7 +40,7 @@ GLVertexData::GLVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray
             fatal("GL: Cannot map attribute (semantic: %d, index: %u)", attribute.semantic, attribute.index);
 
         /* FIXME: Check if type is supported. */
-        GLenum type = gl::convertAttributeType(attribute.type);
+        GLenum type = GLUtil::convertAttributeType(attribute.type);
         void *offset = reinterpret_cast<void *>(static_cast<uintptr_t>(attribute.offset));
 
         const VertexBufferLayout &layout = m_format->buffers()[attribute.buffer];

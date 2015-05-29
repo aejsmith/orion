@@ -9,6 +9,7 @@
  */
 
 #include "core/hash_table.h"
+#include "core/string.h"
 
 #include "engine/asset_loader.h"
 #include "engine/mesh.h"
@@ -96,7 +97,7 @@ AssetPtr OBJLoader::load() {
         m_currentLine++;
 
         std::vector<std::string> tokens;
-        util::tokenize(line, tokens, " \r", true);
+        String::tokenize(line, tokens, " \r", true);
         if (!tokens.size())
             continue;
 
@@ -149,7 +150,7 @@ AssetPtr OBJLoader::load() {
 
     /* Create the vertex buffer. */
     GPUBufferArray buffers(1);
-    buffers[0] = buildGPUBuffer(GPUBuffer::kVertexBuffer, m_vertices);
+    buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, m_vertices);
     mesh->sharedVertices = g_gpu->createVertexData(
         m_vertices.size(),
         g_renderManager->simpleVertexFormat(),
@@ -165,7 +166,7 @@ AssetPtr OBJLoader::load() {
 
         /* Create an index buffer. */
         subMesh->indices = g_gpu->createIndexData(
-            buildGPUBuffer(GPUBuffer::kIndexBuffer, desc.indices),
+            RenderUtil::buildGPUBuffer(GPUBuffer::kIndexBuffer, desc.indices),
             GPUIndexData::kUnsignedShortType,
             desc.indices.size());
 
@@ -229,7 +230,7 @@ bool OBJLoader::addFace(const std::vector<std::string> &tokens) {
     uint16_t indices[numVertices];
     for (size_t i = 0; i < numVertices; i++) {
         std::vector<std::string> subTokens;
-        util::tokenize(tokens[i + 1], subTokens, "/", false);
+        String::tokenize(tokens[i + 1], subTokens, "/", false);
         if (subTokens.size() != 3) {
             logError("%s: %u: Expected v/vt/vn", m_path, m_currentLine);
             return false;

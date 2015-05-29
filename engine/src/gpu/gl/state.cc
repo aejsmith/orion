@@ -366,9 +366,9 @@ GPUBlendStatePtr GLGPUInterface::createBlendState(const GPUBlendStateDesc &desc)
         desc.func != BlendFunc::kAdd ||
         desc.sourceFactor != BlendFactor::kOne ||
         desc.destFactor != BlendFactor::kZero;
-    state->blendEquation = gl::convertBlendFunc(desc.func);
-    state->sourceFactor = gl::convertBlendFactor(desc.sourceFactor);
-    state->destFactor = gl::convertBlendFactor(desc.destFactor);
+    state->blendEquation = GLUtil::convertBlendFunc(desc.func);
+    state->sourceFactor = GLUtil::convertBlendFactor(desc.sourceFactor);
+    state->destFactor = GLUtil::convertBlendFactor(desc.destFactor);
 
     auto ret = m_blendStates.insert(std::make_pair(desc, GPUBlendStatePtr(state)));
     return ret.first->second;
@@ -398,7 +398,7 @@ GPUDepthStencilStatePtr GLGPUInterface::createDepthStencilState(const GPUDepthSt
      * depth mask is non-zero, the depth buffer is not updated if the depth test
      * is disabled". */
     state->depthEnable = desc.depthFunc != ComparisonFunc::kAlways || desc.depthWrite;
-    state->depthFunc = gl::convertComparisonFunc(desc.depthFunc);
+    state->depthFunc = GLUtil::convertComparisonFunc(desc.depthFunc);
 
     auto ret = m_depthStencilStates.insert(std::make_pair(desc, GPUDepthStencilStatePtr(state)));
     return ret.first->second;
@@ -425,7 +425,7 @@ GPURasterizerStatePtr GLGPUInterface::createRasterizerState(const GPURasterizerS
 
     GLRasterizerState *state = new GLRasterizerState(desc);
 
-    state->cullMode = gl::convertCullMode(desc.cullMode);
+    state->cullMode = GLUtil::convertCullMode(desc.cullMode);
 
     auto ret = m_rasterizerStates.insert(std::make_pair(desc, GPURasterizerStatePtr(state)));
     return ret.first->second;
@@ -455,11 +455,11 @@ GLSamplerState::GLSamplerState(const GPUSamplerStateDesc &desc) :
     glGenSamplers(1, &m_sampler);
 
     /* Set wrap parameters. */
-    GLint wrapS = gl::convertSamplerAddressMode(m_desc.addressU);
+    GLint wrapS = GLUtil::convertSamplerAddressMode(m_desc.addressU);
     glSamplerParameteri(m_sampler, GL_TEXTURE_WRAP_S, wrapS);
-    GLint wrapT = gl::convertSamplerAddressMode(m_desc.addressV);
+    GLint wrapT = GLUtil::convertSamplerAddressMode(m_desc.addressV);
     glSamplerParameteri(m_sampler, GL_TEXTURE_WRAP_T, wrapT);
-    GLint wrapR = gl::convertSamplerAddressMode(m_desc.addressW);
+    GLint wrapR = GLUtil::convertSamplerAddressMode(m_desc.addressW);
     glSamplerParameteri(m_sampler, GL_TEXTURE_WRAP_R, wrapR);
 
     /* Set filtering mode. */

@@ -10,7 +10,7 @@
  */
 
 #include "core/log.h"
-#include "core/utility.h"
+#include "core/string.h"
 
 #include <ctime>
 
@@ -33,7 +33,7 @@ void LogManager::write(LogLevel level, const char *file, int line, const char *f
     va_list args;
 
     va_start(args, fmt);
-    std::string msg = util::format(fmt, args);
+    std::string msg = String::format(fmt, args);
     va_end(args);
 
     time_t t = time(nullptr);

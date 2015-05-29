@@ -13,6 +13,8 @@
 #include "gl.h"
 #include "shader.h"
 
+#include "core/string.h"
+
 /** Target GLSL version. */
 static const char *kTargetGLSLVersion = "330 core";
 
@@ -115,7 +117,7 @@ void GLShader::bindSampler(unsigned index, unsigned slot) {
  * @return              Pointer to created shader. */
 GPUShaderPtr GLGPUInterface::compileShader(GPUShader::Type type, const std::string &source) {
     /* Add a version string at the start, and enable SSO. */
-    std::string preamble = util::format("#version %s\n", kTargetGLSLVersion);
+    std::string preamble = String::format("#version %s\n", kTargetGLSLVersion);
     preamble += "#extension GL_ARB_separate_shader_objects : enable\n";
 
     if (type == GPUShader::kVertexShader) {
@@ -133,14 +135,14 @@ GPUShaderPtr GLGPUInterface::compileShader(GPUShader::Type type, const std::stri
     }
 
     /* Compile the shader. */
-    GLuint shader = glCreateShader(gl::convertShaderType(type));
+    GLuint shader = glCreateShader(GLUtil::convertShaderType(type));
     if (!shader) {
         logError("GL: Failed to create shader object");
         return nullptr;
     }
 
     const GLchar *strings[] = { preamble.c_str(), source.c_str() };
-    glShaderSource(shader, util::arraySize(strings), strings, NULL);
+    glShaderSource(shader, arraySize(strings), strings, NULL);
     glCompileShader(shader);
 
     /* Check whether the compilation succeeded. */

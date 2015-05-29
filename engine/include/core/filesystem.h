@@ -115,7 +115,7 @@ protected:
 
 extern EngineGlobal<Filesystem> g_filesystem;
 
-namespace platform {
+namespace Platform {
 
 /** Initialize the platform filesystem interface.
  * @return              Pointer to Filesystem object. */

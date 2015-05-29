@@ -42,7 +42,7 @@ Engine::Engine(const EngineConfiguration &config) :
     logInfo("Orion revision %s built at %s", g_versionString, g_versionTimestamp);
 
     /* Initialize platform systems. */
-    g_filesystem() = platform::createFilesystem();
+    g_filesystem() = Platform::createFilesystem();
 
     /* Create the GPU interface, create the main window, and finally properly
      * initialize the GPU interface. */

@@ -62,7 +62,7 @@ const UniformStructMember *UniformStruct::addMember(const char *name, ShaderPara
     UniformStructMember *member = &this->members.back();
     member->name = name;
     member->type = type;
-    member->offset = math::roundUp(this->size, ShaderParameter::alignment(type));
+    member->offset = Math::roundUp(this->size, ShaderParameter::alignment(type));
 
     this->size = member->offset + ShaderParameter::size(type);
     return member;

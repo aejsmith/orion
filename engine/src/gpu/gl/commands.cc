@@ -93,10 +93,10 @@ void GLGPUInterface::draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexD
     /* Bind the VAO and the index buffer (if any). */
     glVertices->bind((indices) ? indices->buffer() : nullptr);
 
-    GLenum mode = gl::convertPrimitiveType(type);
+    GLenum mode = GLUtil::convertPrimitiveType(type);
     if (indices) {
         /* FIXME: Check whether index type is supported (in generic code?) */
-        glDrawElements(mode, indices->count(), gl::convertIndexType(indices->type()), nullptr);
+        glDrawElements(mode, indices->count(), GLUtil::convertIndexType(indices->type()), nullptr);
     } else {
         glDrawArrays(mode, 0, vertices->count());
     }

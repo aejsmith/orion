@@ -9,7 +9,7 @@ sources = map(File, [
     'log.cc',
     'path.cc',
     'refcounted.cc',
-    'utility.cc',
+    'string.cc',
 ])
 
 sources += SConscript(dirs = [

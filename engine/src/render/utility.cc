@@ -17,7 +17,7 @@
  *
  * @param vertices      Where to return created vertex data object.
  */
-void makeQuad(GPUVertexDataPtr &vertices) {
+void RenderUtil::makeQuad(GPUVertexDataPtr &vertices) {
     std::vector<SimpleVertex> vb;
     vb.emplace_back(glm::vec3(-1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f));
     vb.emplace_back(glm::vec3(1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f));
@@ -27,7 +27,7 @@ void makeQuad(GPUVertexDataPtr &vertices) {
     vb.emplace_back(glm::vec3(-1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f));
 
     GPUBufferArray buffers(1);
-    buffers[0] = buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
+    buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
     vertices = g_gpu->createVertexData(vb.size(), g_renderManager->simpleVertexFormat(), buffers);
 }
 
@@ -42,7 +42,7 @@ void makeQuad(GPUVertexDataPtr &vertices) {
  * @param vertices      Where to return created vertex data object.
  * @param indices       Where to return created index data object.
  */
-void makeSphere(unsigned rings, unsigned sides, GPUVertexDataPtr &vertices, GPUIndexDataPtr &indices) {
+void RenderUtil::makeSphere(unsigned rings, unsigned sides, GPUVertexDataPtr &vertices, GPUIndexDataPtr &indices) {
     /* Based on the code found here:
      * http://stackoverflow.com/questions/5988686/how-do-i-create-a-3d-sphere-in-opengl-using-visual-c */
 
@@ -62,7 +62,7 @@ void makeSphere(unsigned rings, unsigned sides, GPUVertexDataPtr &vertices, GPUI
     }
 
     GPUBufferArray buffers(1);
-    buffers[0] = buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
+    buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
     vertices = g_gpu->createVertexData(vb.size(), g_renderManager->simpleVertexFormat(), buffers);
 
     std::vector<uint16_t> ib;
@@ -80,7 +80,7 @@ void makeSphere(unsigned rings, unsigned sides, GPUVertexDataPtr &vertices, GPUI
     }
 
     indices = g_gpu->createIndexData(
-        buildGPUBuffer(GPUBuffer::kIndexBuffer, ib),
+        RenderUtil::buildGPUBuffer(GPUBuffer::kIndexBuffer, ib),
         GPUIndexData::kUnsignedShortType,
         ib.size());
 }
@@ -96,7 +96,7 @@ void makeSphere(unsigned rings, unsigned sides, GPUVertexDataPtr &vertices, GPUI
  * @param vertices      Where to return created vertex data object.
  * @param indices       Where to return created index data object.
  */
-void makeCone(unsigned baseVertices, GPUVertexDataPtr &vertices, GPUIndexDataPtr &indices) {
+void RenderUtil::makeCone(unsigned baseVertices, GPUVertexDataPtr &vertices, GPUIndexDataPtr &indices) {
     std::vector<SimpleVertex> vb;
     vb.reserve(baseVertices + 1);
 
@@ -112,7 +112,7 @@ void makeCone(unsigned baseVertices, GPUVertexDataPtr &vertices, GPUIndexDataPtr
     }
 
     GPUBufferArray buffers(1);
-    buffers[0] = buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
+    buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
     vertices = g_gpu->createVertexData(vb.size(), g_renderManager->simpleVertexFormat(), buffers);
 
     std::vector<uint16_t> ib;
@@ -131,7 +131,7 @@ void makeCone(unsigned baseVertices, GPUVertexDataPtr &vertices, GPUIndexDataPtr
     }
 
     indices = g_gpu->createIndexData(
-        buildGPUBuffer(GPUBuffer::kIndexBuffer, ib),
+        RenderUtil::buildGPUBuffer(GPUBuffer::kIndexBuffer, ib),
         GPUIndexData::kUnsignedShortType,
         ib.size());
 }

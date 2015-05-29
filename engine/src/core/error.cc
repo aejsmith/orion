@@ -5,6 +5,7 @@
  */
 
 #include "core/core.h"
+#include "core/string.h"
 
 #include <SDL.h>
 
@@ -25,7 +26,7 @@ void __fatal(const char *file, int line, const char *fmt, ...) {
     va_list args;
 
     va_start(args, fmt);
-    std::string str = util::format("Fatal Error (at %s:%d): ", file, line) + util::format(fmt, args);
+    std::string str = String::format("Fatal Error (at %s:%d): ", file, line) + String::format(fmt, args);
     va_end(args);
 
     if (g_logManager) {

@@ -10,6 +10,7 @@
  */
 
 #include "core/filesystem.h"
+#include "core/string.h"
 
 #include "gpu/gpu.h"
 
@@ -39,7 +40,7 @@ static const char *lightShaderVariations[SceneLight::kNumTypes] = {
 Pass::Pass(Shader *parent, Type type) :
     m_parent(parent),
     m_type(type),
-    m_variations((type == kForwardPass) ? util::arraySize(lightShaderVariations) : 1)
+    m_variations((type == kForwardPass) ? arraySize(lightShaderVariations) : 1)
 {}
 
 /** Destroy the pass. */
@@ -67,23 +68,23 @@ void Pass::setDrawState(SceneLight *light) const {
  * @param source        Source string to add to.
  * @param keyword       Keyword to define. */
 static void defineKeyword(std::string &source, const char *keyword) {
-    source += util::format("#define %s 1\n", keyword);
+    source += String::format("#define %s 1\n", keyword);
 }
 
 /** Add a uniform block declaration to a source string.
  * @param source        Source string to add to.
  * @param uniformStruct Uniform structure to add. */
 static void declareUniformBlock(std::string &source, const UniformStruct *uniformStruct) {
-    source += util::format("layout(std140) uniform %s {\n", uniformStruct->name);
+    source += String::format("layout(std140) uniform %s {\n", uniformStruct->name);
 
     for (const UniformStructMember &member : uniformStruct->members) {
-        source += util::format("\t%s %s;\n",
+        source += String::format("\t%s %s;\n",
             ShaderParameter::glslType(member.type),
             member.name);
     }
 
     if (uniformStruct->instanceName && strlen(uniformStruct->instanceName)) {
-        source += util::format("} %s;\n\n", uniformStruct->instanceName);
+        source += String::format("} %s;\n\n", uniformStruct->instanceName);
     } else {
         source += "};\n\n";
     }

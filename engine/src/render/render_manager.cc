@@ -42,9 +42,9 @@ void RenderManager::init() {
     m_simpleVertexFormat = g_gpu->createVertexFormat(buffers, attributes);
 
     /* Create the utility geometry. */
-    makeQuad(m_quadVertexData);
-    makeSphere(24, 24, m_sphereVertexData, m_sphereIndexData);
-    makeCone(20, m_coneVertexData, m_coneIndexData);
+    RenderUtil::makeQuad(m_quadVertexData);
+    RenderUtil::makeSphere(24, 24, m_sphereVertexData, m_sphereIndexData);
+    RenderUtil::makeCone(20, m_coneVertexData, m_coneIndexData);
 
     /* Load the deferred light material. */
     ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/internal/deferred_light");
