@@ -90,6 +90,52 @@ static void declareUniformBlock(std::string &source, const UniformStruct *unifor
     }
 }
 
+/** Load and pre-process a shader source file.
+ * @param path          Path to file to open.
+ * @param source        String to return shader source in.
+ * @param depth         Recursion count.
+ * @return              Whether the source was successfully loaded. */
+static bool loadSource(const Path &path, std::string &source, unsigned depth = 0) {
+    std::unique_ptr<File> file(g_filesystem->openFile(path));
+    if (!file) {
+        logError("Cannot find shader source file '%s'", path.c_str());
+        return false;
+    }
+
+    std::string line;
+    while (file->readLine(line)) {
+        if (line.substr(0, 9) == "#include ") {
+            if (depth == 16) {
+                logError("Too many nested includes in '%s'", path.c_str());
+                return false;
+            }
+
+            size_t pos = 9;
+
+            while (isspace(line[pos]))
+                pos++;
+            if (line[pos++] != '"') {
+                logError("Expected path string after #include in '%s'", path.c_str());
+                return false;
+            }
+
+            size_t end = line.find_first_of('"', pos);
+
+            /* Path is relative to the directory containing the current file. */
+            Path includePath = path.directoryName() / line.substr(pos, end - pos);
+
+            /* Load the source for this file. */
+            if (!loadSource(includePath, source, depth++))
+                return false;
+        } else {
+            source += line;
+            source += "\n";
+        }
+    }
+
+    return true;
+}
+
 /** Compile a single variation.
  * @param source        Source string to compile.
  * @param stage         Shader stage.
@@ -164,14 +210,8 @@ bool Pass::loadStage(GPUShader::Type stage, const Path &path, const KeywordSet &
         declareUniformBlock(source, m_parent->uniformStruct());
 
     /* Read in the main shader source. */
-    std::unique_ptr<char []> buf(new char[file->size() + 1]);
-    buf[file->size()] = 0;
-    if (!file->read(buf.get(), file->size())) {
-        logError("Failed to read shader source file '%s'", path.c_str());
+    if (!loadSource(path, source))
         return false;
-    }
-
-    source += buf.get();
 
     if (m_type == kForwardPass) {
         /* Build each of the light type variations. */
