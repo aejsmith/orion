@@ -27,9 +27,7 @@ GLPipeline::GLPipeline(const GPUShaderArray &shaders) :
 
 /** Destroy the pipeline object. */
 GLPipeline::~GLPipeline() {
-    if (g_opengl->state.boundPipeline == m_pipeline)
-        g_opengl->state.boundPipeline = GL_NONE;
-
+    g_opengl->state.invalidatePipeline(m_pipeline);
     glDeleteProgramPipelines(1, &m_pipeline);
 }
 

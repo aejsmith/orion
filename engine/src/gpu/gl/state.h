@@ -131,6 +131,10 @@ public:
     void bindSampler(unsigned unit, GLuint sampler);
     void bindTexture(unsigned unit, GLenum target, GLuint texture);
     void bindVertexArray(GLuint array);
+
+    void invalidateBuffer(GLenum target, GLuint buffer);
+    void invalidatePipeline(GLuint pipeline);
+    void invalidateTexture(GLuint texture);
 };
 
 /**

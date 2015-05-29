@@ -303,7 +303,7 @@ void GLState::bindTexture(unsigned unit, GLenum target, GLuint texture) {
 
     TextureUnit &unitState = this->textureUnits[unit];
     if (unitState.target != target || unitState.texture != texture) {
-        if (unitState.target != target && unitState.texture != 0) {
+        if (unitState.target != GL_NONE && unitState.target != target) {
             /* Unbind the texture currently bound so that we don't have multiple
              * textures bound to different targets. */
             glBindTexture(unitState.target, 0);
@@ -321,6 +321,30 @@ void GLState::bindVertexArray(GLuint array) {
     if (array != this->boundVertexArray) {
         glBindVertexArray(array);
         this->boundVertexArray = array;
+    }
+}
+
+/** Remove any cached bindings for a buffer being deleted.
+ * @param target        Target type for the buffer.
+ * @param buffer        Buffer being deleted. */
+void GLState::invalidateBuffer(GLenum target, GLuint buffer) {
+    if (this->boundBuffers[target] == buffer)
+        this->boundBuffers[target] = 0;
+}
+
+/** Remove any cached bindings for a pipeline being deleted.
+ * @param pipeline      Pipeline being deleted. */
+void GLState::invalidatePipeline(GLuint pipeline) {
+    if (this->boundPipeline == pipeline)
+        this->boundPipeline = 0;
+}
+
+/** Remove any cached bindings for a texture being deleted.
+ * @param texture       Texture being deleted. */
+void GLState::invalidateTexture(GLuint texture) {
+    for (GLint i = 0; i < g_opengl->features.maxTextureUnits; i++) {
+        if (this->textureUnits[i].texture == texture)
+            this->textureUnits[i].texture = 0;
     }
 }
 
@@ -470,6 +494,10 @@ GLSamplerState::GLSamplerState(const GPUSamplerStateDesc &desc) :
 
 /** Destroy the sampler state object. */
 GLSamplerState::~GLSamplerState() {
+    // TODO: If ever sampler states are destroyed at a time other than engine
+    // shut down, we should add an equivalent of invalidateTexture() for the
+    // sampler. Haven't done this now because it causes problems (sampler gets
+    // destroyed after GLState is destroyed, segfault ensues).
     glDeleteSamplers(1, &m_sampler);
 }
 

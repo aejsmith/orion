@@ -80,6 +80,7 @@ GLTexture::~GLTexture() {
     /* Invalidate all cached FBOs which refer to this texture. */
     g_opengl->invalidateFBOs(this);
 
+    g_opengl->state.invalidateTexture(m_texture);
     glDeleteTextures(1, &m_texture);
 }
 

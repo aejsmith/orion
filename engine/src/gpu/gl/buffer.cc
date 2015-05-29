@@ -25,9 +25,7 @@ GLBuffer::GLBuffer(Type type, Usage usage, size_t size) :
 
 /** Destroy the buffer. */
 GLBuffer::~GLBuffer() {
-    if (g_opengl->state.boundBuffers[m_glTarget] == m_buffer)
-        g_opengl->state.boundBuffers[m_glTarget] = GL_NONE;
-
+    g_opengl->state.invalidateBuffer(m_glTarget, m_buffer);
     glDeleteBuffers(1, &m_buffer);
 }
 
