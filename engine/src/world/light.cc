@@ -72,23 +72,8 @@ Light::~Light() {}
  * @param direction     New light direction.
  */
 void Light::setDirection(const glm::vec3 &direction) {
-    glm::quat q;
-
-    /* Calculate the quaternion that rotates the default direction vector to
-     * the given vector. TODO: Move this to a library function, generalize
-     * equal/opposite handling. */
-    glm::vec3 normalized = glm::normalize(direction);
-    if (normalized == kDefaultDirection) {
-        q = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-    } else if (normalized == -kDefaultDirection) {
-        q = glm::angleAxis(glm::pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f));
-    } else {
-        q = glm::quat(
-            1 + glm::dot(kDefaultDirection, normalized),
-            glm::cross(kDefaultDirection, normalized));
-    }
-
-    entity()->setOrientation(glm::normalize(q));
+    /* Set orientation to rotate the default direction to the given one. */
+    entity()->setOrientation(glm::quat(kDefaultDirection, direction));
 }
 
 /** @return             Current light direction. */

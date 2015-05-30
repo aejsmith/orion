@@ -134,24 +134,12 @@ void SceneLight::updateVolumeTransform() {
              * scale the radius to the cutoff angle and the height to the
              * light's range. */
             float radius = m_range * tanf(glm::radians(m_cutoff));
+            glm::vec3 scale(radius, radius, m_range);
 
-            /* Calculate the quaternion that rotates the negative Z vector to
-             * the direction. TODO: Code duplication. */
-            glm::quat orientation;
-            if (m_direction == glm::vec3(0.0f, 0.0f, -1.0f)) {
-                orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-            } else if (m_direction == -glm::vec3(0.0f, 0.0f, -1.0f)) {
-                orientation = glm::angleAxis(glm::pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f));
-            } else {
-                orientation = glm::quat(
-                    1 + glm::dot(glm::vec3(0.0f, 0.0f, -1.0f), m_direction),
-                    glm::cross(glm::vec3(0.0f, 0.0f, -1.0f), m_direction));
-            }
+            /* Rotate geometry to be centered on the direction. */
+            glm::quat orientation(glm::vec3(0.0f, 0.0f, -1.0f), m_direction);
 
-            m_volumeTransform.set(
-                m_position,
-                glm::normalize(orientation),
-                glm::vec3(radius, radius, m_range));
+            m_volumeTransform.set(m_position, orientation, scale);
             m_uniforms->volumeTransform = m_volumeTransform.matrix();
             break;
         }
