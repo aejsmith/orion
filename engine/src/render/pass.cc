@@ -125,7 +125,7 @@ static bool loadSource(const Path &path, std::string &source, unsigned depth = 0
             Path includePath = path.directoryName() / line.substr(pos, end - pos);
 
             /* Load the source for this file. */
-            if (!loadSource(includePath, source, depth++))
+            if (!loadSource(includePath, source, depth + 1))
                 return false;
         } else {
             source += line;
