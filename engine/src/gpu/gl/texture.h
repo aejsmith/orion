@@ -11,10 +11,7 @@
 /** OpenGL texture implementation. */
 class GLTexture : public GPUTexture {
 public:
-    explicit GLTexture(const GPUTexture2DDesc &desc);
-    explicit GLTexture(const GPUTexture2DArrayDesc &desc);
-    explicit GLTexture(const GPUTextureCubeDesc &desc);
-    explicit GLTexture(const GPUTexture3DDesc &desc);
+    explicit GLTexture(const GPUTextureDesc &desc);
 
     ~GLTexture();
 
@@ -29,8 +26,6 @@ public:
     /** @return             GL target. */
     GLenum glTarget() const { return m_glTarget; }
 private:
-    template <typename Desc> GLTexture(const Desc &desc, GLenum target);
-
     void bindForModification();
 private:
     GLuint m_texture;               /**< GL texture handle. */

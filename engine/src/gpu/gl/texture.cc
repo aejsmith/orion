@@ -10,13 +10,11 @@
 #include "gl.h"
 #include "texture.h"
 
-/** Common texture initialization.
- * @param desc          Texture descriptor.
- * @param target        Target for the texture. */
-template <typename Desc>
-GLTexture::GLTexture(const Desc &desc, GLenum target) :
+/** Initialize a new texture.
+ * @param desc          Texture descriptor. */
+GLTexture::GLTexture(const GPUTextureDesc &desc) :
     GPUTexture(desc),
-    m_glTarget(target)
+    m_glTarget(GLUtil::convertTextureType(desc.type))
 {
     /* Create the texture and bind it for the per-type constructor to use. */
     glGenTextures(1, &m_texture);
@@ -24,55 +22,26 @@ GLTexture::GLTexture(const Desc &desc, GLenum target) :
 
     /* Specify maximum mipmap level. */
     glTexParameteri(m_glTarget, GL_TEXTURE_MAX_LEVEL, m_mips);
-}
 
-/** Initialize the texture as a 2D texture.
- * @param desc          Descriptor containing texture parameters. */
-GLTexture::GLTexture(const GPUTexture2DDesc &desc) :
-    GLTexture(desc, GL_TEXTURE_2D)
-{
     /* Specify storage for all levels. */
-    glTexStorage2D(
-        GL_TEXTURE_2D,
-        m_mips,
-        g_opengl->pixelFormats[m_format].internalFormat,
-        m_width, m_height);
-}
-
-/** Initialize the texture as a 2D array texture.
- * @param desc          Descriptor containing texture parameters. */
-GLTexture::GLTexture(const GPUTexture2DArrayDesc &desc) :
-    GLTexture(desc, GL_TEXTURE_2D_ARRAY)
-{
-    glTexStorage3D(
-        GL_TEXTURE_2D_ARRAY,
-        m_mips,
-        g_opengl->pixelFormats[m_format].internalFormat,
-        m_width, m_height, m_depth);
-}
-
-/** Initialize the texture as a cube texture.
- * @param desc          Descriptor containing texture parameters. */
-GLTexture::GLTexture(const GPUTextureCubeDesc &desc) :
-    GLTexture(desc, GL_TEXTURE_CUBE_MAP)
-{
-    glTexStorage2D(
-        GL_TEXTURE_CUBE_MAP,
-        m_mips,
-        g_opengl->pixelFormats[m_format].internalFormat,
-        m_width, m_height);
-}
-
-/** Initialize the texture as a 3D texture.
- * @param desc          Descriptor containing texture parameters. */
-GLTexture::GLTexture(const GPUTexture3DDesc &desc) :
-    GLTexture(desc, GL_TEXTURE_3D)
-{
-    glTexStorage3D(
-        GL_TEXTURE_3D,
-        m_mips,
-        g_opengl->pixelFormats[m_format].internalFormat,
-        m_width, m_height, m_depth);
+    switch (desc.type) {
+        case kTexture2D:
+        case kTextureCube:
+            glTexStorage2D(
+                m_glTarget,
+                m_mips,
+                g_opengl->pixelFormats[m_format].internalFormat,
+                m_width, m_height);
+            break;
+        case kTexture2DArray:
+        case kTexture3D:
+            glTexStorage3D(
+                m_glTarget,
+                m_mips,
+                g_opengl->pixelFormats[m_format].internalFormat,
+                m_width, m_height, m_depth);
+            break;
+    }
 }
 
 /** Destroy the texture. */
@@ -166,30 +135,9 @@ void GLTexture::generateMipmap() {
  * Texture creation methods.
  */
 
-/** Create a 2D texture.
+/** Create a texture.
  * @param desc          Descriptor containing texture parameters.
  * @return              Pointer to created texture. */
-GPUTexturePtr GLGPUManager::createTexture(const GPUTexture2DDesc &desc) {
-    return new GLTexture(desc);
-}
-
-/** Create a 2D array texture.
- * @param desc          Descriptor containing texture parameters.
- * @return              Pointer to created texture. */
-GPUTexturePtr GLGPUManager::createTexture(const GPUTexture2DArrayDesc &desc) {
-    return new GLTexture(desc);
-}
-
-/** Create a cube texture.
- * @param desc          Descriptor containing texture parameters.
- * @return              Pointer to created texture. */
-GPUTexturePtr GLGPUManager::createTexture(const GPUTextureCubeDesc &desc) {
-    return new GLTexture(desc);
-}
-
-/** Create a 3D texture.
- * @param desc          Descriptor containing texture parameters.
- * @return              Pointer to created texture. */
-GPUTexturePtr GLGPUManager::createTexture(const GPUTexture3DDesc &desc) {
+GPUTexturePtr GLGPUManager::createTexture(const GPUTextureDesc &desc) {
     return new GLTexture(desc);
 }

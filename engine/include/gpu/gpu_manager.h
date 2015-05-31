@@ -79,29 +79,11 @@ public:
      * @return              Pointer to created sampler state object. */
     virtual GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) = 0;
 
-    /** Create a 2D texture.
+    /** Create a texture.
      * @see                 GPUTexture::GPUTexture().
      * @param desc          Descriptor containing texture parameters.
      * @return              Pointer to created texture. */
-    virtual GPUTexturePtr createTexture(const GPUTexture2DDesc &desc) = 0;
-
-    /** Create a 2D array texture.
-     * @see                 GPUTexture::GPUTexture().
-     * @param desc          Descriptor containing texture parameters.
-     * @return              Pointer to created texture. */
-    virtual GPUTexturePtr createTexture(const GPUTexture2DArrayDesc &desc) = 0;
-
-    /** Create a cube texture.
-     * @see                 GPUTexture::GPUTexture().
-     * @param desc          Descriptor containing texture parameters.
-     * @return              Pointer to created texture. */
-    virtual GPUTexturePtr createTexture(const GPUTextureCubeDesc &desc) = 0;
-
-    /** Create a 3D texture.
-     * @see                 GPUTexture::GPUTexture().
-     * @param desc          Descriptor containing texture parameters.
-     * @return              Pointer to created texture. */
-    virtual GPUTexturePtr createTexture(const GPUTexture3DDesc &desc) = 0;
+    virtual GPUTexturePtr createTexture(const GPUTextureDesc &desc) = 0;
 
     /** Create a vertex data object.
      * @see                 GPUVertexData::GPUVertexData().

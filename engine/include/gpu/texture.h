@@ -11,42 +11,7 @@
 
 #include "gpu/defs.h"
 
-/** 2D texture descriptor. */
-struct GPUTexture2DDesc {
-    uint32_t width;                 /**< Width of the texture in pixels. */
-    uint32_t height;                /**< Height of the texture in pixels. */
-    PixelFormat format;             /**< Pixel format. */
-    unsigned mips;                  /**< Number of mip levels (0 for full pyramid). */
-    uint32_t flags;                 /**< Behaviour flags for the texture. */
-};
-
-/** 2D texture array descriptor. */
-struct GPUTexture2DArrayDesc {
-    uint32_t width;                 /**< Width of the texture in pixels. */
-    uint32_t height;                /**< Height of the texture in pixels. */
-    uint32_t layers;                /**< Number of array layers. */
-    PixelFormat format;             /**< Pixel format. */
-    unsigned mips;                  /**< Number of mip levels (0 for full pyramid). */
-    uint32_t flags;                 /**< Behaviour flags for the texture. */
-};
-
-/** Cube texture descriptor. */
-struct GPUTextureCubeDesc {
-    uint32_t size;                  /**< Width/height of the texture in pixels. */
-    PixelFormat format;             /**< Pixel format. */
-    unsigned mips;                  /**< Number of mip levels (0 for full pyramid). */
-    uint32_t flags;                 /**< Behaviour flags for the texture. */
-};
-
-/** 3D texture descriptor. */
-struct GPUTexture3DDesc {
-    uint32_t width;                 /**< Width of the texture in pixels. */
-    uint32_t height;                /**< Height of the texture in pixels. */
-    uint32_t depth;                 /**< Depth of the texture in pixels. */
-    PixelFormat format;             /**< Pixel format. */
-    unsigned mips;                  /**< Number of mip levels (0 for full pyramid). */
-    uint32_t flags;                 /**< Behaviour flags for the texture. */
-};
+struct GPUTextureDesc;
 
 /**
  * Class storing a texture on the GPU.
@@ -112,10 +77,7 @@ public:
     /** @return             Texture behaviour flags. */
     uint32_t flags() const { return m_flags; }
 protected:
-    explicit GPUTexture(const GPUTexture2DDesc &desc);
-    explicit GPUTexture(const GPUTexture2DArrayDesc &desc);
-    explicit GPUTexture(const GPUTextureCubeDesc &desc);
-    explicit GPUTexture(const GPUTexture3DDesc &desc);
+    explicit GPUTexture(const GPUTextureDesc &desc);
 protected:
     Type m_type;                    /**< Type of the texture. */
     uint32_t m_width;               /**< Width of the texture. */
@@ -128,6 +90,17 @@ protected:
 
 /** Type of a pointer to a texture. */
 typedef GPUResourcePtr<GPUTexture> GPUTexturePtr;
+
+/** Texture descriptor. */
+struct GPUTextureDesc {
+    GPUTexture::Type type;          /**< Type of the texture to create. */
+    uint32_t width;                 /**< Width in pixels. */
+    uint32_t height;                /**< Height in pixels (must be equal to width for kTextureCube). */
+    uint32_t depth;                 /**< Depth in pixels (kTexture3D) or number of layers (kTexture2DArray). */
+    PixelFormat format;             /**< Pixel format. */
+    unsigned mips;                  /**< Number of mip levels (0 for full pyramid). */
+    uint32_t flags;                 /**< Behaviour flags for the texture. */
+};
 
 /** Reference to a specific image (layer and mip) within a texture. */
 struct GPUTextureImageRef {

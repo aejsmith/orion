@@ -84,10 +84,7 @@ public:
     GPUPipelinePtr createPipeline(const GPUShaderArray &shaders) override;
     GPURasterizerStatePtr createRasterizerState(const GPURasterizerStateDesc &desc) override;
     GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) override;
-    GPUTexturePtr createTexture(const GPUTexture2DDesc &desc) override;
-    GPUTexturePtr createTexture(const GPUTexture2DArrayDesc &desc) override;
-    GPUTexturePtr createTexture(const GPUTextureCubeDesc &desc) override;
-    GPUTexturePtr createTexture(const GPUTexture3DDesc &desc) override;
+    GPUTexturePtr createTexture(const GPUTextureDesc &desc) override;
     GPUVertexDataPtr createVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers) override;
 
     GPUShaderPtr compileShader(GPUShader::Type type, const std::string &source) override;
@@ -385,6 +382,24 @@ namespace GLUtil {
                 return GL_VERTEX_SHADER_BIT;
             case GPUShader::kFragmentShader:
                 return GL_FRAGMENT_SHADER_BIT;
+            default:
+                return 0;
+        }
+    }
+
+    /** Convert a texture type to a GL texture target.
+     * @param type          Texture type.
+     * @return              GL texture target. */
+    static inline GLenum convertTextureType(GPUTexture::Type type) {
+        switch (type) {
+            case GPUTexture::kTexture2D:
+                return GL_TEXTURE_2D;
+            case GPUTexture::kTexture2DArray:
+                return GL_TEXTURE_2D_ARRAY;
+            case GPUTexture::kTextureCube:
+                return GL_TEXTURE_CUBE_MAP;
+            case GPUTexture::kTexture3D:
+                return GL_TEXTURE_3D;
             default:
                 return 0;
         }

@@ -105,7 +105,8 @@ void TextureBase::updateSamplerState() {
 Texture2D::Texture2D(uint32_t width, uint32_t height, PixelFormat format, unsigned mips, uint32_t flags) :
     m_renderTexture(nullptr)
 {
-    GPUTexture2DDesc desc;
+    GPUTextureDesc desc;
+    desc.type = GPUTexture::kTexture2D;
     desc.width = width;
     desc.height = height;
     desc.format = format;

@@ -79,7 +79,8 @@ void RenderManager::allocRenderTargets(RenderPath path, glm::ivec2 size) {
             rt.screenBufferSize.x, rt.screenBufferSize.y, size.x, size.y);
 
         /* Allocate the buffers. */
-        GPUTexture2DDesc desc;
+        GPUTextureDesc desc;
+        desc.type = GPUTexture::kTexture2D;
         desc.width = rt.screenBufferSize.x;
         desc.height = rt.screenBufferSize.y;
         desc.mips = 1;
@@ -123,7 +124,8 @@ void RenderManager::allocRenderTargets(RenderPath path, glm::ivec2 size) {
          * scaled to fit into the [0, 1] range, and the shininess is stored as
          * its reciprocal. Position is reconstructed from the depth buffer.
          */
-        GPUTexture2DDesc desc;
+        GPUTextureDesc desc;
+        desc.type = GPUTexture::kTexture2D;
         desc.width = rt.deferredBufferSize.x;
         desc.height = rt.deferredBufferSize.y;
         desc.mips = 1;
