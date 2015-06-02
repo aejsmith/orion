@@ -49,8 +49,6 @@ private:
     /** Rendering resources. */
     MaterialPtr m_cubeMaterial;
     MeshPtr m_cubeMesh;
-    Texture2DPtr m_mirrorTexture;
-    MaterialPtr m_mirrorMaterial;
 };
 
 /** Create a 2D plane centered at the origin extending in the X/Y direction.
@@ -98,6 +96,7 @@ Entity *TestGame::createPlane(Entity *parent, const std::string &name, Material 
     Entity *entity = parent->createChild(name);
     MeshRenderer *renderer = entity->createComponent<MeshRenderer>(mesh);
     renderer->setMaterial(subMesh->material, material);
+    renderer->setCastShadow(false);
     renderer->setActive(true);
 
     return entity;
@@ -124,7 +123,7 @@ TestGame::TestGame() {
     floor->setActive(true);
 
     Entity *cube = m_world->createEntity("cube");
-    cube->setPosition(glm::vec3(0.0f, 1.0f, -6.0f));
+    cube->setPosition(glm::vec3(0.0f, 0.6f, -7.0f));
     cube->setScale(glm::vec3(0.2f, 0.2f, 0.2f));
     cube->rotate(45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
     cube->setActive(true);
@@ -142,15 +141,22 @@ TestGame::TestGame() {
     camera->setActive(true);
 
     Entity *lightEntity = m_world->createEntity("light");
-    lightEntity->setPosition(glm::vec3(0.0f, 2.0f, -2.0f));
+    lightEntity->setPosition(glm::vec3(2.0f, 3.0f, -7.0f));
+    //lightEntity->setPosition(glm::vec3(0.0f, 3.0f, -9.5f));
     lightEntity->setActive(true);
-    PointLight *pointLight = lightEntity->createComponent<PointLight>();
-    pointLight->setActive(true);
+    SpotLight *spotLight = lightEntity->createComponent<SpotLight>();
+    spotLight->setDirection(glm::vec3(-0.8f, -1.0f, 0.0f));
+    //spotLight->setDirection(glm::vec3(0.0f, -1.0f, 1.0f));
+    spotLight->setRange(50.0f);
+    spotLight->setAttenuation(1.0f, 0.045f, 0.0075f);
+    spotLight->setCutoff(45.0f);
+    spotLight->setCastShadows(true);
+    spotLight->setActive(true);
 
     lightEntity = m_world->createEntity("light2");
     lightEntity->setPosition(glm::vec3(-2.0f, 3.0f, -3.5f));
     lightEntity->setActive(true);
-    pointLight = lightEntity->createComponent<PointLight>();
+    PointLight *pointLight = lightEntity->createComponent<PointLight>();
     pointLight->setColour(glm::vec3(0.0f, 0.0f, 1.0f));
     pointLight->setIntensity(1.0f);
     pointLight->setRange(50.0f);
@@ -176,26 +182,6 @@ TestGame::TestGame() {
     pointLight->setRange(50.0f);
     pointLight->setAttenuation(1.0f, 0.09f, 0.032f);
     pointLight->setActive(true);
-
-    m_mirrorTexture = new Texture2D(256, 256, PixelFormat::kR8G8B8A8, 1, GPUTexture::kRenderTarget);
-
-    m_mirrorMaterial = new Material(g_assetManager->load<Shader>("engine/shaders/unlit"));
-    //m_mirrorMaterial->setValue("shininess", 32.0f);
-    //m_mirrorMaterial->setValue("specularColour", glm::vec3(0.5f, 0.5f, 0.5f));
-    m_mirrorMaterial->setValue("diffuseTexture", TextureBasePtr(m_mirrorTexture));
-
-    Entity *mirror = createPlane(m_world->root(), "mirror", m_mirrorMaterial, 1.0f);
-    mirror->setPosition(glm::vec3(0.0f, 2.5f, -10.0f));
-    mirror->setScale(glm::vec3(5.0f, 5.0f, 5.0f));
-    mirror->setActive(true);
-
-    camEntity = mirror->createChild("camera");
-    camEntity->rotate(180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-    camEntity->setActive(true);
-    camera = camEntity->createComponent<Camera>();
-    camera->perspective(70.0f, 0.1f, 1000.0f);
-    camera->setRenderTarget(m_mirrorTexture->renderTexture());
-    camera->setActive(true);
 }
 
 /**

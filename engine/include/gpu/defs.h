@@ -52,6 +52,7 @@ namespace CubeFace {
         kNegativeY,             /**< Negative Y direction. */
         kPositiveZ,             /**< Positive Z direction. */
         kNegativeZ,             /**< Negative Z direction. */
+        kNumFaces,
     };
 }
 

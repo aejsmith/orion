@@ -72,6 +72,11 @@ struct PixelFormat {
                 return false;
         }
     }
+
+    /** Get a hash from a texture descriptor. */
+    friend size_t hashValue(PixelFormat format) {
+        return hashValue(format.m_value);
+    }
 private:
     Impl m_value;
 };

@@ -10,6 +10,10 @@
                 "source": "engine/shaders/unlit_frag.glsl",
                 "keywords": ["TEXTURED"]
             }
+        }, {
+            "type": "ShadowCaster",
+            "vertex": {"source": "engine/shaders/shadow_vtx.glsl"},
+            "fragment": {"source": "engine/shaders/shadow_frag.glsl"}
         }
     ]
 }

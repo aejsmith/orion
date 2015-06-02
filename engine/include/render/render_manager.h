@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "core/hash_table.h"
+
 #include "engine/material.h"
 
 #include "gpu/texture.h"
@@ -16,7 +18,7 @@
 /** Manages global resources used throughout the renderer. */
 class RenderManager : Noncopyable {
 public:
-    /** Structure containing render targets. */
+    /** Structure containing primary render targets. */
     struct RenderTargets {
         /** Off-screen rendering textures. */
         GPUTexturePtr colourBuffer;         /**< Colour buffer. */
@@ -36,6 +38,8 @@ public:
         {}
     };
 public:
+    RenderManager();
+
     void init();
 
     /**
@@ -44,9 +48,11 @@ public:
 
     void allocRenderTargets(RenderPath path, glm::ivec2 size);
 
-    /** Get the currently allocated render targets.
+    /** Get the currently allocated primary render targets.
      * @return              Reference to the render targets structure. */
     const RenderTargets &renderTargets() const { return m_renderTargets; }
+
+    GPUTexture *allocTempRenderTarget(const GPUTextureDesc &desc);
 
     /**
      * Other rendering resources.
@@ -75,9 +81,25 @@ public:
 
     /** @return             Deferred light material. */
     Material *deferredLightMaterial() const { return m_deferredLightMaterial; }
+
+    /**
+     * Rendering parameters.
+     */
+
+    /** @return             Current shadow map resolution. */
+    uint16_t shadowMapResolution() const { return m_shadowMapResolution; }
 private:
-    /** Render targets. */
+    /** Structure containing a temporary render target. */
+    struct TempRenderTarget {
+        GPUTexturePtr texture;              /**< Texture. */
+        bool allocated;                     /**< Whether the texture is in use. */
+    };
+private:
+    /** Primary render targets. */
     RenderTargets m_renderTargets;
+
+    /** Pool of temporary render target textures. */
+    MultiHashTable<GPUTextureDesc, TempRenderTarget> m_tempRenderTargets;
 
     /** Vertex format for SimpleVertex. */
     GPUVertexFormatPtr m_simpleVertexFormat;
@@ -91,6 +113,9 @@ private:
 
     /** Special materials. */
     MaterialPtr m_deferredLightMaterial;    /**< Deferred light material. */
+
+    /** Rendering parameters. */
+    uint16_t m_shadowMapResolution;         /**< Shadow map resolution. */
 };
 
 extern EngineGlobal<RenderManager> g_renderManager;

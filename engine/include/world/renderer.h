@@ -24,6 +24,11 @@ public:
     DECLARE_COMPONENT(Component::kRendererType);
 public:
     ~RendererComponent();
+
+    void setCastShadow(bool castShadow);
+
+    /** @return             Whether the rendered object casts a shadow. */
+    bool castShadow() const { return m_castShadow; }
 protected:
     /** Type of a scene entity list. */
     typedef std::list<SceneEntity *> SceneEntityList;
@@ -46,6 +51,8 @@ protected:
      */
     virtual void createSceneEntities(SceneEntityList &entities) = 0;
 private:
+    bool m_castShadow;             /**< Whether the object casts a shadow. */
+
     /** List of scene entities. */
     SceneEntityList m_sceneEntities;
 };

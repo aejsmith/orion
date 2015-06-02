@@ -12,8 +12,16 @@
 #include "render/utility.h"
 #include "render/vertex.h"
 
+/** Default rendering parameters. */
+static const uint16_t kDefaultShadowMapResolution = 512;
+
 /** Manager of global renderer resources */
 EngineGlobal<RenderManager> g_renderManager;
+
+/** Initialise the rendering manager. */
+RenderManager::RenderManager() :
+    m_shadowMapResolution(kDefaultShadowMapResolution)
+{}
 
 /** Create rendering resources. */
 void RenderManager::init() {
@@ -151,4 +159,48 @@ void RenderManager::allocRenderTargets(RenderPath path, glm::ivec2 size) {
         g_gpuManager->bindTexture(TextureSlots::kDeferredBufferC, rt.deferredBufferC, sampler);
         g_gpuManager->bindTexture(TextureSlots::kDeferredBufferD, rt.deferredBufferD, sampler);
     }
+
+    /* Mark all temporary render targets as free. TODO: Free up targets that
+     * remain unused for a long period. */
+    for (auto &target : m_tempRenderTargets)
+        target.second.allocated = false;
+}
+
+/**
+ * Allocate from the temporary render target pool.
+ *
+ * Allocates a texture matching the given parameters from the temporary render
+ * target pool. These are to be used for things which are only needed within a
+ * single SceneRenderer pass, such as shadow maps. All targets allocated from
+ * the pool are marked as free for re-use at the next call to
+ * allocRenderTargets().
+ *
+ * @param desc          Texture descriptor.
+ *
+ * @return              Pointer to allocated render target (not reference
+ *                      counted, the texture is guaranteed to exist until the
+ *                      next call to allocRenderTargets()).
+ */
+GPUTexture *RenderManager::allocTempRenderTarget(const GPUTextureDesc &desc) {
+    /* See if we have a matching target spare in the pool. */
+    auto range = m_tempRenderTargets.equal_range(desc);
+    for (auto it = range.first; it != range.second; ++it) {
+        if (!it->second.allocated) {
+            it->second.allocated = true;
+            return it->second.texture;
+        }
+    }
+
+    logDebug(
+        "Allocating new %ux%ux%u temporary render target of type %d",
+        desc.width, desc.height,
+        (desc.type == GPUTexture::kTexture2DArray || desc.type == GPUTexture::kTexture3D) ? desc.depth : 0,
+        desc.type);
+
+    /* Nothing found, create a new texture. */
+    TempRenderTarget target;
+    target.texture = g_gpuManager->createTexture(desc);
+    target.allocated = true;
+    m_tempRenderTargets.insert(std::make_pair(desc, target));
+    return target.texture;
 }

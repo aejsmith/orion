@@ -35,6 +35,9 @@ void SceneRenderer::render() {
     /* Get all lights affecting the view and set up state for them. */
     m_scene->visitVisibleLights(m_view, [this] (SceneLight *l) { addLight(l); });
 
+    /* Render shadow maps. */
+    renderShadowMaps();
+
     /* Find all visible entities and add them to all appropriate draw lists. */
     m_scene->visitVisibleEntities(m_view, [this] (SceneEntity *e) { addEntity(e); });
 
@@ -72,6 +75,33 @@ void SceneRenderer::addLight(SceneLight *light) {
     m_lights.emplace_back();
     LightRenderState &state = m_lights.back();
     state.light = light;
+
+    if (light->castShadows()) {
+        /* Allocate a shadow map. */
+        state.shadowMap = light->allocShadowMap();
+
+        /* Now find all shadow casting entities which are affected by this light. */
+        unsigned numShadowViews = light->numShadowViews();
+        for (unsigned i = 0; i < numShadowViews; i++) {
+            SceneView *shadowView = light->shadowView(i);
+
+            m_scene->visitVisibleEntities(shadowView, [&] (SceneEntity *entity) {
+                if (entity->castShadow()) {
+                    DrawData drawData;
+                    entity->drawData(drawData);
+
+                    Shader *shader = drawData.material->shader();
+
+                    if (shader->numPasses(Pass::kShadowCasterPass) > 0) {
+                        state.shadowMapDrawLists[i].addDrawCalls(
+                            drawData,
+                            Pass::kShadowCasterPass,
+                            entity->uniforms());
+                    }
+                }
+            });
+        }
+    }
 }
 
 /** Add an entity to the appropriate draw lists.
@@ -100,6 +130,44 @@ void SceneRenderer::addEntity(SceneEntity *entity) {
         }
     } else if (shader->numPasses(Pass::kBasicPass) > 0) {
         m_basicDrawList.addDrawCalls(drawData, Pass::kBasicPass, entity->uniforms());
+    }
+}
+
+/** Render shadow maps. */
+void SceneRenderer::renderShadowMaps() {
+    /* Disable blending, enable depth testing/writing. */
+    g_gpuManager->setBlendState<>();
+    g_gpuManager->setDepthStencilState<>();
+    g_gpuManager->setRasterizerState<>();
+
+    for (LightRenderState &state : m_lights) {
+        if (!state.shadowMap)
+            continue;
+
+        /* Bind light uniforms. */
+        g_gpuManager->bindUniformBuffer(UniformSlots::kLightUniforms, state.light->uniforms());
+
+        /* Need to do a rendering pass for each view. */
+        unsigned numShadowViews = state.light->numShadowViews();
+        for (unsigned i = 0; i < numShadowViews; i++) {
+            SceneView *shadowView = state.light->shadowView(i);
+
+            /* Set view uniforms. */
+            g_gpuManager->bindUniformBuffer(UniformSlots::kViewUniforms, shadowView->uniforms());
+
+            /* Set the render target. */
+            GPURenderTargetDesc desc;
+            desc.numColours = 0;
+            desc.depthStencil.texture = state.shadowMap;
+            desc.depthStencil.layer = i;
+            g_gpuManager->setRenderTarget(&desc, &shadowView->viewport());
+
+            /* Clear it. */
+            g_gpuManager->clear(ClearBuffer::kDepthBuffer, glm::vec4(0.0, 0.0, 0.0, 0.0), 1.0, 0);
+
+            /* Render the shadow map. */
+            state.shadowMapDrawLists[i].draw();
+        }
     }
 }
 
@@ -160,7 +228,7 @@ void SceneRenderer::renderDeferred() {
                 break;
         }
 
-        g_gpuManager->bindUniformBuffer(UniformSlots::kLightUniforms, lightState.light->uniforms());
+        setLightState(lightState);
 
         /* Build up a draw call for the light volume. */
         DrawData data;
@@ -197,7 +265,7 @@ void SceneRenderer::renderForward() {
         if (lightState.drawList.empty())
             continue;
 
-        g_gpuManager->bindUniformBuffer(UniformSlots::kLightUniforms, lightState.light->uniforms());
+        setLightState(lightState);
 
         /* Draw all entities. */
         lightState.drawList.draw(lightState.light);
@@ -235,4 +303,20 @@ void SceneRenderer::setDeferredRenderTarget() {
     desc.depthStencil.texture = targets.depthBuffer;
 
     g_gpuManager->setRenderTarget(&desc, &m_view->viewport());
+}
+
+/** Set up rendering state for a light common to both forward/deferred paths.
+ * @param state         Light to set state for. */
+void SceneRenderer::setLightState(LightRenderState &state) {
+    g_gpuManager->bindUniformBuffer(UniformSlots::kLightUniforms, state.light->uniforms());
+
+    if (state.shadowMap) {
+        GPUSamplerStateDesc samplerDesc;
+        samplerDesc.filterMode = SamplerFilterMode::kNearest;
+        samplerDesc.maxAnisotropy = 1;
+        samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
+        GPUSamplerStatePtr sampler = g_gpuManager->createSamplerState(samplerDesc);
+
+        g_gpuManager->bindTexture(TextureSlots::kShadowMap, state.shadowMap, sampler);
+    }
 }

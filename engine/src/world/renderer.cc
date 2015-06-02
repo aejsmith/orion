@@ -13,7 +13,8 @@
 /** Initialise the component.
  * @param entity        Entity that the component belongs to. */
 RendererComponent::RendererComponent(Entity *entity) :
-    Component(Component::kRendererType, entity)
+    Component(Component::kRendererType, entity),
+    m_castShadow(true)
 {}
 
 /** Destory the component. */
@@ -24,6 +25,19 @@ RendererComponent::~RendererComponent() {
         SceneEntity *sceneEntity = m_sceneEntities.front();
         m_sceneEntities.pop_front();
         delete sceneEntity;
+    }
+}
+
+/** Set whether the rendered object casts a shadow.
+ * @param castShadow    Whether to cast a shadow. */
+void RendererComponent::setCastShadow(bool castShadow) {
+    if (castShadow != m_castShadow) {
+        m_castShadow = castShadow;
+
+        if (activeInWorld()) {
+            for (SceneEntity *sceneEntity : m_sceneEntities)
+                sceneEntity->setCastShadow(castShadow);
+        }
     }
 }
 
@@ -43,9 +57,12 @@ void RendererComponent::activated() {
     createSceneEntities(m_sceneEntities);
     check(!m_sceneEntities.empty());
 
-    /* Add them all to the renderer. */
-    for (SceneEntity *sceneEntity : m_sceneEntities)
+    /* Set properties and add them all to the renderer. */
+    for (SceneEntity *sceneEntity : m_sceneEntities) {
+        sceneEntity->setCastShadow(m_castShadow);
+
         world()->scene()->addEntity(sceneEntity, worldTransform());
+    }
 }
 
 /** Called when the component becomes inactive in the world. */

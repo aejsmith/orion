@@ -100,6 +100,33 @@ struct GPUTextureDesc {
     PixelFormat format;             /**< Pixel format. */
     unsigned mips;                  /**< Number of mip levels (0 for full pyramid). */
     uint32_t flags;                 /**< Behaviour flags for the texture. */
+public:
+    /** Compare this descriptor with another. */
+    bool operator ==(const GPUTextureDesc &other) const {
+        return
+            type == other.type &&
+            width == other.width &&
+            height == other.height &&
+            ((type != GPUTexture::kTexture2DArray && type != GPUTexture::kTexture3D) || depth == other.depth) &&
+            format == other.format &&
+            mips == other.mips &&
+            flags == other.flags;
+    }
+
+    /** Get a hash from a texture descriptor. */
+    friend size_t hashValue(const GPUTextureDesc &desc) {
+        size_t hash = hashValue(desc.type);
+        hash = hashCombine(hash, desc.width);
+        hash = hashCombine(hash, desc.height);
+
+        if (desc.type == GPUTexture::kTexture2DArray || desc.type == GPUTexture::kTexture3D)
+            hash = hashCombine(hash, desc.depth);
+
+        hash = hashCombine(hash, desc.format);
+        hash = hashCombine(hash, desc.mips);
+        hash = hashCombine(hash, desc.flags);
+        return hash;
+    }
 };
 
 /** Reference to a specific image (layer and mip) within a texture. */
@@ -164,7 +191,7 @@ struct GPURenderTargetDesc {
 public:
     GPURenderTargetDesc() : numColours(0) {}
 
-    /** Compare this reference with another. */
+    /** Compare this descriptor with another. */
     bool operator ==(const GPURenderTargetDesc &other) const {
         if (numColours != other.numColours || depthStencil != other.depthStencil)
             return false;

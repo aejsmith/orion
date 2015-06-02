@@ -7,6 +7,7 @@
 #pragma once
 
 #include "render/draw_list.h"
+#include "render/scene_light.h"
 
 class RenderTarget;
 class Scene;
@@ -22,7 +23,12 @@ enum class RenderPath {
 /** Structure containing light rendering state. */
 struct LightRenderState {
     SceneLight *light;              /**< Light being rendered. */
-    DrawList drawList;              /**< List of all draw calls affected by this light. */
+    DrawList drawList;              /**< List of all (forward) draw calls affected by this light. */
+
+    GPUTexture *shadowMap;          /**< Shadow map texture. */
+
+    /** Draw calls for shadow casters visible to this light. */
+    DrawList shadowMapDrawLists[SceneLight::kMaxShadowViews];
 };
 
 /**
@@ -47,11 +53,13 @@ private:
     void addLight(SceneLight *light);
     void addEntity(SceneEntity *entity);
 
+    void renderShadowMaps();
     void renderDeferred();
     void renderForward();
 
     void setOutputRenderTarget();
     void setDeferredRenderTarget();
+    void setLightState(LightRenderState &state);
 private:
     Scene *m_scene;                 /**< Scene being rendered. */
     SceneView *m_view;              /**< View into the scene to render from. */
@@ -59,7 +67,7 @@ private:
     RenderPath m_path;              /**< Rendering path to use. */
 
     /** Draw lists. */
-    DrawList m_basicDrawList;       /**< Basic material draw list (drawn first). */
+    DrawList m_basicDrawList;       /**< Basic material draw list. */
     DrawList m_deferredDrawList;    /**< Deferred material draw list. */
 
     /** List of lights affecting the view. */

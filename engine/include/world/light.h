@@ -24,11 +24,14 @@ public:
 
     void setColour(const glm::vec3 &colour);
     void setIntensity(float intensity);
+    void setCastShadows(bool castShadows);
 
-    /** @return         Colour that the light emits. */
+    /** @return             Colour that the light emits. */
     const glm::vec3 &colour() const { return m_sceneLight.colour(); }
-    /** @return         Diffuse intensity. */
+    /** @return             Diffuse intensity. */
     float intensity() const { return m_sceneLight.intensity(); }
+    /** @return             Whether the light casts shadows. */
+    bool castShadows() const { return m_sceneLight.castShadows(); }
 protected:
     Light(Entity *entity, SceneLight::Type type);
 
@@ -47,15 +50,15 @@ protected:
 
     glm::vec3 direction() const;
 
-    /** @return         Angle of effect. */
+    /** @return             Angle of effect. */
     float cutoff() const { return m_sceneLight.cutoff(); }
-    /** @return         Range of the light. */
+    /** @return             Range of the light. */
     float range() const { return m_sceneLight.range(); }
-    /** @return         Constant attenuation factor. */
+    /** @return             Constant attenuation factor. */
     float attenuationConstant() const { return m_sceneLight.attenuationConstant(); }
-    /** @return         Linear attenuation factor. */
+    /** @return             Linear attenuation factor. */
     float attenuationLinear() const { return m_sceneLight.attenuationLinear(); }
-    /** @return         Exponential attenuation factor. */
+    /** @return             Exponential attenuation factor. */
     float attenuationExp() const { return m_sceneLight.attenuationExp(); }
 protected:
     /** Scene light implementing this light. */
@@ -148,6 +151,12 @@ inline void Light::setColour(const glm::vec3 &colour) {
  * @param intensity     New light intensity. */
 inline void Light::setIntensity(float intensity) {
     m_sceneLight.setIntensity(intensity);
+}
+
+/** Set whether the light casts shadows.
+ * @param castShadows   Whether the light casts shadows. */
+inline void Light::setCastShadows(bool castShadows) {
+    m_sceneLight.setCastShadows(castShadows);
 }
 
 /** Set the cutoff angle.

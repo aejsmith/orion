@@ -8,11 +8,22 @@
 
 IMPLEMENT_UNIFORM_STRUCT(EntityUniforms, "entity", UniformSlots::kEntityUniforms);
 
-/** Initialize the entity. */
+/**
+ * Initialize the entity.
+ *
+ * Note that properties are not initialised. They should be initialised by the
+ * creator of the entity.
+ */
 SceneEntity::SceneEntity() {}
 
 /** Destroy the entity. */
 SceneEntity::~SceneEntity() {}
+
+/** Set whether the rendered object casts a shadow.
+ * @param castShadow    Whether the rendered object casts a shadow. */
+void SceneEntity::setCastShadow(bool castShadow) {
+    m_castShadow = castShadow;
+}
 
 /** Private function called from Scene to set the transformation.
  * @param transform     New transformation. */

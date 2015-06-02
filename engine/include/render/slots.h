@@ -53,5 +53,8 @@ namespace TextureSlots {
         kDeferredBufferB = 17,
         kDeferredBufferC = 18,
         kDeferredBufferD = 19,
+
+        /** Shadow map. */
+        kShadowMap = 20,
     };
 }

@@ -1,6 +1,7 @@
 {
     "parameters": {
-        "diffuseColour": {"type": "Vec3"}
+        "diffuseColour": {"type": "Vec3"},
+        "shadowMap": {"type": "Texture", "slot": 20}
     },
     "passes": [
         {
@@ -11,6 +12,10 @@
             "type": "Forward",
             "vertex": {"source": "engine/shaders/lit_vtx.glsl"},
             "fragment": {"source": "engine/shaders/lit_frag.glsl"}
+        }, {
+            "type": "ShadowCaster",
+            "vertex": {"source": "engine/shaders/shadow_vtx.glsl"},
+            "fragment": {"source": "engine/shaders/shadow_frag.glsl"}
         }
     ]
 }

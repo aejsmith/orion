@@ -30,6 +30,7 @@ void SceneLight::setDirection(const glm::vec3 &direction) {
     m_direction = glm::normalize(direction);
     m_uniforms->direction = m_direction;
     updateVolumeTransform();
+    updateShadowViews();
 }
 
 /** Set the colour of the light.
@@ -58,6 +59,7 @@ void SceneLight::setCutoff(float cutoff) {
     m_uniforms->cosCutoff = cosf(glm::radians(m_cutoff));
 
     updateVolumeTransform();
+    updateShadowViews();
 }
 
 /** Set the range of the light (for point/spot lights).
@@ -67,6 +69,7 @@ void SceneLight::setRange(float range) {
     m_uniforms->range = m_range;
 
     updateVolumeTransform();
+    updateShadowViews();
 }
 
 /** Set the attenuation factors (for point/spot lights).
@@ -83,30 +86,59 @@ void SceneLight::setAttenuation(float constant, float linear, float exp) {
     m_uniforms->attenuationExp = m_attenuationExp;
 }
 
+/** Set whether the light casts shadows.
+ * @param castShadows   Whether the light casts shadows. */
+void SceneLight::setCastShadows(bool castShadows) {
+    if (castShadows != m_castShadows) {
+        m_castShadows = castShadows;
+        updateShadowViews();
+    }
+}
+
 /** Set the light position (private function called from Scene).
  * @param position      New light position. */
 void SceneLight::setPosition(const glm::vec3 &position) {
     m_position = position;
     m_uniforms->position = m_position;
+
     updateVolumeTransform();
+    updateShadowViews();
 }
 
 /** Get light volume geometry.
  * @return              Sphere vertex/index data. */
 void SceneLight::volumeGeometry(GPUVertexData *&vertices, GPUIndexData *&indices) const {
     switch (m_type) {
-        case kAmbientLight:
-        case kDirectionalLight:
-        default:
-            g_renderManager->quadGeometry(vertices, indices);
-            break;
         case kPointLight:
             g_renderManager->sphereGeometry(vertices, indices);
             break;
         case kSpotLight:
             g_renderManager->coneGeometry(vertices, indices);
             break;
+        default:
+            g_renderManager->quadGeometry(vertices, indices);
+            break;
     }
+}
+
+/** Allocate a shadow map for this light.
+ * @return              Pointer to allocated shadow map. */
+GPUTexture *SceneLight::allocShadowMap() const {
+    GPUTextureDesc desc;
+    desc.width = desc.height = g_renderManager->shadowMapResolution();
+    desc.mips = 1;
+    desc.flags = GPUTexture::kRenderTarget;
+    desc.format = PixelFormat::kDepth24Stencil8;
+
+    switch (m_type) {
+        case kSpotLight:
+            desc.type = GPUTexture::kTexture2D;
+            break;
+        default:
+            fatal("TODO");
+    }
+
+    return g_renderManager->allocTempRenderTarget(desc);
 }
 
 /** Update the light volume transformation. */
@@ -144,4 +176,54 @@ void SceneLight::updateVolumeTransform() {
             break;
         }
     }
+}
+
+/** Update the shadow views. */
+void SceneLight::updateShadowViews() {
+    /* Bias matrix applied to shadow space transformation (see below). */
+    static const glm::mat4 shadowBiasMatrix(
+        0.5, 0.0, 0.0, 0.0,
+        0.0, 0.5, 0.0, 0.0,
+        0.0, 0.0, 0.5, 0.0,
+        0.5, 0.5, 0.5, 1.0
+    );
+
+    if (!m_castShadows)
+        return;
+
+    size_t numViews = 0;
+
+    switch (m_type) {
+        case kSpotLight:
+            numViews = 1;
+
+            /* View is centered on light pointing in its direction. */
+            m_shadowViews[0].setTransform(
+                m_position,
+                glm::quat(glm::vec3(0.0f, 0.0f, -1.0f), m_direction));
+
+            /* Projection is a perspective projection covering the light's range. */
+            m_shadowViews[0].perspective(m_cutoff * 2, 0.1f, m_range);
+
+            /* Shader shadow calculation for a spot light requires transformation
+             * of the world space position of the pixel being lit into shadow
+             * space, i.e. the view-projection transformation. We don't make the
+             * shadow view uniforms available to shaders rendering with the
+             * shadow map, so we need a copy of it in the light uniforms. We
+             * apply a bias to this matrix to map coordinates into the [0, 1]
+             * range for shadow map sampling, as just the VP transformation
+             * yields NDC coordinates, i.e. in the range [-1, 1]. */
+            m_uniforms->shadowSpace
+                = shadowBiasMatrix * m_shadowViews[0].projection() * m_shadowViews[0].view();
+            break;
+        default:
+            /* TODO. */
+            break;
+    }
+
+    /* Viewport should cover the whole shadow map. */
+    uint16_t shadowMapResolution = g_renderManager->shadowMapResolution();
+    IntRect viewport(0, 0, shadowMapResolution, shadowMapResolution);
+    for (size_t i = 0; i < numViews; i++)
+        m_shadowViews[i].setViewport(viewport);
 }

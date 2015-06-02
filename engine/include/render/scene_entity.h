@@ -36,6 +36,8 @@ class SceneEntity {
 public:
     virtual ~SceneEntity();
 
+    void setCastShadow(bool castShadow);
+
     /** @return             Current transformation. */
     const Transform &transform() const { return m_transform; }
     /** @return             Current position. */
@@ -44,6 +46,10 @@ public:
     const glm::quat &orientation() const { return m_transform.orientation(); }
     /** @return             Current scale. */
     const glm::vec3 &scale() const { return m_transform.scale(); }
+
+    /** @return             Whether the rendered object casts a shadow. */
+    bool castShadow() const { return m_castShadow; }
+
     /** @return             GPU buffer containing entity uniforms. */
     GPUBuffer *uniforms() const { return m_uniforms.gpu(); }
 
@@ -56,6 +62,7 @@ private:
     void setTransform(const Transform &transform);
 private:
     Transform m_transform;          /**< Transformation of the entity. */
+    bool m_castShadow;              /**< Whether the rendered object casts a shadow. */
 
     /** Uniform buffer containing per-entity parameters. */
     UniformBuffer<EntityUniforms> m_uniforms;

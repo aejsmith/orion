@@ -7,6 +7,16 @@
  *                      identical and match them (e.g. ones which are the same
  *                      despite not being compiled with the same keywords.
  *                      Loading code would move from here to the shader cache.
+ * @todo                Improved shader variation system (preprocessor defines).
+ *                      Fixed sized array for light/shadow variations isn't
+ *                      very nice. Want a system that allows shaders to define
+ *                      what variations they actually support (e.g. Unity's
+ *                      multi_compile pragma), and materials to be able to set
+ *                      keywords. We would then compile for all possible
+ *                      combinations, and then when getting a variation, form
+ *                      a key by filtering selected keywords to ones supported
+ *                      by the shader and look up based on that.
+ * @todo                Don't need to compile shadow variation for ambient.
  */
 
 #include "core/filesystem.h"
@@ -24,6 +34,7 @@ static const char *passShaderVariations[Pass::kNumTypes] = {
     "BASIC_PASS",
     "FORWARD_PASS",
     "DEFERRED_PASS",
+    "SHADOW_CASTER_PASS",
 };
 
 /** Array of light variation strings, indexed by light type. */
@@ -34,13 +45,16 @@ static const char *lightShaderVariations[SceneLight::kNumTypes] = {
     "SPOT_LIGHT",
 };
 
+/** Shadow variation string. */
+static const char *const shadowVariation = "SHADOW";
+
 /** Initialize the pass.
  * @param parent        Parent shader.
  * @param type          Type of the pass. */
 Pass::Pass(Shader *parent, Type type) :
     m_parent(parent),
     m_type(type),
-    m_variations((type == kForwardPass) ? arraySize(lightShaderVariations) : 1)
+    m_variations((type == kForwardPass) ? SceneLight::kNumTypes * 2 : 1)
 {}
 
 /** Destroy the pass. */
@@ -58,8 +72,18 @@ Pass::~Pass() {}
  *                      for non-lit pass types.
  */
 void Pass::setDrawState(SceneLight *light) const {
-    /* Bind the shader variation for this light type. */
-    const Variation &variation = m_variations[(m_type == kForwardPass) ? light->type() : 0];
+    /* Find the variation to use. */
+    size_t index;
+    if (m_type == kForwardPass) {
+        index = light->type() * 2;
+        if (light->castShadows())
+            index++;
+    } else {
+        index = 0;
+    }
+
+    /* Bind the variation. */
+    const Variation &variation = m_variations[index];
     check(variation.pipeline);
     g_gpuManager->bindPipeline(variation.pipeline);
 }
@@ -215,15 +239,23 @@ bool Pass::loadStage(GPUShader::Type stage, const Path &path, const KeywordSet &
 
     if (m_type == kForwardPass) {
         /* Build each of the light type variations. */
-        for (size_t i = 0; i < m_variations.size(); i++) {
-            /* Build a source string with this variation defined. */
-            std::string variationSource;
-            defineKeyword(variationSource, lightShaderVariations[i]);
-            variationSource += source;
+        for (unsigned i = 0; i < SceneLight::kNumTypes; i++) {
+            for (unsigned j = 0; j < 2; j++) {
+                /* Build a source string with this variation defined. */
+                std::string variationSource;
+                defineKeyword(variationSource, lightShaderVariations[i]);
+                if (j)
+                    defineKeyword(variationSource, shadowVariation);
+                variationSource += source;
 
-            m_variations[i].shaders[stage] = compileVariation(variationSource, stage, m_parent, path);
-            if (!m_variations[i].shaders[stage])
-                return false;
+                m_variations[(i * 2) + j].shaders[stage] = compileVariation(
+                    variationSource,
+                    stage,
+                    m_parent,
+                    path);
+                if (!m_variations[(i * 2) + j].shaders[stage])
+                    return false;
+            }
         }
     } else {
         /* Single variation. */

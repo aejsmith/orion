@@ -41,6 +41,9 @@ public:
          */
         kDeferredPass,
 
+        /** Shadow caster pass. Used when rendering shadow maps. */
+        kShadowCasterPass,
+
         /** Number of Pass types. */
         kNumTypes,
     };

@@ -151,6 +151,8 @@ bool ShaderLoader::addPass(const rapidjson::Value &desc) {
         type = Pass::kForwardPass;
     } else if (strcmp(typeString, "Deferred") == 0) {
         type = Pass::kDeferredPass;
+    } else if (strcmp(typeString, "ShadowCaster") == 0) {
+        type = Pass::kShadowCasterPass;
     } else {
         logError("%s: Pass type '%s' is invalid", m_path, typeString);
         return false;

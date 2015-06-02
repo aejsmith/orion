@@ -24,6 +24,9 @@ Light::Light(Entity *entity, SceneLight::Type type) :
     /* Set default colour/intensity. */
     setColour(glm::vec3(1.0f, 1.0f, 1.0f));
     setIntensity(0.8f);
+
+    /* Don't cast shadows by default. */
+    setCastShadows(false);
 }
 
 /** Initialize an ambient light component.
@@ -73,7 +76,8 @@ Light::~Light() {}
  */
 void Light::setDirection(const glm::vec3 &direction) {
     /* Set orientation to rotate the default direction to the given one. */
-    entity()->setOrientation(glm::quat(kDefaultDirection, direction));
+    glm::vec3 d = glm::normalize(direction);
+    entity()->setOrientation(glm::quat(kDefaultDirection, d));
 }
 
 /** @return             Current light direction. */

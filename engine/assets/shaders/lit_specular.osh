@@ -2,7 +2,8 @@
     "parameters": {
         "shininess": {"type": "Float"},
         "specularColour": {"type": "Vec3"},
-        "diffuseTexture": {"type": "Texture"}
+        "diffuseTexture": {"type": "Texture"},
+        "shadowMap": {"type": "Texture", "slot": 20}
     },
     "passes": [
         {
@@ -19,6 +20,10 @@
                 "source": "engine/shaders/lit_frag.glsl",
                 "keywords": ["SPECULAR", "TEXTURED"]
             }
+        }, {
+            "type": "ShadowCaster",
+            "vertex": {"source": "engine/shaders/shadow_vtx.glsl"},
+            "fragment": {"source": "engine/shaders/shadow_frag.glsl"}
         }
     ]
 }
