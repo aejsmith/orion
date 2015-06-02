@@ -58,6 +58,8 @@ public:
 
     GPUBuffer *uniforms();
 private:
+    void updateMatrices();
+private:
     glm::vec3 m_position;           /**< View position. */
     glm::quat m_orientation;        /**< View orientation. */
     glm::mat4 m_view;               /**< World-to-view matrix. */

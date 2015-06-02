@@ -63,7 +63,6 @@ void SceneView::setViewport(const IntRect &viewport) {
     float aspect = static_cast<float>(viewport.width) / static_cast<float>(viewport.height);
     if (aspect != m_aspect) {
         m_aspect = aspect;
-
         m_projectionOutdated = true;
     }
 }
@@ -71,6 +70,29 @@ void SceneView::setViewport(const IntRect &viewport) {
 /** Get the world-to-view matrix.
  * @return              World-to-view matrix. */
 const glm::mat4 &SceneView::view() {
+    updateMatrices();
+    return m_view;
+}
+
+/** Get the view-to-projection matrix.
+ * @return              View-to-projection matrix. */
+const glm::mat4 &SceneView::projection() {
+    updateMatrices();
+    return m_projection;
+}
+
+/** Get the uniform buffer containing view parameters.
+ * @return              Pointer to buffer containing view parameters. */
+GPUBuffer *SceneView::uniforms() {
+    /* Ensure view and projection are up to date. */
+    updateMatrices();
+    return m_uniforms.gpu();
+}
+
+/** Update the view/projection matrices. */
+void SceneView::updateMatrices() {
+    bool wasOutdated = m_viewOutdated || m_projectionOutdated;
+
     if (m_viewOutdated) {
         /* Viewing matrix is a world-to-view transformation, so we want
          * the inverse of the given position and orientation. */
@@ -82,12 +104,6 @@ const glm::mat4 &SceneView::view() {
         m_viewOutdated = false;
     }
 
-    return m_view;
-}
-
-/** Get the view-to-projection matrix.
- * @return              View-to-projection matrix. */
-const glm::mat4 &SceneView::projection() {
     if (m_projectionOutdated) {
         /* Convert horizontal field of view to vertical. */
         float fov = glm::radians(m_fov);
@@ -98,22 +114,8 @@ const glm::mat4 &SceneView::projection() {
         m_projectionOutdated = false;
     }
 
-    return m_projection;
-}
-
-/** Get the uniform buffer containing view parameters.
- * @return              Pointer to buffer containing view parameters. */
-GPUBuffer *SceneView::uniforms() {
-    /* Ensure view and projection are up to date. */
-    bool wasOutdated = m_viewOutdated || m_projectionOutdated;
-    if (m_viewOutdated)
-        view();
-    if (m_projectionOutdated)
-        projection();
     if (wasOutdated) {
         m_uniforms->viewProjection = m_projection * m_view;
         m_uniforms->inverseViewProjection = glm::inverse(m_uniforms->viewProjection);
     }
-
-    return m_uniforms.gpu();
 }
