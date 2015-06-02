@@ -123,9 +123,9 @@ TestGame::TestGame() {
     floor->setActive(true);
 
     Entity *cube = m_world->createEntity("cube");
-    cube->setPosition(glm::vec3(0.0f, 0.6f, -7.0f));
+    cube->setPosition(glm::vec3(0.0f, 0.57f, -7.0f));
     cube->setScale(glm::vec3(0.2f, 0.2f, 0.2f));
-    cube->rotate(45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+    cube->rotate(90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
     cube->setActive(true);
     MeshRenderer *renderer = cube->createComponent<MeshRenderer>(m_cubeMesh);
     renderer->setMaterial("Material.004", m_cubeMaterial);
@@ -161,6 +161,7 @@ TestGame::TestGame() {
     pointLight->setIntensity(1.0f);
     pointLight->setRange(50.0f);
     pointLight->setAttenuation(1.0f, 0.09f, 0.032f);
+    pointLight->setCastShadows(true);
     pointLight->setActive(true);
 
     lightEntity = m_world->createEntity("light3");
@@ -171,16 +172,18 @@ TestGame::TestGame() {
     pointLight->setIntensity(1.0f);
     pointLight->setRange(50.0f);
     pointLight->setAttenuation(1.0f, 0.09f, 0.032f);
+    pointLight->setCastShadows(true);
     pointLight->setActive(true);
 
     lightEntity = m_world->createEntity("light4");
-    lightEntity->setPosition(glm::vec3(0.0f, 3.0f, -8.0f));
+    lightEntity->setPosition(glm::vec3(0.0f, 3.0f, -9.0f));
     lightEntity->setActive(true);
     pointLight = lightEntity->createComponent<PointLight>();
     pointLight->setColour(glm::vec3(1.0f, 0.0f, 0.0f));
     pointLight->setIntensity(1.0f);
     pointLight->setRange(50.0f);
     pointLight->setAttenuation(1.0f, 0.09f, 0.032f);
+    pointLight->setCastShadows(true);
     pointLight->setActive(true);
 }
 

@@ -29,7 +29,7 @@ struct LightingData {
  * @return              Shadow attenuation factor. */
 float calcShadow(LightingData data) {
     #ifdef SHADOW
-        #ifdef SPOT_LIGHT
+        #if defined(SPOT_LIGHT)
             /* Calculate shadow space coordinates (biased to [0, 1] range for
              * texture lookup). */
             vec4 shadowPos = light.shadowSpace * vec4(data.position, 1.0);
@@ -40,7 +40,28 @@ float calcShadow(LightingData data) {
             /* Sample the shadow map. */
             float shadowDepth = textureProj(shadowMap, shadowPos.xyw).r;
 
-            return shadowDepth < (pixelDepth - 0.005) ? 0.0 : 1.0;
+            /* Compare with a bias to prevent shadow acne. */
+            return shadowDepth < (pixelDepth - 0.005) ? 0.4 : 1.0;
+        #elif defined(POINT_LIGHT)
+            /* Cube map face is selected by the highest magnitude component in
+             * the light to fragment vector. This component is defines the depth
+             * of the pixel. */
+            vec3 direction = data.position - light.position;
+            vec3 absDirection = abs(direction);
+            float localDepth = max(absDirection.x, max(absDirection.y, absDirection.z));
+
+            /* Convert this value to a depth value. */
+            float far = light.range;
+            float near = light.shadowZNear;
+            float ndcDepth = ((far + near) / (far - near)) - ((2.0 * far * near) / (far - near) / localDepth);
+            float pixelDepth = (ndcDepth + 1.0) / 2.0;
+
+            /* Sample the shadow map. */
+            vec3 normDirection = normalize(direction);
+            float shadowDepth = texture(shadowMap, normDirection).r;
+
+            /* Same as above. */
+            return shadowDepth < (pixelDepth - 0.005) ? 0.4 : 1.0;
         #else
             return 1.0;
         #endif
@@ -115,7 +136,6 @@ vec4 calcLight(LightingData data) {
 
         /* Apply shadows. */
         attenuation *= calcShadow(data);
-        //return vec4(calcShadow(data), 0.0, 0.0, 1.0);
 
         return vec4(calcLightBlinnPhong(data, direction) * attenuation, 1.0);
     #endif

@@ -134,6 +134,9 @@ GPUTexture *SceneLight::allocShadowMap() const {
         case kSpotLight:
             desc.type = GPUTexture::kTexture2D;
             break;
+        case kPointLight:
+            desc.type = GPUTexture::kTextureCube;
+            break;
         default:
             fatal("TODO");
     }
@@ -146,7 +149,6 @@ void SceneLight::updateVolumeTransform() {
     switch (m_type) {
         case kAmbientLight:
         case kDirectionalLight:
-        default:
             /* Volume is a full-screen quad. The light volume shader does not
              * use the transformation here, make no change. */
             break;
@@ -175,26 +177,21 @@ void SceneLight::updateVolumeTransform() {
             m_uniforms->volumeTransform = m_volumeTransform.matrix();
             break;
         }
+        default:
+            break;
     }
 }
 
 /** Update the shadow views. */
 void SceneLight::updateShadowViews() {
-    /* Bias matrix applied to shadow space transformation (see below). */
-    static const glm::mat4 shadowBiasMatrix(
-        0.5, 0.0, 0.0, 0.0,
-        0.0, 0.5, 0.0, 0.0,
-        0.0, 0.0, 0.5, 0.0,
-        0.5, 0.5, 0.5, 1.0
-    );
-
     if (!m_castShadows)
         return;
 
-    size_t numViews = 0;
+    unsigned numViews = 0;
 
     switch (m_type) {
         case kSpotLight:
+        {
             numViews = 1;
 
             /* View is centered on light pointing in its direction. */
@@ -204,6 +201,13 @@ void SceneLight::updateShadowViews() {
 
             /* Projection is a perspective projection covering the light's range. */
             m_shadowViews[0].perspective(m_cutoff * 2, 0.1f, m_range);
+
+            static const glm::mat4 shadowBiasMatrix(
+                0.5, 0.0, 0.0, 0.0,
+                0.0, 0.5, 0.0, 0.0,
+                0.0, 0.0, 0.5, 0.0,
+                0.5, 0.5, 0.5, 1.0
+            );
 
             /* Shader shadow calculation for a spot light requires transformation
              * of the world space position of the pixel being lit into shadow
@@ -216,6 +220,40 @@ void SceneLight::updateShadowViews() {
             m_uniforms->shadowSpace
                 = shadowBiasMatrix * m_shadowViews[0].projection() * m_shadowViews[0].view();
             break;
+        }
+        case kPointLight:
+        {
+            numViews = CubeFace::kNumFaces;
+
+            static const struct {
+                glm::vec3 direction;
+                glm::vec3 up;
+            } cubeFaces[CubeFace::kNumFaces] = {
+                { glm::vec3(1.0f, 0.0f, 0.0f),  glm::vec3(0.0f, -1.0f, 0.0f) },
+                { glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f) },
+                { glm::vec3(0.0f, 1.0f, 0.0f),  glm::vec3(0.0f, 0.0f, 1.0f)  },
+                { glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f) },
+                { glm::vec3(0.0f, 0.0f, 1.0f),  glm::vec3(0.0f, -1.0f, 0.0f) },
+                { glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f) },
+            };
+
+            for (unsigned i = 0; i < numViews; i++) {
+                /* View is centered on the light looking in the direction of the
+                 * face being rendered. */
+                glm::mat4 look = glm::lookAt(glm::vec3(0.0), cubeFaces[i].direction, cubeFaces[i].up);
+                glm::quat orientation = glm::inverse(glm::normalize(glm::quat_cast(look)));
+                m_shadowViews[i].setTransform(m_position, orientation);
+
+                /* Perspective projection covering the whole face, limited to
+                 * the light's range. */
+                m_shadowViews[i].perspective(90.0f, 0.1f, m_range);
+            }
+
+            /* Shadow calculation in shader requires the near plane value used
+             * in our projection. */
+            m_uniforms->shadowZNear = 0.1f;
+            break;
+        }
         default:
             /* TODO. */
             break;
@@ -224,6 +262,6 @@ void SceneLight::updateShadowViews() {
     /* Viewport should cover the whole shadow map. */
     uint16_t shadowMapResolution = g_renderManager->shadowMapResolution();
     IntRect viewport(0, 0, shadowMapResolution, shadowMapResolution);
-    for (size_t i = 0; i < numViews; i++)
+    for (unsigned i = 0; i < numViews; i++)
         m_shadowViews[i].setViewport(viewport);
 }

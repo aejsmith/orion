@@ -20,10 +20,11 @@ UNIFORM_STRUCT_BEGIN(LightUniforms)
     UNIFORM_STRUCT_MEMBER(glm::vec3, colour);
     UNIFORM_STRUCT_MEMBER(float, range);
     UNIFORM_STRUCT_MEMBER(glm::mat4, volumeTransform);
+    UNIFORM_STRUCT_MEMBER(glm::mat4, shadowSpace);
+    UNIFORM_STRUCT_MEMBER(float, shadowZNear);
     UNIFORM_STRUCT_MEMBER(float, attenuationConstant);
     UNIFORM_STRUCT_MEMBER(float, attenuationLinear);
     UNIFORM_STRUCT_MEMBER(float, attenuationExp);
-    UNIFORM_STRUCT_MEMBER(glm::mat4, shadowSpace);
 UNIFORM_STRUCT_END;
 
 /** Renderer representation of a light source. */
