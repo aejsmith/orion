@@ -61,22 +61,25 @@ public:
     /** @return             Vertex format for SimpleVertex. */
     GPUVertexFormat *simpleVertexFormat() const { return m_simpleVertexFormat; }
 
-    /** @return             Quad vertex/index data. */
-    void quadGeometry(GPUVertexData *&vertices, GPUIndexData *&indices) const {
-        vertices = m_quadVertexData;
-        indices = nullptr;
+    /** @param geometry     Where to store quad geometry. */
+    void quadGeometry(Geometry &geometry) const {
+        geometry.vertices = m_quadVertexData;
+        geometry.indices = nullptr;
+        geometry.primitiveType = PrimitiveType::kTriangleList;
     }
 
-    /** @return             Sphere vertex/index data. */
-    void sphereGeometry(GPUVertexData *&vertices, GPUIndexData *&indices) const {
-        vertices = m_sphereVertexData;
-        indices = m_sphereIndexData;
+    /** @param geometry     Where to store sphere geometry. */
+    void sphereGeometry(Geometry &geometry) const {
+        geometry.vertices = m_sphereVertexData;
+        geometry.indices = m_sphereIndexData;
+        geometry.primitiveType = PrimitiveType::kTriangleList;
     }
 
-    /** @return             Cone vertex/index data. */
-    void coneGeometry(GPUVertexData *&vertices, GPUIndexData *&indices) const {
-        vertices = m_coneVertexData;
-        indices = m_coneIndexData;
+    /** @param geometry     Where to store cone geometry. */
+    void coneGeometry(Geometry &geometry) const {
+        geometry.vertices = m_coneVertexData;
+        geometry.indices = m_coneIndexData;
+        geometry.primitiveType = PrimitiveType::kTriangleList;
     }
 
     /** @return             Deferred light material. */

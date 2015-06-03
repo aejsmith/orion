@@ -11,6 +11,8 @@
 #include "render/scene_view.h"
 #include "render/uniform_buffer.h"
 
+struct Geometry;
+
 /** Per-light uniform buffer structure. */
 UNIFORM_STRUCT_BEGIN(LightUniforms)
     UNIFORM_STRUCT_MEMBER(glm::vec3, position);
@@ -79,7 +81,7 @@ public:
     /** @return             GPU buffer containing light uniforms. */
     GPUBuffer *uniforms() const { return m_uniforms.gpu(); }
 
-    void volumeGeometry(GPUVertexData *&vertices, GPUIndexData *&indices) const;
+    void volumeGeometry(Geometry &geometry) const;
 
     GPUTexture *allocShadowMap() const;
 

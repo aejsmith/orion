@@ -6,6 +6,7 @@
 
 #include "gpu/gpu_manager.h"
 
+#include "render/geometry.h"
 #include "render/scene_entity.h"
 
 #include "world/mesh_renderer.h"
@@ -21,21 +22,27 @@ public:
         m_parent(parent)
     {}
 
-    void drawData(DrawData &data) const override;
+    void geometry(Geometry &geometry) const override;
+    Material *material() const override;
 private:
     SubMesh *m_subMesh;             /**< Submesh to render. */
     MeshRenderer *m_parent;         /**< Parent mesh renderer. */
 };
 
-/** Get the draw data for the entity.
- * @param data          Draw data structure to fill in. */
-void SubMeshSceneEntity::drawData(DrawData &data) const {
-    data.vertices = (m_subMesh->vertices)
+/** Get the geometry for the entity.
+ * @param geometry      Draw data structure to fill in. */
+void SubMeshSceneEntity::geometry(Geometry &geometry) const {
+    geometry.vertices = (m_subMesh->vertices)
         ? m_subMesh->vertices
         : m_subMesh->parent()->sharedVertices;
-    data.indices = m_subMesh->indices;
-    data.primitiveType = PrimitiveType::kTriangleList;
-    data.material = m_parent->m_materials[m_subMesh->material].get();
+    geometry.indices = m_subMesh->indices;
+    geometry.primitiveType = PrimitiveType::kTriangleList;
+}
+
+/** Get the material for the entity.
+ * @return              Material for the entity. */
+Material *SubMeshSceneEntity::material() const {
+    return m_parent->m_materials[m_subMesh->material];
 }
 
 /** Initialize the mesh renderer.

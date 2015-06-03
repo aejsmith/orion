@@ -8,6 +8,7 @@
 
 #include "render/uniform_buffer.h"
 
+struct Geometry;
 class Material;
 class Scene;
 
@@ -16,14 +17,6 @@ UNIFORM_STRUCT_BEGIN(EntityUniforms)
     UNIFORM_STRUCT_MEMBER(glm::mat4, transform);
     UNIFORM_STRUCT_MEMBER(glm::vec3, position);
 UNIFORM_STRUCT_END;
-
-/** Data needed to draw a SceneEntity. */
-struct DrawData {
-    GPUVertexData *vertices;            /**< Vertex data to draw. */
-    GPUIndexData *indices;              /**< Indices to draw (optional). */
-    PrimitiveType primitiveType;        /**< Primitive type to draw. */
-    Material *material;                 /**< Material to draw with. */
-};
 
 /**
  * Base class for a scene entity.
@@ -53,9 +46,13 @@ public:
     /** @return             GPU buffer containing entity uniforms. */
     GPUBuffer *uniforms() const { return m_uniforms.gpu(); }
 
-    /** Get the draw data for the entity.
-     * @param data          Draw data structure to fill in. */
-    virtual void drawData(DrawData &data) const = 0;
+    /** Get the geometry for the entity.
+     * @param geometry      Geometry structure to fill in. */
+    virtual void geometry(Geometry &geometry) const = 0;
+
+    /** Get the material for the entity.
+     * @return              Material for the entity. */
+    virtual Material *material() const = 0;
 protected:
     SceneEntity();
 private:

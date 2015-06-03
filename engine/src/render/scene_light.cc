@@ -106,17 +106,17 @@ void SceneLight::setPosition(const glm::vec3 &position) {
 }
 
 /** Get light volume geometry.
- * @return              Sphere vertex/index data. */
-void SceneLight::volumeGeometry(GPUVertexData *&vertices, GPUIndexData *&indices) const {
+ * @param geometry      Geometry structure to fill in. */
+void SceneLight::volumeGeometry(Geometry &geometry) const {
     switch (m_type) {
         case kPointLight:
-            g_renderManager->sphereGeometry(vertices, indices);
+            g_renderManager->sphereGeometry(geometry);
             break;
         case kSpotLight:
-            g_renderManager->coneGeometry(vertices, indices);
+            g_renderManager->coneGeometry(geometry);
             break;
         default:
-            g_renderManager->quadGeometry(vertices, indices);
+            g_renderManager->quadGeometry(geometry);
             break;
     }
 }

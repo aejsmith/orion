@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "render/geometry.h"
 #include "render/pass.h"
 #include "render/scene_entity.h"
 
@@ -14,22 +15,23 @@
 /**
  * Draw call structure.
  *
- * This structure is an extension of DrawData which is stored in a DrawList. It
- * stores information for a single rendering pass for an entity.
+ * This structure is stored in a DrawList. It stores information for a single
+ * rendering pass for an entity.
  */
-struct DrawCall : public DrawData {
-    const Pass *pass;                   /**< Pass to draw with. */
+struct DrawCall {
+    Geometry geometry;                  /**< Geometry to draw. */
+    Material *material;                 /**< Material to draw with. */
     GPUBuffer *uniforms;                /**< Entity uniforms. */
-public:
-    DrawCall() {}
-    DrawCall(const DrawData &source) : DrawData(source) {}
+    const Pass *pass;                   /**< Pass to draw with. */
 };
 
 /** Class storing a list of draw calls. */
 class DrawList {
 public:
-    void addDrawCall(const DrawData &source, const Pass *pass, GPUBuffer *uniforms);
-    void addDrawCalls(const DrawData &source, Pass::Type passType, GPUBuffer *uniforms);
+    void addDrawCall(const Geometry &geometry, Material *material, GPUBuffer *uniforms, const Pass *pass);
+
+    void addDrawCalls(const Geometry &geometry, Material *material, GPUBuffer *uniforms, Pass::Type passType);
+    void addDrawCalls(SceneEntity *entity, Pass::Type passType);
 
     void draw(SceneLight *light = nullptr) const;
 

@@ -87,16 +87,12 @@ void SceneRenderer::addLight(SceneLight *light) {
 
             m_scene->visitVisibleEntities(shadowView, [&] (SceneEntity *entity) {
                 if (entity->castShadow()) {
-                    DrawData drawData;
-                    entity->drawData(drawData);
-
-                    Shader *shader = drawData.material->shader();
+                    Shader *shader = entity->material()->shader();
 
                     if (shader->numPasses(Pass::kShadowCasterPass) > 0) {
                         state.shadowMapDrawLists[i].addDrawCalls(
-                            drawData,
-                            Pass::kShadowCasterPass,
-                            entity->uniforms());
+                            entity,
+                            Pass::kShadowCasterPass);
                     }
                 }
             });
@@ -107,16 +103,13 @@ void SceneRenderer::addLight(SceneLight *light) {
 /** Add an entity to the appropriate draw lists.
  * @param entity        Entity to add. */
 void SceneRenderer::addEntity(SceneEntity *entity) {
-    DrawData drawData;
-    entity->drawData(drawData);
-
-    Shader *shader = drawData.material->shader();
+    Shader *shader = entity->material()->shader();
 
     /* Determine whether this is a lit or unlit entity. */
     if (m_path == RenderPath::kDeferred && shader->numPasses(Pass::kDeferredPass) > 0) {
         /* This entity is affected by lights and will be rendered via the
          * deferred path. Add it to the deferred draw list. */
-        m_deferredDrawList.addDrawCalls(drawData, Pass::kDeferredPass, entity->uniforms());
+        m_deferredDrawList.addDrawCalls(entity, Pass::kDeferredPass);
     } else if (shader->numPasses(Pass::kForwardPass) > 0) {
         /* This entity is affected by lights and will be rendered via the
          * forward path. Add the entity to the draw list for all lights which
@@ -126,10 +119,10 @@ void SceneRenderer::addEntity(SceneEntity *entity) {
              * may not be correct. We blend and turn off depth writes after the
              * first light, but if an entity is not affected by that light it
              * would be rendered incorrectly. */
-            lightState.drawList.addDrawCalls(drawData, Pass::kForwardPass, entity->uniforms());
+            lightState.drawList.addDrawCalls(entity, Pass::kForwardPass);
         }
     } else if (shader->numPasses(Pass::kBasicPass) > 0) {
-        m_basicDrawList.addDrawCalls(drawData, Pass::kBasicPass, entity->uniforms());
+        m_basicDrawList.addDrawCalls(entity, Pass::kBasicPass);
     }
 }
 
@@ -230,18 +223,13 @@ void SceneRenderer::renderDeferred() {
 
         setLightState(lightState);
 
-        /* Build up a draw call for the light volume. */
-        DrawData data;
-        lightState.light->volumeGeometry(data.vertices, data.indices);
-        data.primitiveType = PrimitiveType::kTriangleList;
-        data.material = g_renderManager->deferredLightMaterial();
-
-        /* The light volume pass is defined as a forward pass as this is needed
-         * for per-light type shader variations to be compiled. */
+        /* Draw the light volume. The light volume pass is defined as a forward
+         * pass as this is needed for per-light type shader variations to be
+         * compiled. */
+        Geometry geometry;
+        lightState.light->volumeGeometry(geometry);
         DrawList list;
-        list.addDrawCalls(data, Pass::kForwardPass, nullptr);
-
-        /* Draw the light volume. */
+        list.addDrawCalls(geometry, g_renderManager->deferredLightMaterial(), nullptr, Pass::kForwardPass);
         list.draw(lightState.light);
     }
 }

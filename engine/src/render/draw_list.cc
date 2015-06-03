@@ -9,27 +9,41 @@
 #include "render/draw_list.h"
 
 /** Add a draw call to the list.
- * @param source        Source draw data.
- * @param pass          Pass to add with.
- * @param uniforms      Entity uniforms for the draw call. */
-void DrawList::addDrawCall(const DrawData &source, const Pass *pass, GPUBuffer *uniforms) {
-    DrawCall drawCall(source);
-    drawCall.pass = pass;
-    drawCall.uniforms = uniforms;
+ * @param geometry      Geometry to draw.
+ * @param material      Material to draw with.
+ * @param uniforms      Entity uniforms.
+ * @param pass          Pass to draw with. */
+void DrawList::addDrawCall(const Geometry &geometry, Material *material, GPUBuffer *uniforms, const Pass *pass) {
+    m_drawCalls.emplace_back();
 
-    m_drawCalls.push_back(drawCall);
+    DrawCall &drawCall = m_drawCalls.back();
+    drawCall.geometry = geometry;
+    drawCall.material = material;
+    drawCall.uniforms = uniforms;
+    drawCall.pass = pass;
 }
 
 /** Add draw calls for all passes to the list.
- * @param source        Source draw data.
- * @param passType      Pass type to add.
- * @param uniforms      Entity uniforms for the draw call. */
-void DrawList::addDrawCalls(const DrawData &source, Pass::Type passType, GPUBuffer *uniforms) {
-    Shader *shader = source.material->shader();
+ * @param geometry      Geometry to draw.
+ * @param material      Material to draw with.
+ * @param uniforms      Entity uniforms.
+ * @param passType      Pass type to use. */
+void DrawList::addDrawCalls(const Geometry &geometry, Material *material, GPUBuffer *uniforms, Pass::Type passType) {
+    Shader *shader = material->shader();
     for (size_t i = 0; i < shader->numPasses(passType); i++) {
         const Pass *pass = shader->pass(passType, i);
-        addDrawCall(source, pass, uniforms);
+        addDrawCall(geometry, material, uniforms, pass);
     }
+}
+
+/** Add draw calls for all passes to the list.
+ * @param entity        Entity to draw.
+ * @param passType      Pass type to add. */
+void DrawList::addDrawCalls(SceneEntity *entity, Pass::Type passType) {
+    Geometry geometry;
+    entity->geometry(geometry);
+
+    addDrawCalls(geometry, entity->material(), entity->uniforms(), passType);
 }
 
 /** Perform all draw calls in the list.
@@ -44,6 +58,9 @@ void DrawList::draw(SceneLight *light) const {
         if (drawCall.uniforms)
             g_gpuManager->bindUniformBuffer(UniformSlots::kEntityUniforms, drawCall.uniforms);
 
-        g_gpuManager->draw(drawCall.primitiveType, drawCall.vertices, drawCall.indices);
+        g_gpuManager->draw(
+            drawCall.geometry.primitiveType,
+            drawCall.geometry.vertices,
+            drawCall.geometry.indices);
     }
 }
