@@ -119,12 +119,9 @@ vec4 calcLight(LightingData data) {
             attenuation = clamp(floor(light.range / distance), 0.0, 1.0);
 
             #ifdef SPOT_LIGHT
-                float spotFactor = dot(direction, light.direction);
-                if (spotFactor < light.cosCutoff)
-                    return vec4(0.0);
-
                 /* Soften the cone edge. */
-                attenuation *= 1.0 - (1.0 - spotFactor) * (1.0 / (1.0 - light.cosCutoff));
+                float spotFactor = max(dot(direction, light.direction), light.cosCutoff);
+                attenuation *= 1.0 - ((1.0 - spotFactor) / (1.0 - light.cosCutoff));
             #endif
 
             /* Apply attenuation. */
