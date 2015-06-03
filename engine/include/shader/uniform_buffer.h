@@ -8,8 +8,7 @@
 
 #include "gpu/gpu_manager.h"
 
-#include "render/shader_parameter.h"
-#include "render/slots.h"
+#include "shader/shader_parameter.h"
 
 #include <list>
 

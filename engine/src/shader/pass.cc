@@ -24,10 +24,11 @@
 
 #include "gpu/gpu_manager.h"
 
-#include "render/pass.h"
 #include "render/scene_light.h"
-#include "render/shader.h"
-#include "render/uniform_buffer.h"
+
+#include "shader/pass.h"
+#include "shader/shader.h"
+#include "shader/uniform_buffer.h"
 
 /** Array of pass variation strings, indexed by pass type. */
 static const char *passShaderVariations[Pass::kNumTypes] = {

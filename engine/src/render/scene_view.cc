@@ -9,6 +9,8 @@
 #include "render/scene.h"
 #include "render/scene_view.h"
 
+#include "shader/slots.h"
+
 IMPLEMENT_UNIFORM_STRUCT(ViewUniforms, "view", UniformSlots::kViewUniforms);
 
 /**

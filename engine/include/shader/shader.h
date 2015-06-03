@@ -8,8 +8,8 @@
 
 #include "engine/asset.h"
 
-#include "render/pass.h"
-#include "render/uniform_buffer.h"
+#include "shader/pass.h"
+#include "shader/uniform_buffer.h"
 
 #include <array>
 #include <map>

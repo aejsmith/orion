@@ -6,8 +6,8 @@
 
 #include "engine/material.h"
 
-#include "render/pass.h"
-#include "render/shader.h"
+#include "shader/pass.h"
+#include "shader/shader.h"
 
 /** Initialize the shader. */
 Shader::Shader() :

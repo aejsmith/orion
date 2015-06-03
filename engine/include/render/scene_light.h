@@ -9,7 +9,8 @@
 #include "gpu/defs.h"
 
 #include "render/scene_view.h"
-#include "render/uniform_buffer.h"
+
+#include "shader/uniform_buffer.h"
 
 struct Geometry;
 

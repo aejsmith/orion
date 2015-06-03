@@ -9,7 +9,7 @@
  *                      Measure it!
  */
 
-#include "render/uniform_buffer.h"
+#include "shader/uniform_buffer.h"
 
 /**
  * UniformStruct implementation.

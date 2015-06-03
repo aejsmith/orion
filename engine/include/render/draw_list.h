@@ -7,8 +7,9 @@
 #pragma once
 
 #include "render/geometry.h"
-#include "render/pass.h"
 #include "render/scene_entity.h"
+
+#include "shader/pass.h"
 
 #include <list>
 

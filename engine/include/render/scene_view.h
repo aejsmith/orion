@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "render/uniform_buffer.h"
+#include "shader/uniform_buffer.h"
 
 /** Per-view uniform buffer structure. */
 UNIFORM_STRUCT_BEGIN(ViewUniforms)

@@ -6,6 +6,8 @@
 
 #include "render/scene_entity.h"
 
+#include "shader/slots.h"
+
 IMPLEMENT_UNIFORM_STRUCT(EntityUniforms, "entity", UniformSlots::kEntityUniforms);
 
 /**

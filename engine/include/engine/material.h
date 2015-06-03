@@ -8,7 +8,8 @@
 
 #include "engine/texture.h"
 
-#include "render/shader.h"
+#include "shader/shader.h"
+#include "shader/slots.h"
 
 #include <array>
 

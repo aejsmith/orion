@@ -6,7 +6,8 @@
 
 #include "engine/asset_loader.h"
 
-#include "render/shader.h"
+#include "shader/shader.h"
+#include "shader/slots.h"
 
 /** Asset loader for shaders. */
 class ShaderLoader : public AssetLoader {

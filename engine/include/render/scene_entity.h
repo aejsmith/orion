@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "render/uniform_buffer.h"
+#include "shader/uniform_buffer.h"
 
 struct Geometry;
 class Material;

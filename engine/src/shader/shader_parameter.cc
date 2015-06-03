@@ -4,7 +4,7 @@
  * @brief               Shader parameter type information.
  */
 
-#include "render/shader_parameter.h"
+#include "shader/shader_parameter.h"
 
 /** Get the storage size for a shader parameter type.
  * @param type          Type to get size of. Only valid for basic types.
