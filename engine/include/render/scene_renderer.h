@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "render/defs.h"
 #include "render/draw_list.h"
 #include "render/scene_light.h"
 
@@ -13,12 +14,6 @@ class RenderTarget;
 class Scene;
 class SceneLight;
 class SceneView;
-
-/** Rendering path enumeration. */
-enum class RenderPath {
-    kForward,                       /**< Forward rendering. */
-    kDeferred,                      /**< Deferred lighting. */
-};
 
 /** Structure containing light rendering state. */
 struct LightRenderState {

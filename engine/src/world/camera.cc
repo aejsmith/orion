@@ -10,7 +10,7 @@
 #include "engine/render_target.h"
 #include "engine/window.h"
 
-#include "render/scene_view.h"
+#include "render/scene_renderer.h"
 
 #include "world/camera.h"
 #include "world/entity.h"

@@ -8,7 +8,7 @@
 
 #include "engine/render_target.h"
 
-#include "render/scene_renderer.h"
+#include "render/defs.h"
 #include "render/scene_view.h"
 
 #include "world/component.h"
