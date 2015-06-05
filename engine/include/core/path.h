@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "core/core.h"
+#include "core/hash.h"
 
 #include <algorithm>
 
@@ -113,6 +113,20 @@ public:
     Path fileName() const;
     std::string baseFileName() const;
     std::string extension(bool keepDot = false) const;
+
+    /**
+     * Operators.
+     */
+
+    /** Compare this path with another. */
+    bool operator ==(const Path &other) const {
+        return m_path == other.m_path;
+    }
+
+    /** Get a hash from a path. */
+    friend size_t hashValue(const Path &path) {
+        return hashValue(path.m_path);
+    }
 private:
     static void normalize(const char *path, size_t length, std::string &output);
 private:
