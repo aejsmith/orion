@@ -31,8 +31,8 @@ GPUIndexDataPtr GPUManager::createIndexData(GPUBuffer *buffer, GPUIndexData::Typ
     return new GPUIndexData(buffer, type, count);
 }
 
-GPUPipelinePtr GPUManager::createPipeline(const GPUShaderArray &shaders) {
-    return new GPUPipeline(shaders);
+GPUPipelinePtr GPUManager::createPipeline(const GPUPipelineDesc &desc) {
+    return new GPUPipeline(desc);
 }
 
 GPUVertexDataPtr GPUManager::createVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers) {

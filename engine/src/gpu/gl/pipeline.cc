@@ -9,9 +9,9 @@
 #include "shader.h"
 
 /** Construct the pipeline object.
- * @param shaders       Array of shaders for each stage. */
-GLPipeline::GLPipeline(const GPUShaderArray &shaders) :
-    GPUPipeline(shaders)
+ * @param desc          Parameters for the pipeline. */
+GLPipeline::GLPipeline(const GPUPipelineDesc &desc) :
+    GPUPipeline(desc)
 {
     glGenProgramPipelines(1, &m_pipeline);
 
@@ -43,6 +43,6 @@ void GLPipeline::bind() {
 /** Create a pipeline object.
  * @see             GPUPipeline::GPUPipeline().
  * @return          Pointer to created pipeline. */
-GPUPipelinePtr GLGPUManager::createPipeline(const GPUShaderArray &shaders) {
-    return new GLPipeline(shaders);
+GPUPipelinePtr GLGPUManager::createPipeline(const GPUPipelineDesc &desc) {
+    return new GLPipeline(desc);
 }

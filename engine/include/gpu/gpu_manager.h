@@ -67,7 +67,7 @@ public:
     /** Create a pipeline object.
      * @see                 GPUPipeline::GPUPipeline().
      * @return              Pointer to created pipeline. */
-    virtual GPUPipelinePtr createPipeline(const GPUShaderArray &shaders);
+    virtual GPUPipelinePtr createPipeline(const GPUPipelineDesc &desc);
 
     /** Create a rasterizer state object.
      * @param desc          Descriptor for rasterizer state.

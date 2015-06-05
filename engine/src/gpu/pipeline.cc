@@ -7,9 +7,9 @@
 #include "gpu/pipeline.h"
 
 /** Initialize the pipeline.
- * @param shaders       Array of shaders for each stage, indexed by stage. */
-GPUPipeline::GPUPipeline(const GPUShaderArray &shaders) :
-    m_shaders(shaders)
+ * @param desc          Parameters for the pipeline. */
+GPUPipeline::GPUPipeline(const GPUPipelineDesc &desc) :
+    m_shaders(desc.shaders)
 {
     checkMsg(
         m_shaders[GPUShader::kVertexShader] && m_shaders[GPUShader::kFragmentShader],

@@ -8,6 +8,8 @@
 
 #include "gpu/defs.h"
 
+#include <array>
+
 /** GPU shader class. */
 class GPUShader : public GPUResource {
 public:

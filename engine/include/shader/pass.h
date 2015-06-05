@@ -65,8 +65,8 @@ public:
 private:
     /** Structure holding a shader variation. */
     struct Variation {
-        /** Array of shaders for this stage. */
-        GPUShaderArray shaders;
+        /** Descriptor for the pipeline. */
+        GPUPipelineDesc desc;
 
         /** Pipeline created for the stage. */
         GPUPipelinePtr pipeline;

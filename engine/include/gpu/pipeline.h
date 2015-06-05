@@ -8,7 +8,11 @@
 
 #include "gpu/shader.h"
 
-#include <array>
+/** Pipeline descriptor. */
+struct GPUPipelineDesc {
+    /** Array of GPU shaders, indexed by stage. */
+    GPUShaderArray shaders;
+};
 
 /**
  * Rendering pipeline.
@@ -30,7 +34,7 @@ public:
     /** @return             Array of shaders used by the pipeline. */
     const GPUShaderArray &shaders() const { return m_shaders; }
 protected:
-    explicit GPUPipeline(const GPUShaderArray &shaders);
+    explicit GPUPipeline(const GPUPipelineDesc &desc);
 protected:
     GPUShaderArray m_shaders;           /**< Array of shaders for each stage. */
 

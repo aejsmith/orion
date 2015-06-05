@@ -81,7 +81,7 @@ public:
     GPUBlendStatePtr createBlendState(const GPUBlendStateDesc &desc) override;
     GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) override;
     GPUDepthStencilStatePtr createDepthStencilState(const GPUDepthStencilStateDesc &desc) override;
-    GPUPipelinePtr createPipeline(const GPUShaderArray &shaders) override;
+    GPUPipelinePtr createPipeline(const GPUPipelineDesc &desc) override;
     GPURasterizerStatePtr createRasterizerState(const GPURasterizerStateDesc &desc) override;
     GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) override;
     GPUTexturePtr createTexture(const GPUTextureDesc &desc) override;

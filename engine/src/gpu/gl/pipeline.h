@@ -11,7 +11,7 @@
 /** OpenGL pipeline implementation. */
 class GLPipeline : public GPUPipeline {
 public:
-    explicit GLPipeline(const GPUShaderArray &shaders);
+    explicit GLPipeline(const GPUPipelineDesc &desc);
     ~GLPipeline();
 
     void bind();

@@ -249,19 +249,19 @@ bool Pass::loadStage(GPUShader::Type stage, const Path &path, const KeywordSet &
                     defineKeyword(variationSource, shadowVariation);
                 variationSource += source;
 
-                m_variations[(i * 2) + j].shaders[stage] = compileVariation(
+                m_variations[(i * 2) + j].desc.shaders[stage] = compileVariation(
                     variationSource,
                     stage,
                     m_parent,
                     path);
-                if (!m_variations[(i * 2) + j].shaders[stage])
+                if (!m_variations[(i * 2) + j].desc.shaders[stage])
                     return false;
             }
         }
     } else {
         /* Single variation. */
-        m_variations[0].shaders[stage] = compileVariation(source, stage, m_parent, path);
-        if (!m_variations[0].shaders[stage])
+        m_variations[0].desc.shaders[stage] = compileVariation(source, stage, m_parent, path);
+        if (!m_variations[0].desc.shaders[stage])
             return false;
     }
 
@@ -271,5 +271,5 @@ bool Pass::loadStage(GPUShader::Type stage, const Path &path, const KeywordSet &
 /** Finalize the pass (called from Shader::addPass). */
 void Pass::finalize() {
     for (size_t i = 0; i < m_variations.size(); i++)
-        m_variations[i].pipeline = g_gpuManager->createPipeline(m_variations[i].shaders);
+        m_variations[i].pipeline = g_gpuManager->createPipeline(m_variations[i].desc);
 }
