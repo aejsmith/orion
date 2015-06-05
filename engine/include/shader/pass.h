@@ -59,7 +59,7 @@ public:
     /** @return             Type of the pass. */
     Type type() const { return m_type; }
 
-    bool loadStage(GPUShader::Type stage, const Path &path, const KeywordSet &keywords);
+    bool loadStage(unsigned stage, const Path &path, const KeywordSet &keywords);
 
     void setDrawState(SceneLight *light) const;
 private:

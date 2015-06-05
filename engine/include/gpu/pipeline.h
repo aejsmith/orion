@@ -6,18 +6,18 @@
 
 #pragma once
 
-#include "gpu/shader.h"
+#include "gpu/program.h"
 
 /** Pipeline descriptor. */
 struct GPUPipelineDesc {
-    /** Array of GPU shaders, indexed by stage. */
-    GPUShaderArray shaders;
+    /** Array of GPU programs, indexed by stage. */
+    GPUProgramArray programs;
 };
 
 /**
  * Rendering pipeline.
  *
- * This class groups together a set of GPU shaders to use for each pipeline
+ * This class groups together a set of GPU programs to use for each pipeline
  * stage. Once created, a pipeline is immutable. Creation is performed through
  * GPUManager::createPipeline().
  *
@@ -31,12 +31,12 @@ struct GPUPipelineDesc {
  */
 class GPUPipeline : public GPUResource {
 public:
-    /** @return             Array of shaders used by the pipeline. */
-    const GPUShaderArray &shaders() const { return m_shaders; }
+    /** @return             Array of programs used by the pipeline. */
+    const GPUProgramArray &programs() const { return m_programs; }
 protected:
     explicit GPUPipeline(const GPUPipelineDesc &desc);
 protected:
-    GPUShaderArray m_shaders;           /**< Array of shaders for each stage. */
+    GPUProgramArray m_programs;         /**< Array of programs for each stage. */
 
     /* For the default implementation of createPipeline(). */
     friend class GPUManager;

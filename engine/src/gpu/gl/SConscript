@@ -4,7 +4,7 @@ sources = map(File, [
     'fbo.cc',
     'gl.cc',
     'pipeline.cc',
-    'shader.cc',
+    'program.cc',
     'state.cc',
     'texture.cc',
     'vertex_data.cc',

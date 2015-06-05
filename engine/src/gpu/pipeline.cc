@@ -9,9 +9,9 @@
 /** Initialize the pipeline.
  * @param desc          Parameters for the pipeline. */
 GPUPipeline::GPUPipeline(const GPUPipelineDesc &desc) :
-    m_shaders(desc.shaders)
+    m_programs(desc.programs)
 {
     checkMsg(
-        m_shaders[GPUShader::kVertexShader] && m_shaders[GPUShader::kFragmentShader],
-        "A pipeline requires at least a vertex and a fragment shader");
+        m_programs[ShaderStage::kVertex] && m_programs[ShaderStage::kFragment],
+        "A pipeline requires at least a vertex and a fragment program");
 }

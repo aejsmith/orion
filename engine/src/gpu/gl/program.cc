@@ -1,39 +1,39 @@
 /**
  * @file
  * @copyright           2015 Alex Smith
- * @brief               OpenGL GPU shader implementation.
+ * @brief               OpenGL GPU program implementation.
  *
  * We use the GL separable shaders extension, as this design is more in line
- * with other APIs. Our GPUShader implementation holds a separable program
+ * with other APIs. Our GPUProgram implementation holds a separable program
  * object with a single shader stage attached. Our GPUPipeline implementation
  * holds a program pipeline object to which the separable programs are
  * attached.
  */
 
 #include "gl.h"
-#include "shader.h"
+#include "program.h"
 
 #include "core/string.h"
 
 /** Target GLSL version. */
 static const char *kTargetGLSLVersion = "330 core";
 
-/** Initialize the shader.
- * @param type          Type of shader.
+/** Initialize the program.
+ * @param stage         Stage that the program is for.
  * @param program       Linked program object. */
-GLShader::GLShader(Type type, GLuint program) :
-    GPUShader(type),
+GLProgram::GLProgram(unsigned stage, GLuint program) :
+    GPUProgram(stage),
     m_program(program)
 {}
 
-/** Destroy the shader. */
-GLShader::~GLShader() {
+/** Destroy the program. */
+GLProgram::~GLProgram() {
     glDeleteProgram(m_program);
 }
 
 /** Query active uniform blocks in the program.
  * @param list          Resource list to fill in. */
-void GLShader::queryUniformBlocks(ResourceList &list) {
+void GLProgram::queryUniformBlocks(ResourceList &list) {
     GLint numBlocks = 0;
     glGetProgramiv(m_program, GL_ACTIVE_UNIFORM_BLOCKS, &numBlocks);
 
@@ -51,7 +51,7 @@ void GLShader::queryUniformBlocks(ResourceList &list) {
 
 /** Query active texture samplers in the program.
  * @param list          Resource list to fill in. */
-void GLShader::querySamplers(ResourceList &list) {
+void GLProgram::querySamplers(ResourceList &list) {
     GLint numUniforms = 0;
     glGetProgramiv(m_program, GL_ACTIVE_UNIFORMS, &numUniforms);
 
@@ -97,30 +97,30 @@ void GLShader::querySamplers(ResourceList &list) {
     }
 }
 
-/** Bind a uniform block in the shader.
+/** Bind a uniform block in the program.
  * @param index         Index of uniform block.
  * @param slot          Uniform buffer slot. */
-void GLShader::bindUniformBlock(unsigned index, unsigned slot) {
+void GLProgram::bindUniformBlock(unsigned index, unsigned slot) {
     glUniformBlockBinding(m_program, index, slot);
 }
 
-/** Bind a texture sampler in the shader.
+/** Bind a texture sampler in the program.
  * @param index         Index of sampler.
  * @param slot          Texture slot. */
-void GLShader::bindSampler(unsigned index, unsigned slot) {
+void GLProgram::bindSampler(unsigned index, unsigned slot) {
     glProgramUniform1i(m_program, index, slot);
 }
 
-/** Compile a GPU shader.
- * @param type          Type of the shader.
+/** Compile a GPU program.
+ * @param stage         Stage that the program is for.
  * @param source        Shader source string.
  * @return              Pointer to created shader. */
-GPUShaderPtr GLGPUManager::compileShader(GPUShader::Type type, const std::string &source) {
+GPUProgramPtr GLGPUManager::compileProgram(unsigned stage, const std::string &source) {
     /* Add a version string at the start, and enable SSO. */
     std::string preamble = String::format("#version %s\n", kTargetGLSLVersion);
     preamble += "#extension GL_ARB_separate_shader_objects : enable\n";
 
-    if (type == GPUShader::kVertexShader) {
+    if (stage == ShaderStage::kVertex) {
         /* For some absurd reason SSO requires the gl_PerVertex block to be
          * redeclared. Do so here so we don't have to do it in every shader. */
         preamble += "out gl_PerVertex { vec4 gl_Position; };\n";
@@ -135,7 +135,7 @@ GPUShaderPtr GLGPUManager::compileShader(GPUShader::Type type, const std::string
     }
 
     /* Compile the shader. */
-    GLuint shader = glCreateShader(GLUtil::convertShaderType(type));
+    GLuint shader = glCreateShader(GLUtil::convertShaderStage(stage));
     if (!shader) {
         logError("GL: Failed to create shader object");
         return nullptr;
@@ -186,10 +186,10 @@ GPUShaderPtr GLGPUManager::compileShader(GPUShader::Type type, const std::string
         glGetProgramInfoLog(program, result, &result, log.get());
         glDeleteProgram(program);
 
-        logError("GL: Failed to link shader");
+        logError("GL: Failed to link program");
         logInfo("GL: Linker log:\n%s", log.get());
         return nullptr;
     }
 
-    return new GLShader(type, program);
+    return new GLProgram(stage, program);
 }

@@ -56,6 +56,15 @@ namespace CubeFace {
     };
 }
 
+/** Shader stage definitions. */
+namespace ShaderStage {
+    enum {
+        kVertex,                /**< Vertex shader. */
+        kFragment,              /**< Fragment/pixel shader. */
+        kNumStages,
+    };
+}
+
 /**
  * Blend state definitions.
  */

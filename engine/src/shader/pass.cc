@@ -167,16 +167,16 @@ static bool loadSource(const Path &path, std::string &source, unsigned depth = 0
  * @param parent        Parent shader.
  * @param path          Path to source, used for error messages.
  * @return              Pointer to compiled shader, null on failure. */
-static GPUShaderPtr compileVariation(const std::string &source, GPUShader::Type stage, Shader *parent, const Path &path) {
-    /* Compile the shader. */
-    GPUShaderPtr shader = g_gpuManager->compileShader(stage, source);
-    if (!shader)
+static GPUProgramPtr compileVariation(const std::string &source, unsigned stage, Shader *parent, const Path &path) {
+    /* Compile the program. */
+    GPUProgramPtr program = g_gpuManager->compileProgram(stage, source);
+    if (!program)
         return nullptr;
 
     /* Bind the uniform blocks. */
-    GPUShader::ResourceList uniformBlocks;
-    shader->queryUniformBlocks(uniformBlocks);
-    for (const GPUShader::Resource &uniformBlock : uniformBlocks) {
+    GPUProgram::ResourceList uniformBlocks;
+    program->queryUniformBlocks(uniformBlocks);
+    for (const GPUProgram::Resource &uniformBlock : uniformBlocks) {
         const UniformStruct *uniformStruct = (uniformBlock.name == "MaterialUniforms")
             ? parent->uniformStruct()
             : UniformStruct::lookup(uniformBlock.name);
@@ -185,13 +185,13 @@ static GPUShaderPtr compileVariation(const std::string &source, GPUShader::Type 
             return nullptr;
         }
 
-        shader->bindUniformBlock(uniformBlock.index, uniformStruct->slot);
+        program->bindUniformBlock(uniformBlock.index, uniformStruct->slot);
     }
 
     /* Bind texture samplers. */
-    GPUShader::ResourceList samplers;
-    shader->querySamplers(samplers);
-    for (const GPUShader::Resource &sampler : samplers) {
+    GPUProgram::ResourceList samplers;
+    program->querySamplers(samplers);
+    for (const GPUProgram::Resource &sampler : samplers) {
         // TODO: global textures.
         const ShaderParameter *param = parent->lookupParameter(sampler.name);
         if (!param || param->type != ShaderParameter::kTextureType) {
@@ -199,10 +199,10 @@ static GPUShaderPtr compileVariation(const std::string &source, GPUShader::Type 
             return nullptr;
         }
 
-        shader->bindSampler(sampler.index, param->textureSlot);
+        program->bindSampler(sampler.index, param->textureSlot);
     }
 
-    return shader;
+    return program;
 }
 
 /** Add a GPU shader to the pass.
@@ -210,7 +210,7 @@ static GPUShaderPtr compileVariation(const std::string &source, GPUShader::Type 
  * @param path          Filesystem path to shader source.
  * @param keywords      Set of shader variation keywords.
  * @return              Whether the stage was loaded successfully. */
-bool Pass::loadStage(GPUShader::Type stage, const Path &path, const KeywordSet &keywords) {
+bool Pass::loadStage(unsigned stage, const Path &path, const KeywordSet &keywords) {
     std::unique_ptr<File> file(g_filesystem->openFile(path));
     if (!file) {
         logError("Cannot find shader source file '%s'", path.c_str());
@@ -249,19 +249,19 @@ bool Pass::loadStage(GPUShader::Type stage, const Path &path, const KeywordSet &
                     defineKeyword(variationSource, shadowVariation);
                 variationSource += source;
 
-                m_variations[(i * 2) + j].desc.shaders[stage] = compileVariation(
+                m_variations[(i * 2) + j].desc.programs[stage] = compileVariation(
                     variationSource,
                     stage,
                     m_parent,
                     path);
-                if (!m_variations[(i * 2) + j].desc.shaders[stage])
+                if (!m_variations[(i * 2) + j].desc.programs[stage])
                     return false;
             }
         }
     } else {
         /* Single variation. */
-        m_variations[0].desc.shaders[stage] = compileVariation(source, stage, m_parent, path);
-        if (!m_variations[0].desc.shaders[stage])
+        m_variations[0].desc.programs[stage] = compileVariation(source, stage, m_parent, path);
+        if (!m_variations[0].desc.programs[stage])
             return false;
     }
 

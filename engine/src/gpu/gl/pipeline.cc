@@ -6,7 +6,7 @@
 
 #include "gl.h"
 #include "pipeline.h"
-#include "shader.h"
+#include "program.h"
 
 /** Construct the pipeline object.
  * @param desc          Parameters for the pipeline. */
@@ -15,13 +15,13 @@ GLPipeline::GLPipeline(const GPUPipelineDesc &desc) :
 {
     glGenProgramPipelines(1, &m_pipeline);
 
-    for (size_t i = 0; i < GPUShader::kNumShaderTypes; i++) {
-        if (!m_shaders[i])
+    for (size_t i = 0; i < ShaderStage::kNumStages; i++) {
+        if (!m_programs[i])
             continue;
 
-        GLShader *shader = static_cast<GLShader *>(m_shaders[i].get());
-        GLbitfield stage = GLUtil::convertShaderTypeBitfield(shader->type());
-        glUseProgramStages(m_pipeline, stage, shader->program());
+        GLProgram *program = static_cast<GLProgram *>(m_programs[i].get());
+        GLbitfield stage = GLUtil::convertShaderStageBitfield(program->stage());
+        glUseProgramStages(m_pipeline, stage, program->program());
     }
 }
 

@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright           2015 Alex Smith
- * @brief               OpenGL shader implementation.
+ * @brief               OpenGL program implementation.
  */
 
 #pragma once
@@ -9,10 +9,10 @@
 #include "gl.h"
 
 /** OpenGL GPU shader implementation. */
-class GLShader : public GPUShader {
+class GLProgram : public GPUProgram {
 public:
-    GLShader(Type type, GLuint program);
-    ~GLShader();
+    GLProgram(unsigned stage, GLuint program);
+    ~GLProgram();
 
     void queryUniformBlocks(ResourceList &list) override;
     void querySamplers(ResourceList &list) override;

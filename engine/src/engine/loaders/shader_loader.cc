@@ -18,7 +18,7 @@ private:
     bool addParameter(const char *name, const rapidjson::Value &value);
     bool addPass(const rapidjson::Value &desc);
 
-    bool loadStage(Pass *pass, GPUShader::Type stage, const rapidjson::Value &value);
+    bool loadStage(Pass *pass, unsigned stage, const rapidjson::Value &value);
 private:
     ShaderPtr m_shader;
 };
@@ -176,9 +176,9 @@ bool ShaderLoader::addPass(const rapidjson::Value &desc) {
         return false;
     }
 
-    if (!loadStage(pass.get(), GPUShader::kVertexShader, desc["vertex"]))
+    if (!loadStage(pass.get(), ShaderStage::kVertex, desc["vertex"]))
         return false;
-    if (!loadStage(pass.get(), GPUShader::kFragmentShader, desc["fragment"]))
+    if (!loadStage(pass.get(), ShaderStage::kFragment, desc["fragment"]))
         return false;
 
     m_shader->addPass(pass.release());
@@ -189,7 +189,7 @@ bool ShaderLoader::addPass(const rapidjson::Value &desc) {
  * @param pass          Pass to load into.
  * @param stage         Type of the stage to load.
  * @param value         Value containing path string. */
-bool ShaderLoader::loadStage(Pass *pass, GPUShader::Type stage, const rapidjson::Value &value) {
+bool ShaderLoader::loadStage(Pass *pass, unsigned stage, const rapidjson::Value &value) {
     if (!value.IsObject()) {
         logError("%s: Pass stage should be an object", m_path);
         return false;

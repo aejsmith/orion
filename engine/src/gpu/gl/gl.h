@@ -87,7 +87,7 @@ public:
     GPUTexturePtr createTexture(const GPUTextureDesc &desc) override;
     GPUVertexDataPtr createVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers) override;
 
-    GPUShaderPtr compileShader(GPUShader::Type type, const std::string &source) override;
+    GPUProgramPtr compileProgram(unsigned stage, const std::string &source) override;
 
     void bindPipeline(GPUPipeline *pipeline) override;
     void bindTexture(unsigned index, GPUTexture *texture, GPUSamplerState *sampler) override;
@@ -359,28 +359,28 @@ namespace GLUtil {
         }
     }
 
-    /** Convert a shader type to a GL shader type.
-     * @param type          Type to convert.
+    /** Convert a shader stage type to a GL shader type.
+     * @param stage         Stage type to convert.
      * @return              Converted GL type. */
-    static inline GLenum convertShaderType(GPUShader::Type type) {
-        switch (type) {
-            case GPUShader::kVertexShader:
+    static inline GLenum convertShaderStage(unsigned stage) {
+        switch (stage) {
+            case ShaderStage::kVertex:
                 return GL_VERTEX_SHADER;
-            case GPUShader::kFragmentShader:
+            case ShaderStage::kFragment:
                 return GL_FRAGMENT_SHADER;
             default:
                 return 0;
         }
     }
 
-    /** Convert a shader type to a GL bitfield type.
-     * @param type          Type to convert.
+    /** Convert a shader stage type to a GL bitfield type.
+     * @param stage         Stage type to convert.
      * @return              Converted GL bitfield type. */
-    static inline GLbitfield convertShaderTypeBitfield(GPUShader::Type type) {
-        switch (type) {
-            case GPUShader::kVertexShader:
+    static inline GLbitfield convertShaderStageBitfield(unsigned stage) {
+        switch (stage) {
+            case ShaderStage::kVertex:
                 return GL_VERTEX_SHADER_BIT;
-            case GPUShader::kFragmentShader:
+            case ShaderStage::kFragment:
                 return GL_FRAGMENT_SHADER_BIT;
             default:
                 return 0;

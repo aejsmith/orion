@@ -9,7 +9,7 @@
 #include "gpu/buffer.h"
 #include "gpu/index_data.h"
 #include "gpu/pipeline.h"
-#include "gpu/shader.h"
+#include "gpu/program.h"
 #include "gpu/state.h"
 #include "gpu/texture.h"
 #include "gpu/vertex_data.h"
@@ -98,7 +98,7 @@ public:
      * Shader methods.
      */
 
-    /** Compile a GPU shader from GLSL source.
+    /** Compile a GPU program from GLSL source.
      * @note                In future I expect that this will exist only for
      *                      non-cooked builds (it may possibly even be moved
      *                      out of GPUManager). It would return a blob that
@@ -107,10 +107,10 @@ public:
      *                      processing done, but for D3D and other APIs we can
      *                      return a compiled blob. This would then be stored in
      *                      the cooked Shader asset.
-     * @param type          Type of the shader.
+     * @param stage         Stage that the program is for.
      * @param source        Shader source string.
      * @return              Pointer to created shader, null if compilation fails. */
-    virtual GPUShaderPtr compileShader(GPUShader::Type type, const std::string &source) = 0;
+    virtual GPUProgramPtr compileProgram(unsigned stage, const std::string &source) = 0;
 
     /**
      * State methods.
