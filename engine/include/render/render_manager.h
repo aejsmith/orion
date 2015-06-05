@@ -13,7 +13,8 @@
 #include "gpu/texture.h"
 #include "gpu/vertex_format.h"
 
-#include "render/scene_renderer.h"
+#include "render/defs.h"
+#include "render/geometry.h"
 
 /** Manages global resources used throughout the renderer. */
 class RenderManager : Noncopyable {
