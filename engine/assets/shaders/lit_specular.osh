@@ -2,8 +2,7 @@
     "parameters": {
         "shininess": {"type": "Float"},
         "specularColour": {"type": "Vec3"},
-        "diffuseTexture": {"type": "Texture"},
-        "shadowMap": {"type": "Texture", "slot": 20}
+        "diffuseTexture": {"type": "Texture"}
     },
     "passes": [
         {

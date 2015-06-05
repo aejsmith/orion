@@ -28,6 +28,7 @@
 
 #include "shader/pass.h"
 #include "shader/shader.h"
+#include "shader/shader_manager.h"
 #include "shader/uniform_buffer.h"
 
 /** Array of pass variation strings, indexed by pass type. */
@@ -177,29 +178,31 @@ static GPUProgramPtr compileVariation(const std::string &source, unsigned stage,
     GPUProgram::ResourceList uniformBlocks;
     program->queryUniformBlocks(uniformBlocks);
     for (const GPUProgram::Resource &uniformBlock : uniformBlocks) {
-        const UniformStruct *uniformStruct = (uniformBlock.name == "MaterialUniforms")
-            ? parent->uniformStruct()
-            : UniformStruct::lookup(uniformBlock.name);
-        if (!uniformStruct) {
+        unsigned slot;
+        if (!g_shaderManager->lookupGlobalUniformBlock(uniformBlock.name, slot)) {
             logError("Shader '%s' refers to unknown uniform block '%s'", path.c_str(), uniformBlock.name.c_str());
             return nullptr;
         }
 
-        program->bindUniformBlock(uniformBlock.index, uniformStruct->slot);
+        program->bindUniformBlock(uniformBlock.index, slot);
     }
 
     /* Bind texture samplers. */
     GPUProgram::ResourceList samplers;
     program->querySamplers(samplers);
     for (const GPUProgram::Resource &sampler : samplers) {
-        // TODO: global textures.
-        const ShaderParameter *param = parent->lookupParameter(sampler.name);
-        if (!param || param->type != ShaderParameter::kTextureType) {
-            logError("Shader '%s' refers to unknown texture '%s'", path.c_str(), sampler.name.c_str());
-            return nullptr;
+        unsigned slot;
+        if (!g_shaderManager->lookupGlobalTexture(sampler.name, slot)) {
+            const ShaderParameter *param = parent->lookupParameter(sampler.name);
+            if (!param || param->type != ShaderParameter::kTextureType) {
+                logError("Shader '%s' refers to unknown texture '%s'", path.c_str(), sampler.name.c_str());
+                return nullptr;
+            }
+
+            slot = param->textureSlot;
         }
 
-        program->bindSampler(sampler.index, param->textureSlot);
+        program->bindSampler(sampler.index, slot);
     }
 
     return program;

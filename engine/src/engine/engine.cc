@@ -15,6 +15,8 @@
 
 #include "render/render_manager.h"
 
+#include "shader/shader_manager.h"
+
 #include "world/world.h"
 
 #include <SDL.h>
@@ -51,6 +53,7 @@ Engine::Engine(const EngineConfiguration &config) :
     g_gpuManager->init();
 
     /* Initialize other global systems. */
+    g_shaderManager() = new ShaderManager;
     g_assetManager() = new AssetManager;
     g_renderManager() = new RenderManager;
     g_renderManager->init();

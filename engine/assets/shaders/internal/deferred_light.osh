@@ -1,11 +1,4 @@
 {
-    "parameters": {
-        "deferredBufferA": {"type": "Texture", "slot": 16},
-        "deferredBufferB": {"type": "Texture", "slot": 17},
-        "deferredBufferC": {"type": "Texture", "slot": 18},
-        "deferredBufferD": {"type": "Texture", "slot": 19},
-        "shadowMap": {"type": "Texture", "slot": 20}
-    },
     "passes": [
         {
             "type": "Forward",

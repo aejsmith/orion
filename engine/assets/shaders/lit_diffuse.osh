@@ -1,7 +1,6 @@
 {
     "parameters": {
-        "diffuseTexture": {"type": "Texture"},
-        "shadowMap": {"type": "Texture", "slot": 20}
+        "diffuseTexture": {"type": "Texture"}
     },
     "passes": [
         {

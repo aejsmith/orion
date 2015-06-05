@@ -1,6 +1,7 @@
 sources = map(File, [
     'pass.cc',
     'shader.cc',
+    'shader_manager.cc',
     'shader_parameter.cc',
     'uniform_buffer.cc',
 ])
