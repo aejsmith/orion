@@ -76,7 +76,7 @@ private:
     std::vector<SimpleVertex> m_vertices;
 
     /** Map from VertexKey to a buffer index. */
-    HashTable<VertexKey, uint16_t> m_vertexMap;
+    HashMap<VertexKey, uint16_t> m_vertexMap;
 };
 
 IMPLEMENT_ASSET_LOADER(OBJLoader, "obj");

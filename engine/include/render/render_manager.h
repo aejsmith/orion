@@ -102,7 +102,7 @@ private:
     RenderTargets m_renderTargets;
 
     /** Pool of temporary render target textures. */
-    MultiHashTable<GPUTextureDesc, TempRenderTarget> m_tempRenderTargets;
+    MultiHashMap<GPUTextureDesc, TempRenderTarget> m_tempRenderTargets;
 
     /** Vertex format for SimpleVertex. */
     GPUVertexFormatPtr m_simpleVertexFormat;

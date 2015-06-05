@@ -136,13 +136,13 @@ private:
     SDL_GLContext m_sdlContext;         /**< SDL GL context. */
 
     /** Hash tables of created state objects. */
-    HashTable<GPUBlendStateDesc, GPUBlendStatePtr> m_blendStates;
-    HashTable<GPUDepthStencilStateDesc, GPUDepthStencilStatePtr> m_depthStencilStates;
-    HashTable<GPURasterizerStateDesc, GPURasterizerStatePtr> m_rasterizerStates;
-    HashTable<GPUSamplerStateDesc, GPUSamplerStatePtr> m_samplerStates;
+    HashMap<GPUBlendStateDesc, GPUBlendStatePtr> m_blendStates;
+    HashMap<GPUDepthStencilStateDesc, GPUDepthStencilStatePtr> m_depthStencilStates;
+    HashMap<GPURasterizerStateDesc, GPURasterizerStatePtr> m_rasterizerStates;
+    HashMap<GPUSamplerStateDesc, GPUSamplerStatePtr> m_samplerStates;
 
     /** Hash table of cached FBOs. */
-    HashTable<GPURenderTargetDesc, GLuint> m_fbos;
+    HashMap<GPURenderTargetDesc, GLuint> m_fbos;
 };
 
 extern GLGPUManager *g_opengl;
