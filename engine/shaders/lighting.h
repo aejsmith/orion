@@ -57,8 +57,7 @@ float calcShadow(LightingData data) {
             float pixelDepth = (ndcDepth + 1.0) / 2.0;
 
             /* Sample the shadow map. */
-            vec3 normDirection = normalize(direction);
-            float shadowDepth = texture(shadowMap, normDirection).r;
+            float shadowDepth = texture(shadowMap, direction).r;
 
             /* Same as above. */
             return shadowDepth < (pixelDepth - 0.005) ? 0.4 : 1.0;
