@@ -1,0 +1,185 @@
+/**
+ * @file
+ * @copyright           2015 Alex Smith
+ * @brief               Input manager.
+ */
+
+#include "input/input_handler.h"
+#include "input/input_manager.h"
+
+#include <functional>
+
+#include <SDL.h>
+
+/** Global input manager. */
+EngineGlobal<InputManager> g_inputManager;
+
+/** Initialise the input manager. */
+InputManager::InputManager() {}
+
+/** Dispatch an event to a handler.
+ * @param handler       Handlers list.
+ * @param function      Function to call. */
+static void dispatchInputEvent(
+    const std::list<InputHandler *> &handlers,
+    const std::function<bool (InputHandler *)> &function)
+{
+    for (InputHandler *handler : handlers) {
+        if (function(handler))
+            break;
+    }
+}
+
+/** Handle an SDL event.
+ * @param event         SDL event structure.
+ * @return              Whether the event was handled. */
+bool InputManager::handleEvent(SDL_Event *event) {
+    /* Get the current modifier state. */
+    SDL_Keymod sdlModifiers = SDL_GetModState();
+    uint32_t modifiers = 0;
+    if (sdlModifiers & KMOD_LSHIFT)
+        modifiers |= InputModifier::kLeftShift;
+    if (sdlModifiers & KMOD_RSHIFT)
+        modifiers |= InputModifier::kRightShift;
+    if (sdlModifiers & KMOD_LCTRL)
+        modifiers |= InputModifier::kLeftCtrl;
+    if (sdlModifiers & KMOD_RCTRL)
+        modifiers |= InputModifier::kRightCtrl;
+    if (sdlModifiers & KMOD_LALT)
+        modifiers |= InputModifier::kLeftAlt;
+    if (sdlModifiers & KMOD_RALT)
+        modifiers |= InputModifier::kRightAlt;
+    if (sdlModifiers & KMOD_LGUI)
+        modifiers |= InputModifier::kLeftSuper;
+    if (sdlModifiers & KMOD_RGUI)
+        modifiers |= InputModifier::kRightSuper;
+    if (sdlModifiers & KMOD_NUM)
+        modifiers |= InputModifier::kNumLock;
+    if (sdlModifiers & KMOD_CAPS)
+        modifiers |= InputModifier::kCapsLock;
+
+    /* Process the event. */
+    switch (event->type) {
+        case SDL_KEYDOWN:
+        case SDL_KEYUP:
+        {
+            /* Map the scan code to an input code. */
+            InputCode inputCode = static_cast<InputCode>(event->key.keysym.scancode);
+            const InputInfo *inputInfo = InputInfo::lookup(inputCode);
+            if (!inputInfo) {
+                logWarning("Unrecognised scan code %u", event->key.keysym.scancode);
+                return false;
+            }
+
+            /* Get the character representation, if any, of this code. SDL's
+             * keycodes are defined to ASCII values if they have a printable
+             * representation, or the scancode with bit 30 set otherwise. */
+            char character = (!(event->key.keysym.sym & SDLK_SCANCODE_MASK))
+                ? event->key.keysym.sym
+                : 0;
+
+            ButtonEvent buttonEvent(inputInfo, modifiers, character);
+
+            dispatchInputEvent(m_handlers, [&] (InputHandler *handler) {
+                if (event->type == SDL_KEYDOWN) {
+                    return handler->handleButtonDown(buttonEvent);
+                } else {
+                    return handler->handleButtonUp(buttonEvent);
+                }
+            });
+
+            return true;
+        }
+
+        case SDL_MOUSEBUTTONDOWN:
+        case SDL_MOUSEBUTTONUP:
+        {
+            /* Convert SDL's button to our own. */
+            InputCode inputCode;
+            switch (event->button.button) {
+                case SDL_BUTTON_LEFT:
+                    inputCode = InputCode::kMouseLeft;
+                    break;
+                case SDL_BUTTON_RIGHT:
+                    inputCode = InputCode::kMouseRight;
+                    break;
+                case SDL_BUTTON_MIDDLE:
+                    inputCode = InputCode::kMouseMiddle;
+                    break;
+                default:
+                    logWarning("Unrecognised SDL button code %u", event->button.button);
+                    return false;
+            }
+
+            const InputInfo *inputInfo = InputInfo::lookup(inputCode);
+
+            ButtonEvent buttonEvent(inputInfo, modifiers, 0);
+
+            dispatchInputEvent(m_handlers, [&] (InputHandler *handler) {
+                if (event->type == SDL_MOUSEBUTTONDOWN) {
+                    return handler->handleButtonDown(buttonEvent);
+                } else {
+                    return handler->handleButtonUp(buttonEvent);
+                }
+            });
+        }
+
+        case SDL_MOUSEMOTION:
+        {
+            if (event->motion.xrel) {
+                const InputInfo *inputInfo = InputInfo::lookup(InputCode::kMouseX);
+
+                AxisEvent axisEvent(inputInfo, modifiers, event->motion.xrel);
+
+                dispatchInputEvent(m_handlers, [&] (InputHandler *handler) {
+                    return handler->handleAxis(axisEvent);
+                });
+            }
+
+            if (event->motion.yrel) {
+                const InputInfo *inputInfo = InputInfo::lookup(InputCode::kMouseY);
+
+                AxisEvent axisEvent(inputInfo, modifiers, event->motion.yrel);
+
+                dispatchInputEvent(m_handlers, [&] (InputHandler *handler) {
+                    return handler->handleAxis(axisEvent);
+                });
+            }
+        }
+
+        case SDL_MOUSEWHEEL:
+        {
+            const InputInfo *inputInfo = InputInfo::lookup(InputCode::kMouseScroll);
+
+            AxisEvent axisEvent(inputInfo, modifiers, event->wheel.y);
+
+            dispatchInputEvent(m_handlers, [&] (InputHandler *handler) {
+                return handler->handleAxis(axisEvent);
+            });
+        }
+    }
+
+    return false;
+}
+
+/** Register an input handler.
+ * @param handler       Handler to register. */
+void InputManager::registerHandler(InputHandler *handler) {
+    /* List is sorted by priority. */
+    for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it) {
+        InputHandler *exist = *it;
+        if (handler->inputPriority() < exist->inputPriority()) {
+            m_handlers.insert(it, handler);
+            return;
+        }
+    }
+
+    /* Insertion point not found, add at end. */
+    m_handlers.push_back(handler);
+}
+
+/** Unregister an input handler.
+ * @param handler       Handler to unregister. */
+void InputManager::unregisterHandler(InputHandler *handler) {
+    m_handlers.remove(handler);
+}

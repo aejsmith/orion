@@ -26,11 +26,11 @@ class RenderLayer {
 public:
     /** Standard layer order values. */
     enum {
-        /** Default camera order. */
+        /** Default camera. */
         kCameraLayerOrder = 0,
-        /** GUI order. */
+        /** GUI. */
         kGUILayerOrder = 90,
-        /** Console order. */
+        /** Console. */
         kConsoleLayerOrder = 100,
     };
 public:

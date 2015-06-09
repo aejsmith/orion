@@ -13,6 +13,8 @@
 
 #include "gpu/gpu_manager.h"
 
+#include "input/input_manager.h"
+
 #include "render/render_manager.h"
 
 #include "shader/shader_manager.h"
@@ -53,6 +55,7 @@ Engine::Engine(const EngineConfiguration &config) :
     g_gpuManager->init();
 
     /* Initialize other global systems. */
+    g_inputManager() = new InputManager;
     g_shaderManager() = new ShaderManager;
     g_assetManager() = new AssetManager;
     g_renderManager() = new RenderManager;
@@ -98,12 +101,14 @@ bool Engine::pollEvents() {
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) {
-        switch (event.type) {
-            case SDL_KEYUP:
-                if (event.key.keysym.sym == SDLK_ESCAPE)
-                    return false;
+        // FIXME: Need an Engine::quit() method
+        if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE)
+            return false;
 
-                break;
+        if (g_inputManager->handleEvent(&event))
+            continue;
+
+        switch (event.type) {
             case SDL_QUIT:
                 return false;
         }
