@@ -15,27 +15,15 @@
 EngineGlobal<InputManager> g_inputManager;
 
 /** Initialise the input manager. */
-InputManager::InputManager() {}
+InputManager::InputManager() :
+    m_mouseCaptured(false)
+{}
 
-/** Dispatch an event to a handler.
- * @param handler       Handlers list.
- * @param function      Function to call. */
-static void dispatchInputEvent(
-    const std::list<InputHandler *> &handlers,
-    const std::function<bool (InputHandler *)> &function)
-{
-    for (InputHandler *handler : handlers) {
-        if (function(handler))
-            break;
-    }
-}
-
-/** Handle an SDL event.
- * @param event         SDL event structure.
- * @return              Whether the event was handled. */
-bool InputManager::handleEvent(SDL_Event *event) {
-    /* Get the current modifier state. */
+/** Get the current input modifier state.
+ * @return              Bitmask of currently held modifier keys. */
+uint32_t InputManager::getModifiers() {
     SDL_Keymod sdlModifiers = SDL_GetModState();
+
     uint32_t modifiers = 0;
     if (sdlModifiers & KMOD_LSHIFT)
         modifiers |= InputModifier::kLeftShift;
@@ -57,6 +45,75 @@ bool InputManager::handleEvent(SDL_Event *event) {
         modifiers |= InputModifier::kNumLock;
     if (sdlModifiers & KMOD_CAPS)
         modifiers |= InputModifier::kCapsLock;
+
+    return modifiers;
+}
+
+/** Get the state of a button input.
+ * @param code          Input code for button to get state of (must refer to a
+ *                      button input).
+ * @return              Whether the button is currently pressed. */
+bool InputManager::getButtonState(InputCode code) {
+    const InputInfo *inputInfo = InputInfo::lookup(code);
+    checkMsg(inputInfo, "Input code %d is invalid", code);
+    checkMsg(inputInfo->type == InputType::kButton, "Input %d is not a button", code);
+
+    if (code < InputCode::kNumKeyboardCodes) {
+        const uint8_t *keyboardState = SDL_GetKeyboardState(NULL);
+        return keyboardState[static_cast<size_t>(code)];
+    } else if (code < InputCode::kNumMouseCodes) {
+        uint32_t mouseState = SDL_GetMouseState(nullptr, nullptr);
+
+        switch (code) {
+            case InputCode::kMouseLeft:
+                return mouseState & SDL_BUTTON_LEFT;
+            case InputCode::kMouseMiddle:
+                return mouseState & SDL_BUTTON_MIDDLE;
+            case InputCode::kMouseRight:
+                return mouseState & SDL_BUTTON_RIGHT;
+            default:
+                unreachable();
+        }
+    } else {
+        unreachable();
+    }
+}
+
+/** Get the current mouse cursor position.
+ * @return              Vector containing X/Y position of the mouse cursor. */
+glm::ivec2 InputManager::getCursorPosition() {
+    int x, y;
+    SDL_GetMouseState(&x, &y);
+    return glm::ivec2(x, y);
+}
+
+/** Set whether the mouse is captured.
+ * @param captured      Whether the mouse should be captured. */
+void InputManager::setMouseCaptured(bool captured) {
+    if (m_mouseCaptured != captured) {
+        SDL_SetRelativeMouseMode((captured) ? SDL_TRUE : SDL_FALSE);
+        m_mouseCaptured = captured;
+    }
+}
+
+/** Dispatch an event to a handler.
+ * @param handler       Handlers list.
+ * @param function      Function to call. */
+static void dispatchInputEvent(
+    const std::list<InputHandler *> &handlers,
+    const std::function<bool (InputHandler *)> &function)
+{
+    for (InputHandler *handler : handlers) {
+        if (function(handler))
+            break;
+    }
+}
+
+/** Handle an SDL event.
+ * @param event         SDL event structure.
+ * @return              Whether the event was handled. */
+bool InputManager::handleEvent(SDL_Event *event) {
+    uint32_t modifiers = getModifiers();
 
     /* Process the event. */
     switch (event->type) {

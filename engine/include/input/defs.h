@@ -138,16 +138,18 @@ enum class InputCode {
     kRightShift = 229,
     kRightAlt = 230,
     kRightSuper = 231,
+    kNumKeyboardCodes,
 
     /**
      * Mouse codes.
      */
-    kMouseX = 256,
+    kMouseX,
     kMouseY,
     kMouseScroll,
     kMouseLeft,
     kMouseRight,
     kMouseMiddle,
+    kNumMouseCodes,
 
     kNumInputCodes,
 };
