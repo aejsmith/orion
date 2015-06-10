@@ -179,6 +179,8 @@ bool InputManager::handleEvent(SDL_Event *event) {
                     return handler->handleButtonUp(buttonEvent);
                 }
             });
+
+            return true;
         }
 
         case SDL_MOUSEMOTION:
@@ -202,6 +204,8 @@ bool InputManager::handleEvent(SDL_Event *event) {
                     return handler->handleAxis(axisEvent);
                 });
             }
+
+            return true;
         }
 
         case SDL_MOUSEWHEEL:
@@ -213,6 +217,8 @@ bool InputManager::handleEvent(SDL_Event *event) {
             dispatchInputEvent(m_handlers, [&] (InputHandler *handler) {
                 return handler->handleAxis(axisEvent);
             });
+
+            return true;
         }
     }
 
