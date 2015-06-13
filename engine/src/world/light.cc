@@ -77,7 +77,7 @@ Light::~Light() {}
 void Light::setDirection(const glm::vec3 &direction) {
     /* Set orientation to rotate the default direction to the given one. */
     glm::vec3 d = glm::normalize(direction);
-    entity()->setOrientation(glm::quat(kDefaultDirection, d));
+    entity()->setOrientation(Math::quatRotateBetween(kDefaultDirection, d));
 }
 
 /** @return             Current light direction. */

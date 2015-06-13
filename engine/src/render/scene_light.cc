@@ -171,12 +171,13 @@ void SceneLight::updateVolumeTransform() {
             glm::vec3 scale(radius, radius, m_range);
 
             /* Rotate geometry to be centered on the direction. */
-            glm::quat orientation(glm::vec3(0.0f, 0.0f, -1.0f), m_direction);
+            glm::quat orientation = Math::quatRotateBetween(glm::vec3(0.0f, 0.0f, -1.0f), m_direction);
 
             m_volumeTransform.set(m_position, orientation, scale);
             m_uniforms->volumeTransform = m_volumeTransform.matrix();
             break;
         }
+
         default:
             break;
     }
@@ -195,19 +196,10 @@ void SceneLight::updateShadowViews() {
             numViews = 1;
 
             /* View is centered on light pointing in its direction. */
-            m_shadowViews[0].setTransform(
-                m_position,
-                glm::quat(glm::vec3(0.0f, 0.0f, -1.0f), m_direction));
+            m_shadowViews[0].setTransform(m_position, Math::quatLookAt(m_direction));
 
             /* Projection is a perspective projection covering the light's range. */
             m_shadowViews[0].perspective(m_cutoff * 2, 0.1f, m_range);
-
-            static const glm::mat4 shadowBiasMatrix(
-                0.5, 0.0, 0.0, 0.0,
-                0.0, 0.5, 0.0, 0.0,
-                0.0, 0.0, 0.5, 0.0,
-                0.5, 0.5, 0.5, 1.0
-            );
 
             /* Shader shadow calculation for a spot light requires transformation
              * of the world space position of the pixel being lit into shadow
@@ -217,10 +209,16 @@ void SceneLight::updateShadowViews() {
              * apply a bias to this matrix to map coordinates into the [0, 1]
              * range for shadow map sampling, as just the VP transformation
              * yields NDC coordinates, i.e. in the range [-1, 1]. */
+            static const glm::mat4 shadowBiasMatrix(
+                0.5, 0.0, 0.0, 0.0,
+                0.0, 0.5, 0.0, 0.0,
+                0.0, 0.0, 0.5, 0.0,
+                0.5, 0.5, 0.5, 1.0);
             m_uniforms->shadowSpace
                 = shadowBiasMatrix * m_shadowViews[0].projection() * m_shadowViews[0].view();
             break;
         }
+
         case kPointLight:
         {
             numViews = CubeFace::kNumFaces;
@@ -240,9 +238,9 @@ void SceneLight::updateShadowViews() {
             for (unsigned i = 0; i < numViews; i++) {
                 /* View is centered on the light looking in the direction of the
                  * face being rendered. */
-                glm::mat4 look = glm::lookAt(glm::vec3(0.0), cubeFaces[i].direction, cubeFaces[i].up);
-                glm::quat orientation = glm::inverse(glm::normalize(glm::quat_cast(look)));
-                m_shadowViews[i].setTransform(m_position, orientation);
+                m_shadowViews[i].setTransform(
+                    m_position,
+                    Math::quatLookAt(cubeFaces[i].direction, cubeFaces[i].up));
 
                 /* Perspective projection covering the whole face, limited to
                  * the light's range. */
@@ -254,6 +252,7 @@ void SceneLight::updateShadowViews() {
             m_uniforms->shadowZNear = 0.1f;
             break;
         }
+
         default:
             /* TODO. */
             break;

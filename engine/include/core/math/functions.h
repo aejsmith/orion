@@ -43,4 +43,56 @@ namespace Math {
     inline constexpr bool isPow2(const T &val) {
         return val && (val & (val - 1)) == 0;
     }
+
+    /**
+     * Compute a quaternion which rotates from one vector to another.
+     *
+     * Computes a rotation quaternion which when applied to the given from
+     * vector will yield the given to vector.
+     *
+     * @param from          Vector to rotate from.
+     * @param to            Vector to rotate to.
+     *
+     * @return              Quaternion which will rotate between the two vectors.
+     */
+    static inline glm::quat quatRotateBetween(const glm::vec3 &from, const glm::vec3 &to) {
+        /* Based on code from
+         * http://lolengine.net/blog/2014/02/24/quaternion-from-two-vectors-final */
+
+        float fromToLength = glm::sqrt(glm::dot(from, from) * glm::dot(to, to));
+        float w = fromToLength + glm::dot(from, to);
+        glm::vec3 n;
+
+        if (w < 1.0e-6f * fromToLength) {
+            w = 0.0f;
+            n = (glm::abs(from.x) > glm::abs(from.z))
+                ? glm::vec3(-from.y, from.x, 0.0f)
+                : glm::vec3(0.0f, -from.z, from.y);
+        } else {
+            n = glm::cross(from, to);
+        }
+
+        return glm::normalize(glm::quat(w, n));
+    }
+
+    /**
+     * Compute a quaternion orientation which looks at a given point.
+     *
+     * Generates a quaternion which rotates the forward axis (-Z) to be aligned
+     * along the specified forward direction, and the up axis (+Y) to be aligned
+     * along the orthonormalisation of the specified up direction according to
+     * the forward direction.
+     *
+     * @param forward       Forward direction.
+     * @param up            Up direction (guideline).
+     *
+     * @return              Rotation quaternion.
+     */
+    static inline glm::quat quatLookAt(
+        const glm::vec3 &forward,
+        const glm::vec3 &up = glm::vec3(0.0f, 1.0f, 0.0f))
+    {
+        glm::mat4 look = glm::lookAt(glm::vec3(0.0), forward, up);
+        return glm::inverse(glm::normalize(glm::quat_cast(look)));
+    }
 }
