@@ -77,7 +77,7 @@ public:
 protected:
     bool handleButtonDown(const ButtonEvent &event) override {
         switch (event.code) {
-            case InputCode::kSpace:
+            case InputCode::kR:
                 m_rotating = !m_rotating;
                 return true;
             default:

@@ -53,6 +53,16 @@ void PlayerController::tick(float dt) {
         entity()->translate(
             m_camera->entity()->worldOrientation() * glm::vec3(dt * kMovementVelocity, 0.0f, 0.0f));
     }
+
+    if (g_inputManager->getButtonState(InputCode::kLeftCtrl)) {
+        entity()->translate(
+            glm::vec3(0.0f, dt * -kMovementVelocity, 0.0f));
+    }
+
+    if (g_inputManager->getButtonState(InputCode::kSpace)) {
+        entity()->translate(
+            glm::vec3(0.0f, dt * kMovementVelocity, 0.0f));
+    }
 }
 
 /** Handle a button down event.
