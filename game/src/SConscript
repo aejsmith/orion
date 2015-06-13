@@ -1,6 +1,7 @@
 Import('env')
 
 sources = map(File, [
+    'player_controller.cc',
     'test_game.cc',
 ])
 

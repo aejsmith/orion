@@ -4,6 +4,8 @@
  * @brief               Test game.
  */
 
+#include "player_controller.h"
+
 #include "engine/asset_manager.h"
 #include "engine/engine.h"
 #include "engine/game.h"
@@ -12,6 +14,9 @@
 #include "engine/texture.h"
 
 #include "gpu/gpu_manager.h"
+
+#include "input/input_handler.h"
+#include "input/input_manager.h"
 
 #include "render/render_manager.h"
 #include "render/utility.h"
@@ -28,13 +33,59 @@
  * Game code.
  */
 
-class Rotator : public BehaviourComponent {
+class CubeBehaviour : public BehaviourComponent, public InputHandler {
 public:
-    Rotator(Entity *entity) : BehaviourComponent(entity) {}
+    CubeBehaviour(Entity *entity) :
+        BehaviourComponent(entity),
+        m_rotating(false)
+    {}
 
-    void tick(float dt) {
-        entity()->rotate(dt * 90.0f, glm::vec3(0.0, 1.0, 0.0));
+    void activated() override {
+        registerInputHandler();
     }
+
+    void deactivated() override {
+        unregisterInputHandler();
+    }
+
+    void tick(float dt) override {
+        if (g_inputManager->getButtonState(InputCode::kUp)) {
+            if (g_inputManager->getModifiers() & InputModifier::kShift) {
+                entity()->translate(glm::vec3(0.0f, 0.0f, dt * -1.5f));
+            } else {
+                entity()->translate(glm::vec3(0.0f, dt * 1.5f, 0.0f));
+            }
+        }
+
+        if (g_inputManager->getButtonState(InputCode::kDown)) {
+            if (g_inputManager->getModifiers() & InputModifier::kShift) {
+                entity()->translate(glm::vec3(0.0f, 0.0f, dt * 1.5f));
+            } else {
+                entity()->translate(glm::vec3(0.0f, dt * -1.5f, 0.0f));
+            }
+        }
+
+        if (g_inputManager->getButtonState(InputCode::kLeft))
+            entity()->translate(glm::vec3(dt * -1.5f, 0.0f, 0.0f));
+
+        if (g_inputManager->getButtonState(InputCode::kRight))
+            entity()->translate(glm::vec3(dt * 1.5f, 0.0f, 0.0f));
+
+        if (m_rotating)
+            entity()->rotate(dt * 90.0f, glm::vec3(0.0, 1.0, 0.0));
+    }
+protected:
+    bool handleButtonDown(const ButtonEvent &event) override {
+        switch (event.code) {
+            case InputCode::kSpace:
+                m_rotating = !m_rotating;
+                return true;
+            default:
+                return false;
+        }
+    }
+private:
+    bool m_rotating;
 };
 
 /** Game class. */
@@ -125,20 +176,25 @@ TestGame::TestGame() {
     Entity *cube = m_world->createEntity("cube");
     cube->setPosition(glm::vec3(0.0f, 0.57f, -7.0f));
     cube->setScale(glm::vec3(0.2f, 0.2f, 0.2f));
-    cube->rotate(90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+    cube->rotate(45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
     cube->setActive(true);
     MeshRenderer *renderer = cube->createComponent<MeshRenderer>(m_cubeMesh);
     renderer->setMaterial("Material.004", m_cubeMaterial);
     renderer->setActive(true);
-    Rotator *rotator = cube->createComponent<Rotator>();
-    rotator->setActive(true);
+    CubeBehaviour *behaviour = cube->createComponent<CubeBehaviour>();
+    behaviour->setActive(true);
 
-    Entity *camEntity = m_world->createEntity("camera");
-    camEntity->setPosition(glm::vec3(0.0f, 2.0f, 0.0f));
+    Entity *playerEntity = m_world->createEntity("player");
+    playerEntity->setPosition(glm::vec3(0.0f, 1.0f, 0.0f));
+    playerEntity->setActive(true);
+    Entity *camEntity = playerEntity->createChild("camera");
+    camEntity->setPosition(glm::vec3(0.0f, 1.0f, 0.0f));
     camEntity->setActive(true);
     Camera *camera = camEntity->createComponent<Camera>();
     camera->perspective(90.0f, 0.25f, 100.0f);
     camera->setActive(true);
+    PlayerController *controller = playerEntity->createComponent<PlayerController>(camera);
+    controller->setActive(true);
 
     Entity *lightEntity = m_world->createEntity("light");
     lightEntity->setPosition(glm::vec3(2.0f, 3.0f, -7.0f));
