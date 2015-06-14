@@ -8,6 +8,8 @@
 
 #include "input/input_info.h"
 
+#include <array>
+
 /** Structure containing global input information. */
 class GlobalInputInfo : public InputInfo {
 public:
