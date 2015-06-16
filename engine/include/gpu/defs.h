@@ -29,6 +29,8 @@ enum class PrimitiveType {
     kTriangleFan,
     /** Point list, 1 vertex each. */
     kPointList,
+    /** Line list, 2 vertices per line. */
+    kLineList,
 };
 
 /** Buffers to clear. */

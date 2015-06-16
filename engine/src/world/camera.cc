@@ -39,10 +39,8 @@ Camera::Camera(Entity *entity) :
 
 /** Render the scene from the camera to its render target. */
 void Camera::render() {
-    /* TODO: Per frame allocator. */
-    SceneRenderer *renderer = new SceneRenderer(world()->scene(), &m_sceneView, renderTarget(), m_renderPath);
-    renderer->render();
-    delete renderer;
+    SceneRenderer renderer(world()->scene(), &m_sceneView, renderTarget(), m_renderPath);
+    renderer.render();
 }
 
 /** Update the viewport in the SceneView. */

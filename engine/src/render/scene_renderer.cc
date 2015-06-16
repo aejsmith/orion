@@ -4,8 +4,10 @@
  * @brief               Scene renderer class.
  */
 
+#include "engine/debug_manager.h"
 #include "engine/material.h"
 
+#include "render/primitive_renderer.h"
 #include "render/render_manager.h"
 #include "render/scene.h"
 #include "render/scene_light.h"
@@ -54,6 +56,9 @@ void SceneRenderer::render() {
     /* Render everything. */
     renderDeferred();
     renderForward();
+
+    /* Draw debug primitives onto the view. */
+    g_debugManager->renderView(m_view);
 
     /* Finally, blit the output buffer onto the real render target. */
     const RenderManager::RenderTargets &targets = g_renderManager->renderTargets();
@@ -261,7 +266,7 @@ void SceneRenderer::renderForward() {
         /* After the first iteration, we want to blend the remaining lights, and
          * we can turn depth writes off. */
         g_gpuManager->setBlendState<BlendFunc::kAdd, BlendFactor::kOne, BlendFactor::kOne>();
-        g_gpuManager->setDepthStencilState<ComparisonFunc::kEqual, true>();
+        g_gpuManager->setDepthStencilState<ComparisonFunc::kEqual, false>();
     }
 }
 

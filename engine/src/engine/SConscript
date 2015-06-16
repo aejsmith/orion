@@ -2,6 +2,7 @@ sources = map(File, [
     'asset.cc',
     'asset_loader.cc',
     'asset_manager.cc',
+    'debug_manager.cc',
     'engine.cc',
     'main.cc',
     'material.cc',

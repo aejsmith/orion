@@ -342,6 +342,8 @@ namespace GLUtil {
                 return GL_TRIANGLE_FAN;
             case PrimitiveType::kPointList:
                 return GL_POINTS;
+            case PrimitiveType::kLineList:
+                return GL_LINES;
             default:
                 return 0;
         }

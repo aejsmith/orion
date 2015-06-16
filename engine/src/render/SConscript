@@ -1,5 +1,6 @@
 sources = map(File, [
     'draw_list.cc',
+    'primitive_renderer.cc',
     'render_manager.cc',
     'scene.cc',
     'scene_entity.cc',

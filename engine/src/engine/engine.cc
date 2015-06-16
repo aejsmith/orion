@@ -7,6 +7,7 @@
 #include "core/filesystem.h"
 
 #include "engine/asset_manager.h"
+#include "engine/debug_manager.h"
 #include "engine/engine.h"
 #include "engine/game.h"
 #include "engine/window.h"
@@ -60,6 +61,7 @@ Engine::Engine(const EngineConfiguration &config) :
     g_assetManager() = new AssetManager;
     g_renderManager() = new RenderManager;
     g_renderManager->init();
+    g_debugManager() = new DebugManager;
 
     /* Create the game instance. */
     m_game = game::createGame();
@@ -91,6 +93,10 @@ void Engine::run() {
 
         /* Present the final rendered frame. */
         g_gpuManager->endFrame(m_config.displayVsync);
+
+        /* Clear out debug primitives from this frame. */
+        g_debugManager->endFrame();
+
         m_frames++;
     }
 }

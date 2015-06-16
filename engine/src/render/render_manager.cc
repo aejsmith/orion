@@ -28,7 +28,7 @@ void RenderManager::init() {
     /* Create the simple vertex format. */
     VertexBufferLayoutArray buffers(1);
     buffers[0].stride = sizeof(SimpleVertex);
-    VertexAttributeArray attributes(3);
+    VertexAttributeArray attributes(4);
     attributes[0].semantic = VertexAttribute::kPositionSemantic;
     attributes[0].index = 0;
     attributes[0].type = VertexAttribute::kFloatType;
@@ -47,6 +47,12 @@ void RenderManager::init() {
     attributes[2].count = 2;
     attributes[2].buffer = 0;
     attributes[2].offset = offsetof(SimpleVertex, u);
+    attributes[3].semantic = VertexAttribute::kDiffuseSemantic;
+    attributes[3].index = 0;
+    attributes[3].type = VertexAttribute::kFloatType;
+    attributes[3].count = 4;
+    attributes[3].buffer = 0;
+    attributes[3].offset = offsetof(SimpleVertex, r);
     m_simpleVertexFormat = g_gpuManager->createVertexFormat(buffers, attributes);
 
     /* Create the utility geometry. */
