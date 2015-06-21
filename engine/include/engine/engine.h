@@ -39,6 +39,14 @@ public:
     bool displayVsync;              /**< Whether to synchronize updates with vertical retrace. */
 };
 
+/** Engine statistics. */
+struct EngineStats {
+    float fps;                      /**< Number of frames per second. */
+    float frameTime;                /**< Last frame time in seconds. */
+public:
+    EngineStats() : fps(0), frameTime(0) {}
+};
+
 /** Main class of the engine. */
 class Engine : Noncopyable {
 public:
@@ -51,6 +59,8 @@ public:
     const EngineConfiguration &config() const { return m_config; }
     /** @return             Game instance. */
     Game *game() const { return m_game; }
+    /** @return             Engine statistics. */
+    const EngineStats &stats() const { return m_stats; }
 
     /**
      * World management.
@@ -87,6 +97,9 @@ private:
     uint32_t m_lastTick;            /**< Last tick time. */
     uint32_t m_lastFPS;             /**< Last FPS value. */
     uint32_t m_frames;              /**< Number of frames rendered since last FPS update. */
+
+    /** Engine statistics. */
+    EngineStats m_stats;
 };
 
 extern Engine *g_engine;

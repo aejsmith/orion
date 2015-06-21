@@ -85,6 +85,8 @@ Engine::~Engine() {
 /** Run the engine main loop. */
 void Engine::run() {
     while (true) {
+        uint32_t startTicks = SDL_GetTicks();
+
         if (!pollEvents())
             return;
 
@@ -98,6 +100,10 @@ void Engine::run() {
         g_debugManager->endFrame();
 
         m_frames++;
+
+        uint32_t endTicks = SDL_GetTicks();
+        uint32_t frameTicks = endTicks - startTicks;
+        m_stats.frameTime = static_cast<float>(frameTicks) / 1000.0f;
     }
 }
 
@@ -137,11 +143,13 @@ void Engine::tick() {
 
     /* Update FPS counter. */
     if (!m_lastFPS || (tick - m_lastFPS) > 1000) {
-        unsigned fps = (m_lastFPS)
+        m_stats.fps = (m_lastFPS)
             ? static_cast<float>(m_frames) / (static_cast<float>(tick - m_lastFPS) / 1000.0f)
             : 0;
 
-        g_mainWindow->setTitle(m_config.title + " [FPS: " + std::to_string(fps) + "]");
+        g_mainWindow->setTitle(
+            m_config.title + " [FPS: " + std::to_string(static_cast<unsigned>(m_stats.fps)) + "]");
+
         m_lastFPS = tick;
         m_frames = 0;
     }
