@@ -82,6 +82,8 @@ public:
         uint32_t flags = GPUTexture::kAutoMipmap);
     ~Texture2D();
 
+    void clear();
+
     void update(const void *data, bool updateMipmap = true);
     void update(const IntRect &area, const void *data, bool updateMipmap = true);
     void update(unsigned mip, const IntRect &area, const void *data);

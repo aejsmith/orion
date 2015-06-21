@@ -125,6 +125,14 @@ Texture2D::~Texture2D() {
     delete m_renderTexture;
 }
 
+/** Clear the entire texture contents to 0. */
+void Texture2D::clear() {
+    size_t size = m_gpu->width() * m_gpu->height() * PixelFormat::bytesPerPixel(m_gpu->format());
+    std::unique_ptr<char[]> data(new char[size]);
+    memset(data.get(), 0, size);
+    update(data.get());
+}
+
 /**
  * Replace the entire texture content.
  *
