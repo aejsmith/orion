@@ -4,6 +4,7 @@ sources = map(File, [
     'shader_loader.cc',
     'texture_loader.cc',
     'tga_loader.cc',
+    'ttf_loader.cc',
 ])
 
 Return('sources')

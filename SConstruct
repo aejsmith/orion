@@ -58,6 +58,7 @@ else:
 # Configure libraries.
 env['LIBS'] += ['GLEW']
 env.ParseConfig('sdl2-config --cflags --libs')
+env.ParseConfig('pkg-config --cflags --libs freetype2')
 
 Export('env')
 SConscript('SConscript', variant_dir = 'build')

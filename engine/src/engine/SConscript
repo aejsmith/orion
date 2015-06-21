@@ -4,6 +4,7 @@ sources = map(File, [
     'asset_manager.cc',
     'debug_manager.cc',
     'engine.cc',
+    'font.cc',
     'main.cc',
     'material.cc',
     'mesh.cc',
