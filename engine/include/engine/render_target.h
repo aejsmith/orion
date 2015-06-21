@@ -30,6 +30,8 @@ public:
         kCameraLayerOrder = 0,
         /** GUI. */
         kGUILayerOrder = 90,
+        /** Debug overlay. */
+        kDebugOverlayLayerOrder = 99,
         /** Console. */
         kConsoleLayerOrder = 100,
     };

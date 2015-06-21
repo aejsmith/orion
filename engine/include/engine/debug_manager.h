@@ -8,8 +8,10 @@
 
 #include "core/engine_global.h"
 
+#include "engine/font.h"
 #include "engine/material.h"
 
+class DebugOverlay;
 class SceneView;
 
 /**
@@ -28,6 +30,13 @@ public:
 
     void renderView(SceneView *view);
     void endFrame();
+
+    /** @return             Debug text material. */
+    Material *textMaterial() const { return m_textMaterial; }
+    /** @return             Debug text font. */
+    Font *textFont() const { return m_textFont; }
+    /** @return             Debug text font variant. */
+    FontVariant *textFontVariant() const { return m_textFontVariant; }
 private:
     /** Details of a line to draw. */
     struct Line {
@@ -37,6 +46,11 @@ private:
     };
 private:
     MaterialPtr m_primitiveMaterial;    /**< Material for drawing debug primitives. */
+    MaterialPtr m_textMaterial;         /**< Material for drawing debug text. */
+    FontPtr m_textFont;                 /**< Font for debug text. */
+    FontVariant *m_textFontVariant;     /**< Font variant for debug text. */
+
+    DebugOverlay *m_overlay;            /**< Debug overlay. */
 
     std::vector<Line> m_perFrameLines;  /**< Lines to draw for all views in the frame. */
     std::vector<Line> m_perViewLines;   /**< Lines to draw for the next view only. */

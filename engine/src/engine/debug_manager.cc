@@ -4,8 +4,13 @@
  * @brief               Debug manager.
  */
 
+#include "core/string.h"
+
 #include "engine/asset_manager.h"
 #include "engine/debug_manager.h"
+#include "engine/engine.h"
+#include "engine/render_target.h"
+#include "engine/window.h"
 
 #include "gpu/gpu_manager.h"
 
@@ -14,15 +19,156 @@
 /** Global debug manager. */
 EngineGlobal<DebugManager> g_debugManager;
 
+/** Debug overlay. */
+class DebugOverlay : public RenderLayer {
+public:
+    DebugOverlay();
+    ~DebugOverlay();
+
+    void render() override;
+private:
+    void drawText(unsigned x, unsigned y, const std::string &text, const glm::vec3 &colour = glm::vec3(1.0));
+};
+
+/** Initialise the debug overlay. */
+DebugOverlay::DebugOverlay() {
+    /* Add the overlay to the main window. */
+    setLayerOrder(RenderLayer::kDebugOverlayLayerOrder);
+    setRenderTarget(g_mainWindow);
+    registerLayer();
+}
+
+/** Destroy the debug overlay. */
+DebugOverlay::~DebugOverlay() {
+    unregisterLayer();
+}
+
+/** Render the debug overlay. */
+void DebugOverlay::render() {
+    // FIXME: This is broken.
+    GPURenderTargetDesc desc;
+    desc.numColours = 1;
+    renderTarget()->gpu(desc.colour[0]);
+    g_gpuManager->setRenderTarget((desc.colour[0].texture) ? &desc : nullptr, &pixelViewport());
+
+    /* Want to blend text with background, no depth test. */
+    g_gpuManager->setBlendState<BlendFunc::kAdd, BlendFactor::kSourceAlpha, BlendFactor::kOneMinusSourceAlpha>();
+    g_gpuManager->setDepthStencilState<ComparisonFunc::kAlways, false>();
+
+    FontVariant *font = g_debugManager->textFontVariant();
+
+    /* Display engine statistics. */
+    const EngineStats &stats = g_engine->stats();
+    drawText(10, 10, String::format("FPS: %.1f", stats.fps));
+    drawText(10, 10 + font->height(), String::format("Frame time: %.0f ms", stats.frameTime * 1000.0f));
+}
+
+/** Scale a pixel distance to clip space distance.
+ * @param distance      Pixel distance.
+ * @param max           Maximum coordinate (width or height).
+ * @return              Vertex coordinate. */
+static inline float vertexScale(unsigned distance, unsigned max) {
+    return (2.0f / static_cast<float>(max)) * static_cast<float>(distance);
+}
+
+/** Draw text in the debug font.
+ * @param x             Position of left-most edge of text.
+ * @param y             Position of top-most edge of text.
+ * @param text          Text to draw.
+ * @param colour        Colour to draw in. */
+void DebugOverlay::drawText(unsigned x, unsigned y, const std::string &text, const glm::vec3 &colour) {
+    FontVariant *font = g_debugManager->textFontVariant();
+
+    Material *material = g_debugManager->textMaterial();
+    material->setValue("colour", colour);
+
+    PrimitiveRenderer renderer;
+    renderer.begin(PrimitiveType::kTriangleList, material);
+
+    unsigned currX = x;
+    unsigned currY = y;
+
+    for (size_t i = 0; i < text.length(); i++) {
+        if (text[i] == '\r') {
+            currX = x;
+        } else if (text[i] == '\n') {
+            currY += font->height();
+            currX = x;
+        } else {
+            const FontGlyph &glyph = font->getGlyph(text[i]);
+
+            /* Calculate vertex positions. */
+            float vertexX = vertexScale(currX + glyph.offsetX, pixelViewport().width) - 1.0f;
+            float vertexY = 1.0f - vertexScale(currY + glyph.offsetY, pixelViewport().height);
+            float vertexWidth = vertexScale(glyph.width, pixelViewport().width);
+            float vertexHeight = vertexScale(glyph.height, pixelViewport().height);
+
+            /* Calculate UVs. */
+            const Texture2D *texture = font->texture();
+            float uvX = static_cast<float>(glyph.x) / static_cast<float>(texture->width());
+            float uvY = static_cast<float>(glyph.y) / static_cast<float>(texture->height());
+            float uvWidth = static_cast<float>(glyph.width) / static_cast<float>(texture->width());
+            float uvHeight = static_cast<float>(glyph.height) / static_cast<float>(texture->height());
+
+            /* Draw a quad covering the glyph area. */
+            renderer.addVertex(
+                glm::vec3(vertexX, vertexY - vertexHeight, 0.0f),
+                glm::vec3(0.0f),
+                glm::vec2(uvX, uvY + uvHeight));
+            renderer.addVertex(
+                glm::vec3(vertexX + vertexWidth, vertexY - vertexHeight, 0.0f),
+                glm::vec3(0.0f),
+                glm::vec2(uvX + uvWidth, uvY + uvHeight));
+            renderer.addVertex(
+                glm::vec3(vertexX + vertexWidth, vertexY, 0.0f),
+                glm::vec3(0.0f),
+                glm::vec2(uvX + uvWidth, uvY));
+            renderer.addVertex(
+                glm::vec3(vertexX + vertexWidth, vertexY, 0.0f),
+                glm::vec3(0.0f),
+                glm::vec2(uvX + uvWidth, uvY));
+            renderer.addVertex(
+                glm::vec3(vertexX, vertexY, 0.0f),
+                glm::vec3(0.0f),
+                glm::vec2(uvX, uvY));
+            renderer.addVertex(
+                glm::vec3(vertexX, vertexY - vertexHeight, 0.0f),
+                glm::vec3(0.0f),
+                glm::vec2(uvX, uvY + uvHeight));
+
+            currX += glyph.advance;
+        }
+    }
+
+    renderer.draw(nullptr);
+}
+
 /** Initialise the debug manager. */
 DebugManager::DebugManager() {
-    /* Create a debug primitive material. */
+    /* Load debug primitive/text shaders. */
     ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/internal/debug_primitive");
     m_primitiveMaterial = new Material(shader);
+    shader = g_assetManager->load<Shader>("engine/shaders/internal/debug_text");
+    m_textMaterial = new Material(shader);
+
+    /* Load debug text font. */
+    m_textFont = g_assetManager->load<Font>("engine/fonts/source_code_pro");
+    check(m_textFont->isFixedWidth());
+    FontVariantDesc desc;
+    desc.pointSize = 10;
+    m_textFontVariant = m_textFont->getVariant(desc);
+    if (!m_textFontVariant)
+        fatal("Failed to load debug font variant");
+    m_textMaterial->setValue("font", TextureBasePtr(m_textFontVariant->texture()));
+
+    /* Create the debug overlay. */
+    m_overlay = new DebugOverlay;
 }
 
 /** Destroy the debug manager. */
-DebugManager::~DebugManager() {}
+DebugManager::~DebugManager() {
+    delete m_overlay;
+}
 
 /** Draw a line in the world.
  * @param start         Start position of the line.
@@ -32,7 +178,7 @@ DebugManager::~DebugManager() {}
  *                      rendered. Otherwise, it will be drawn for all views
  *                      rendered within the current frame. */
 void DebugManager::drawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &colour, bool perView) {
-    Line line{ start, end, colour };
+    Line line = { start, end, colour };
 
     if (perView) {
         m_perViewLines.push_back(line);

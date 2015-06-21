@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright           2015 Alex Smith
- * @brief               Debug primitive vertex shader.
+ * @brief               Debug primitive fragment shader.
  */
 
 layout(location = 0) in vec4 vtxColour;
