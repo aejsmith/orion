@@ -8,6 +8,7 @@ sources = map(File, [
     'hash.cc',
     'log.cc',
     'path.cc',
+    'pixel_format.cc',
     'refcounted.cc',
     'string.cc',
 ])
