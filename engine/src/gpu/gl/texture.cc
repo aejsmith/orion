@@ -79,6 +79,9 @@ void GLTexture::update(const IntRect &area, const void *data, unsigned mip, unsi
     check(mip < m_mips);
     check(layer < m_depth);
 
+    if (!area.width || !area.height)
+        return;
+
     bindForModification();
 
     if (m_type == kTexture2DArray) {
@@ -111,6 +114,9 @@ void GLTexture::update(const IntRect &area, const void *data, unsigned mip, unsi
 void GLTexture::update(const IntBox &area, const void *data, unsigned mip) {
     check(m_type == kTexture3D);
     check(mip < m_mips);
+
+    if (!area.width || !area.height || !area.depth)
+        return;
 
     bindForModification();
 

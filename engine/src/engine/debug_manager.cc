@@ -154,11 +154,13 @@ DebugManager::DebugManager() {
     /* Load debug text font. */
     m_textFont = g_assetManager->load<Font>("engine/fonts/source_code_pro");
     check(m_textFont->isFixedWidth());
+
     FontVariantDesc desc;
-    desc.pointSize = 10;
+    desc.pointSize = 9;
     m_textFontVariant = m_textFont->getVariant(desc);
     if (!m_textFontVariant)
         fatal("Failed to load debug font variant");
+
     m_textMaterial->setValue("font", TextureBasePtr(m_textFontVariant->texture()));
 
     /* Create the debug overlay. */

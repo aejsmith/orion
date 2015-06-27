@@ -199,14 +199,20 @@ bool FontVariant::load() {
         /* Get glyph metrics. */
         m_glyphs[i].width = face->glyph->bitmap.width;
         m_glyphs[i].height = face->glyph->bitmap.rows;
-        m_glyphs[i].offsetX = face->glyph->metrics.horiBearingX / 64;
-        m_glyphs[i].offsetY = m_maxAscender - (face->glyph->metrics.horiBearingY / 64);
+        m_glyphs[i].offsetX = face->glyph->bitmap_left;
+        m_glyphs[i].offsetY = m_maxAscender - face->glyph->bitmap_top;
         m_glyphs[i].advance = face->glyph->metrics.horiAdvance / 64;
 
         /* Determine texture atlas position. We put all fonts on to one row for
          * now so we just have Y position as Y offset. */
-        m_glyphs[i].x = (i * m_maxWidth) + face->glyph->bitmap_left;
+        m_glyphs[i].x = (i * m_maxWidth) + m_glyphs[i].offsetX;
         m_glyphs[i].y = m_glyphs[i].offsetY;
+
+        /* Some fonts have dodgy metrics that result in some glyphs' image areas
+         * being outside the defined maximum boundaries. Work around this by
+         * clipping them. */
+        if (m_glyphs[i].offsetY + m_glyphs[i].height > m_height)
+            m_glyphs[i].height = m_height - m_glyphs[i].offsetY;
 
         /* Load the texture data. FIXME: Correctly handle bitmap formats. */
         IntRect area(m_glyphs[i].x, m_glyphs[i].y, m_glyphs[i].width, m_glyphs[i].height);
