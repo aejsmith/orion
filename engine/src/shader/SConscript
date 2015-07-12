@@ -1,4 +1,6 @@
-sources = map(File, [
+Import('env')
+
+objects = map(env.Object, [
     'pass.cc',
     'shader.cc',
     'shader_manager.cc',
@@ -6,4 +8,4 @@ sources = map(File, [
     'uniform_buffer.cc',
 ])
 
-Return('sources')
+Return('objects')

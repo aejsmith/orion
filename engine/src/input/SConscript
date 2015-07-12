@@ -1,7 +1,9 @@
-sources = map(File, [
+Import('env')
+
+objects = map(env.Object, [
     'input_handler.cc',
     'input_info.cc',
     'input_manager.cc',
 ])
 
-Return('sources')
+Return('objects')

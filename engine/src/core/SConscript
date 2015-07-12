@@ -1,6 +1,8 @@
 import os
 
-sources = map(File, [
+Import('env')
+
+objects = map(env.Object, [
     'data_stream.cc',
     'engine_global.cc',
     'error.cc',
@@ -13,10 +15,10 @@ sources = map(File, [
     'string.cc',
 ])
 
-sources += SConscript(dirs = [
+objects += SConscript(dirs = [
     'math',
 ])
 
-sources += SConscript(dirs = [os.name])
+objects += SConscript(dirs = [os.name])
 
-Return('sources')
+Return('objects')

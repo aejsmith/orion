@@ -1,4 +1,6 @@
-sources = map(File, [
+Import('env')
+
+objects = map(env.Object, [
     'material_loader.cc',
     'obj_loader.cc',
     'shader_loader.cc',
@@ -7,4 +9,4 @@ sources = map(File, [
     'ttf_loader.cc',
 ])
 
-Return('sources')
+Return('objects')

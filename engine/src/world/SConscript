@@ -1,4 +1,6 @@
-sources = map(File, [
+Import('env')
+
+objects = map(env.Object, [
     'camera.cc',
     'component.cc',
     'entity.cc',
@@ -8,4 +10,4 @@ sources = map(File, [
     'world.cc',
 ])
 
-Return('sources')
+Return('objects')

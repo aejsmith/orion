@@ -1,8 +1,10 @@
-sources = SConscript(dirs = [
+Import('env')
+
+objects = SConscript(dirs = [
     'gl',
 ])
 
-sources += map(File, [
+objects += map(env.Object, [
     'buffer.cc',
     'gpu_manager.cc',
     'index_data.cc',
@@ -12,4 +14,4 @@ sources += map(File, [
     'vertex_format.cc',
 ])
 
-Return('sources')
+Return('objects')

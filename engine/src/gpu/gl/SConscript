@@ -1,4 +1,6 @@
-sources = map(File, [
+Import('env')
+
+objects = map(env.Object, [
     'buffer.cc',
     'commands.cc',
     'fbo.cc',
@@ -10,4 +12,4 @@ sources = map(File, [
     'vertex_data.cc',
 ])
 
-Return('sources')
+Return('objects')

@@ -1,4 +1,6 @@
-sources = map(File, [
+Import('env')
+
+objects = map(env.Object, [
     'draw_list.cc',
     'primitive_renderer.cc',
     'render_manager.cc',
@@ -10,4 +12,4 @@ sources = map(File, [
     'utility.cc',
 ])
 
-Return('sources')
+Return('objects')

@@ -1,5 +1,7 @@
-sources = map(File, [
+Import('env')
+
+objects = map(env.Object, [
     'filesystem.cc',
 ])
 
-Return('sources')
+Return('objects')

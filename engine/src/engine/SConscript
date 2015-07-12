@@ -1,4 +1,6 @@
-sources = map(File, [
+Import('env')
+
+objects = map(env.Object, [
     'asset.cc',
     'asset_loader.cc',
     'asset_manager.cc',
@@ -13,8 +15,8 @@ sources = map(File, [
     'window.cc',
 ])
 
-sources += SConscript(dirs = [
+objects += SConscript(dirs = [
     'loaders',
 ])
 
-Return('sources')
+Return('objects')

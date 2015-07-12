@@ -1,5 +1,7 @@
-sources = map(File, [
+Import('env')
+
+objects = map(env.Object, [
     'transform.cc',
 ])
 
-Return('sources')
+Return('objects')
