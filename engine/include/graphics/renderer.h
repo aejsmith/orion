@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "world/component.h"
+#include "engine/component.h"
 
 #include <list>
 

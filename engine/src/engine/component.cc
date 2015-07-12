@@ -4,8 +4,8 @@
  * @brief               Component class.
  */
 
-#include "world/component.h"
-#include "world/entity.h"
+#include "engine/component.h"
+#include "engine/entity.h"
 
 /** Construct the component.
  * @param type          Component type ID.

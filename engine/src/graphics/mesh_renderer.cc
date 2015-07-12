@@ -6,10 +6,10 @@
 
 #include "gpu/gpu_manager.h"
 
+#include "graphics/mesh_renderer.h"
+
 #include "render/geometry.h"
 #include "render/scene_entity.h"
-
-#include "world/mesh_renderer.h"
 
 /** Scene entity for rendering a SubMesh. */
 class SubMeshSceneEntity : public SceneEntity {

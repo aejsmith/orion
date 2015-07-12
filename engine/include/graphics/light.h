@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include "render/scene_light.h"
+#include "engine/component.h"
 
-#include "world/component.h"
+#include "render/scene_light.h"
 
 /**
  * Base light component class.

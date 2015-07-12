@@ -6,10 +6,11 @@
 
 #pragma once
 
-#include "input/input_handler.h"
+#include "engine/behaviour.h"
 
-#include "world/behaviour.h"
-#include "world/camera.h"
+#include "graphics/camera.h"
+
+#include "input/input_handler.h"
 
 /** Behaviour class which takes input and translates it to player movement. */
 class PlayerController : public BehaviourComponent, public InputHandler {

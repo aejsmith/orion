@@ -4,11 +4,12 @@
  * @brief               Renderer base component.
  */
 
+#include "engine/world.h"
+
+#include "graphics/renderer.h"
+
 #include "render/scene.h"
 #include "render/scene_entity.h"
-
-#include "world/renderer.h"
-#include "world/world.h"
 
 /** Initialise the component.
  * @param entity        Entity that the component belongs to. */

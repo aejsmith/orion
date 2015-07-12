@@ -7,13 +7,19 @@
 #include "player_controller.h"
 
 #include "engine/asset_manager.h"
+#include "engine/behaviour.h"
 #include "engine/engine.h"
+#include "engine/entity.h"
 #include "engine/game.h"
-#include "engine/material.h"
 #include "engine/mesh.h"
 #include "engine/texture.h"
+#include "engine/world.h"
 
 #include "gpu/gpu_manager.h"
+
+#include "graphics/camera.h"
+#include "graphics/light.h"
+#include "graphics/mesh_renderer.h"
 
 #include "input/input_handler.h"
 #include "input/input_manager.h"
@@ -22,12 +28,7 @@
 #include "render/utility.h"
 #include "render/vertex.h"
 
-#include "world/behaviour.h"
-#include "world/camera.h"
-#include "world/entity.h"
-#include "world/light.h"
-#include "world/mesh_renderer.h"
-#include "world/world.h"
+#include "shader/material.h"
 
 /**
  * Game code.

@@ -11,6 +11,7 @@
 #include "engine/engine.h"
 #include "engine/game.h"
 #include "engine/window.h"
+#include "engine/world.h"
 
 #include "gpu/gpu_manager.h"
 
@@ -19,8 +20,6 @@
 #include "render/render_manager.h"
 
 #include "shader/shader_manager.h"
-
-#include "world/world.h"
 
 #include <SDL.h>
 

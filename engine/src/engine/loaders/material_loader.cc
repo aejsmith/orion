@@ -5,7 +5,8 @@
  */
 
 #include "engine/asset_loader.h"
-#include "engine/material.h"
+
+#include "shader/material.h"
 
 /** Material asset loader. */
 class MaterialLoader : public AssetLoader {

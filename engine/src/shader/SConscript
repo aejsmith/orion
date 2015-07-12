@@ -1,6 +1,7 @@
 Import('env')
 
 objects = map(env.Object, [
+    'material.cc',
     'pass.cc',
     'shader.cc',
     'shader_manager.cc',

@@ -2,12 +2,9 @@ Import('env')
 
 objects = map(env.Object, [
     'camera.cc',
-    'component.cc',
-    'entity.cc',
     'light.cc',
     'mesh_renderer.cc',
     'renderer.cc',
-    'world.cc',
 ])
 
 Return('objects')

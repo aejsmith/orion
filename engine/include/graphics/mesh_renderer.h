@@ -6,10 +6,11 @@
 
 #pragma once
 
-#include "engine/material.h"
 #include "engine/mesh.h"
 
-#include "world/renderer.h"
+#include "graphics/renderer.h"
+
+#include "shader/material.h"
 
 /** Component which renders a mesh. */
 class MeshRenderer : public RendererComponent {

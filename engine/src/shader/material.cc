@@ -4,7 +4,7 @@
  * @brief               Material class.
  */
 
-#include "engine/material.h"
+#include "shader/material.h"
 
 /** Create a new material.
  * @param shader        Shader to use for the material. */

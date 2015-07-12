@@ -4,9 +4,9 @@
  * @brief               World class.
  */
 
-#include "render/scene.h"
+#include "engine/world.h"
 
-#include "world/world.h"
+#include "render/scene.h"
 
 /** Initialize the world. */
 World::World() {

@@ -9,8 +9,8 @@
  * @fixme               Disallow transformation of root entity.
  */
 
-#include "world/component.h"
-#include "world/entity.h"
+#include "engine/component.h"
+#include "engine/entity.h"
 
 /** Initialize a new entity.
  * @param name          Name of the entity.

@@ -4,15 +4,17 @@ objects = map(env.Object, [
     'asset.cc',
     'asset_loader.cc',
     'asset_manager.cc',
+    'component.cc',
     'debug_manager.cc',
     'engine.cc',
+    'entity.cc',
     'font.cc',
     'main.cc',
-    'material.cc',
     'mesh.cc',
     'render_target.cc',
     'texture.cc',
     'window.cc',
+    'world.cc',
 ])
 
 objects += SConscript(dirs = [

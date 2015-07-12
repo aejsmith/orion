@@ -5,7 +5,6 @@
  */
 
 #include "engine/debug_manager.h"
-#include "engine/material.h"
 
 #include "render/primitive_renderer.h"
 #include "render/render_manager.h"
@@ -13,6 +12,8 @@
 #include "render/scene_light.h"
 #include "render/scene_renderer.h"
 #include "render/scene_view.h"
+
+#include "shader/material.h"
 
 /** Initialize the scene renderer.
  * @param scene         Scene to render.

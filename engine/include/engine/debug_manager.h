@@ -9,7 +9,8 @@
 #include "core/engine_global.h"
 
 #include "engine/font.h"
-#include "engine/material.h"
+
+#include "shader/material.h"
 
 class DebugOverlay;
 class SceneView;

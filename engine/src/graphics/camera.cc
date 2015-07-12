@@ -7,14 +7,14 @@
  *                      is resized (add listeners to RenderTarget).
  */
 
+#include "engine/entity.h"
 #include "engine/render_target.h"
 #include "engine/window.h"
+#include "engine/world.h"
+
+#include "graphics/camera.h"
 
 #include "render/scene_renderer.h"
-
-#include "world/camera.h"
-#include "world/entity.h"
-#include "world/world.h"
 
 /**
  * Construct a default camera.

@@ -4,9 +4,9 @@
  * @brief               Draw list class.
  */
 
-#include "engine/material.h"
-
 #include "render/draw_list.h"
+
+#include "shader/material.h"
 
 /** Add a draw call to the list.
  * @param geometry      Geometry to draw.

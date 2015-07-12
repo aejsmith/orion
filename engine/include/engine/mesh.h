@@ -7,10 +7,11 @@
 #pragma once
 
 #include "engine/asset.h"
-#include "engine/material.h"
 
 #include "gpu/index_data.h"
 #include "gpu/vertex_data.h"
+
+#include <map>
 
 class Mesh;
 

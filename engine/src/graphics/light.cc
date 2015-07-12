@@ -4,12 +4,13 @@
  * @brief               Light component classes.
  */
 
+#include "engine/entity.h"
+#include "engine/world.h"
+
+#include "graphics/light.h"
+
 #include "render/scene.h"
 #include "render/scene_light.h"
-
-#include "world/entity.h"
-#include "world/light.h"
-#include "world/world.h"
 
 /** Default direction of a light. */
 static const glm::vec3 kDefaultDirection = glm::vec3(0.0f, 0.0f, -1.0f);

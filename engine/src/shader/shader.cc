@@ -4,8 +4,7 @@
  * @brief               Shader class.
  */
 
-#include "engine/material.h"
-
+#include "shader/material.h"
 #include "shader/pass.h"
 #include "shader/shader.h"
 

@@ -6,12 +6,11 @@
 
 #pragma once
 
+#include "engine/component.h"
 #include "engine/render_target.h"
 
 #include "render/defs.h"
 #include "render/scene_view.h"
-
-#include "world/component.h"
 
 /** A view into the world from which the scene will be rendered. */
 class Camera : public Component, public RenderLayer {

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "world/entity.h"
+#include "engine/entity.h"
 
 class Scene;
 

@@ -8,13 +8,13 @@
 
 #include "core/hash_table.h"
 
-#include "engine/material.h"
-
 #include "gpu/texture.h"
 #include "gpu/vertex_format.h"
 
 #include "render/defs.h"
 #include "render/geometry.h"
+
+#include "shader/material.h"
 
 /** Manages global resources used throughout the renderer. */
 class RenderManager : Noncopyable {
