@@ -49,7 +49,7 @@ Material *SubMeshSceneEntity::material() const {
  * @param entity        Entity the component belongs to.
  * @param mesh          Mesh to render. */
 MeshRenderer::MeshRenderer(Entity *entity, Mesh *mesh) :
-    RendererComponent(entity),
+    Renderer(entity),
     m_mesh(mesh),
     m_materials(mesh->numMaterials())
 {}

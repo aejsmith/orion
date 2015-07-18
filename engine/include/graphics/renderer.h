@@ -19,11 +19,11 @@ class SceneEntity;
  * world. It implements the functionality to add SceneEntities to the renderer
  * and keeps them updated.
  */
-class RendererComponent : public Component {
+class Renderer : public Component {
 public:
     DECLARE_COMPONENT(Component::kRendererType);
 public:
-    ~RendererComponent();
+    ~Renderer();
 
     void setCastShadow(bool castShadow);
 
@@ -33,7 +33,7 @@ protected:
     /** Type of a scene entity list. */
     typedef std::list<SceneEntity *> SceneEntityList;
 protected:
-    explicit RendererComponent(Entity *entity);
+    explicit Renderer(Entity *entity);
 
     void transformed() override;
     void activated() override;

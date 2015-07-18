@@ -16,10 +16,10 @@
  * includes the necessary boilerplate to set the component type. Custom
  * behaviour can be implemented via the Component hook functions.
  */
-class BehaviourComponent : public Component {
+class Behaviour : public Component {
 public:
     DECLARE_COMPONENT(Component::kBehaviourType);
 protected:
-    BehaviourComponent(Entity *entity) : Component(Component::kBehaviourType, entity) {}
-    ~BehaviourComponent() {}
+    Behaviour(Entity *entity) : Component(Component::kBehaviourType, entity) {}
+    ~Behaviour() {}
 };

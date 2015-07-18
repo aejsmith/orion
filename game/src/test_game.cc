@@ -34,10 +34,10 @@
  * Game code.
  */
 
-class CubeBehaviour : public BehaviourComponent, public InputHandler {
+class CubeBehaviour : public Behaviour, public InputHandler {
 public:
     CubeBehaviour(Entity *entity) :
-        BehaviourComponent(entity),
+        Behaviour(entity),
         m_rotating(false)
     {}
 

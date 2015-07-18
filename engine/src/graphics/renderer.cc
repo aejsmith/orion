@@ -13,13 +13,13 @@
 
 /** Initialise the component.
  * @param entity        Entity that the component belongs to. */
-RendererComponent::RendererComponent(Entity *entity) :
+Renderer::Renderer(Entity *entity) :
     Component(Component::kRendererType, entity),
     m_castShadow(true)
 {}
 
 /** Destory the component. */
-RendererComponent::~RendererComponent() {
+Renderer::~Renderer() {
     /* At this point the entities are not added to the renderer, so just
      * delete them all. */
     while (!m_sceneEntities.empty()) {
@@ -31,7 +31,7 @@ RendererComponent::~RendererComponent() {
 
 /** Set whether the rendered object casts a shadow.
  * @param castShadow    Whether to cast a shadow. */
-void RendererComponent::setCastShadow(bool castShadow) {
+void Renderer::setCastShadow(bool castShadow) {
     if (castShadow != m_castShadow) {
         m_castShadow = castShadow;
 
@@ -43,7 +43,7 @@ void RendererComponent::setCastShadow(bool castShadow) {
 }
 
 /** Called when the entity's transformation is updated. */
-void RendererComponent::transformed() {
+void Renderer::transformed() {
     /* Update all scene entity transformations. */
     if (activeInWorld()) {
         for (SceneEntity *sceneEntity : m_sceneEntities)
@@ -52,7 +52,7 @@ void RendererComponent::transformed() {
 }
 
 /** Called when the component becomes active in the world. */
-void RendererComponent::activated() {
+void Renderer::activated() {
     /* Scene entities should not yet be created. Create them. */
     check(m_sceneEntities.empty());
     createSceneEntities(m_sceneEntities);
@@ -67,7 +67,7 @@ void RendererComponent::activated() {
 }
 
 /** Called when the component becomes inactive in the world. */
-void RendererComponent::deactivated() {
+void Renderer::deactivated() {
     while (!m_sceneEntities.empty()) {
         SceneEntity *sceneEntity = m_sceneEntities.back();
         m_sceneEntities.pop_back();

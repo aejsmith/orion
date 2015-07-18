@@ -13,7 +13,7 @@
 #include "input/input_handler.h"
 
 /** Behaviour class which takes input and translates it to player movement. */
-class PlayerController : public BehaviourComponent, public InputHandler {
+class PlayerController : public Behaviour, public InputHandler {
 public:
     PlayerController(Entity *entity, Camera *camera);
 

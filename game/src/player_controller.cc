@@ -15,7 +15,7 @@ static const float kMovementVelocity = 5.0f;
  * @param entity        Entity that the controller is attached to.
  * @param camera        Camera that the controller should move. */
 PlayerController::PlayerController(Entity *entity, Camera *camera) :
-    BehaviourComponent(entity),
+    Behaviour(entity),
     m_camera(camera)
 {}
 

@@ -13,7 +13,7 @@
 #include "shader/material.h"
 
 /** Component which renders a mesh. */
-class MeshRenderer : public RendererComponent {
+class MeshRenderer : public Renderer {
 public:
     MeshRenderer(Entity *entity, Mesh *mesh);
 
