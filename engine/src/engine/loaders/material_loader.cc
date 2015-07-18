@@ -19,7 +19,7 @@ private:
     MaterialPtr m_material;
 };
 
-IMPLEMENT_ASSET_LOADER(MaterialLoader, "omt");
+IMPLEMENT_ASSET_LOADER(MaterialLoader, "material");
 
 /** Load a material.
  * @return              Pointer to loaded asset, null on failure. */

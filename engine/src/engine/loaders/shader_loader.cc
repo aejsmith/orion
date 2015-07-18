@@ -23,7 +23,7 @@ private:
     ShaderPtr m_shader;
 };
 
-IMPLEMENT_ASSET_LOADER(ShaderLoader, "osh");
+IMPLEMENT_ASSET_LOADER(ShaderLoader, "shader");
 
 /** Load a shader asset.
  * @return              Pointer to loaded asset, null on failure. */
