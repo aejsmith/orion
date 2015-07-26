@@ -8,6 +8,7 @@
 
 #include "engine/entity.h"
 
+class PhysicsWorld;
 class Scene;
 
 /**
@@ -28,6 +29,8 @@ public:
 
     /** @return             Renderer's scene manager. */
     Scene *scene() const { return m_scene; }
+    /** @return             Physics world. */
+    PhysicsWorld *physics() const { return m_physics; }
 
     /**
      * Entity management.
@@ -40,4 +43,5 @@ public:
 private:
     Entity *m_root;                 /**< Root of the entity hierarchy. */
     Scene *m_scene;                 /**< Scene manager. */
+    PhysicsWorld *m_physics;        /**< Physics world. */
 };

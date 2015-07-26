@@ -24,6 +24,10 @@
 #include "input/input_handler.h"
 #include "input/input_manager.h"
 
+#include "physics/collision_shape.h"
+#include "physics/physics_material.h"
+#include "physics/rigid_body.h"
+
 #include "render/render_manager.h"
 #include "render/utility.h"
 #include "render/vertex.h"
@@ -98,9 +102,9 @@ private:
 private:
     World *m_world;                 /**< Game world. */
 
-    /** Rendering resources. */
     MaterialPtr m_cubeMaterial;
     MeshPtr m_cubeMesh;
+    PhysicsMaterialPtr m_cubePhysicsMaterial;
 };
 
 /** Create a 2D plane centered at the origin extending in the X/Y direction.
@@ -158,6 +162,7 @@ Entity *TestGame::createPlane(Entity *parent, const std::string &name, Material 
 TestGame::TestGame() {
     m_cubeMaterial = g_assetManager->load<Material>("game/materials/companion_cube");
     m_cubeMesh = g_assetManager->load<Mesh>("game/models/companion_cube");
+    m_cubePhysicsMaterial = g_assetManager->load<PhysicsMaterial>("game/physics_materials/companion_cube");
 
     m_world = g_engine->createWorld();
 
@@ -173,17 +178,48 @@ TestGame::TestGame() {
     floor->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
     floor->setScale(glm::vec3(100.0f, 100.0f, 1.0f));
     floor->setActive(true);
+    BoxCollisionShape *collisionShape = floor->createComponent<BoxCollisionShape>();
+    collisionShape->setHalfExtents(glm::vec3(50.0f, 50.0f, 0.01f));
+    collisionShape->setActive(true);
+    RigidBody *rigidBody = floor->createComponent<RigidBody>();
+    rigidBody->setMass(0.0f);
+    rigidBody->setActive(true);
 
     Entity *cube = m_world->createEntity("cube");
-    cube->setPosition(glm::vec3(0.0f, 0.57f, -7.0f));
+    cube->setPosition(glm::vec3(0.0f, 4.0f, -7.0f));
     cube->setScale(glm::vec3(0.2f, 0.2f, 0.2f));
     cube->rotate(45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+    cube->rotate(20.0f, glm::vec3(0.0f, 0.0f, -1.0f));
     cube->setActive(true);
     MeshRenderer *renderer = cube->createComponent<MeshRenderer>(m_cubeMesh);
     renderer->setMaterial("Material.004", m_cubeMaterial);
     renderer->setActive(true);
     CubeBehaviour *behaviour = cube->createComponent<CubeBehaviour>();
     behaviour->setActive(true);
+    collisionShape = cube->createComponent<BoxCollisionShape>();
+    collisionShape->setHalfExtents(glm::vec3(0.58f, 0.58f, 0.58f));
+    collisionShape->setActive(true);
+    rigidBody = cube->createComponent<RigidBody>();
+    rigidBody->setMaterial(m_cubePhysicsMaterial);
+    rigidBody->setMass(10.0f);
+    rigidBody->setActive(true);
+
+    cube = m_world->createEntity("cube2");
+    cube->setPosition(glm::vec3(0.2f, 7.0f, -7.0f));
+    cube->setScale(glm::vec3(0.2f, 0.2f, 0.2f));
+    cube->rotate(45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+    cube->rotate(20.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+    cube->setActive(true);
+    renderer = cube->createComponent<MeshRenderer>(m_cubeMesh);
+    renderer->setMaterial("Material.004", m_cubeMaterial);
+    renderer->setActive(true);
+    collisionShape = cube->createComponent<BoxCollisionShape>();
+    collisionShape->setHalfExtents(glm::vec3(0.58f, 0.58f, 0.58f));
+    collisionShape->setActive(true);
+    rigidBody = cube->createComponent<RigidBody>();
+    rigidBody->setMaterial(m_cubePhysicsMaterial);
+    rigidBody->setMass(10.0f);
+    rigidBody->setActive(true);
 
     Entity *playerEntity = m_world->createEntity("player");
     playerEntity->setPosition(glm::vec3(0.0f, 1.0f, 0.0f));

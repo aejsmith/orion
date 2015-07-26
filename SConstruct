@@ -59,6 +59,7 @@ else:
 env['LIBS'] += ['GLEW']
 env.ParseConfig('sdl2-config --cflags --libs')
 env.ParseConfig('pkg-config --cflags --libs freetype2')
+env.ParseConfig('pkg-config --cflags --libs bullet')
 
 Export('env')
 SConscript('SConscript', variant_dir = 'build')

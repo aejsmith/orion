@@ -18,9 +18,8 @@ class UniformBufferBase;
 /**
  * Material class.
  *
- * A material is applied to a mesh and defines the how the mesh looks when it
- * is rendered. It holds a reference to a shader and a set of parameters to the
- * shader.
+ * A material is used to define the look of something when it is rendered. It
+ * holds a reference to a shader and a set of parameters to the shader.
  */
 class Material : public Asset {
 public:

@@ -1,0 +1,11 @@
+Import('env')
+
+objects = map(env.Object, [
+    'collision_shape.cc',
+    'physics_manager.cc',
+    'physics_material.cc',
+    'physics_world.cc',
+    'rigid_body.cc',
+])
+
+Return('objects')

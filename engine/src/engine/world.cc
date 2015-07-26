@@ -6,12 +6,17 @@
 
 #include "engine/world.h"
 
+#include "physics/physics_world.h"
+
 #include "render/scene.h"
 
 /** Initialize the world. */
 World::World() {
     /* Create the renderer's scene manager for the world. */
     m_scene = new Scene(this);
+
+    /* Create the physics world. */
+    m_physics = new PhysicsWorld;
 
     /* Create the root entity. */
     m_root = new Entity("root", this);
@@ -21,12 +26,16 @@ World::World() {
 /** Destroy the world. */
 World::~World() {
     m_root->destroy();
+    delete m_physics;
     delete m_scene;
 }
 
 /** Update the world.
  * @param dt            Time elapsed since last update in seconds. */
 void World::tick(float dt) {
+    /* Update the physics simulation. */
+    m_physics->tick(dt);
+
     /* Update all entities. */
     m_root->tick(dt);
 }

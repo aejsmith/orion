@@ -52,24 +52,6 @@ void Entity::destroy() {
     delete this;
 }
 
-/** Call the specified function on all children.
- * @param func          Function to call. */
-template <typename Func>
-inline void Entity::visitChildren(Func func) {
-    for (Entity *child : m_children)
-        func(child);
-}
-
-/** Call the specified function on all active children.
- * @param func          Function to call. */
-template <typename Func>
-inline void Entity::visitActiveChildren(Func func) {
-    for (Entity *child : m_children) {
-        if (child->active())
-            func(child);
-    }
-}
-
 /** Call the specified function on all components.
  * @param func          Function to call. */
 template <typename Func>
@@ -269,6 +251,8 @@ void Entity::transformed() {
 void Entity::activated() {
     m_activeInWorld = true;
 
+    /* Order is important: components on this entity activate before children's
+     * components. */
     visitActiveComponents([](Component *c) { c->activated(); });
     visitActiveChildren([](Entity *e) { e->activated(); });
 }
@@ -277,6 +261,8 @@ void Entity::activated() {
 void Entity::deactivated() {
     m_activeInWorld = false;
 
+    /* Order is important: components on children deactivate before this
+     * entity's component. */
     visitActiveChildren([](Entity *e) { e->deactivated(); });
     visitActiveComponents([](Component *c) { c->deactivated(); });
 }

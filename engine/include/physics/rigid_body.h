@@ -1,0 +1,96 @@
+/**
+ * @file
+ * @copyright           2015 Alex Smith
+ * @brief               Rigid body component.
+ */
+
+#pragma once
+
+#include "engine/component.h"
+
+#include "physics/physics_material.h"
+
+class btRigidBody;
+class btCollisionShape;
+class btCompoundShape;
+
+/**
+ * Rigid body component.
+ *
+ * The rigid body component is used to add an entity to the physics simulation.
+ * Rigid bodies must have a shape defined using the CollisionShape component.
+ * The body will not truly become active until it also has an active
+ * CollisionShape component available.
+ *
+ * The overall body shape can be defined as a compound of multiple shapes. This
+ * is done by creating child entities and attaching CollisionShapes to them.
+ * A RigidBody will make use of all CollisionShapes on its own entity and its
+ * descendents.
+ *
+ * Note also that an entity cannot have a RigidBody attached if one is already
+ * attached above it in the entity tree.
+ */
+class RigidBody : public Component {
+public:
+    DECLARE_COMPONENT(Component::kRigidBodyType);
+public:
+    explicit RigidBody(Entity *entity);
+    ~RigidBody();
+
+    /** @return             Mass of the body. */
+    float mass() const { return m_mass; }
+    /** @return             Linear damping factor. */
+    float linearDamping() const { return m_linearDamping; }
+    /** @return             Angular damping factor. */
+    float angularDamping() const { return m_angularDamping; }
+    /** @return             Physics material used by the body. */
+    PhysicsMaterial *material() const { return m_material; }
+
+    /** @return             Whether the body is static. */
+    bool isStatic() const { return m_mass == 0.0f; }
+
+    void setMass(float mass);
+    void setLinearDamping(float damping);
+    void setAngularDamping(float damping);
+    void setMaterial(PhysicsMaterial *material);
+
+    void transformed() override;
+    void activated() override;
+    void deactivated() override;
+private:
+    class MotionState;
+private:
+    void createBody(btCollisionShape *shape);
+    void destroyBody();
+
+    btCollisionShape *getShape() const;
+
+    void addShape(CollisionShape *shape);
+    void removeShape(CollisionShape *shape);
+    void updateShape(CollisionShape *shape, btCollisionShape *btShape);
+    void transformShape(CollisionShape *shape);
+private:
+    float m_mass;                       /**< Mass of the body. */
+    float m_linearDamping;              /**< Linear damping factor. */
+    float m_angularDamping;             /**< Angular damping factor. */
+    PhysicsMaterialPtr m_material;      /**< Physics material. */
+
+    /** Whether a transformation callback from Bullet is in progress. */
+    bool m_updatingTransform;
+
+    /** Bullet rigid body. */
+    btRigidBody *m_btRigidBody;
+
+    /**
+     * Compound shape.
+     *
+     * When this body has more than one collision shape, they are compiled into
+     * a compound shape.
+     */
+    btCompoundShape *m_btCompoundShape;
+
+    /** Motion state for receiving motion updates from Bullet. */
+    std::unique_ptr<MotionState> m_motionState;
+
+    friend class CollisionShape;
+};

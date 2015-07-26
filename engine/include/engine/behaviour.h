@@ -20,6 +20,6 @@ class Behaviour : public Component {
 public:
     DECLARE_COMPONENT(Component::kBehaviourType);
 protected:
-    Behaviour(Entity *entity) : Component(Component::kBehaviourType, entity) {}
+    explicit Behaviour(Entity *entity) : Component(Component::kBehaviourType, entity) {}
     ~Behaviour() {}
 };

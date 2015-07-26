@@ -48,7 +48,7 @@ public:
     enum Type {
         kBehaviourType,
         kCameraType,
-        kColliderType,
+        kCollisionShapeType,
         kLightType,
         kRendererType,
         kRigidBodyType,

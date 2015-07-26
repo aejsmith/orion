@@ -67,6 +67,9 @@ public:
 
     Entity *createChild(const std::string &name);
 
+    template<typename Func> void visitChildren(Func func);
+    template<typename Func> void visitActiveChildren(Func func);
+
     /**
      * Components.
      */
@@ -108,8 +111,6 @@ private:
     void addComponent(Component *component);
     void removeComponent(Component *component);
 
-    template<typename Func> void visitChildren(Func func);
-    template<typename Func> void visitActiveChildren(Func func);
     template<typename Func> void visitComponents(Func func);
     template<typename Func> void visitActiveComponents(Func func);
 
@@ -168,4 +169,22 @@ inline Type *Entity::findComponent() const {
     return (m_components[Type::kComponentTypeID])
         ? static_cast<Type *>(m_components[Type::kComponentTypeID])
         : nullptr;
+}
+
+/** Call the specified function on all children.
+ * @param func          Function to call. */
+template <typename Func>
+inline void Entity::visitChildren(Func func) {
+    for (Entity *child : m_children)
+        func(child);
+}
+
+/** Call the specified function on all active children.
+ * @param func          Function to call. */
+template <typename Func>
+inline void Entity::visitActiveChildren(Func func) {
+    for (Entity *child : m_children) {
+        if (child->active())
+            func(child);
+    }
 }

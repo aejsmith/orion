@@ -17,6 +17,8 @@
 
 #include "input/input_manager.h"
 
+#include "physics/physics_manager.h"
+
 #include "render/render_manager.h"
 
 #include "shader/shader_manager.h"
@@ -61,6 +63,7 @@ Engine::Engine(const EngineConfiguration &config) :
     g_renderManager() = new RenderManager;
     g_renderManager->init();
     g_debugManager() = new DebugManager;
+    g_physicsManager() = new PhysicsManager;
 
     /* Create the game instance. */
     m_game = game::createGame();
