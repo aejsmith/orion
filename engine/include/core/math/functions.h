@@ -95,4 +95,19 @@ namespace Math {
         glm::mat4 look = glm::lookAt(glm::vec3(0.0), forward, up);
         return glm::inverse(glm::normalize(glm::quat_cast(look)));
     }
+
+    /**
+     * Compute the difference between quaternion orientations.
+     *
+     * Given two quaternions, a and b, returns the quaternion d such that
+     * d * a = b.
+     *
+     * @param a             Source orientation.
+     * @param b             Destination orientation.
+     *
+     * @return              Orientation difference.
+     */
+    static inline glm::quat quatDifference(const glm::quat &a, const glm::quat &b) {
+        return b * glm::inverse(a);
+    }
 }
