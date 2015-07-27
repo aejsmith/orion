@@ -121,6 +121,44 @@ void RigidBody::setMaterial(PhysicsMaterial *material) {
     }
 }
 
+/** @return             Current velocity of the body. */
+glm::vec3 RigidBody::velocity() {
+    check(m_btRigidBody);
+    return BulletUtil::fromBullet(m_btRigidBody->getLinearVelocity());
+}
+
+/** @return             Current angular velocity of the body. */
+glm::vec3 RigidBody::angularVelocity() {
+    check(m_btRigidBody);
+    return BulletUtil::fromBullet(m_btRigidBody->getAngularVelocity());
+}
+
+/**
+ * Set the linear velocity of the body.
+ *
+ * Sets the linear velocity of the body. Do not do this regularly as it will
+ * result in unrealistic behaviour.
+ *
+ * @param velocity      New velocity for the body.
+ */
+void RigidBody::setVelocity(const glm::vec3 &velocity) {
+    check(m_btRigidBody);
+    m_btRigidBody->setLinearVelocity(BulletUtil::toBullet(velocity));
+}
+
+/**
+ * Set the angular velocity of the body.
+ *
+ * Sets the angular velocity of the body. Do not do this regularly as it will
+ * result in unrealistic behaviour.
+ *
+ * @param velocity      New angular velocity for the body.
+ */
+void RigidBody::setAngularVelocity(const glm::vec3 &velocity) {
+    check(m_btRigidBody);
+    m_btRigidBody->setAngularVelocity(BulletUtil::toBullet(velocity));
+}
+
 /**
  * Get the current shape for the body.
  *

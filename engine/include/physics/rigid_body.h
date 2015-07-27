@@ -14,6 +14,8 @@ class btRigidBody;
 class btCollisionShape;
 class btCompoundShape;
 
+class CollisionShape;
+
 /**
  * Rigid body component.
  *
@@ -37,8 +39,18 @@ public:
     explicit RigidBody(Entity *entity);
     ~RigidBody();
 
+    void transformed() override;
+    void activated() override;
+    void deactivated() override;
+
+    /**
+     * Static properties.
+     */
+
     /** @return             Mass of the body. */
     float mass() const { return m_mass; }
+    /** @return             Whether the body is static. */
+    bool isStatic() const { return m_mass == 0.0f; }
     /** @return             Linear damping factor. */
     float linearDamping() const { return m_linearDamping; }
     /** @return             Angular damping factor. */
@@ -46,17 +58,21 @@ public:
     /** @return             Physics material used by the body. */
     PhysicsMaterial *material() const { return m_material; }
 
-    /** @return             Whether the body is static. */
-    bool isStatic() const { return m_mass == 0.0f; }
-
     void setMass(float mass);
     void setLinearDamping(float damping);
     void setAngularDamping(float damping);
     void setMaterial(PhysicsMaterial *material);
 
-    void transformed() override;
-    void activated() override;
-    void deactivated() override;
+    /**
+     * Dynamic properties updated by the simulation. These can only be used
+     * when the body is active.
+     */
+
+    glm::vec3 velocity();
+    glm::vec3 angularVelocity();
+
+    void setVelocity(const glm::vec3 &velocity);
+    void setAngularVelocity(const glm::vec3 &velocity);
 private:
     class MotionState;
 private:
