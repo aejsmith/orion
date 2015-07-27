@@ -27,8 +27,8 @@ public:
     /** Get the transformation of the world object.
      * @param transform     Transformation to fill in. */
     void getWorldTransform(btTransform &transform) const {
-        transform.setRotation(BulletUtil::toBullet(m_rigidBody->entity()->orientation()));
-        transform.setOrigin(BulletUtil::toBullet(m_rigidBody->entity()->position()));
+        transform.setRotation(BulletUtil::toBullet(m_rigidBody->orientation()));
+        transform.setOrigin(BulletUtil::toBullet(m_rigidBody->position()));
     }
 
     /** Set the transformation of the entity in the world.
@@ -143,10 +143,10 @@ static inline btTransform calculateLocalTransform(
     const RigidBody *rigidBody,
     const CollisionShape *shape)
 {
-    glm::vec3 position = shape->entity()->worldPosition() - rigidBody->entity()->worldPosition();
+    glm::vec3 position = shape->worldPosition() - rigidBody->worldPosition();
     glm::quat orientation = Math::quatDifference(
-        rigidBody->entity()->worldOrientation(),
-        shape->entity()->worldOrientation());
+        rigidBody->worldOrientation(),
+        shape->worldOrientation());
     return btTransform(BulletUtil::toBullet(orientation), BulletUtil::toBullet(position));
 }
 
@@ -279,8 +279,8 @@ void RigidBody::transformShape(CollisionShape *shape) {
 void RigidBody::transformed() {
     if (m_btRigidBody && !m_updatingTransform) {
         btTransform transform(
-            BulletUtil::toBullet(entity()->orientation()),
-            BulletUtil::toBullet(entity()->position()));
+            BulletUtil::toBullet(orientation()),
+            BulletUtil::toBullet(position()));
 
         m_btRigidBody->setWorldTransform(transform);
     }
