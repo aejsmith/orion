@@ -66,11 +66,11 @@ bool InputManager::getButtonState(InputCode code) {
 
         switch (code) {
             case InputCode::kMouseLeft:
-                return mouseState & SDL_BUTTON_LEFT;
+                return mouseState & SDL_BUTTON(SDL_BUTTON_LEFT);
             case InputCode::kMouseMiddle:
-                return mouseState & SDL_BUTTON_MIDDLE;
+                return mouseState & SDL_BUTTON(SDL_BUTTON_MIDDLE);
             case InputCode::kMouseRight:
-                return mouseState & SDL_BUTTON_RIGHT;
+                return mouseState & SDL_BUTTON(SDL_BUTTON_RIGHT);
             default:
                 unreachable();
         }
