@@ -5,13 +5,14 @@
  */
 
 #include "player_controller.h"
+#include "test_game.h"
+
+#include "core/string.h"
 
 #include "engine/asset_manager.h"
 #include "engine/behaviour.h"
 #include "engine/engine.h"
 #include "engine/entity.h"
-#include "engine/game.h"
-#include "engine/mesh.h"
 #include "engine/texture.h"
 #include "engine/world.h"
 
@@ -25,94 +26,23 @@
 #include "input/input_manager.h"
 
 #include "physics/collision_shape.h"
-#include "physics/physics_material.h"
 #include "physics/rigid_body.h"
 
 #include "render/render_manager.h"
 #include "render/utility.h"
 #include "render/vertex.h"
 
-#include "shader/material.h"
-
-/**
- * Game code.
- */
-
-class CubeBehaviour : public Behaviour, public InputHandler {
-public:
-    CubeBehaviour(Entity *entity) :
-        Behaviour(entity),
-        m_rotating(false)
-    {}
-
-    void activated() override {
-        registerInputHandler();
-    }
-
-    void deactivated() override {
-        unregisterInputHandler();
-    }
-
-    void tick(float dt) override {
-        if (g_inputManager->getButtonState(InputCode::kUp)) {
-            if (g_inputManager->getModifiers() & InputModifier::kShift) {
-                entity()->translate(glm::vec3(0.0f, 0.0f, dt * -1.5f));
-            } else {
-                entity()->translate(glm::vec3(0.0f, dt * 1.5f, 0.0f));
-            }
-        }
-
-        if (g_inputManager->getButtonState(InputCode::kDown)) {
-            if (g_inputManager->getModifiers() & InputModifier::kShift) {
-                entity()->translate(glm::vec3(0.0f, 0.0f, dt * 1.5f));
-            } else {
-                entity()->translate(glm::vec3(0.0f, dt * -1.5f, 0.0f));
-            }
-        }
-
-        if (g_inputManager->getButtonState(InputCode::kLeft))
-            entity()->translate(glm::vec3(dt * -1.5f, 0.0f, 0.0f));
-
-        if (g_inputManager->getButtonState(InputCode::kRight))
-            entity()->translate(glm::vec3(dt * 1.5f, 0.0f, 0.0f));
-
-        if (m_rotating)
-            entity()->rotate(dt * 90.0f, glm::vec3(0.0, 1.0, 0.0));
-    }
-protected:
-    bool handleButtonDown(const ButtonEvent &event) override {
-        switch (event.code) {
-            case InputCode::kR:
-                m_rotating = !m_rotating;
-                return true;
-            default:
-                return false;
-        }
-    }
-private:
-    bool m_rotating;
-};
-
-/** Game class. */
-class TestGame : public Game {
-public:
-    TestGame();
-private:
-    Entity *createPlane(Entity *parent, const std::string &name, Material *material, float tiles);
-private:
-    World *m_world;                 /**< Game world. */
-
-    MaterialPtr m_cubeMaterial;
-    MeshPtr m_cubeMesh;
-    PhysicsMaterialPtr m_cubePhysicsMaterial;
-};
-
 /** Create a 2D plane centered at the origin extending in the X/Y direction.
  * @param parent        Parent entity.
  * @param name          Name of the entity.
  * @param material      Material to use for the plane.
  * @param tiles         Texture tiling count. */
-Entity *TestGame::createPlane(Entity *parent, const std::string &name, Material *material, float tiles) {
+static inline Entity *createPlane(
+    Entity *parent,
+    const std::string &name,
+    Material *material,
+    float tiles)
+{
     /* Vertices of the plane. */
     glm::vec3 vertices[] = {
         glm::vec3(-0.5f, -0.5f, 0.0f),
@@ -159,7 +89,9 @@ Entity *TestGame::createPlane(Entity *parent, const std::string &name, Material 
 }
 
 /** Initialize the game world. */
-TestGame::TestGame() {
+TestGame::TestGame() :
+    m_numCubes(0)
+{
     m_cubeMaterial = g_assetManager->load<Material>("game/materials/companion_cube");
     m_cubeMesh = g_assetManager->load<Mesh>("game/models/companion_cube");
     m_cubePhysicsMaterial = g_assetManager->load<PhysicsMaterial>("game/physics_materials/companion_cube");
@@ -185,41 +117,17 @@ TestGame::TestGame() {
     rigidBody->setMass(0.0f);
     rigidBody->setActive(true);
 
-    Entity *cube = m_world->createEntity("cube");
+    Entity *cube = makeCube();
     cube->setPosition(glm::vec3(0.0f, 4.0f, -7.0f));
-    cube->setScale(glm::vec3(0.2f, 0.2f, 0.2f));
     cube->rotate(45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
     cube->rotate(20.0f, glm::vec3(0.0f, 0.0f, -1.0f));
     cube->setActive(true);
-    MeshRenderer *renderer = cube->createComponent<MeshRenderer>(m_cubeMesh);
-    renderer->setMaterial("Material.004", m_cubeMaterial);
-    renderer->setActive(true);
-    CubeBehaviour *behaviour = cube->createComponent<CubeBehaviour>();
-    behaviour->setActive(true);
-    collisionShape = cube->createComponent<BoxCollisionShape>();
-    collisionShape->setHalfExtents(glm::vec3(0.58f, 0.58f, 0.58f));
-    collisionShape->setActive(true);
-    rigidBody = cube->createComponent<RigidBody>();
-    rigidBody->setMaterial(m_cubePhysicsMaterial);
-    rigidBody->setMass(10.0f);
-    rigidBody->setActive(true);
 
-    cube = m_world->createEntity("cube2");
+    cube = makeCube();
     cube->setPosition(glm::vec3(0.2f, 7.0f, -7.0f));
-    cube->setScale(glm::vec3(0.2f, 0.2f, 0.2f));
     cube->rotate(45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
     cube->rotate(20.0f, glm::vec3(0.0f, 0.0f, 1.0f));
     cube->setActive(true);
-    renderer = cube->createComponent<MeshRenderer>(m_cubeMesh);
-    renderer->setMaterial("Material.004", m_cubeMaterial);
-    renderer->setActive(true);
-    collisionShape = cube->createComponent<BoxCollisionShape>();
-    collisionShape->setHalfExtents(glm::vec3(0.58f, 0.58f, 0.58f));
-    collisionShape->setActive(true);
-    rigidBody = cube->createComponent<RigidBody>();
-    rigidBody->setMaterial(m_cubePhysicsMaterial);
-    rigidBody->setMass(10.0f);
-    rigidBody->setActive(true);
 
     Entity *playerEntity = m_world->createEntity("player");
     playerEntity->setPosition(glm::vec3(0.0f, 1.0f, 0.0f));
@@ -230,16 +138,14 @@ TestGame::TestGame() {
     Camera *camera = camEntity->createComponent<Camera>();
     camera->perspective(90.0f, 0.25f, 100.0f);
     camera->setActive(true);
-    PlayerController *controller = playerEntity->createComponent<PlayerController>(camera);
+    PlayerController *controller = playerEntity->createComponent<PlayerController>(this, camera);
     controller->setActive(true);
 
     Entity *lightEntity = m_world->createEntity("light");
     lightEntity->setPosition(glm::vec3(2.0f, 3.0f, -7.0f));
-    //lightEntity->setPosition(glm::vec3(0.0f, 3.0f, -9.5f));
     lightEntity->setActive(true);
     SpotLight *spotLight = lightEntity->createComponent<SpotLight>();
     spotLight->setDirection(glm::vec3(-0.8f, -1.0f, 0.0f));
-    //spotLight->setDirection(glm::vec3(0.0f, -1.0f, 1.0f));
     spotLight->setRange(50.0f);
     spotLight->setAttenuation(1.0f, 0.045f, 0.0075f);
     spotLight->setCutoff(45.0f);
@@ -278,6 +184,31 @@ TestGame::TestGame() {
     pointLight->setAttenuation(1.0f, 0.09f, 0.032f);
     pointLight->setCastShadows(true);
     pointLight->setActive(true);
+}
+
+/** Spawn a cube in the world.
+ * @return              Pointer to created cube entity. Entity is not initially
+ *                      active. */
+Entity *TestGame::makeCube() {
+    unsigned cubeNum = m_numCubes++;
+
+    Entity *entity = m_world->createEntity(String::format("cube_%u", cubeNum));
+    entity->setScale(glm::vec3(0.2f, 0.2f, 0.2f));
+
+    MeshRenderer *renderer = entity->createComponent<MeshRenderer>(m_cubeMesh);
+    renderer->setMaterial("Material.004", m_cubeMaterial);
+    renderer->setActive(true);
+
+    BoxCollisionShape *collisionShape = entity->createComponent<BoxCollisionShape>();
+    collisionShape->setHalfExtents(glm::vec3(0.58f, 0.58f, 0.58f));
+    collisionShape->setActive(true);
+
+    RigidBody *rigidBody = entity->createComponent<RigidBody>();
+    rigidBody->setMaterial(m_cubePhysicsMaterial);
+    rigidBody->setMass(10.0f);
+    rigidBody->setActive(true);
+
+    return entity;
 }
 
 /**

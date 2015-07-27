@@ -5,18 +5,30 @@
  */
 
 #include "player_controller.h"
+#include "test_game.h"
 
 #include "input/input_manager.h"
+
+#include "physics/rigid_body.h"
 
 /** Movement Velocity. */
 static const float kMovementVelocity = 5.0f;
 
+/** Cube firing rate (cubes per second). */
+static const unsigned kCubeRate = 5;
+
+/** Initial moving cube velocity. */
+static const glm::vec3 kInitialCubeVelocity(0.0f, 0.0f, -15.0f);
+
 /** Initialise the player controller.
  * @param entity        Entity that the controller is attached to.
+ * @param game          Game class.
  * @param camera        Camera that the controller should move. */
-PlayerController::PlayerController(Entity *entity, Camera *camera) :
+PlayerController::PlayerController(Entity *entity, TestGame *game, Camera *camera) :
     Behaviour(entity),
-    m_camera(camera)
+    m_game(game),
+    m_camera(camera),
+    m_sinceLastCube(0.0f)
 {}
 
 /** Called when the controller is activated. */
@@ -63,12 +75,37 @@ void PlayerController::tick(float dt) {
         entity()->translate(
             glm::vec3(0.0f, dt * kMovementVelocity, 0.0f));
     }
+
+    if (g_inputManager->getButtonState(InputCode::kMouseRight)) {
+        m_sinceLastCube += dt;
+
+        if (m_sinceLastCube >= 1.0f / static_cast<float>(kCubeRate)) {
+            m_sinceLastCube -= 1.0f / static_cast<float>(kCubeRate);
+            fireCube();
+        }
+    }
 }
 
 /** Handle a button down event.
  * @param event         Input event details.
  * @return              Whether to continue processing the event. */
 bool PlayerController::handleButtonDown(const ButtonEvent &event) {
+    switch (event.code) {
+        case InputCode::kMouseLeft:
+            if (event.modifiers & InputModifier::kLeftAlt) {
+                placeCube();
+            } else {
+                fireCube();
+            }
+
+            break;
+        case InputCode::kMouseRight:
+            m_sinceLastCube = 1.0f / static_cast<float>(kCubeRate);
+            break;
+        default:
+            break;
+    }
+
     return true;
 }
 
@@ -88,4 +125,30 @@ bool PlayerController::handleAxis(const AxisEvent &event) {
     }
 
     return true;
+}
+
+/** Place a stationary cube in the world. */
+void PlayerController::placeCube() {
+    Entity *cube = m_game->makeCube();
+
+    cube->setPosition(position() + (orientation() * glm::vec3(0.0f, 0.0f, -4.0f)));
+    cube->setOrientation(orientation());
+
+    cube->setActive(true);
+}
+
+/** Fire a cube. */
+void PlayerController::fireCube() {
+    Entity *cube = m_game->makeCube();
+
+    glm::quat cubeOrientation = orientation() * m_camera->entity()->orientation();
+
+    cube->setPosition(position() + (cubeOrientation * glm::vec3(0.0f, 0.0f, -4.0f)));
+    cube->setOrientation(cubeOrientation);
+
+    cube->setActive(true);
+
+    RigidBody *rigidBody = cube->findComponent<RigidBody>();
+    check(rigidBody);
+    rigidBody->setVelocity(cubeOrientation * kInitialCubeVelocity);
 }
