@@ -141,7 +141,7 @@ void PlayerController::placeCube() {
 void PlayerController::fireCube() {
     Entity *cube = m_game->makeCube();
 
-    glm::quat cubeOrientation = orientation() * m_camera->entity()->orientation();
+    glm::quat cubeOrientation = m_camera->entity()->worldOrientation();
 
     cube->setPosition(position() + (cubeOrientation * glm::vec3(0.0f, 0.0f, -4.0f)));
     cube->setOrientation(cubeOrientation);
