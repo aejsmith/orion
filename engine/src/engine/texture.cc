@@ -1,19 +1,32 @@
+/*
+ * Copyright (C) 2015 Alex Smith
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
 /**
  * @file
- * @copyright           2015 Alex Smith
  * @brief               Texture asset classes.
  *
- * @todo                Pooling of depth buffers, don't need to allocate one for
- *                      every single render texture. Would use the render target
- *                      pool from the renderer.
- * @todo                RenderTexture needs to keep its owning texture alive
- *                      while it is in use. RenderLayer holds a RenderTarget
- *                      pointer, which won't keep a reference to the texture.
- *                      To solve this we could store a TextureBasePtr in
- *                      RenderTexture, and have a way to be notified when the
- *                      RenderTarget is no longer referred to by any layers, at
- *                      which point we would drop the reference if the texture
- *                      is not referred to anywhere else.
+ * TODO:
+ *  - Pooling of depth buffers, don't need to allocate one for every single
+ *    render texture. Would use the render target pool from the renderer.
+ *  - RenderTexture needs to keep its owning texture alive while it is in use.
+ *    RenderLayer holds a RenderTarget pointer, which won't keep a reference to
+ *    the texture. To solve this we could store a TextureBasePtr in
+ *    RenderTexture, and have a way to be notified when the RenderTarget is no
+ *    longer referred to by any layers, at which point we would drop the
+ *    reference if the texture is not referred to anywhere else.
  */
 
 #include "engine/texture.h"
