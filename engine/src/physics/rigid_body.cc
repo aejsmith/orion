@@ -32,6 +32,8 @@
 #include "physics/physics_world.h"
 #include "physics/rigid_body.h"
 
+#include <functional>
+
 /** Synchronises Bullet and internal states. */
 class RigidBody::MotionState : public btMotionState {
 public:

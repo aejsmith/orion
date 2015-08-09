@@ -23,6 +23,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Woverloaded-virtual"
+#pragma GCC diagnostic ignored "-Wignored-qualifiers"
 #include <btBulletDynamicsCommon.h>
 #pragma GCC diagnostic pop
 
