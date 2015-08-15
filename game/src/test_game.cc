@@ -126,7 +126,7 @@ TestGame::TestGame() :
     floor->setScale(glm::vec3(100.0f, 100.0f, 1.0f));
     floor->setActive(true);
     BoxCollisionShape *collisionShape = floor->createComponent<BoxCollisionShape>();
-    collisionShape->setHalfExtents(glm::vec3(50.0f, 50.0f, 0.01f));
+    collisionShape->setHalfExtents(glm::vec3(0.5f, 0.5f, 0.01f));
     collisionShape->setActive(true);
     RigidBody *rigidBody = floor->createComponent<RigidBody>();
     rigidBody->setMass(0.0f);
@@ -215,7 +215,7 @@ Entity *TestGame::makeCube() {
     renderer->setActive(true);
 
     BoxCollisionShape *collisionShape = entity->createComponent<BoxCollisionShape>();
-    collisionShape->setHalfExtents(glm::vec3(0.58f, 0.58f, 0.58f));
+    collisionShape->setHalfExtents(glm::vec3(2.9f, 2.9f, 2.9f));
     collisionShape->setActive(true);
 
     RigidBody *rigidBody = entity->createComponent<RigidBody>();

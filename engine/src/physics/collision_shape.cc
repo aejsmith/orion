@@ -29,12 +29,17 @@
 #include "physics/physics_manager.h"
 #include "physics/rigid_body.h"
 
-/** Initialise the collision shape.
+/**
+ * Initialise the collision shape.
+ *
+ * Note that the shape pointer is initially set to null. The shape will be
+ * created when transformed() is called, since that will call updateShape() as
+ * the scale will be marked as changed.
+ *
  * @param entity        Entity that the component belongs to.
- * @param shape         Bullet shape object. */
-CollisionShape::CollisionShape(Entity *entity, btCollisionShape *shape) :
+ */
+CollisionShape::CollisionShape(Entity *entity) :
     Component(Component::kCollisionShapeType, entity),
-    m_btShape(shape),
     m_rigidBody(nullptr)
 {}
 
@@ -44,8 +49,14 @@ CollisionShape::~CollisionShape() {}
 /** Called when the entity's transformation is changed.
  * @param changed       Flags indicating changes made. */
 void CollisionShape::transformed(unsigned changed) {
-    if (m_rigidBody)
-        m_rigidBody->transformShape(this);
+    if (changed & Entity::kScaleChanged) {
+        updateShape();
+    } else {
+        /* Changing the scale involves recreating the shape so we don't need to
+         * do this if the scale changed. */
+        if (m_rigidBody)
+            m_rigidBody->transformShape(this);
+    }
 }
 
 /** Called when the component becomes active in the world. */
@@ -100,7 +111,7 @@ CollisionShape *CollisionShape::fromBtShape(btCollisionShape *btShape) {
  * @param entity        Entity that the component belongs to.
  */
 BoxCollisionShape::BoxCollisionShape(Entity *entity) :
-    CollisionShape(entity, new btBoxShape(btVector3(0.5f, 0.5f, 0.5f))),
+    CollisionShape(entity),
     m_halfExtents(0.5f, 0.5f, 0.5f)
 {}
 
@@ -108,7 +119,12 @@ BoxCollisionShape::BoxCollisionShape(Entity *entity) :
  * @param halfExtents   New half extents for the box. */
 void BoxCollisionShape::setHalfExtents(const glm::vec3 &halfExtents) {
     m_halfExtents = halfExtents;
+    updateShape();
+}
 
+/** Update the Bullet shape, called if dimensions changes. */
+void BoxCollisionShape::updateShape() {
+    glm::vec3 halfExtents = m_halfExtents * worldScale();
     btBoxShape *shape = new btBoxShape(btVector3(halfExtents.x, halfExtents.y, halfExtents.z));
     setShape(shape);
 }
@@ -121,7 +137,7 @@ void BoxCollisionShape::setHalfExtents(const glm::vec3 &halfExtents) {
  * @param entity        Entity that the component belongs to.
  */
 CapsuleCollisionShape::CapsuleCollisionShape(Entity *entity) :
-    CollisionShape(entity, new btCapsuleShape(0.5f, 1.0f)),
+    CollisionShape(entity),
     m_radius(0.5f),
     m_halfHeight(0.5f)
 {}
@@ -140,9 +156,14 @@ void CapsuleCollisionShape::setHalfHeight(float halfHeight) {
     updateShape();
 }
 
-/** Update the Bullet shape geometry. */
+/** Update the Bullet shape, called if dimensions changes. */
 void CapsuleCollisionShape::updateShape() {
-    btCapsuleShape *shape = new btCapsuleShape(m_radius, m_halfHeight * 2.0f);
+    glm::vec3 scale = worldScale();
+    checkMsg(
+        scale.x == scale.y && scale.y == scale.z,
+        "CapsuleCollisionShape does not support a non-uniform scale");
+
+    btCapsuleShape *shape = new btCapsuleShape(m_radius * scale.x, m_halfHeight * 2.0f * scale.x);
     setShape(shape);
 }
 
@@ -154,7 +175,7 @@ void CapsuleCollisionShape::updateShape() {
  * @param entity        Entity that the component belongs to.
  */
 SphereCollisionShape::SphereCollisionShape(Entity *entity) :
-    CollisionShape(entity, new btSphereShape(0.5f)),
+    CollisionShape(entity),
     m_radius(0.5f)
 {}
 
@@ -162,7 +183,16 @@ SphereCollisionShape::SphereCollisionShape(Entity *entity) :
  * @param radius        New radius. */
 void SphereCollisionShape::setRadius(float radius) {
     m_radius = radius;
+    updateShape();
+}
 
-    btSphereShape *shape = new btSphereShape(m_radius);
+/** Update the Bullet shape, called if dimensions changes. */
+void SphereCollisionShape::updateShape() {
+    glm::vec3 scale = worldScale();
+    checkMsg(
+        scale.x == scale.y && scale.y == scale.z,
+        "SphereCollisionShape does not support a non-uniform scale");
+
+    btSphereShape *shape = new btSphereShape(m_radius * scale.x);
     setShape(shape);
 }

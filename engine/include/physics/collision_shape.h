@@ -57,9 +57,12 @@ public:
     void activated() override;
     void deactivated() override;
 protected:
-    CollisionShape(Entity *entity, btCollisionShape *shape);
+    explicit CollisionShape(Entity *entity);
 
     void setShape(btCollisionShape *shape);
+
+    /** Update the Bullet shape, called if dimensions changes. */
+    virtual void updateShape() = 0;
 
     static CollisionShape *fromBtShape(btCollisionShape *btShape);
 private:
@@ -94,6 +97,8 @@ public:
     const glm::vec3 &halfExtents() const { return m_halfExtents; }
 
     void setHalfExtents(const glm::vec3 &halfExtents);
+protected:
+    void updateShape() override;
 private:
     glm::vec3 m_halfExtents;        /**< Half extents of the box. */
 };
@@ -105,7 +110,10 @@ private:
  * bottom. It is defined by the half height of the cylinder, i.e the distance
  * from the entity's local origin to each end of the cylinder, and the radius of
  * the hemispherical ends. Note that with an identity orientation, the capsule
- * is aligned along the X axis.
+ * is aligned along the Y axis.
+ *
+ * Note that this component does not support a non-uniform scale, attempting to
+ * set one will result in an error.
  */
 class CapsuleCollisionShape : public CollisionShape {
 public:
@@ -118,8 +126,8 @@ public:
 
     void setRadius(float radius);
     void setHalfHeight(float halfHeight);
-private:
-    void updateShape();
+protected:
+    void updateShape() override;
 private:
     float m_radius;                 /**< Radius of the hemispherical part. */
     float m_halfHeight;             /**< Half height of the cylindrical part. */
@@ -130,6 +138,9 @@ private:
  *
  * A sphere is defined just by its radius, the distance from the entity's local
  * origin to the edge of the sphere.
+ *
+ * Note that this component does not support a non-uniform scale, attempting to
+ * set one will result in an error.
  */
 class SphereCollisionShape : public CollisionShape {
 public:
@@ -139,6 +150,8 @@ public:
     float radius() const { return m_radius; }
 
     void setRadius(float radius);
+protected:
+    void updateShape() override;
 private:
     float m_radius;                 /**< Radius of the sphere. */
 };
