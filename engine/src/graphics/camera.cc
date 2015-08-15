@@ -64,8 +64,9 @@ void Camera::viewportChanged() {
     m_sceneView.setViewport(pixelViewport());
 }
 
-/** Called when the camera transformation is changed. */
-void Camera::transformed() {
+/** Called when the camera transformation is changed.
+ * @param changed       Flags indicating changes made. */
+void Camera::transformed(unsigned changed) {
     m_sceneView.setTransform(entity()->worldPosition(), entity()->worldOrientation());
 }
 

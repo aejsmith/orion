@@ -57,8 +57,9 @@ void Renderer::setCastShadow(bool castShadow) {
     }
 }
 
-/** Called when the entity's transformation is updated. */
-void Renderer::transformed() {
+/** Called when the entity's transformation is updated.
+ * @param changed       Flags indicating changes made. */
+void Renderer::transformed(unsigned changed) {
     /* Update all scene entity transformations. */
     if (activeInWorld()) {
         for (SceneEntity *sceneEntity : m_sceneEntities)

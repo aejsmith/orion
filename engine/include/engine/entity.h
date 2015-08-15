@@ -44,6 +44,16 @@ class World;
  */
 class Entity : Noncopyable {
 public:
+    /** Transformation change flags. */
+    enum TransformFlags {
+        /** Position of the entity changed. */
+        kPositionChanged = (1 << 0),
+        /** Orientation of the entity changed. */
+        kOrientationChanged = (1 << 1),
+        /** Scale of the entity changed. */
+        kScaleChanged = (1 << 2),
+    };
+public:
     void destroy();
 
     void tick(float dt);
@@ -129,7 +139,7 @@ private:
     template<typename Func> void visitComponents(Func func);
     template<typename Func> void visitActiveComponents(Func func);
 
-    void transformed();
+    void transformed(unsigned changed);
     void activated();
     void deactivated();
 private:

@@ -41,8 +41,9 @@ CollisionShape::CollisionShape(Entity *entity, btCollisionShape *shape) :
 /** Destroy the collision shape. */
 CollisionShape::~CollisionShape() {}
 
-/** Called when the entity's transformation is changed. */
-void CollisionShape::transformed() {
+/** Called when the entity's transformation is changed.
+ * @param changed       Flags indicating changes made. */
+void CollisionShape::transformed(unsigned changed) {
     if (m_rigidBody)
         m_rigidBody->transformShape(this);
 }

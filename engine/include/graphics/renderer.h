@@ -50,7 +50,7 @@ protected:
 protected:
     explicit Renderer(Entity *entity);
 
-    void transformed() override;
+    void transformed(unsigned changed) override;
     void activated() override;
     void deactivated() override;
 

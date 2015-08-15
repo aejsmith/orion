@@ -125,7 +125,7 @@ Entity *Entity::createChild(const std::string &name) {
     m_children.push_back(entity);
 
     /* Update the cached transform to incorporate our transformation. */
-    entity->transformed();
+    entity->transformed(kPositionChanged | kOrientationChanged | kScaleChanged);
 
     return entity;
 }
@@ -141,7 +141,7 @@ void Entity::addComponent(Component *component) {
     /* We do not need to activate the component at this point as the component
      * is initially inactive. We do however need to let it do anything it needs
      * to with the new transformation. */
-    component->transformed();
+    component->transformed(kPositionChanged | kOrientationChanged | kScaleChanged);
 }
 
 /** Remove a component from the entity (internal method).
@@ -162,14 +162,14 @@ void Entity::removeComponent(Component *component) {
  */
 void Entity::setPosition(const glm::vec3 &pos) {
     m_transform.setPosition(pos);
-    transformed();
+    transformed(kPositionChanged);
 }
 
 /** Translate the position of the entity.
  * @param vec           Vector to move by. */
 void Entity::translate(const glm::vec3 &vec) {
     m_transform.setPosition(m_transform.position() + vec);
-    transformed();
+    transformed(kPositionChanged);
 }
 
 /**
@@ -183,7 +183,7 @@ void Entity::translate(const glm::vec3 &vec) {
  */
 void Entity::setOrientation(const glm::quat &orientation) {
     m_transform.setOrientation(orientation);
-    transformed();
+    transformed(kOrientationChanged);
 }
 
 /** Rotate the entity relative to its current orientation.
@@ -199,7 +199,7 @@ void Entity::rotate(const glm::quat &rotation) {
     /* The order of this is important, quaternion multiplication is not
      * commutative. */
     m_transform.setOrientation(rotation * m_transform.orientation());
-    transformed();
+    transformed(kOrientationChanged);
 }
 
 /**
@@ -213,7 +213,7 @@ void Entity::rotate(const glm::quat &rotation) {
  */
 void Entity::setScale(const glm::vec3 &scale) {
     m_transform.setScale(scale);
-    transformed();
+    transformed(kScaleChanged);
 }
 
 /** Update the entity. */
@@ -231,8 +231,9 @@ void Entity::tick(float dt) {
     visitActiveChildren([dt](Entity *e) { e->tick(dt); });
 }
 
-/** Called when the transformation has been updated. */
-void Entity::transformed() {
+/** Called when the transformation has been updated.
+ * @param changed       Flags indicating changes made. */
+void Entity::transformed(unsigned changed) {
     glm::vec3 position = m_transform.position();
     glm::quat orientation = m_transform.orientation();
     glm::vec3 scale = m_transform.scale();
@@ -256,10 +257,10 @@ void Entity::transformed() {
     m_worldTransform.set(position, orientation, scale);
 
     /* Let components know about the transformation. */
-    visitComponents([](Component *c) { c->transformed(); });
+    visitComponents([&](Component *c) { c->transformed(changed); });
 
     /* Visit children and recalculate their transformations. */
-    visitChildren([](Entity *e) { e->transformed(); });
+    visitChildren([&](Entity *e) { e->transformed(changed); });
 }
 
 /** Called when the entity is activated. */

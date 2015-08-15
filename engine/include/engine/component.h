@@ -109,8 +109,10 @@ public:
      * Hook functions.
      */
 
-    /** Called when the entity's transformation is changed. */
-    virtual void transformed() {}
+    /** Called when the entity's transformation is changed.
+     * @param changed       Flags indicating changes made (see
+     *                      Entity::TransformFlags). */
+    virtual void transformed(unsigned changed) {}
 
     /** Called when the component becomes active in the world. */
     virtual void activated() {}

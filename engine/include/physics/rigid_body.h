@@ -54,7 +54,7 @@ public:
     explicit RigidBody(Entity *entity);
     ~RigidBody();
 
-    void transformed() override;
+    void transformed(unsigned changed) override;
     void activated() override;
     void deactivated() override;
 

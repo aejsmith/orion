@@ -103,8 +103,9 @@ glm::vec3 Light::direction() const {
     return orientation() * kDefaultDirection;
 }
 
-/** Called when the entity's transformation is changed. */
-void Light::transformed() {
+/** Called when the entity's transformation is changed.
+ * @param changed       Flags indicating changes made. */
+void Light::transformed(unsigned changed) {
     /* Update SceneLight's direction vector. Here we want to set the absolute
      * direction. */
     glm::vec3 direction = worldOrientation() * kDefaultDirection;

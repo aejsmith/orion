@@ -53,7 +53,7 @@ public:
 public:
     ~CollisionShape();
 
-    void transformed() override;
+    void transformed(unsigned changed) override;
     void activated() override;
     void deactivated() override;
 protected:

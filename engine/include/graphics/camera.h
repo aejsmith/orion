@@ -79,7 +79,7 @@ public:
     /** @return             View-to-projection matrix. */
     const glm::mat4 &projection() { return m_sceneView.projection(); }
 protected:
-    void transformed() override;
+    void transformed(unsigned changed) override;
     void activated() override;
     void deactivated() override;
 private:

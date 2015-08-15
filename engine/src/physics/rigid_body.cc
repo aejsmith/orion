@@ -330,8 +330,9 @@ void RigidBody::transformShape(CollisionShape *shape) {
     }
 }
 
-/** Called when the entity's transformation is changed. */
-void RigidBody::transformed() {
+/** Called when the entity's transformation is changed.
+ * @param changed       Flags indicating changes made. */
+void RigidBody::transformed(unsigned changed) {
     if (m_btRigidBody && !m_updatingTransform) {
         btTransform transform(
             BulletUtil::toBullet(orientation()),

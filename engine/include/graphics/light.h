@@ -50,7 +50,7 @@ public:
 protected:
     Light(Entity *entity, SceneLight::Type type);
 
-    void transformed() override;
+    void transformed(unsigned changed) override;
     void activated() override;
     void deactivated() override;
 
