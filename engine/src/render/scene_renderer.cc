@@ -82,8 +82,8 @@ void SceneRenderer::render() {
     GPUTextureImageRef dest;
     m_target->gpu(dest);
     g_gpuManager->blit(
-        &source,
-        (dest.texture) ? &dest : nullptr,
+        source,
+        dest,
         m_view->viewport().pos(),
         m_view->viewport().pos(),
         m_view->viewport().size());
@@ -212,7 +212,7 @@ void SceneRenderer::renderDeferred() {
      * target while also sampling it. */
     GPUTextureImageRef source(targets.depthBuffer);
     GPUTextureImageRef dest(targets.deferredBufferD);
-    g_gpuManager->blit(&source, &dest, glm::ivec2(0, 0), glm::ivec2(0, 0), targets.deferredBufferSize);
+    g_gpuManager->blit(source, dest, glm::ivec2(0, 0), glm::ivec2(0, 0), targets.deferredBufferSize);
 
     /* Now restore primary render target and render light volumes. */
     setOutputRenderTarget();

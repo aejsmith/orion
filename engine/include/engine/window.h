@@ -32,12 +32,14 @@ public:
     Window(const EngineConfiguration &config);
     ~Window();
 
+    void set(const IntRect *viewport) override;
     void gpu(GPUTextureImageRef &ref) override;
 
     void setTitle(const std::string &title);
 
     /** @return             SDL window. */
     SDL_Window *sdlWindow() const { return m_sdlWindow; }
+
     /** @return             Width of the window (in pixels). */
     uint32_t width() const override { return m_width; }
     /** @return             Height of the window (in pixels). */

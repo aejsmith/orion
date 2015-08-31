@@ -171,8 +171,8 @@ void GLGPUManager::setRenderTarget(const GPURenderTargetDesc *desc, const IntRec
  * @param destPos       Position in destination texture to copy to.
  * @param size          Size of area to copy. */
 void GLGPUManager::blit(
-    const GPUTextureImageRef *source,
-    const GPUTextureImageRef *dest,
+    const GPUTextureImageRef &source,
+    const GPUTextureImageRef &dest,
     glm::ivec2 sourcePos,
     glm::ivec2 destPos,
     glm::ivec2 size)
@@ -180,13 +180,10 @@ void GLGPUManager::blit(
     // TODO: use ARB_copy_image where supported.
     // TODO: validate dimensions? against correct mip level
 
-    check(!source || source->texture);
-    check(!dest || dest->texture);
-
     /* If copying a depth texture, both formats must match. */
-    bool isDepth = source && PixelFormat::isDepth(source->texture->format());
-    check(isDepth == (dest && PixelFormat::isDepth(dest->texture->format())));
-    check(!isDepth || source->texture->format() == dest->texture->format());
+    bool isDepth = !!source && PixelFormat::isDepth(source.texture->format());
+    check(isDepth == (!!dest && PixelFormat::isDepth(dest.texture->format())));
+    check(!isDepth || source.texture->format() == dest.texture->format());
 
     /* Preserve current framebuffer state. */
     GLuint prevDrawFBO = this->state.boundDrawFramebuffer;
@@ -194,14 +191,14 @@ void GLGPUManager::blit(
 
     /* Create a framebuffer for the source. */
     GLuint sourceFBO = 0;
-    if (source) {
+    if (!!source) {
         GPURenderTargetDesc sourceTarget;
         if (isDepth) {
             sourceTarget.numColours = 0;
-            sourceTarget.depthStencil = *source;
+            sourceTarget.depthStencil = source;
         } else {
             sourceTarget.numColours = 1;
-            sourceTarget.colour[0] = *source;
+            sourceTarget.colour[0] = source;
         }
 
         sourceFBO = createFBO(sourceTarget);
@@ -209,14 +206,14 @@ void GLGPUManager::blit(
 
     /* Bind the destination as the draw framebuffer. */
     GLuint destFBO = 0;
-    if (dest) {
+    if (!!dest) {
         GPURenderTargetDesc destTarget;
         if (isDepth) {
             destTarget.numColours = 0;
-            destTarget.depthStencil = *dest;
+            destTarget.depthStencil = dest;
         } else {
             destTarget.numColours = 1;
-            destTarget.colour[0] = *dest;
+            destTarget.colour[0] = dest;
         }
 
         destFBO = createFBO(destTarget);

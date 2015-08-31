@@ -60,14 +60,13 @@ DebugOverlay::~DebugOverlay() {
 
 /** Render the debug overlay. */
 void DebugOverlay::render() {
-    // FIXME: This is broken.
-    GPURenderTargetDesc desc;
-    desc.numColours = 1;
-    renderTarget()->gpu(desc.colour[0]);
-    g_gpuManager->setRenderTarget((desc.colour[0].texture) ? &desc : nullptr, &pixelViewport());
+    renderTarget()->set(&pixelViewport());
 
     /* Want to blend text with background, no depth test. */
-    g_gpuManager->setBlendState<BlendFunc::kAdd, BlendFactor::kSourceAlpha, BlendFactor::kOneMinusSourceAlpha>();
+    g_gpuManager->setBlendState<
+        BlendFunc::kAdd,
+        BlendFactor::kSourceAlpha,
+        BlendFactor::kOneMinusSourceAlpha>();
     g_gpuManager->setDepthStencilState<ComparisonFunc::kAlways, false>();
 
     FontVariant *font = g_debugManager->textFontVariant();

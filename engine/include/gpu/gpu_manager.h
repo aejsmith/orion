@@ -169,6 +169,7 @@ public:
      * viewport to the size of the new render target.
      *
      * @param desc          Pointer to render target descriptor.
+     * @param viewport      Optional viewport rectangle.
      */
     virtual void setRenderTarget(const GPURenderTargetDesc *desc, const IntRect *viewport = nullptr) = 0;
 
@@ -193,7 +194,8 @@ public:
      * Copy pixels from one texture to another.
      *
      * Copies a rectangle of pixels from one texture to another. If either the
-     * source or dest arguments are nullptr, the main window will be used.
+     * source or dest arguments are null image references, the main window will
+     * be used.
      *
      * @param source        Source texture image reference.
      * @param dest          Destination texture image reference.
@@ -202,8 +204,8 @@ public:
      * @param size          Size of area to copy.
      */
     virtual void blit(
-        const GPUTextureImageRef *source,
-        const GPUTextureImageRef *dest,
+        const GPUTextureImageRef &source,
+        const GPUTextureImageRef &dest,
         glm::ivec2 sourcePos,
         glm::ivec2 destPos,
         glm::ivec2 size) = 0;

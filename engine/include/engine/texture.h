@@ -73,6 +73,8 @@ class RenderTexture : public RenderTarget {
 public:
     uint32_t width() const override;
     uint32_t height() const override;
+
+    void set(const IntRect *viewport) override;
     void gpu(GPUTextureImageRef &ref) override;
 
     /** @return             Texture referred to by this render target. */

@@ -19,8 +19,6 @@
  * @brief               Texture asset classes.
  *
  * TODO:
- *  - Pooling of depth buffers, don't need to allocate one for every single
- *    render texture. Would use the render target pool from the renderer.
  *  - RenderTexture needs to keep its owning texture alive while it is in use.
  *    RenderLayer holds a RenderTarget pointer, which won't keep a reference to
  *    the texture. To solve this we could store a TextureBasePtr in
@@ -247,7 +245,17 @@ uint32_t RenderTexture::height() const {
     return m_texture->gpu()->height();
 }
 
-/** Get the target GPU texture image reference for this render target.
+/** Set the render target as the current.
+ * @param viewport      Optional viewport rectangle. */
+void RenderTexture::set(const IntRect *viewport) {
+    GPURenderTargetDesc desc;
+    desc.numColours = 1;
+    desc.colour[0].texture = m_texture->gpu();
+    desc.colour[0].layer = m_layer;
+    g_gpuManager->setRenderTarget(&desc, viewport);
+}
+
+/** Get the target GPU texture image reference.
  * @param ref           Image reference structure to fill in. */
 void RenderTexture::gpu(GPUTextureImageRef &ref) {
     ref.texture = m_texture->gpu();

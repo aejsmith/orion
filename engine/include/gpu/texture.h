@@ -171,6 +171,9 @@ public:
         mip(inMip)
     {}
 
+    /** @return             Whether this is a null image reference. */
+    bool operator !() const { return !texture; }
+
     /** Compare this reference with another. */
     bool operator ==(const GPUTextureImageRef &other) const {
         return texture == other.texture && layer == other.layer && mip == other.mip;

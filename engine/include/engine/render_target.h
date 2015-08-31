@@ -134,9 +134,29 @@ public:
 
     void render();
 
-    /** Get the target GPU texture image reference for this render target.
-     * @param ref           Image reference structure to fill in. If the texture
-     *                      is set to null, the main window will be used. */
+    /**
+     * Set the render target as the current.
+     *
+     * Sets this render target the current render target. Note that most
+     * RenderTarget objects do not have their own depth buffer (only the main
+     * window does), therefore this should only be used with depth testing and
+     * writes disabled. In most cases, rendering to a render target should be
+     * done on temporary buffers and blitted onto the target.
+     *
+     * @param viewport      Optional viewport rectangle, if null viewport is set
+     *                      to the render target dimensions.
+     */
+    virtual void set(const IntRect *viewport) = 0;
+
+    /**
+     * Get the target GPU texture image reference.
+     *
+     * Gets a GPU texture image reference referring to the render target. This
+     * is only suitable for use as a blit target, do not attempt to use it to
+     * set the render target.
+     *
+     * @param ref           Image reference structure to fill in.
+     */
     virtual void gpu(GPUTextureImageRef &ref) = 0;
 protected:
     explicit RenderTarget(unsigned priority);

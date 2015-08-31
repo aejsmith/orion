@@ -57,7 +57,13 @@ Window::~Window() {
     SDL_DestroyWindow(m_sdlWindow);
 }
 
-/** Get the target GPU texture image reference for this render target.
+/** Set the render target as the current.
+ * @param viewport      Optional viewport rectangle. */
+void Window::set(const IntRect *viewport) {
+    g_gpuManager->setRenderTarget(nullptr, viewport);
+}
+
+/** Get the target GPU texture image reference.
  * @param ref           Image reference structure to fill in. */
 void Window::gpu(GPUTextureImageRef &ref) {
     ref.texture = nullptr;

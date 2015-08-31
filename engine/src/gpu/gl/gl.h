@@ -119,8 +119,8 @@ public:
     void endFrame(bool vsync) override;
 
     void blit(
-        const GPUTextureImageRef *source,
-        const GPUTextureImageRef *dest,
+        const GPUTextureImageRef &source,
+        const GPUTextureImageRef &dest,
         glm::ivec2 sourcePos,
         glm::ivec2 destPos,
         glm::ivec2 size) override;
