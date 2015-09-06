@@ -1,7 +1,10 @@
 Import('env')
 
 objects = map(env.Object, [
+    'effects/test_effect.cc',
+
     'draw_list.cc',
+    'post_effect.cc',
     'primitive_renderer.cc',
     'render_manager.cc',
     'scene.cc',

@@ -43,6 +43,7 @@
  */
 Camera::Camera(Entity *entity) :
     Component(Component::kCameraType, entity),
+    m_sceneView(&m_postEffectChain),
     m_renderPath(RenderPath::kDeferred)
 {
     /* Initialize the scene view with a default projection. */

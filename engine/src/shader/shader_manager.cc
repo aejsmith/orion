@@ -40,6 +40,8 @@ ShaderManager::ShaderManager() {
     setGlobalTexture("deferredBufferC", TextureSlots::kDeferredBufferC);
     setGlobalTexture("deferredBufferD", TextureSlots::kDeferredBufferD);
     setGlobalTexture("shadowMap", TextureSlots::kShadowMap);
+    setGlobalTexture("depthBuffer", TextureSlots::kDepthBuffer);
+    setGlobalTexture("sourceTexture", TextureSlots::kSourceTexture);
 }
 
 /**

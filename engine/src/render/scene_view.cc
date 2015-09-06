@@ -33,11 +33,14 @@ IMPLEMENT_UNIFORM_STRUCT(ViewUniforms, "view", UniformSlots::kViewUniforms);
  *
  * Initializes the scene view. The view is initially invalid: a transformation,
  * projection and viewport must be set manually.
+ *
+ * @param effectChain   Post-processing effect chain, if any.
  */
-SceneView::SceneView() :
+SceneView::SceneView(const PostEffectChain *effectChain) :
     m_viewOutdated(true),
     m_projectionOutdated(true),
-    m_aspect(1.0f)
+    m_aspect(1.0f),
+    m_postEffectChain(effectChain)
 {}
 
 /** Destroy the scene view. */

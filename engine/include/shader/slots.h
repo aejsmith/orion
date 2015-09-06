@@ -53,9 +53,7 @@ namespace UniformSlots {
  *
  * @note                Keep shader-specific definitions first, the texture
  *                      array in Material is indexed by slot (size is
- *                      kMaterialTexturesEnd). Also, be careful reordering,
- *                      slot numbers are currently hardcoded in shader
- *                      definitions.
+ *                      kMaterialTexturesEnd).
  */
 namespace TextureSlots {
     enum {
@@ -71,5 +69,11 @@ namespace TextureSlots {
 
         /** Shadow map. */
         kShadowMap = 20,
+
+        /** Depth buffer (should only be used by post-processing effects). */
+        kDepthBuffer = 21,
+
+        /** Source texture for post-processing effects. */
+        kSourceTexture = 22,
     };
 }

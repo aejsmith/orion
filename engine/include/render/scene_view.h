@@ -23,6 +23,8 @@
 
 #include "shader/uniform_buffer.h"
 
+class PostEffectChain;
+
 /** Per-view uniform buffer structure. */
 UNIFORM_STRUCT_BEGIN(ViewUniforms)
     UNIFORM_STRUCT_MEMBER(glm::mat4, view);
@@ -43,7 +45,7 @@ UNIFORM_STRUCT_END;
  */
 class SceneView {
 public:
-    SceneView();
+    explicit SceneView(const PostEffectChain *effectChain = nullptr);
     ~SceneView();
 
     void setTransform(const glm::vec3 &position, const glm::quat &orientation);
@@ -69,6 +71,9 @@ public:
     /** @return             Aspect ratio. */
     float aspect() const { return m_aspect; }
 
+    /** @return             Post-processing effect chain (if any). */
+    const PostEffectChain *postEffectChain() const { return m_postEffectChain; }
+
     const glm::mat4 &projection();
 
     GPUBuffer *uniforms();
@@ -88,6 +93,9 @@ private:
 
     IntRect m_viewport;             /**< Viewport rectangle in pixels. */
     float m_aspect;                 /**< Aspect ratio. */
+
+    /** Post-processing effect chain (if any). */
+    const PostEffectChain *m_postEffectChain;
 
     /** Uniform buffer containing per-view parameters. */
     UniformBuffer<ViewUniforms> m_uniforms;

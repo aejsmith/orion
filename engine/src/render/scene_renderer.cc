@@ -21,6 +21,7 @@
 
 #include "engine/debug_manager.h"
 
+#include "render/post_effect.h"
 #include "render/primitive_renderer.h"
 #include "render/render_manager.h"
 #include "render/scene.h"
@@ -49,6 +50,7 @@ SceneRenderer::~SceneRenderer() {}
 void SceneRenderer::render() {
     /* Allocate render targets. */
     g_renderManager->allocRenderTargets(m_path, glm::ivec2(m_target->width(), m_target->height()));
+    const RenderManager::RenderTargets &targets = g_renderManager->renderTargets();
 
     /* Get all lights affecting the view and set up state for them. */
     m_scene->visitVisibleLights(m_view, [this] (SceneLight *l) { addLight(l); });
@@ -73,12 +75,18 @@ void SceneRenderer::render() {
     renderDeferred();
     renderForward();
 
+    /* Perform post-processing, and get the resulting output buffer. When this
+     * returns the output buffer it gives should be the current render target. */
+    const PostEffectChain *effectChain = m_view->postEffectChain();
+    GPUTexture *finalTexture = (effectChain)
+        ? effectChain->render(targets.colourBuffer, targets.depthBuffer, m_view->viewport().size())
+        : targets.colourBuffer.get();
+
     /* Draw debug primitives onto the view. */
     g_debugManager->renderView(m_view);
 
     /* Finally, blit the output buffer onto the real render target. */
-    const RenderManager::RenderTargets &targets = g_renderManager->renderTargets();
-    GPUTextureImageRef source(targets.colourBuffer);
+    GPUTextureImageRef source(finalTexture);
     GPUTextureImageRef dest;
     m_target->gpu(dest);
     g_gpuManager->blit(

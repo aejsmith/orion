@@ -25,6 +25,7 @@
 #include "engine/render_target.h"
 
 #include "render/defs.h"
+#include "render/post_effect.h"
 #include "render/scene_view.h"
 
 /** A view into the world from which the scene will be rendered. */
@@ -50,6 +51,8 @@ public:
 
     /** @return             Rendering path. */
     RenderPath renderPath() const { return m_renderPath; }
+    /** @return             Post-processing effect chain. */
+    PostEffectChain &postEffectChain() { return m_postEffectChain; }
 
     void render() override;
 
@@ -87,6 +90,7 @@ private:
 private:
     SceneView m_sceneView;              /**< Scene view implementing this camera. */
     RenderPath m_renderPath;            /**< Render path to use for the camera. */
+    PostEffectChain m_postEffectChain;  /**< Post-processing effect chain. */
 };
 
 /** Set up a perspective projection.

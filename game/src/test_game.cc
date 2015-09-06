@@ -43,6 +43,7 @@
 #include "physics/collision_shape.h"
 #include "physics/rigid_body.h"
 
+#include "render/effects/test_effect.h"
 #include "render/render_manager.h"
 #include "render/utility.h"
 #include "render/vertex.h"
@@ -155,6 +156,9 @@ TestGame::TestGame() :
     camera->setActive(true);
     PlayerController *controller = playerEntity->createComponent<PlayerController>(this, camera);
     controller->setActive(true);
+
+//    TestEffect *testEffect = new TestEffect;
+//    camera->postEffectChain().addEffect(testEffect);
 
     Entity *lightEntity = m_world->createEntity("light");
     lightEntity->setPosition(glm::vec3(2.0f, 3.0f, -7.0f));
