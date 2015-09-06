@@ -37,17 +37,28 @@
  * @param dest          Destination texture.
  * @param material      Material to draw with.
  * @param pass          If >= 0, a specific pass index to draw.
+ * @param samplerState  Sampler state for sampling the source texture.
  */
-void PostEffect::blit(GPUTexture *source, GPUTexture *dest, Material *material, int pass) {
-    /* Set up a sampler state. TODO: Separate sampler and texture setup... */
-    GPUSamplerStateDesc samplerDesc;
-    samplerDesc.filterMode = SamplerFilterMode::kNearest;
-    samplerDesc.maxAnisotropy = 1;
-    samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
-    GPUSamplerStatePtr sampler = g_gpuManager->createSamplerState(samplerDesc);
+void PostEffect::blit(
+    GPUTexture *source,
+    GPUTexture *dest,
+    Material *material,
+    int pass,
+    GPUSamplerState *samplerState)
+{
+    /* Set up a sampler state. */
+    GPUSamplerStatePtr defaultState;
+    if (!samplerState) {
+        GPUSamplerStateDesc samplerDesc;
+        samplerDesc.filterMode = SamplerFilterMode::kNearest;
+        samplerDesc.maxAnisotropy = 1;
+        samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
+        defaultState = g_gpuManager->createSamplerState(samplerDesc);
+        samplerState = defaultState;
+    }
 
     /* Bind source texture. */
-    g_gpuManager->bindTexture(TextureSlots::kSourceTexture, source, sampler);
+    g_gpuManager->bindTexture(TextureSlots::kSourceTexture, source, samplerState);
 
     /* Set the render target to the destination. */
     GPURenderTargetDesc rtDesc;

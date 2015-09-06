@@ -1,6 +1,7 @@
 Import('env')
 
 objects = map(env.Object, [
+    'effects/fxaa_effect.cc',
     'effects/test_effect.cc',
 
     'draw_list.cc',

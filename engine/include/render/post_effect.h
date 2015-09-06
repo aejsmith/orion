@@ -53,7 +53,12 @@ protected:
     /** Initialise the effect. */
     PostEffect() {}
 
-    void blit(GPUTexture *source, GPUTexture *dest, Material *material, int pass = -1);
+    void blit(
+        GPUTexture *source,
+        GPUTexture *dest,
+        Material *material,
+        int pass = -1,
+        GPUSamplerState *samplerState = nullptr);
 };
 
 /**
