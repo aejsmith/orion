@@ -30,7 +30,7 @@
 
 class Mesh;
 
-/** Sub component of a Mesh. */
+/** Sub-component of a Mesh. */
 class SubMesh {
 public:
     /** @return             Parent mesh. */
@@ -39,6 +39,7 @@ public:
     GPUVertexDataPtr vertices;          /**< Local vertex data, overrides parent's vertex data. */
     GPUIndexDataPtr indices;            /**< Indices into vertex data. */
     size_t material;                    /**< Material index in parent mesh. */
+    BoundingBox boundingBox;            /**< Axis-aligned bounding box. */
 private:
     explicit SubMesh(Mesh *parent) : material(0), m_parent(parent) {}
     ~SubMesh() {}

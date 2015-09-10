@@ -42,8 +42,12 @@ public:
     struct SubMeshDesc {
         std::string material;           /**< Material name. */
         std::vector<uint16_t> indices;  /**< Array of vertex indices to go into index buffer. */
+        BoundingBox boundingBox;        /**< Bounding box. */
     public:
-        explicit SubMeshDesc(const std::string &inMaterial) : material(inMaterial) {}
+        explicit SubMeshDesc(const std::string &inMaterial) :
+            material(inMaterial),
+            boundingBox(glm::vec3(FLT_MAX), glm::vec3(FLT_MIN))
+        {}
     };
 
     /** Indexes into the vertex element arrays for a single vertex. */
@@ -185,10 +189,13 @@ AssetPtr OBJLoader::load() {
             GPUIndexData::kUnsignedShortType,
             desc.indices.size());
 
+        subMesh->boundingBox = desc.boundingBox;
+
         logDebug("%s: Submesh %u: %u indices", m_path, mesh->numSubMeshes() - 1, desc.indices.size());
     }
 
-    logDebug("%s: %u vertices, %u submeshes, %u materials",
+    logDebug(
+        "%s: %u vertices, %u submeshes, %u materials",
         m_path, m_vertices.size(), mesh->numSubMeshes(), mesh->numMaterials());
 
     return mesh;
@@ -303,6 +310,12 @@ bool OBJLoader::addFace(const std::vector<std::string> &tokens) {
                 m_normals[key.normal],
                 m_texcoords[key.texcoord]);
         }
+
+        /* Record minimum and maximum positions for bounding box calculation. */
+        m_currentSubMesh->boundingBox.minimum
+            = glm::min(m_currentSubMesh->boundingBox.minimum, m_positions[key.position]);
+        m_currentSubMesh->boundingBox.maximum
+            = glm::max(m_currentSubMesh->boundingBox.maximum, m_positions[key.position]);
 
         indices[i] = ret.first->second;
     }

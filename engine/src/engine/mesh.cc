@@ -17,6 +17,12 @@
 /**
  * @file
  * @brief               Mesh asset class.
+ *
+ * TODO:
+ *  - Proper interface for modification of mesh data. We shouldn't require users
+ *    to have to generate the GPU buffers themselves and we should automatically
+ *    updating sub-mesh bounding boxes whenever the local or shared vertex data
+ *    is changed.
  */
 
 #include "engine/mesh.h"
