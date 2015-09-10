@@ -203,6 +203,38 @@ void DebugManager::drawLine(const glm::vec3 &start, const glm::vec3 &end, const 
     }
 }
 
+/** Draw a bounding box in the world.
+ * @param box           Box to draw.
+ * @param colour        Colour to draw in.
+ * @param perView       If true, the box will only be drawn for the next view
+ *                      rendered. Otherwise, it will be drawn for all views
+ *                      rendered within the current frame. */
+void DebugManager::drawBoundingBox(const BoundingBox &box, const glm::vec4 &colour, bool perView) {
+    /* Calculate corners (left/right, bottom/top, back/front). */
+    glm::vec3 lbb(box.minimum.x, box.minimum.y, box.minimum.z);
+    glm::vec3 lbf(box.minimum.x, box.minimum.y, box.maximum.z);
+    glm::vec3 ltb(box.minimum.x, box.maximum.y, box.minimum.z);
+    glm::vec3 ltf(box.minimum.x, box.maximum.y, box.maximum.z);
+    glm::vec3 rbb(box.maximum.x, box.minimum.y, box.minimum.z);
+    glm::vec3 rbf(box.maximum.x, box.minimum.y, box.maximum.z);
+    glm::vec3 rtb(box.maximum.x, box.maximum.y, box.minimum.z);
+    glm::vec3 rtf(box.maximum.x, box.maximum.y, box.maximum.z);
+
+    /* Convert to lines. */
+    drawLine(lbb, rbb, colour, perView);
+    drawLine(rbb, rbf, colour, perView);
+    drawLine(rbf, lbf, colour, perView);
+    drawLine(lbf, lbb, colour, perView);
+    drawLine(ltb, rtb, colour, perView);
+    drawLine(rtb, rtf, colour, perView);
+    drawLine(rtf, ltf, colour, perView);
+    drawLine(ltf, ltb, colour, perView);
+    drawLine(lbb, ltb, colour, perView);
+    drawLine(rbb, rtb, colour, perView);
+    drawLine(rbf, rtf, colour, perView);
+    drawLine(lbf, ltf, colour, perView);
+}
+
 /**
  * Render debug primitives for a view.
  *

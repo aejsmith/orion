@@ -43,6 +43,7 @@ public:
     ~DebugManager();
 
     void drawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &colour, bool perView = false);
+    void drawBoundingBox(const BoundingBox &box, const glm::vec4 &colour, bool perView = false);
 
     void renderView(SceneView *view);
     void endFrame();
