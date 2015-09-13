@@ -76,6 +76,10 @@ public:
 
     const glm::mat4 &projection();
 
+    const glm::mat4 &viewProjection();
+    const glm::mat4 &inverseViewProjection();
+    const Frustum &frustum();
+
     GPUBuffer *uniforms();
 private:
     void updateMatrices();
@@ -91,6 +95,13 @@ private:
     glm::mat4 m_projection;         /**< View-to-projection matrix. */
     bool m_projectionOutdated;      /**< Whether the projection matrix needs updating. */
 
+    /** Combined view-projection matrix. */
+    glm::mat4 m_viewProjection;
+    /** Inverse view-projection matrix. */
+    glm::mat4 m_inverseViewProjection;
+
+    Frustum m_frustum;              /**< Viewing frustum. */
+
     IntRect m_viewport;             /**< Viewport rectangle in pixels. */
     float m_aspect;                 /**< Aspect ratio. */
 
@@ -100,3 +111,38 @@ private:
     /** Uniform buffer containing per-view parameters. */
     UniformBuffer<ViewUniforms> m_uniforms;
 };
+
+/** Get the world-to-view matrix.
+ * @return              World-to-view matrix. */
+inline const glm::mat4 &SceneView::view() {
+    updateMatrices();
+    return m_view;
+}
+
+/** Get the view-to-projection matrix.
+ * @return              View-to-projection matrix. */
+inline const glm::mat4 &SceneView::projection() {
+    updateMatrices();
+    return m_projection;
+}
+
+/** Get the combined world-to-projection matrix.
+ * @return              World-to-projection matrix. */
+inline const glm::mat4 &SceneView::viewProjection() {
+    updateMatrices();
+    return m_viewProjection;
+}
+
+/** Get the inverse world-to-projection matrix.
+ * @return              Inverse world-to-projection matrix. */
+inline const glm::mat4 &SceneView::inverseViewProjection() {
+    updateMatrices();
+    return m_inverseViewProjection;
+}
+
+/** Get the viewing frustum.
+ * @return              Viewing frustum. */
+inline const Frustum &SceneView::frustum() {
+    updateMatrices();
+    return m_frustum;
+}

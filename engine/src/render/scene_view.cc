@@ -87,20 +87,6 @@ void SceneView::setViewport(const IntRect &viewport) {
     }
 }
 
-/** Get the world-to-view matrix.
- * @return              World-to-view matrix. */
-const glm::mat4 &SceneView::view() {
-    updateMatrices();
-    return m_view;
-}
-
-/** Get the view-to-projection matrix.
- * @return              View-to-projection matrix. */
-const glm::mat4 &SceneView::projection() {
-    updateMatrices();
-    return m_projection;
-}
-
 /** Get the uniform buffer containing view parameters.
  * @return              Pointer to buffer containing view parameters. */
 GPUBuffer *SceneView::uniforms() {
@@ -135,7 +121,11 @@ void SceneView::updateMatrices() {
     }
 
     if (wasOutdated) {
-        m_uniforms->viewProjection = m_projection * m_view;
-        m_uniforms->inverseViewProjection = glm::inverse(m_uniforms->viewProjection);
+        m_viewProjection = m_projection * m_view;
+        m_inverseViewProjection = glm::inverse(m_viewProjection);
+        m_frustum.update(m_viewProjection, m_inverseViewProjection);
+
+        m_uniforms->viewProjection = m_viewProjection;
+        m_uniforms->inverseViewProjection = m_inverseViewProjection;
     }
 }
