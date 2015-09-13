@@ -23,6 +23,8 @@
 
 #include "core/math/bounding_box.h"
 #include "core/math/box.h"
+#include "core/math/frustum.h"
 #include "core/math/functions.h"
+#include "core/math/plane.h"
 #include "core/math/rect.h"
 #include "core/math/transform.h"
