@@ -47,21 +47,7 @@ public:
         return this->minimum == other.minimum && this->maximum == other.maximum;
     }
 
-    /** Transform the bounding box.
-     * @param matrix        Matrix to transform by.
-     * @return              Transformed bounding box. */
-    BoundingBox transform(const glm::mat4 &matrix) const {
-        glm::vec3 xa = glm::vec3(matrix[0]) * this->minimum.x;
-        glm::vec3 xb = glm::vec3(matrix[0]) * this->maximum.x;
+    BoundingBox transform(const glm::mat4 &matrix) const;
 
-        glm::vec3 ya = glm::vec3(matrix[1]) * this->minimum.y;
-        glm::vec3 yb = glm::vec3(matrix[1]) * this->maximum.y;
-
-        glm::vec3 za = glm::vec3(matrix[2]) * this->minimum.z;
-        glm::vec3 zb = glm::vec3(matrix[2]) * this->maximum.z;
-
-        return BoundingBox(
-            glm::min(xa, xb) + glm::min(ya, yb) + glm::min(za, zb) + glm::vec3(matrix[3]),
-            glm::max(xa, xb) + glm::max(ya, yb) + glm::max(za, zb) + glm::vec3(matrix[3]));
-    }
+    void debugDraw(const glm::vec4 &colour, bool perView = false) const;
 };

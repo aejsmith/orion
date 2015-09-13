@@ -1,6 +1,7 @@
 Import('env')
 
 objects = map(env.Object, [
+    'bounding_box.cc',
     'transform.cc',
 ])
 
