@@ -19,6 +19,7 @@
  * @brief               Scene entity base class.
  */
 
+#include "render/scene.h"
 #include "render/scene_entity.h"
 
 #include "shader/slots.h"
@@ -31,10 +32,31 @@ IMPLEMENT_UNIFORM_STRUCT(EntityUniforms, "entity", UniformSlots::kEntityUniforms
  * Note that properties are not initialised. They should be initialised by the
  * creator of the entity.
  */
-SceneEntity::SceneEntity() {}
+SceneEntity::SceneEntity() :
+    m_updatePending(false)
+{}
 
 /** Destroy the entity. */
 SceneEntity::~SceneEntity() {}
+
+/** Set the transformation of the entity.
+ * @param transform     New transformation. */
+void SceneEntity::setTransform(const Transform &transform) {
+    m_transform = transform;
+
+    m_uniforms->transform = m_transform.matrix();
+    m_uniforms->position = m_transform.position();
+
+    queueUpdate();
+}
+
+/** Set the bounding box of the entity.
+ * @param boundingBox   New bounding box. */
+void SceneEntity::setBoundingBox(const BoundingBox &boundingBox) {
+    m_boundingBox = boundingBox;
+
+    queueUpdate();
+}
 
 /** Set whether the rendered object casts a shadow.
  * @param castShadow    Whether the rendered object casts a shadow. */
@@ -42,11 +64,14 @@ void SceneEntity::setCastShadow(bool castShadow) {
     m_castShadow = castShadow;
 }
 
-/** Private function called from Scene to set the transformation.
- * @param transform     New transformation. */
-void SceneEntity::setTransform(const Transform &transform) {
-    m_transform = transform;
+/** Mark the entity as requiring an update in the Scene. */
+void SceneEntity::queueUpdate() {
+    /* Either transform or bounding box has changed, recalculate world bounding
+     * box. TODO: Could defer this until Scene performs update? */
+    m_worldBoundingBox = m_boundingBox.transform(m_transform.matrix());
 
-    m_uniforms->transform = m_transform.matrix();
-    m_uniforms->position = m_transform.position();
+    if (m_scene && !m_updatePending) {
+        m_updatePending = true;
+        m_scene->queueEntityUpdate(this);
+    }
 }

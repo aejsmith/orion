@@ -48,16 +48,16 @@ public:
     /** @return             World that the scene corresponds to. */
     World *world() const { return m_world; }
 
-    void addEntity(SceneEntity *entity, const Transform &transform);
+    void addEntity(SceneEntity *entity);
     void removeEntity(SceneEntity *entity);
-    void transformEntity(SceneEntity *entity, const Transform &transform);
+    void queueEntityUpdate(SceneEntity *entity);
 
     void addLight(SceneLight *light, const glm::vec3 &position);
     void removeLight(SceneLight *light);
     void transformLight(SceneLight *light, const glm::vec3 &position);
 
-    void visitVisibleEntities(const SceneView *view, const std::function<void (SceneEntity *)> &func);
-    void visitVisibleLights(const SceneView *view, const std::function<void (SceneLight *)> &func);
+    void visitVisibleEntities(SceneView *view, const std::function<void (SceneEntity *)> &func);
+    void visitVisibleLights(SceneView *view, const std::function<void (SceneLight *)> &func);
 private:
     World *m_world;                 /**< World that the scene corresponds to. */
 

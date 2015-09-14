@@ -35,13 +35,7 @@ Renderer::Renderer(Entity *entity) :
 
 /** Destory the component. */
 Renderer::~Renderer() {
-    /* At this point the entities are not added to the renderer, so just
-     * delete them all. */
-    while (!m_sceneEntities.empty()) {
-        SceneEntity *sceneEntity = m_sceneEntities.front();
-        m_sceneEntities.pop_front();
-        delete sceneEntity;
-    }
+    check(m_sceneEntities.empty());
 }
 
 /** Set whether the rendered object casts a shadow.
@@ -50,10 +44,8 @@ void Renderer::setCastShadow(bool castShadow) {
     if (castShadow != m_castShadow) {
         m_castShadow = castShadow;
 
-        if (activeInWorld()) {
-            for (SceneEntity *sceneEntity : m_sceneEntities)
-                sceneEntity->setCastShadow(castShadow);
-        }
+        for (SceneEntity *sceneEntity : m_sceneEntities)
+            sceneEntity->setCastShadow(castShadow);
     }
 }
 
@@ -61,10 +53,8 @@ void Renderer::setCastShadow(bool castShadow) {
  * @param changed       Flags indicating changes made. */
 void Renderer::transformed(unsigned changed) {
     /* Update all scene entity transformations. */
-    if (activeInWorld()) {
-        for (SceneEntity *sceneEntity : m_sceneEntities)
-            world()->scene()->transformEntity(sceneEntity, worldTransform());
-    }
+    for (SceneEntity *sceneEntity : m_sceneEntities)
+        sceneEntity->setTransform(worldTransform());
 }
 
 /** Called when the component becomes active in the world. */
@@ -76,9 +66,10 @@ void Renderer::activated() {
 
     /* Set properties and add them all to the renderer. */
     for (SceneEntity *sceneEntity : m_sceneEntities) {
+        sceneEntity->setTransform(worldTransform());
         sceneEntity->setCastShadow(m_castShadow);
 
-        world()->scene()->addEntity(sceneEntity, worldTransform());
+        world()->scene()->addEntity(sceneEntity);
     }
 }
 
@@ -87,6 +78,9 @@ void Renderer::deactivated() {
     while (!m_sceneEntities.empty()) {
         SceneEntity *sceneEntity = m_sceneEntities.back();
         m_sceneEntities.pop_back();
+
         world()->scene()->removeEntity(sceneEntity);
+
+        delete sceneEntity;
     }
 }

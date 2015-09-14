@@ -29,10 +29,9 @@ Scene::Scene(World *world) : m_world(world) {}
 Scene::~Scene() {}
 
 /** Add an entity to the scene.
- * @param entity        Entity to add.
- * @param transform     Transformation for the entity. */
-void Scene::addEntity(SceneEntity *entity, const Transform &transform) {
-    entity->setTransform(transform);
+ * @param entity        Entity to add. */
+void Scene::addEntity(SceneEntity *entity) {
+    entity->m_scene = this;
     m_entities.push_back(entity);
 }
 
@@ -40,17 +39,15 @@ void Scene::addEntity(SceneEntity *entity, const Transform &transform) {
  * @param entity        Entity to remove. */
 void Scene::removeEntity(SceneEntity *entity) {
     m_entities.remove(entity);
+    entity->m_scene = nullptr;
 }
 
-/** Set the transformation of an entity in the scene.
- * @param entity        Entity to transform.
- * @param transform     New transformation. */
-void Scene::transformEntity(SceneEntity *entity, const Transform &transform) {
+/** Queue an update for an entity in the scene.
+ * @param entity        Entity which requires an update. */
+void Scene::queueEntityUpdate(SceneEntity *entity) {
     /* When we have proper scene management this will have to move stuff around
      * in the octree or whatever... */
-    entity->setTransform(transform);
-
-    // TODO: Avoid extra work if position hasn't changed?
+    entity->m_updatePending = false;
 }
 
 /** Add an light to the scene.
@@ -78,16 +75,17 @@ void Scene::transformLight(SceneLight *light, const glm::vec3 &position) {
 /** Call a function on each entity visible from a view.
  * @param view          View into the scene.
  * @param func          Function to call on visible entities. */
-void Scene::visitVisibleEntities(const SceneView *view, const std::function<void (SceneEntity *)> &func) {
-    // TODO: Frustum culling.
-    for (SceneEntity *entity : m_entities)
-        func(entity);
+void Scene::visitVisibleEntities(SceneView *view, const std::function<void (SceneEntity *)> &func) {
+    for (SceneEntity *entity : m_entities) {
+        if (Math::intersect(view->frustum(), entity->worldBoundingBox()))
+            func(entity);
+    }
 }
 
 /** Call a function on each light affecting a view.
  * @param view          View into the scene.
  * @param func          Function to call on visible lights. */
-void Scene::visitVisibleLights(const SceneView *view, const std::function<void (SceneLight *)> &func) {
+void Scene::visitVisibleLights(SceneView *view, const std::function<void (SceneLight *)> &func) {
     // TODO: Light culling. Directional/ambient lights always affect.
     for (SceneLight *light : m_lights) {
         /* Ignore lights that would have no contribution. */

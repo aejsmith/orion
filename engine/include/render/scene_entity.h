@@ -44,8 +44,6 @@ class SceneEntity {
 public:
     virtual ~SceneEntity();
 
-    void setCastShadow(bool castShadow);
-
     /** @return             Current transformation. */
     const Transform &transform() const { return m_transform; }
     /** @return             Current position. */
@@ -54,12 +52,18 @@ public:
     const glm::quat &orientation() const { return m_transform.orientation(); }
     /** @return             Current scale. */
     const glm::vec3 &scale() const { return m_transform.scale(); }
-
+    /** @return             Local-space bounding box. */
+    const BoundingBox &boundingBox() const { return m_boundingBox; }
+    /** @return             World-space bounding box. */
+    const BoundingBox &worldBoundingBox() const { return m_worldBoundingBox; }
     /** @return             Whether the rendered object casts a shadow. */
     bool castShadow() const { return m_castShadow; }
-
     /** @return             GPU buffer containing entity uniforms. */
     GPUBuffer *uniforms() const { return m_uniforms.gpu(); }
+
+    void setTransform(const Transform &transform);
+    void setBoundingBox(const BoundingBox &boundingBox);
+    void setCastShadow(bool castShadow);
 
     /** Get the geometry for the entity.
      * @param geometry      Geometry structure to fill in. */
@@ -71,10 +75,15 @@ public:
 protected:
     SceneEntity();
 private:
-    void setTransform(const Transform &transform);
+    void queueUpdate();
 private:
     Transform m_transform;          /**< Transformation of the entity. */
+    BoundingBox m_boundingBox;      /**< Local-space bounding box. */
+    BoundingBox m_worldBoundingBox; /**< World-space bounding box. */
     bool m_castShadow;              /**< Whether the rendered object casts a shadow. */
+
+    Scene *m_scene;                 /**< Scene the entity belongs to. */
+    bool m_updatePending;           /**< Whether an update in the Scene is pending. */
 
     /** Uniform buffer containing per-entity parameters. */
     UniformBuffer<EntityUniforms> m_uniforms;

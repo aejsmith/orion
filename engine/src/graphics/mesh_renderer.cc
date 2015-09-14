@@ -29,13 +29,7 @@
 /** Scene entity for rendering a SubMesh. */
 class SubMeshSceneEntity : public SceneEntity {
 public:
-    /** Initialize the scene entity.
-     * @param mesh          Submesh to render.
-     * @param parent        Parent mesh renderer. */
-    SubMeshSceneEntity(SubMesh *subMesh, MeshRenderer *parent) :
-        m_subMesh(subMesh),
-        m_parent(parent)
-    {}
+    SubMeshSceneEntity(SubMesh *subMesh, MeshRenderer *parent);
 
     void geometry(Geometry &geometry) const override;
     Material *material() const override;
@@ -43,6 +37,16 @@ private:
     SubMesh *m_subMesh;             /**< Submesh to render. */
     MeshRenderer *m_parent;         /**< Parent mesh renderer. */
 };
+
+/** Initialize the scene entity.
+ * @param mesh          Submesh to render.
+ * @param parent        Parent mesh renderer. */
+SubMeshSceneEntity::SubMeshSceneEntity(SubMesh *subMesh, MeshRenderer *parent) :
+    m_subMesh(subMesh),
+    m_parent(parent)
+{
+    setBoundingBox(subMesh->boundingBox);
+}
 
 /** Get the geometry for the entity.
  * @param geometry      Draw data structure to fill in. */

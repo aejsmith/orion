@@ -23,6 +23,7 @@
  *    to have to generate the GPU buffers themselves and we should automatically
  *    updating sub-mesh bounding boxes whenever the local or shared vertex data
  *    is changed.
+ *  - Bounding box changes need to propagate to MeshRenderer/SceneEntity.
  */
 
 #include "engine/mesh.h"
