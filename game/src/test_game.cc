@@ -79,6 +79,8 @@ static inline Entity *createPlane(
     MeshPtr mesh(new Mesh());
     SubMesh *subMesh = mesh->addSubMesh();
     subMesh->material = mesh->addMaterial("default");
+    subMesh->boundingBox.minimum = glm::vec3(-0.5f, -0.5f, 0.0f);
+    subMesh->boundingBox.maximum = glm::vec3(0.5f, 0.5f, 0.0f);
 
     std::vector<SimpleVertex> data;
     data.emplace_back(vertices[0], normal, texcoords[0]);
