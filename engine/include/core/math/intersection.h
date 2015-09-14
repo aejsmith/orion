@@ -16,16 +16,22 @@
 
 /**
  * @file
- * @brief               Math library.
+ * @brief               Intersection test functions.
  */
 
 #pragma once
 
 #include "core/math/bounding_box.h"
-#include "core/math/box.h"
 #include "core/math/frustum.h"
-#include "core/math/functions.h"
-#include "core/math/intersection.h"
-#include "core/math/plane.h"
-#include "core/math/rect.h"
-#include "core/math/transform.h"
+
+namespace Math {
+    extern bool intersect(const BoundingBox &box, const Frustum &frustum);
+
+    /** Check for intersection between an AABB and a frustum.
+     * @param frustum       Frustum to test.
+     * @param box           AABB to test.
+     * @return              Whether the shapes intersect. */
+    static inline bool intersect(const Frustum &frustum, const BoundingBox &box) {
+        return intersect(box, frustum);
+    }
+}
