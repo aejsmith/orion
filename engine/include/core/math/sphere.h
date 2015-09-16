@@ -16,17 +16,15 @@
 
 /**
  * @file
- * @brief               Math library.
+ * @brief               Sphere structure.
  */
 
 #pragma once
 
-#include "core/math/bounding_box.h"
-#include "core/math/box.h"
-#include "core/math/frustum.h"
-#include "core/math/functions.h"
-#include "core/math/intersection.h"
-#include "core/math/plane.h"
-#include "core/math/rect.h"
-#include "core/math/sphere.h"
-#include "core/math/transform.h"
+#include "core/defs.h"
+
+/** Structure defining a sphere. */
+struct Sphere {
+    glm::vec3 centre;               /**< Centre of the sphere. */
+    float radius;                   /**< Radius of the sphere. */
+};

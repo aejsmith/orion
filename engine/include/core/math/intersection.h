@@ -23,15 +23,26 @@
 
 #include "core/math/bounding_box.h"
 #include "core/math/frustum.h"
+#include "core/math/sphere.h"
 
 namespace Math {
-    extern bool intersect(const BoundingBox &box, const Frustum &frustum);
+    extern bool intersect(const Frustum &frustum, const Sphere &sphere);
+
+    /** Check for intersection between a sphere and a frustum.
+     * @param sphere        Sphere to test.
+     * @param frustum       Frustum to test.
+     * @return              Whether the shapes intersect. */
+    static inline bool intersect(const Sphere &sphere, const Frustum &frustum) {
+        return intersect(frustum, sphere);
+    }
+
+    extern bool intersect(const Frustum &frustum, const BoundingBox &box);
 
     /** Check for intersection between an AABB and a frustum.
-     * @param frustum       Frustum to test.
      * @param box           AABB to test.
+     * @param frustum       Frustum to test.
      * @return              Whether the shapes intersect. */
-    static inline bool intersect(const Frustum &frustum, const BoundingBox &box) {
-        return intersect(box, frustum);
+    static inline bool intersect(const BoundingBox &box, const Frustum &frustum) {
+        return intersect(frustum, box);
     }
 }

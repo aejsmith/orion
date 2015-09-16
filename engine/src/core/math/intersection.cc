@@ -21,11 +21,25 @@
 
 #include "core/core.h"
 
+/** Check for intersection between a sphere and a frustum.
+ * @param frustum       Frustum to test.
+ * @param sphere        Sphere to test.
+ * @return              Whether the shapes intersect. */
+bool Math::intersect(const Frustum &frustum, const Sphere &sphere) {
+    for (unsigned i = 0; i < Frustum::kNumPlanes; i++) {
+        const Plane &plane = frustum.plane(i);
+        if (plane.distanceTo(sphere.centre) < -sphere.radius)
+            return false;
+    }
+
+    return true;
+}
+
 /** Check for intersection between an AABB and a frustum.
  * @param box           AABB to test.
  * @param frustum       Frustum to test.
  * @return              Whether the shapes intersect. */
-bool Math::intersect(const BoundingBox &box, const Frustum &frustum) {
+bool Math::intersect(const Frustum &frustum, const BoundingBox &box) {
     /*
      * TODO: There is inaccuracy here with larger AABBs. If the AABB intersects
      * with one of the planes but the point of intersection is not actually

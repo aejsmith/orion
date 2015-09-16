@@ -48,7 +48,7 @@ public:
     }
 
     /**
-     * Get the P-vertex for this box given a normal
+     * Get the P-vertex for this box given a normal.
      *
      * Gets the positive (P-) vertex for this box given a normal, i.e. the
      * vertex of the box which is furthest along the normal's direction.
@@ -71,7 +71,7 @@ public:
     }
 
     /**
-     * Get the N-vertex for this box given a normal
+     * Get the N-vertex for this box given a normal.
      *
      * Gets the negative (N-) vertex for this box given a normal, i.e. the
      * vertex of the box which is furthest away from the normal's direction.
