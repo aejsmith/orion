@@ -75,6 +75,7 @@ void DebugOverlay::render() {
     const EngineStats &stats = g_engine->stats();
     drawText(10, 10, String::format("FPS: %.1f", stats.fps));
     drawText(10, 10 + font->height(), String::format("Frame time: %.0f ms", stats.frameTime * 1000.0f));
+    drawText(10, 10 + (2 * font->height()), String::format("Draw calls: %u", stats.drawCalls));
 }
 
 /** Scale a pixel distance to clip space distance.

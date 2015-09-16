@@ -104,6 +104,8 @@ void Engine::run() {
     while (true) {
         uint32_t startTicks = SDL_GetTicks();
 
+        m_stats.drawCalls = 0;
+
         if (!pollEvents())
             return;
 

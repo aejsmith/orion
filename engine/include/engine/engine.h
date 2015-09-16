@@ -60,6 +60,7 @@ public:
 struct EngineStats {
     float fps;                      /**< Number of frames per second. */
     float frameTime;                /**< Last frame time in seconds. */
+    unsigned drawCalls;             /**< Number of draw calls in the last frame. */
 public:
     EngineStats() : fps(0), frameTime(0) {}
 };
@@ -77,7 +78,7 @@ public:
     /** @return             Game instance. */
     Game *game() const { return m_game; }
     /** @return             Engine statistics. */
-    const EngineStats &stats() const { return m_stats; }
+    EngineStats &stats() { return m_stats; }
 
     /**
      * World management.

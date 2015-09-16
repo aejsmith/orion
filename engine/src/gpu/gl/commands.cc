@@ -25,6 +25,7 @@
 #include "texture.h"
 #include "vertex_data.h"
 
+#include "engine/engine.h"
 #include "engine/window.h"
 
 /** Bind a pipeline for rendering.
@@ -115,4 +116,6 @@ void GLGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexDat
     } else {
         glDrawArrays(mode, 0, vertices->count());
     }
+
+    g_engine->stats().drawCalls++;
 }
