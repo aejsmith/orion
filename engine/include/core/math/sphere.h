@@ -27,4 +27,9 @@
 struct Sphere {
     glm::vec3 centre;               /**< Centre of the sphere. */
     float radius;                   /**< Radius of the sphere. */
+public:
+    Sphere() {}
+    Sphere(const glm::vec3 &_centre, float _radius) :
+        centre(_centre), radius(_radius)
+    {}
 };

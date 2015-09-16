@@ -109,9 +109,14 @@ public:
     /** Get the shadow view at the specified index.
      * @param index         Index to get at.
      * @return              Pointer to shadow view. */
-    SceneView *shadowView(unsigned index) { return &m_shadowViews[index]; }
+    SceneView *shadowView(unsigned index) {
+        return &m_shadowViews[index];
+    }
+
+    bool cull(SceneView *view) const;
 private:
     void setPosition(const glm::vec3 &position);
+
     void updateVolumeTransform();
     void updateShadowViews();
 private:
@@ -127,6 +132,9 @@ private:
     float m_attenuationLinear;      /**< Linear attenuation factor (point/spot). */
     float m_attenuationExp;         /**< Exponential attenuation factor (point/spot). */
     bool m_castShadows;             /**< Whether the light casts shadows. */
+
+    /** Bounding box (for spot lights). */
+    BoundingBox m_boundingBox;
 
     /** Deferred light volume transformation. */
     Transform m_volumeTransform;

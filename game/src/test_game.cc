@@ -167,7 +167,7 @@ TestGame::TestGame() :
     lightEntity->setActive(true);
     SpotLight *spotLight = lightEntity->createComponent<SpotLight>();
     spotLight->setDirection(glm::vec3(-0.8f, -1.0f, 0.0f));
-    spotLight->setRange(50.0f);
+    spotLight->setRange(20.0f);
     spotLight->setAttenuation(1.0f, 0.045f, 0.0075f);
     spotLight->setCutoff(45.0f);
     spotLight->setCastShadows(true);

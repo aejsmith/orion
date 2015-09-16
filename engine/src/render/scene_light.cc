@@ -17,6 +17,9 @@
 /**
  * @file
  * @brief               Scene light class.
+ *
+ * TODO:
+ *  - Use a frustum rather than a bounding box for spot light culling.
  */
 
 #include "render/render_manager.h"
@@ -159,13 +162,36 @@ GPUTexture *SceneLight::allocShadowMap() const {
     return g_renderManager->allocTempRenderTarget(desc);
 }
 
+/** Determine if the light is visible to a view.
+ * @param view          View to test against.
+ * @return              Whether the light should be culled. */
+bool SceneLight::cull(SceneView *view) const {
+    switch (m_type) {
+        case kAmbientLight:
+        case kDirectionalLight:
+            return false;
+
+        case kPointLight:
+        {
+            Sphere sphere(m_position, m_range);
+            return !Math::intersect(view->frustum(), sphere);
+        }
+
+        case kSpotLight:
+            return !Math::intersect(view->frustum(), m_boundingBox);
+
+        default:
+            return true;
+    }
+}
+
 /** Update the light volume transformation. */
 void SceneLight::updateVolumeTransform() {
     switch (m_type) {
         case kAmbientLight:
         case kDirectionalLight:
             /* Volume is a full-screen quad. The light volume shader does not
-             * use the transformation here, make no change. */
+             * use the transformation here, make no change to it. */
             break;
         case kPointLight:
             /* Volume is a sphere. Geometry has radius of 1, we must scale this
@@ -190,6 +216,12 @@ void SceneLight::updateVolumeTransform() {
 
             m_volumeTransform.set(m_position, orientation, scale);
             m_uniforms->volumeTransform = m_volumeTransform.matrix();
+
+            /* Fit a bounding box around the light's cone. */
+            BoundingBox base(
+                glm::vec3(-1.0f, -1.0f, -1.0f),
+                glm::vec3(1.0f, 1.0f, 0.0f));
+            m_boundingBox = base.transform(m_volumeTransform.matrix());
             break;
         }
 

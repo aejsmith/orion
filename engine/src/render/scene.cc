@@ -89,9 +89,9 @@ void Scene::visitVisibleLights(SceneView *view, const std::function<void (SceneL
     // TODO: Light culling. Directional/ambient lights always affect.
     for (SceneLight *light : m_lights) {
         /* Ignore lights that would have no contribution. */
-        if (!light->intensity() || !glm::length(light->colour()))
-            continue;
-
-        func(light);
+        if (light->intensity() && glm::length(light->colour())) {
+            if (!light->cull(view))
+                func(light);
+        }
     }
 }
