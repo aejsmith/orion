@@ -69,7 +69,7 @@ void Frustum::update(const glm::mat4 &matrix, const glm::mat4 &inverse) {
     }
 
     /* Calculate corners. */
-    static const glm::vec3 corners[kNumCorners] = {
+    const glm::vec3 corners[kNumCorners] = {
         glm::vec3(-1.0f, 1.0f, -1.0f),
         glm::vec3(1.0f, 1.0f, -1.0f),
         glm::vec3(-1.0f, -1.0f, -1.0f),

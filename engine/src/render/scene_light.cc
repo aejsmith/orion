@@ -256,7 +256,7 @@ void SceneLight::updateShadowViews() {
              * apply a bias to this matrix to map coordinates into the [0, 1]
              * range for shadow map sampling, as just the VP transformation
              * yields NDC coordinates, i.e. in the range [-1, 1]. */
-            static const glm::mat4 shadowBiasMatrix(
+            const glm::mat4 shadowBiasMatrix(
                 0.5, 0.0, 0.0, 0.0,
                 0.0, 0.5, 0.0, 0.0,
                 0.0, 0.0, 0.5, 0.0,
@@ -270,7 +270,7 @@ void SceneLight::updateShadowViews() {
         {
             numViews = CubeFace::kNumFaces;
 
-            static const struct {
+            const struct {
                 glm::vec3 direction;
                 glm::vec3 up;
             } cubeFaces[CubeFace::kNumFaces] = {
