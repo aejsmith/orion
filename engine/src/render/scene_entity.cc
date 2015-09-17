@@ -44,8 +44,9 @@ SceneEntity::~SceneEntity() {}
 void SceneEntity::setTransform(const Transform &transform) {
     m_transform = transform;
 
-    m_uniforms->transform = m_transform.matrix();
-    m_uniforms->position = m_transform.position();
+    EntityUniforms *uniforms = m_uniforms.write();
+    uniforms->transform = m_transform.matrix();
+    uniforms->position = m_transform.position();
 
     queueUpdate();
 }

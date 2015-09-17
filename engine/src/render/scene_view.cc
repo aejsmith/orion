@@ -53,7 +53,7 @@ void SceneView::setTransform(const glm::vec3 &position, const glm::quat &orienta
     m_position = position;
     m_orientation = orientation;
 
-    m_uniforms->position = m_position;
+    m_uniforms.write()->position = m_position;
 
     m_viewOutdated = true;
 }
@@ -75,8 +75,9 @@ void SceneView::perspective(float fov, float zNear, float zFar) {
 void SceneView::setViewport(const IntRect &viewport) {
     m_viewport = viewport;
 
-    m_uniforms->viewportPosition = viewport.pos();
-    m_uniforms->viewportSize = viewport.size();
+    ViewUniforms *uniforms = m_uniforms.write();
+    uniforms->viewportPosition = viewport.pos();
+    uniforms->viewportSize = viewport.size();
 
     /* Calculate aspect ratio. If it changes, we must recalculate the projection
      * matrix. */
@@ -98,6 +99,7 @@ GPUBuffer *SceneView::uniforms() {
 /** Update the view/projection matrices. */
 void SceneView::updateMatrices() {
     bool wasOutdated = m_viewOutdated || m_projectionOutdated;
+    ViewUniforms *uniforms = (wasOutdated) ? m_uniforms.write() : nullptr;
 
     if (m_viewOutdated) {
         /* Viewing matrix is a world-to-view transformation, so we want
@@ -106,7 +108,7 @@ void SceneView::updateMatrices() {
         glm::mat4 orientation = glm::mat4_cast(glm::inverse(m_orientation));
 
         m_view = orientation * position;
-        m_uniforms->view = m_view;
+        uniforms->view = m_view;
         m_viewOutdated = false;
     }
 
@@ -116,7 +118,7 @@ void SceneView::updateMatrices() {
         float verticalFOV = 2.0f * atanf(tanf(fov * 0.5f) / m_aspect);
 
         m_projection = glm::perspective(verticalFOV, m_aspect, m_zNear, m_zFar);
-        m_uniforms->projection = m_projection;
+        uniforms->projection = m_projection;
         m_projectionOutdated = false;
     }
 
@@ -125,7 +127,7 @@ void SceneView::updateMatrices() {
         m_inverseViewProjection = glm::inverse(m_viewProjection);
         m_frustum.update(m_viewProjection, m_inverseViewProjection);
 
-        m_uniforms->viewProjection = m_viewProjection;
-        m_uniforms->inverseViewProjection = m_inverseViewProjection;
+        uniforms->viewProjection = m_viewProjection;
+        uniforms->inverseViewProjection = m_inverseViewProjection;
     }
 }

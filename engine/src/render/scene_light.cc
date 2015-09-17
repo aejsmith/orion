@@ -46,7 +46,8 @@ SceneLight::~SceneLight() {}
  * @param direction     New light direction. */
 void SceneLight::setDirection(const glm::vec3 &direction) {
     m_direction = glm::normalize(direction);
-    m_uniforms->direction = m_direction;
+    m_uniforms.write()->direction = m_direction;
+
     updateVolumeTransform();
     updateShadowViews();
 }
@@ -55,14 +56,14 @@ void SceneLight::setDirection(const glm::vec3 &direction) {
  * @param colour        New light colour. */
 void SceneLight::setColour(const glm::vec3 &colour) {
     m_colour = colour;
-    m_uniforms->colour = m_colour;
+    m_uniforms.write()->colour = m_colour;
 }
 
 /** Set the intensity of the light.
  * @param intensity     New light intensity. */
 void SceneLight::setIntensity(float intensity) {
     m_intensity = intensity;
-    m_uniforms->intensity = m_intensity;
+    m_uniforms.write()->intensity = m_intensity;
 }
 
 /** Set the cutoff angle (for spot lights).
@@ -74,7 +75,7 @@ void SceneLight::setCutoff(float cutoff) {
 
     /* Shaders use a precomputed cosine of cutoff angle to avoid having to
      * calculate it for every pixel. */
-    m_uniforms->cosCutoff = cosf(glm::radians(m_cutoff));
+    m_uniforms.write()->cosCutoff = cosf(glm::radians(m_cutoff));
 
     updateVolumeTransform();
     updateShadowViews();
@@ -84,7 +85,7 @@ void SceneLight::setCutoff(float cutoff) {
  * @param range         Range of the light. */
 void SceneLight::setRange(float range) {
     m_range = range;
-    m_uniforms->range = m_range;
+    m_uniforms.write()->range = m_range;
 
     updateVolumeTransform();
     updateShadowViews();
@@ -99,9 +100,10 @@ void SceneLight::setAttenuation(float constant, float linear, float exp) {
     m_attenuationLinear = linear;
     m_attenuationExp = exp;
 
-    m_uniforms->attenuationConstant = m_attenuationConstant;
-    m_uniforms->attenuationLinear = m_attenuationLinear;
-    m_uniforms->attenuationExp = m_attenuationExp;
+    LightUniforms *uniforms = m_uniforms.write();
+    uniforms->attenuationConstant = m_attenuationConstant;
+    uniforms->attenuationLinear = m_attenuationLinear;
+    uniforms->attenuationExp = m_attenuationExp;
 }
 
 /** Set whether the light casts shadows.
@@ -117,7 +119,7 @@ void SceneLight::setCastShadows(bool castShadows) {
  * @param position      New light position. */
 void SceneLight::setPosition(const glm::vec3 &position) {
     m_position = position;
-    m_uniforms->position = m_position;
+    m_uniforms.write()->position = m_position;
 
     updateVolumeTransform();
     updateShadowViews();
@@ -193,6 +195,7 @@ void SceneLight::updateVolumeTransform() {
             /* Volume is a full-screen quad. The light volume shader does not
              * use the transformation here, make no change to it. */
             break;
+
         case kPointLight:
             /* Volume is a sphere. Geometry has radius of 1, we must scale this
              * to the light's range. */
@@ -200,8 +203,9 @@ void SceneLight::updateVolumeTransform() {
                 m_position,
                 glm::quat(),
                 glm::vec3(m_range, m_range, m_range));
-            m_uniforms->volumeTransform = m_volumeTransform.matrix();
+            m_uniforms.write()->volumeTransform = m_volumeTransform.matrix();
             break;
+
         case kSpotLight:
         {
             /* Volume is a cone. Geometry is pointing in the negative Z
@@ -215,7 +219,7 @@ void SceneLight::updateVolumeTransform() {
             glm::quat orientation = Math::quatRotateBetween(glm::vec3(0.0f, 0.0f, -1.0f), m_direction);
 
             m_volumeTransform.set(m_position, orientation, scale);
-            m_uniforms->volumeTransform = m_volumeTransform.matrix();
+            m_uniforms.write()->volumeTransform = m_volumeTransform.matrix();
 
             /* Fit a bounding box around the light's cone. */
             BoundingBox base(
@@ -261,7 +265,7 @@ void SceneLight::updateShadowViews() {
                 0.0, 0.5, 0.0, 0.0,
                 0.0, 0.0, 0.5, 0.0,
                 0.5, 0.5, 0.5, 1.0);
-            m_uniforms->shadowSpace
+            m_uniforms.write()->shadowSpace
                 = shadowBiasMatrix * m_shadowViews[0].projection() * m_shadowViews[0].view();
             break;
         }
@@ -296,7 +300,7 @@ void SceneLight::updateShadowViews() {
 
             /* Shadow calculation in shader requires the near plane value used
              * in our projection. */
-            m_uniforms->shadowZNear = 0.1f;
+            m_uniforms.write()->shadowZNear = 0.1f;
             break;
         }
 

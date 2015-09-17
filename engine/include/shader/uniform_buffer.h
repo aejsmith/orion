@@ -226,16 +226,4 @@ public:
         m_dirty = true;
         return reinterpret_cast<Uniforms *>(m_shadowBuffer);
     }
-
-    /**
-     * Dereference operator.
-     *
-     * Since in most cases when accessing a uniform buffer we want to write
-     * to it (the content of a uniform buffer is usually a mirror of some
-     * engine-side data), we provide a dereference operator that is
-     * equivalent to write() to make writing code look a bit neater.
-     *
-     * @return              Pointer to the buffer for writing.
-     */
-    Uniforms *operator ->() { return write(); }
 };
