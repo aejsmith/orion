@@ -46,7 +46,7 @@ public:
     public:
         explicit SubMeshDesc(const std::string &inMaterial) :
             material(inMaterial),
-            boundingBox(glm::vec3(FLT_MAX), glm::vec3(FLT_MIN))
+            boundingBox(glm::vec3(FLT_MAX), glm::vec3(-FLT_MAX))
         {}
     };
 
