@@ -273,9 +273,6 @@ void SceneRenderer::renderForward() {
     g_gpuManager->setDepthStencilState<>();
     g_gpuManager->setRasterizerState<>();
 
-    /* Render all entities with basic materials. */
-    m_basicDrawList.draw();
-
     /* Now render lit entities for each light to accumulate all lighting
      * contributions. */
     for (LightRenderState &lightState : m_lights) {
@@ -292,6 +289,9 @@ void SceneRenderer::renderForward() {
         g_gpuManager->setBlendState<BlendFunc::kAdd, BlendFactor::kOne, BlendFactor::kOne>();
         g_gpuManager->setDepthStencilState<ComparisonFunc::kEqual, false>();
     }
+
+    /* Render all entities with basic materials. */
+    m_basicDrawList.draw();
 }
 
 /** Set the off-screen output buffers as the render target. */
