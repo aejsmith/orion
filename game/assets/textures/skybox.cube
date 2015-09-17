@@ -1,0 +1,8 @@
+{
+    "negativeXFace": "game/textures/skybox_left",
+    "positiveXFace": "game/textures/skybox_right",
+    "negativeYFace": "game/textures/skybox_bottom",
+    "positiveYFace": "game/textures/skybox_top",
+    "negativeZFace": "game/textures/skybox_back",
+    "positiveZFace": "game/textures/skybox_front"
+}

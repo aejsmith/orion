@@ -1,0 +1,4 @@
+Skybox is rendered using Alex Peterson's Spacescape, from one of the included
+examples.
+
+http://alexcpeterson.com/spacescape/

@@ -36,6 +36,7 @@
 #include "graphics/camera.h"
 #include "graphics/light.h"
 #include "graphics/mesh_renderer.h"
+#include "graphics/skybox.h"
 
 #include "input/input_handler.h"
 #include "input/input_manager.h"
@@ -115,6 +116,10 @@ TestGame::TestGame() :
     m_cubePhysicsMaterial = g_assetManager->load<PhysicsMaterial>("game/physics_materials/companion_cube");
 
     m_world = g_engine->createWorld();
+
+    TextureCubePtr skyboxTexture = g_assetManager->load<TextureCube>("game/textures/skybox");
+    Skybox *skybox = m_world->root()->createComponent<Skybox>(skyboxTexture);
+    skybox->setActive(true);
 
     AmbientLight *ambientLight = m_world->root()->createComponent<AmbientLight>();
     ambientLight->setIntensity(0.05f);
