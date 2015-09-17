@@ -117,3 +117,26 @@ private:
 
 /** Type of a 2D texture pointer. */
 typedef TypedAssetPtr<Texture2D> Texture2DPtr;
+
+/** Class implementing a cube texture. */
+class TextureCube : public TextureBase {
+public:
+    TextureCube(
+        uint32_t size,
+        PixelFormat format = PixelFormat::kR8G8B8A8,
+        unsigned mips = 0,
+        uint32_t flags = GPUTexture::kAutoMipmap);
+    ~TextureCube();
+
+    void clear();
+
+    void update(unsigned face, const void *data, bool updateMipmap = true);
+    void update(unsigned face, const IntRect &area, const void *data, bool updateMipmap = true);
+    void update(unsigned face, unsigned mip, const IntRect &area, const void *data);
+
+    /** @return             Size of the texture. */
+    uint32_t size() const { return m_gpu->width(); }
+};
+
+/** Type of a cube texture pointer. */
+typedef TypedAssetPtr<TextureCube> TextureCubePtr;

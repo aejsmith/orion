@@ -31,6 +31,10 @@
 
 #include "gpu/gpu_manager.h"
 
+/**
+ * Common texture implementation.
+ */
+
 /** Private constructor, does not actually create the texture. */
 TextureBase::TextureBase() :
     m_filterMode(SamplerFilterMode::kAnisotropic),
@@ -99,6 +103,10 @@ void TextureBase::updateSamplerState() {
     desc.addressU = desc.addressV = desc.addressW = m_addressMode;
     m_sampler = g_gpuManager->createSamplerState(desc);
 }
+
+/**
+ * 2D texture implementation.
+ */
 
 /**
  * Create a 2D texture.
@@ -220,6 +228,120 @@ void Texture2D::update(unsigned mip, const IntRect &area, const void *data) {
 RenderTexture *Texture2D::renderTexture() {
     check(m_renderTexture);
     return m_renderTexture;
+}
+
+/**
+ * Cube texture implementation.
+ */
+
+/**
+ * Create a cube texture.
+ *
+ * Creates a new cube texture. The default arguments give the texture a format
+ * of PixelFormat::kR8G8B8A8, and a full mipmap pyramid which can be
+ * automatically updated.
+ *
+ * @param size          Size of the texture.
+ * @param format        Pixel format to use.
+ * @param mips          Number of mip levels (0 for full pyramid).
+ * @param flags         GPU texture creation flags.
+ */
+TextureCube::TextureCube(uint32_t size, PixelFormat format, unsigned mips, uint32_t flags) {
+    GPUTextureDesc desc;
+    desc.type = GPUTexture::kTextureCube;
+    desc.width = size;
+    desc.height = size;
+    desc.format = format;
+    desc.mips = mips;
+    desc.flags = flags;
+
+    m_gpu = g_gpuManager->createTexture(desc);
+}
+
+/** Destroy the texture. */
+TextureCube::~TextureCube() {}
+
+/** Clear the entire texture contents to 0. */
+void TextureCube::clear() {
+    size_t size = this->size() * 2 * PixelFormat::bytesPerPixel(m_gpu->format());
+    std::unique_ptr<char[]> data(new char[size]);
+    memset(data.get(), 0, size);
+
+    for (unsigned i = 0; i < CubeFace::kNumFaces; i++)
+        update(i, data.get());
+}
+
+/**
+ * Replace the entire texture content.
+ *
+ * Replaces the entire content of the top mip level of one of the faces of the
+ * texture with the contents of the supplied buffer. The buffer must contain
+ * pixel data in the same format as the texture, and it must equal the size of
+ * the texture.
+ *
+ * If updateMipmap is true (the default), the mipmap images of the face will be
+ * regenerated based on the new image content. Note that this will only actually
+ * be done if the texture was created with the GPUTexture::kAutoMipmap flag set.
+ *
+ * @param face          Face to update, @see CubeFace.
+ * @param data          New texture data.
+ * @param updateMipmap  Whether to update mipmap images (defaults to true).
+ */
+void TextureCube::update(unsigned face, const void *data, bool updateMipmap) {
+    check(face < CubeFace::kNumFaces);
+
+    IntRect area(0, 0, size(), size());
+    m_gpu->update(area, data, 0, face);
+
+    /* Regenerate mipmaps if requested. */
+    if (updateMipmap && m_gpu->flags() & GPUTexture::kAutoMipmap)
+        m_gpu->generateMipmap();
+}
+
+/**
+ * Update an area of the texture.
+ *
+ * Updates an area of the top mip level of the texture. The buffer must contain
+ * pixel data in the same format as the texture, and it must equal the area
+ * size specified.
+ *
+ * If updateMipmap is true (the default), the mipmap images of the texture
+ * will be regenerated based on the updated image content. Note that this will
+ * only actually be done if the texture was created with the
+ * GPUTexture::kAutoMipmap flag set.
+ *
+ * @param face          Face to update, @see CubeFace.
+ * @param area          Area to update.
+ * @param data          New texture data.
+ * @param updateMipmap  Whether to update mipmap images (defaults to true).
+ */
+void TextureCube::update(unsigned face, const IntRect &area, const void *data, bool updateMipmap) {
+    check(face < CubeFace::kNumFaces);
+
+    m_gpu->update(area, data, 0, face);
+
+    /* Regenerate mipmaps if requested. */
+    if (updateMipmap && m_gpu->flags() & GPUTexture::kAutoMipmap)
+        m_gpu->generateMipmap();
+}
+
+/**
+ * Update a specific mip level of the texture.
+ *
+ * Updates an area of a specific mip level of the texture. The buffer must
+ * contain pixel data in the same format as the texture, and it must equal the
+ * area size specified. No mipmap regeneration will be performed.
+ *
+ * @param face          Face to update, @see CubeFace.
+ * @param mip           Mip level to update.
+ * @param area          Area to update.
+ * @param data          New texture data.
+ */
+void TextureCube::update(unsigned face, unsigned mip, const IntRect &area, const void *data) {
+    check(face < CubeFace::kNumFaces);
+    check(mip < mips());
+
+    m_gpu->update(area, data, mip, face);
 }
 
 /**
