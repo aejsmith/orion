@@ -56,7 +56,7 @@ float calcShadow(LightingData data) {
             float shadowDepth = textureProj(shadowMap, shadowPos.xyw).r;
 
             /* Compare with a bias to prevent shadow acne. */
-            return shadowDepth < (pixelDepth - 0.005) ? 0.4 : 1.0;
+            return shadowDepth < (pixelDepth - 0.005) ? 0.2 : 1.0;
         #elif defined(POINT_LIGHT)
             /* Cube map face is selected by the highest magnitude component in
              * the light to fragment vector. This component is defines the depth
@@ -75,7 +75,7 @@ float calcShadow(LightingData data) {
             float shadowDepth = texture(shadowMap, direction).r;
 
             /* Same as above. */
-            return shadowDepth < (pixelDepth - 0.005) ? 0.4 : 1.0;
+            return shadowDepth < (pixelDepth - 0.005) ? 0.2 : 1.0;
         #else
             return 1.0;
         #endif
