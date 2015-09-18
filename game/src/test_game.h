@@ -45,6 +45,8 @@ private:
     unsigned m_numCubes;            /**< Number of cubes in the world. */
     unsigned m_numLights;           /**< Number of lights in the world. */
 
+    Entity *m_playerEntity;         /**< Player entity. */
+
     /** Cube resources. */
     MaterialPtr m_cubeMaterial;
     MeshPtr m_cubeMesh;

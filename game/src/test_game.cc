@@ -154,16 +154,16 @@ TestGame::TestGame() :
     cube->rotate(20.0f, glm::vec3(0.0f, 0.0f, 1.0f));
     cube->setActive(true);
 
-    Entity *playerEntity = m_world->createEntity("player");
-    playerEntity->setPosition(glm::vec3(0.0f, 1.0f, 0.0f));
-    playerEntity->setActive(true);
-    Entity *camEntity = playerEntity->createChild("camera");
+    m_playerEntity = m_world->createEntity("player");
+    m_playerEntity->setPosition(glm::vec3(0.0f, 1.0f, 0.0f));
+    m_playerEntity->setActive(true);
+    Entity *camEntity = m_playerEntity->createChild("camera");
     camEntity->setPosition(glm::vec3(0.0f, 1.0f, 0.0f));
     camEntity->setActive(true);
     Camera *camera = camEntity->createComponent<Camera>();
     camera->perspective(90.0f, 0.25f, 100.0f);
     camera->setActive(true);
-    PlayerController *controller = playerEntity->createComponent<PlayerController>(this, camera);
+    PlayerController *controller = m_playerEntity->createComponent<PlayerController>(this, camera);
     controller->setActive(true);
 
     FXAAEffect *fxaaEffect = new FXAAEffect;
@@ -222,6 +222,10 @@ TestGame::TestGame() :
 void TestGame::startFrame() {
     g_debugManager->writeText(String::format("Cubes: %u\n", m_numCubes));
     g_debugManager->writeText(String::format("Lights: %u\n", m_numLights));
+
+    glm::vec3 position = m_playerEntity->worldPosition();
+    g_debugManager->writeText(
+        String::format("Position: %.2f %.2f %.2f\n", position.x, position.y, position.z));
 }
 
 /** Spawn a cube in the world.
