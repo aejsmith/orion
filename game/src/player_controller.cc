@@ -96,7 +96,7 @@ void PlayerController::tick(float dt) {
 
         if (m_sinceLastCube >= 1.0f / static_cast<float>(kCubeRate)) {
             m_sinceLastCube -= 1.0f / static_cast<float>(kCubeRate);
-            fireCube();
+            makeCube(g_inputManager->getModifiers());
         }
     }
 }
@@ -107,12 +107,7 @@ void PlayerController::tick(float dt) {
 bool PlayerController::handleButtonDown(const ButtonEvent &event) {
     switch (event.code) {
         case InputCode::kMouseLeft:
-            if (event.modifiers & InputModifier::kLeftAlt) {
-                placeCube();
-            } else {
-                fireCube();
-            }
-
+            makeCube(event.modifiers);
             break;
         case InputCode::kMouseRight:
             m_sinceLastCube = 1.0f / static_cast<float>(kCubeRate);
@@ -142,28 +137,23 @@ bool PlayerController::handleAxis(const AxisEvent &event) {
     return true;
 }
 
-/** Place a stationary cube in the world. */
-void PlayerController::placeCube() {
-    Entity *cube = m_game->makeCube();
-
-    cube->setPosition(position() + (orientation() * glm::vec3(0.0f, 0.0f, -4.0f)));
-    cube->setOrientation(orientation());
-
-    cube->setActive(true);
-}
-
-/** Fire a cube. */
-void PlayerController::fireCube() {
-    Entity *cube = m_game->makeCube();
-
-    glm::quat cubeOrientation = m_camera->entity()->worldOrientation();
-
-    cube->setPosition(position() + (cubeOrientation * glm::vec3(0.0f, 0.0f, -4.0f)));
-    cube->setOrientation(cubeOrientation);
-
+/** Make a cube in the world.
+ * @param modifiers     Current modifier keys. */
+void PlayerController::makeCube(uint32_t modifiers) {
+    Entity *cube = m_game->makeCube(modifiers & InputModifier::kLeftShift);
     cube->setActive(true);
 
-    RigidBody *rigidBody = cube->findComponent<RigidBody>();
-    check(rigidBody);
-    rigidBody->setVelocity(cubeOrientation * kInitialCubeVelocity);
+    if (modifiers & InputModifier::kLeftAlt) {
+        cube->setPosition(position() + (orientation() * glm::vec3(0.0f, 0.0f, -4.0f)));
+        cube->setOrientation(orientation());
+    } else {
+        glm::quat cubeOrientation = m_camera->entity()->worldOrientation();
+
+        cube->setPosition(position() + (cubeOrientation * glm::vec3(0.0f, 0.0f, -4.0f)));
+        cube->setOrientation(cubeOrientation);
+
+        RigidBody *rigidBody = cube->findComponent<RigidBody>();
+        check(rigidBody);
+        rigidBody->setVelocity(cubeOrientation * kInitialCubeVelocity);
+    }
 }

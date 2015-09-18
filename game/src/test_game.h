@@ -37,7 +37,7 @@ class TestGame : public Game {
 public:
     TestGame();
 
-    Entity *makeCube();
+    Entity *makeCube(bool withLights = false);
 private:
     World *m_world;                 /**< Game world. */
     unsigned m_numCubes;            /**< Number of cubes spawned. */

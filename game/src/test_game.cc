@@ -213,9 +213,10 @@ TestGame::TestGame() :
 }
 
 /** Spawn a cube in the world.
+ * @param withLights    Whether to attach lights to the cube.
  * @return              Pointer to created cube entity. Entity is not initially
  *                      active. */
-Entity *TestGame::makeCube() {
+Entity *TestGame::makeCube(bool withLights) {
     unsigned cubeNum = m_numCubes++;
 
     Entity *entity = m_world->createEntity(String::format("cube_%u", cubeNum));
@@ -233,6 +234,32 @@ Entity *TestGame::makeCube() {
     rigidBody->setMaterial(m_cubePhysicsMaterial);
     rigidBody->setMass(10.0f);
     rigidBody->setActive(true);
+
+    if (withLights) {
+        const struct {
+            glm::vec3 direction;
+            glm::vec3 colour;
+        } lights[4] = {
+            { glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(1.0f, 0.0f, 0.0f) },
+            { glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) },
+            { glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f) },
+            { glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 1.0f) },
+        };
+
+        for (unsigned i = 0; i < 4; i++) {
+            Entity *child = entity->createChild(String::format("light_%u", i));
+            child->setActive(true);
+            SpotLight *light = child->createComponent<SpotLight>();
+            light->setDirection(lights[i].direction);
+            light->setColour(lights[i].colour);
+            light->setRange(200.0f);
+            light->setAttenuation(1.0f, 0.1f, 0.0f);
+            light->setIntensity(1.5f);
+            light->setCutoff(30.0f);
+            light->setCastShadows(false);
+            light->setActive(true);
+        }
+    }
 
     return entity;
 }

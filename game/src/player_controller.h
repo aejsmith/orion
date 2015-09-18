@@ -41,8 +41,7 @@ protected:
     bool handleButtonDown(const ButtonEvent &event) override;
     bool handleAxis(const AxisEvent &event) override;
 
-    void placeCube();
-    void fireCube();
+    void makeCube(uint32_t modifiers);
 private:
     TestGame *m_game;               /**< Game class. */
     Camera *m_camera;               /**< Camera that the component is controlling. */
