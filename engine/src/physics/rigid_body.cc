@@ -339,6 +339,12 @@ void RigidBody::transformed(unsigned changed) {
             BulletUtil::toBullet(position()));
 
         m_btRigidBody->setWorldTransform(transform);
+
+        /* We're forcing a change of the transformation, so update Bullet's
+         * interpolation transformation as well. Without doing this the body
+         * may flick back to its old position and then interpolate to the new
+         * one. */
+        m_btRigidBody->setInterpolationWorldTransform(transform);
     }
 }
 
