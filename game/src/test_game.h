@@ -37,10 +37,13 @@ class TestGame : public Game {
 public:
     TestGame();
 
+    void startFrame() override;
+
     Entity *makeCube(bool withLights = false);
 private:
     World *m_world;                 /**< Game world. */
-    unsigned m_numCubes;            /**< Number of cubes spawned. */
+    unsigned m_numCubes;            /**< Number of cubes in the world. */
+    unsigned m_numLights;           /**< Number of lights in the world. */
 
     /** Cube resources. */
     MaterialPtr m_cubeMaterial;

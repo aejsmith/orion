@@ -27,7 +27,13 @@
 class Game : Noncopyable {
 public:
     Game() {}
-    ~Game() {}
+    virtual ~Game() {}
+
+    /** Called at the beginning of each frame. */
+    virtual void startFrame() {}
+
+    /** Called at the end of each frame. */
+    virtual void endFrame() {}
 };
 
 /** Interface to game code. */

@@ -62,7 +62,11 @@ struct EngineStats {
     float frameTime;                /**< Last frame time in seconds. */
     unsigned drawCalls;             /**< Number of draw calls in the last frame. */
 public:
-    EngineStats() : fps(0), frameTime(0) {}
+    EngineStats() :
+        fps(0),
+        frameTime(0),
+        drawCalls(0)
+    {}
 };
 
 /** Main class of the engine. */

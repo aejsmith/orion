@@ -40,9 +40,18 @@ public:
     DebugOverlay();
     ~DebugOverlay();
 
+    void addText(const std::string &text, const glm::vec3 &colour);
+
     void render() override;
 private:
-    void drawText(unsigned x, unsigned y, const std::string &text, const glm::vec3 &colour = glm::vec3(1.0));
+    /** Details of a block of text. */
+    struct TextBlock {
+        std::string text;
+        glm::vec3 colour;
+    };
+private:
+    /** Debug text blocks. */
+    std::list<TextBlock> m_textBlocks;
 };
 
 /** Initialise the debug overlay. */
@@ -58,24 +67,16 @@ DebugOverlay::~DebugOverlay() {
     unregisterLayer();
 }
 
-/** Render the debug overlay. */
-void DebugOverlay::render() {
-    renderTarget()->set(&pixelViewport());
+/** Add a block of text to draw on the debug overlay.
+ * @param text          Text to draw.
+ * @param colour        Colour to draw text in. */
+void DebugOverlay::addText(const std::string &text, const glm::vec3 &colour) {
+    if (m_textBlocks.empty() || m_textBlocks.back().colour != colour)
+        m_textBlocks.emplace_back();
 
-    /* Want to blend text with background, no depth test. */
-    g_gpuManager->setBlendState<
-        BlendFunc::kAdd,
-        BlendFactor::kSourceAlpha,
-        BlendFactor::kOneMinusSourceAlpha>();
-    g_gpuManager->setDepthStencilState<ComparisonFunc::kAlways, false>();
-
-    FontVariant *font = g_debugManager->textFontVariant();
-
-    /* Display engine statistics. */
-    const EngineStats &stats = g_engine->stats();
-    drawText(10, 10, String::format("FPS: %.1f", stats.fps));
-    drawText(10, 10 + font->height(), String::format("Frame time: %.0f ms", stats.frameTime * 1000.0f));
-    drawText(10, 10 + (2 * font->height()), String::format("Draw calls: %u", stats.drawCalls));
+    TextBlock &block = m_textBlocks.back();
+    block.text += text;
+    block.colour = colour;
 }
 
 /** Scale a pixel distance to clip space distance.
@@ -86,31 +87,44 @@ static inline float vertexScale(unsigned distance, unsigned max) {
     return (2.0f / static_cast<float>(max)) * static_cast<float>(distance);
 }
 
-/** Draw text in the debug font.
- * @param x             Position of left-most edge of text.
- * @param y             Position of top-most edge of text.
- * @param text          Text to draw.
- * @param colour        Colour to draw in. */
-void DebugOverlay::drawText(unsigned x, unsigned y, const std::string &text, const glm::vec3 &colour) {
+/** Render the debug overlay. */
+void DebugOverlay::render() {
+    if (m_textBlocks.empty())
+        return;
+
+    renderTarget()->set(&pixelViewport());
+
+    /* Want to blend text with background, no depth test. */
+    g_gpuManager->setBlendState<
+        BlendFunc::kAdd,
+        BlendFactor::kSourceAlpha,
+        BlendFactor::kOneMinusSourceAlpha>();
+    g_gpuManager->setDepthStencilState<ComparisonFunc::kAlways, false>();
+
     FontVariant *font = g_debugManager->textFontVariant();
-
     Material *material = g_debugManager->textMaterial();
-    material->setValue("colour", colour);
 
-    PrimitiveRenderer renderer;
-    renderer.begin(PrimitiveType::kTriangleList, material);
+    const unsigned kMargin = 10;
+    unsigned currX = kMargin;
+    unsigned currY = kMargin;
 
-    unsigned currX = x;
-    unsigned currY = y;
+    for (const TextBlock &block : m_textBlocks) {
+        material->setValue("colour", block.colour);
 
-    for (size_t i = 0; i < text.length(); i++) {
-        if (text[i] == '\r') {
-            currX = x;
-        } else if (text[i] == '\n') {
-            currY += font->height();
-            currX = x;
-        } else {
-            const FontGlyph &glyph = font->getGlyph(text[i]);
+        PrimitiveRenderer renderer;
+        renderer.begin(PrimitiveType::kTriangleList, material);
+
+        for (size_t i = 0; i < block.text.length(); i++) {
+            if (block.text[i] == '\r') {
+                currX = kMargin;
+                continue;
+            } else if (block.text[i] == '\n') {
+                currY += font->height();
+                currX = kMargin;
+                continue;
+            }
+
+            const FontGlyph &glyph = font->getGlyph(block.text[i]);
 
             /* Calculate vertex positions. */
             float vertexX = vertexScale(currX + glyph.offsetX, pixelViewport().width) - 1.0f;
@@ -153,9 +167,11 @@ void DebugOverlay::drawText(unsigned x, unsigned y, const std::string &text, con
 
             currX += glyph.advance;
         }
+
+        renderer.draw(nullptr);
     }
 
-    renderer.draw(nullptr);
+    m_textBlocks.clear();
 }
 
 /** Initialise the debug manager. */
@@ -202,6 +218,21 @@ void DebugManager::drawLine(const glm::vec3 &start, const glm::vec3 &end, const 
     } else {
         m_perFrameLines.push_back(line);
     }
+}
+
+/**
+ * Write text to the debug overlay.
+ *
+ * Writes a block of text to the debug overlay. Text is drawn at the point the
+ * debug overlay is rendered. This is done based on render layer/target
+ * priorities. Any text added with this function after the overlay is rendered
+ * will be drawn next frame.
+ *
+ * @param text          Text to write.
+ * @param colour        Colour to write in.
+ */
+void DebugManager::writeText(const std::string &text, const glm::vec3 &colour) {
+    m_overlay->addText(text, colour);
 }
 
 /**

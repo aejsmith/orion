@@ -44,6 +44,8 @@ public:
 
     void drawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &colour, bool perView = false);
 
+    void writeText(const std::string &text, const glm::vec3 &colour = glm::vec3(1.0));
+
     void renderView(SceneView *view);
     void endFrame();
 

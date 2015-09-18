@@ -20,6 +20,7 @@
  */
 
 #include "core/filesystem.h"
+#include "core/string.h"
 
 #include "engine/asset_manager.h"
 #include "engine/debug_manager.h"
@@ -104,7 +105,16 @@ void Engine::run() {
     while (true) {
         uint32_t startTicks = SDL_GetTicks();
 
+        /* Display statistics from the previous frame. */
+        g_debugManager->writeText(String::format("FPS: %.1f\n", m_stats.fps));
+        g_debugManager->writeText(String::format("Frame time: %.0f ms\n", m_stats.frameTime * 1000.0f));
+        g_debugManager->writeText(String::format("Draw calls: %u\n", m_stats.drawCalls));
+
+        /* Reset frame statistics. */
         m_stats.drawCalls = 0;
+
+        /* Start the frame. */
+        m_game->startFrame();
 
         if (!pollEvents())
             return;
@@ -118,8 +128,10 @@ void Engine::run() {
         /* Clear out debug primitives from this frame. */
         g_debugManager->endFrame();
 
-        m_frames++;
+        m_game->endFrame();
 
+        /* Update statistics. */
+        m_frames++;
         uint32_t endTicks = SDL_GetTicks();
         uint32_t frameTicks = endTicks - startTicks;
         m_stats.frameTime = static_cast<float>(frameTicks) / 1000.0f;

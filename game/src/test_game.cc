@@ -26,6 +26,7 @@
 
 #include "engine/asset_manager.h"
 #include "engine/behaviour.h"
+#include "engine/debug_manager.h"
 #include "engine/engine.h"
 #include "engine/entity.h"
 #include "engine/texture.h"
@@ -109,7 +110,8 @@ static inline Entity *createPlane(
 
 /** Initialize the game world. */
 TestGame::TestGame() :
-    m_numCubes(0)
+    m_numCubes(0),
+    m_numLights(0)
 {
     m_cubeMaterial = g_assetManager->load<Material>("game/materials/companion_cube");
     m_cubeMesh = g_assetManager->load<Mesh>("game/models/companion_cube");
@@ -177,6 +179,7 @@ TestGame::TestGame() :
     spotLight->setCutoff(45.0f);
     spotLight->setCastShadows(true);
     spotLight->setActive(true);
+    m_numLights++;
 
     lightEntity = m_world->createEntity("light2");
     lightEntity->setPosition(glm::vec3(-2.0f, 3.0f, -3.5f));
@@ -188,6 +191,7 @@ TestGame::TestGame() :
     pointLight->setAttenuation(1.0f, 0.09f, 0.032f);
     pointLight->setCastShadows(true);
     pointLight->setActive(true);
+    m_numLights++;
 
     lightEntity = m_world->createEntity("light3");
     lightEntity->setPosition(glm::vec3(2.0f, 3.0f, -3.5f));
@@ -199,6 +203,7 @@ TestGame::TestGame() :
     pointLight->setAttenuation(1.0f, 0.09f, 0.032f);
     pointLight->setCastShadows(true);
     pointLight->setActive(true);
+    m_numLights++;
 
     lightEntity = m_world->createEntity("light4");
     lightEntity->setPosition(glm::vec3(0.0f, 3.0f, -9.0f));
@@ -210,6 +215,13 @@ TestGame::TestGame() :
     pointLight->setAttenuation(1.0f, 0.09f, 0.032f);
     pointLight->setCastShadows(true);
     pointLight->setActive(true);
+    m_numLights++;
+}
+
+/** Called at the start of the frame. */
+void TestGame::startFrame() {
+    g_debugManager->writeText(String::format("Cubes: %u\n", m_numCubes));
+    g_debugManager->writeText(String::format("Lights: %u\n", m_numLights));
 }
 
 /** Spawn a cube in the world.
@@ -259,6 +271,8 @@ Entity *TestGame::makeCube(bool withLights) {
             light->setCastShadows(false);
             light->setActive(true);
         }
+
+        m_numLights += 4;
     }
 
     return entity;
