@@ -113,12 +113,12 @@ void Light::transformed(unsigned changed) {
 
     /* Scene manager needs to know the light has moved. */
     if (activeInWorld())
-        world()->scene()->transformLight(&m_sceneLight, position());
+        world()->scene()->transformLight(&m_sceneLight, worldPosition());
 }
 
 /** Called when the component becomes active in the world. */
 void Light::activated() {
-    world()->scene()->addLight(&m_sceneLight, position());
+    world()->scene()->addLight(&m_sceneLight, worldPosition());
 }
 
 /** Called when the component becomes inactive in the world. */
