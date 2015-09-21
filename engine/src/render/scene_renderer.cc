@@ -116,13 +116,9 @@ void SceneRenderer::addLight(SceneLight *light) {
 
             m_scene->visitVisibleEntities(shadowView, [&] (SceneEntity *entity) {
                 if (entity->castShadow()) {
-                    Shader *shader = entity->material()->shader();
-
-                    if (shader->numPasses(Pass::kShadowCasterPass) > 0) {
-                        state.shadowMapDrawLists[i].addDrawCalls(
-                            entity,
-                            Pass::kShadowCasterPass);
-                    }
+                    state.shadowMapDrawLists[i].addDrawCalls(
+                        entity,
+                        Pass::kShadowCasterPass);
                 }
             });
         }
