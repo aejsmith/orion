@@ -161,7 +161,7 @@ TestGame::TestGame() :
     camEntity->setPosition(glm::vec3(0.0f, 1.0f, 0.0f));
     camEntity->setActive(true);
     Camera *camera = camEntity->createComponent<Camera>();
-    camera->perspective(90.0f, 0.25f, 100.0f);
+    camera->perspective(90.0f, 0.25f, 200.0f);
     camera->setActive(true);
     PlayerController *controller = m_playerEntity->createComponent<PlayerController>(this, camera);
     controller->setActive(true);
