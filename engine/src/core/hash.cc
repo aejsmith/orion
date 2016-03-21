@@ -21,7 +21,7 @@
 
 #include "core/hash.h"
 
-#include "../../../3rdparty/cityhash/city.cc"
+#include "../../3rdparty/cityhash/city.cc"
 
 /** Hash a block of memory.
  * @param buf           Buffer to hash.

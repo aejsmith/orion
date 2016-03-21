@@ -40,7 +40,7 @@ float FxaaLuma(vec4 rgba) {
 #define FXAA_QUALITY__PRESET    12
 #define FXAA_GATHER4_ALPHA      0
 #define FXAA_CUSTOM_LUMA        1
-#include "Fxaa3_11.h"
+#include "../3rdparty/fxaa/Fxaa3_11.h"
 
 void main() {
     vec2 texcoord = calcSourceCoordinate();

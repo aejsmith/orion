@@ -39,8 +39,8 @@ env['CPPDEFINES'] = {
 
 env['CPPPATH'] = [
     Dir('engine/include'),
-    Dir('3rdparty/glm'),
-    Dir('3rdparty/rapidjson/include'),
+    Dir('engine/3rdparty/glm'),
+    Dir('engine/3rdparty/rapidjson/include'),
 ]
 
 env['LIBS'] = []
