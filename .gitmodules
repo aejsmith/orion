@@ -4,3 +4,6 @@
 [submodule "engine/3rdparty/rapidjson"]
 	path = engine/3rdparty/rapidjson
 	url = https://github.com/miloyip/rapidjson.git
+[submodule "engine/3rdparty/imgui/imgui"]
+	path = engine/3rdparty/imgui/imgui
+	url = https://github.com/ocornut/imgui.git

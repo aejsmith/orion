@@ -63,7 +63,7 @@ GLVertexData::GLVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray
         buffer->bind();
 
         glEnableVertexAttribArray(index);
-        glVertexAttribPointer(index, attribute.count, type, GL_FALSE, layout.stride, offset);
+        glVertexAttribPointer(index, attribute.count, type, attribute.normalised, layout.stride, offset);
     }
 }
 

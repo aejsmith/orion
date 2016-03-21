@@ -20,11 +20,12 @@
  */
 
 layout(location = 0) in vec2 vtxTexcoord;
+layout(location = 1) in vec4 vtxColour;
 
 layout(location = 0) out vec4 fragColour;
 
-uniform sampler2D font;
+uniform sampler2D tex;
 
 void main() {
-    fragColour = vec4(colour, texture(font, vtxTexcoord).r);
+    fragColour = vtxColour * vec4(1.0, 1.0, 1.0, texture(tex, vtxTexcoord).r);
 }

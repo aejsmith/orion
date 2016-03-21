@@ -19,13 +19,16 @@
  * @brief               Debug text vertex shader.
  */
 
-layout(location = kPositionSemantic) in vec3 attribPosition;
+layout(location = kPositionSemantic) in vec2 attribPosition;
 layout(location = kTexcoordSemantic) in vec2 attribTexcoord;
+layout(location = kDiffuseSemantic) in vec4 attribColour;
 
 layout(location = 0) out vec2 vtxTexcoord;
+layout(location = 1) out vec4 vtxColour;
 
 void main() {
     vtxTexcoord = attribTexcoord;
+    vtxColour = attribColour;
 
-    gl_Position = vec4(attribPosition.xy, 0.0, 1.0);
+    gl_Position = projectionMatrix * vec4(attribPosition, 0.0, 1.0);
 }

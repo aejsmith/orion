@@ -42,8 +42,8 @@ GPUManager *GPUManager::create(const EngineConfiguration &config) {
  * Default object creation methods.
  */
 
-GPUIndexDataPtr GPUManager::createIndexData(GPUBuffer *buffer, GPUIndexData::Type type, size_t count) {
-    return new GPUIndexData(buffer, type, count);
+GPUIndexDataPtr GPUManager::createIndexData(GPUBuffer *buffer, GPUIndexData::Type type, size_t count, size_t offset) {
+    return new GPUIndexData(buffer, type, count, offset);
 }
 
 GPUPipelinePtr GPUManager::createPipeline(const GPUPipelineDesc &desc) {

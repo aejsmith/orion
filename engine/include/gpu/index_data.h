@@ -46,6 +46,8 @@ public:
     Type type() const { return m_type; }
     /** @return             Number of indices. */
     size_t count() const { return m_count; }
+    /** @return             Offset of the indices in the buffer. */
+    size_t offset() const { return m_offset; }
     /** @return             Size of a single index element. */
     size_t elementSize() const { return elementSize(m_type); }
 
@@ -65,11 +67,12 @@ public:
         }
     }
 protected:
-    GPUIndexData(GPUBuffer *buffer, Type type, size_t count);
+    GPUIndexData(GPUBuffer *buffer, Type type, size_t count, size_t offset);
 protected:
     GPUBufferPtr m_buffer;          /**< Buffer containing index data. */
     Type m_type;                    /**< Type of index elements. */
     size_t m_count;                 /**< Number of indices. */
+    size_t m_offset;                /**< Offset of the indices in the buffer. */
 
     /* For the default implementation of createIndexData(). */
     friend class GPUManager;

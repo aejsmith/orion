@@ -1,2 +1,8 @@
-engine = SConscript(dirs = ['src'])
-Return('engine')
+import util
+
+objects = util.flatten(SConscript(dirs = [
+    'src',
+    '3rdparty',
+]))
+
+Return('objects')

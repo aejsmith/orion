@@ -34,7 +34,7 @@ class InputHandler {
 public:
     /** Input handling priority definitions. */
     enum Priority {
-        kConsolePriority,           /**< Console. */
+        kDebugOverlayPriority,      /**< Debug overlay. */
         kGUIPriority,               /**< GUI. */
         kWorldPriority,             /**< World entities. */
     };

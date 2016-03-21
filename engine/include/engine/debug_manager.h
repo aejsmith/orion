@@ -27,6 +27,8 @@
 
 #include "shader/material.h"
 
+#include "imgui.h"
+
 class DebugOverlay;
 class SceneView;
 
@@ -44,17 +46,12 @@ public:
 
     void drawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &colour, bool perView = false);
 
-    void writeText(const std::string &text, const glm::vec3 &colour = glm::vec3(1.0));
+    void writeText(const std::string &text, const glm::vec4 &colour = glm::vec4(1.0));
 
     void renderView(SceneView *view);
-    void endFrame();
 
-    /** @return             Debug text material. */
-    Material *textMaterial() const { return m_textMaterial; }
-    /** @return             Debug text font. */
-    Font *textFont() const { return m_textFont; }
-    /** @return             Debug text font variant. */
-    FontVariant *textFontVariant() const { return m_textFontVariant; }
+    void startFrame();
+    void endFrame();
 private:
     /** Details of a line to draw. */
     struct Line {
@@ -64,9 +61,6 @@ private:
     };
 private:
     MaterialPtr m_primitiveMaterial;    /**< Material for drawing debug primitives. */
-    MaterialPtr m_textMaterial;         /**< Material for drawing debug text. */
-    FontPtr m_textFont;                 /**< Font for debug text. */
-    FontVariant *m_textFontVariant;     /**< Font variant for debug text. */
 
     DebugOverlay *m_overlay;            /**< Debug overlay. */
 

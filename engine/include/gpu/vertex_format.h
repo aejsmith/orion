@@ -81,11 +81,12 @@ public:
     Semantic semantic;              /**< Semantic of the attribute. */
     unsigned index;                 /**< Attribute index. */
     Type type;                      /**< Attribute data types. */
+    bool normalised;                /**< Whether fixed-point values should be normalised when accessed. */
     size_t count;                   /**< Number of elements (for vector types). */
     unsigned buffer;                /**< Index of buffer that will contain the attribute. */
     size_t offset;                  /**< Offset of the attribute within each vertex in the buffer. */
 public:
-    VertexAttribute() : count(0) {}
+    VertexAttribute() : normalised(false), count(0) {}
 
     /** @return             Size of the attribute in bytes. */
     size_t size() const { return size(type, count); }

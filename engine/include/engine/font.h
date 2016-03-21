@@ -127,6 +127,15 @@ public:
     bool setData(std::unique_ptr<char[]> &&data, size_t size);
 
     bool isFixedWidth() const;
+
+    /** Get the raw font data.
+     * @param data          Where to store pointer to data. Will be freed along
+     *                      with asset.
+     * @param size          Where to store data size. */
+    void data(char *&data, size_t &size) const {
+        data = m_data.get();
+        size = m_dataSize;
+    }
 private:
     std::unique_ptr<char[]> m_data;     /**< TTF file data. */
     size_t m_dataSize;                  /**< TTF file data size. */

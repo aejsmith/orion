@@ -106,6 +106,10 @@ public:
     GLenum cullFace;
     bool depthClampEnabled;
 
+    /** Scissor test state. */
+    bool scissorTestEnabled;
+    IntRect scissor;
+
     /** Object bindings. */
     BufferBindings boundBuffers;
     GLuint boundDrawFramebuffer;
@@ -138,6 +142,9 @@ public:
     void enableCullFace(bool enable);
     void setCullFace(GLenum mode);
     void enableDepthClamp(bool enable);
+
+    void enableScissorTest(bool enable);
+    void setScissor(const IntRect &scissor);
 
     void bindBuffer(GLenum target, GLuint buffer);
     void bindBufferBase(GLenum target, GLuint index, GLuint buffer);

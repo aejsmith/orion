@@ -62,6 +62,15 @@ void GLGPUManager::setViewport(const IntRect &viewport) {
     this->state.setViewport(viewport);
 }
 
+/** Set the scissor test parameters.
+ * @param enable        Whether to enable scissor testing.
+ * @param scissor       Scissor rectangle. */
+void GLGPUManager::setScissor(bool enable, const IntRect &scissor) {
+    this->state.enableScissorTest(enable);
+    if (enable)
+        this->state.setScissor(scissor);
+}
+
 /** End a frame and present it on screen.
  * @param vsync         Whether to wait for vertical sync. */
 void GLGPUManager::endFrame(bool vsync) {
@@ -112,7 +121,11 @@ void GLGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexDat
     GLenum mode = GLUtil::convertPrimitiveType(type);
     if (indices) {
         /* FIXME: Check whether index type is supported (in generic code?) */
-        glDrawElements(mode, indices->count(), GLUtil::convertIndexType(indices->type()), nullptr);
+        glDrawElements(
+            mode,
+            indices->count(),
+            GLUtil::convertIndexType(indices->type()),
+            reinterpret_cast<void *>(indices->offset()));
     } else {
         glDrawArrays(mode, 0, vertices->count());
     }

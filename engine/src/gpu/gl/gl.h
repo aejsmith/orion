@@ -115,6 +115,7 @@ public:
     void setRasterizerState(GPURasterizerState *state) override;
     void setRenderTarget(const GPURenderTargetDesc *desc, const IntRect *viewport) override;
     void setViewport(const IntRect &viewport) override;
+    void setScissor(bool enable, const IntRect &scissor) override;
 
     void endFrame(bool vsync) override;
 

@@ -122,6 +122,7 @@ void GLGPUManager::init() {
 
     /* Set up initial render target/viewport state (main window). */
     setRenderTarget(nullptr, nullptr);
+    this->state.scissor = this->state.viewport;
 
     /* Set up some default state. FIXME? */
     this->state.enableCullFace(true);

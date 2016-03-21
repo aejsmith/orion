@@ -105,6 +105,11 @@ void Engine::run() {
     while (true) {
         uint32_t startTicks = SDL_GetTicks();
 
+        if (!pollEvents())
+            return;
+
+        g_debugManager->startFrame();
+
         /* Display statistics from the previous frame. */
         g_debugManager->writeText(String::format("FPS: %.1f\n", m_stats.fps));
         g_debugManager->writeText(String::format("Frame time: %.0f ms\n", m_stats.frameTime * 1000.0f));
@@ -113,11 +118,7 @@ void Engine::run() {
         /* Reset frame statistics. */
         m_stats.drawCalls = 0;
 
-        /* Start the frame. */
         m_game->startFrame();
-
-        if (!pollEvents())
-            return;
 
         tick();
         renderAllTargets();

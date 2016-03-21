@@ -41,6 +41,7 @@ env['CPPPATH'] = [
     Dir('engine/include'),
     Dir('engine/3rdparty/glm'),
     Dir('engine/3rdparty/rapidjson/include'),
+    Dir('engine/3rdparty/imgui'),
 ]
 
 env['LIBS'] = []

@@ -21,21 +21,17 @@
 
 #include "gpu/index_data.h"
 
-/**
- * Initialize the index data object.
- *
- * Initialize the index data object. The given buffer must be equal to the
- * number of indices multiplied by the size of an element of the given type.
- *
+/** Initialize the index data object.
  * @param buffer        Buffer holding the index data.
  * @param type          Type of index elements.
  * @param count         Number of indices.
- */
-GPUIndexData::GPUIndexData(GPUBuffer *buffer, Type type, size_t count) :
+ * @param offset        Offset of the indices in the buffer. */
+GPUIndexData::GPUIndexData(GPUBuffer *buffer, Type type, size_t count, size_t offset) :
     m_buffer(buffer),
     m_type(type),
-    m_count(count)
+    m_count(count),
+    m_offset(offset)
 {
     check(buffer->type() == GPUBuffer::kIndexBuffer);
-    check(buffer->size() == (elementSize() * count));
+    check(offset + (elementSize() * count) <= buffer->size());
 }

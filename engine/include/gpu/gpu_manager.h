@@ -77,7 +77,11 @@ public:
     /** Create an index data object.
      * @see                 GPUIndexData::GPUIndexData().
      * @return              Pointer to created index data object. */
-    virtual GPUIndexDataPtr createIndexData(GPUBuffer *buffer, GPUIndexData::Type type, size_t count);
+    virtual GPUIndexDataPtr createIndexData(
+        GPUBuffer *buffer,
+        GPUIndexData::Type type,
+        size_t count,
+        size_t offset = 0);
 
     /** Create a pipeline object.
      * @see                 GPUPipeline::GPUPipeline().
@@ -177,6 +181,11 @@ public:
      * @param viewport      Viewport rectangle in pixels. Must be <= size of
      *                      the current render target. */
     virtual void setViewport(const IntRect &viewport) = 0;
+
+    /** Set the scissor test parameters.
+     * @param enable        Whether to enable scissor testing.
+     * @param scissor       Scissor rectangle. */
+    virtual void setScissor(bool enable, const IntRect &scissor) = 0;
 
     /**
      * Frame methods.

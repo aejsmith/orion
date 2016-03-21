@@ -47,6 +47,7 @@ GLState::GLState() :
     cullFaceEnabled(false),
     cullFace(GL_BACK),
     depthClampEnabled(false),
+    scissorTestEnabled(false),
     boundDrawFramebuffer(0),
     boundReadFramebuffer(0),
     boundPipeline(0),
@@ -212,6 +213,29 @@ void GLState::enableDepthClamp(bool enable) {
         }
 
         this->depthClampEnabled = enable;
+    }
+}
+
+/** Set whether the scissor test is enabled.
+ * @param enable        Whether to enable the scissor test. */
+void GLState::enableScissorTest(bool enable) {
+    if (enable != this->scissorTestEnabled) {
+        if (enable) {
+            glEnable(GL_SCISSOR_TEST);
+        } else {
+            glDisable(GL_SCISSOR_TEST);
+        }
+
+        this->scissorTestEnabled = enable;
+    }
+}
+
+/** Set the scissor rectangle.
+ * @param rect          New scissor rectangle. */
+void GLState::setScissor(const IntRect &scissor) {
+    if (scissor != this->scissor) {
+        glScissor(scissor.x, scissor.y, scissor.width, scissor.height);
+        this->scissor = scissor;
     }
 }
 
