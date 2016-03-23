@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -61,7 +61,9 @@ private:
 };
 
 /** Initialise the debug overlay. */
-DebugOverlay::DebugOverlay() {
+DebugOverlay::DebugOverlay() :
+    RenderLayer(RenderLayer::kDebugOverlayPriority),
+{
     ImGuiIO &io = ImGui::GetIO();
     io.SetClipboardTextFn = setClipboardText;
     io.GetClipboardTextFn = getClipboardText;
@@ -127,14 +129,13 @@ DebugOverlay::DebugOverlay() {
     io.Fonts->ClearTexData();
 
     /* Add the overlay to the main window. */
-    setLayerOrder(RenderLayer::kDebugOverlayLayerOrder);
     setRenderTarget(g_mainWindow);
-    registerLayer();
+    registerRenderLayer();
 }
 
 /** Destroy the debug overlay. */
 DebugOverlay::~DebugOverlay() {
-    unregisterLayer();
+    unregisterRenderLayer();
 }
 
 /** Add a block of text to draw on the debug overlay.

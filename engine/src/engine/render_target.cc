@@ -28,20 +28,23 @@
  * Initialize the layer.
  *
  * Initializes the layer. The layer is initially not associated with a render
- * target, derived classes must set a default target and layer order themselves,
- * and register themselves with the target.
+ * target, derived classes must set a default target themselves, and register
+ * themselves with the target.
+ *
+ * @param priority      Rendering priority.
  */
-RenderLayer::RenderLayer() :
+RenderLayer::RenderLayer(unsigned priority) :
     m_renderTarget(nullptr),
     m_viewport(0.0f, 0.0f, 1.0f, 1.0f),
     m_pixelViewport(0, 0, 0, 0),
-    m_layerOrder(0),
+    m_priority(priority),
     m_registered(false)
 {}
 
 /** Destroy the layer. */
 RenderLayer::~RenderLayer() {
-    checkMsg(!m_registered, "Destroying RenderLayer while still registered");
+    if (m_registered)
+        unregisterRenderLayer();
 }
 
 /** Set the render target.
@@ -85,29 +88,29 @@ void RenderLayer::setViewport(const Rect &viewport) {
 }
 
 /**
- * Set the layer order.
+ * Set the rendering priority.
  *
- * Set the layer rendering order. Each layer on a render target has a order
- * value which defines the order in which layers on the target are rendered.
- * Layers with higher order values will appear on top of those with lower
- * values.
+ * Set the layer rendering priority. Each layer on a render target has a
+ * priority value which defines the order in which layers on the target are
+ * rendered. Layers with higher priority values will appear on top of those with
+ * lower values.
  *
- * @param order         New layer order.
+ * @param priority      New rendering priority.
  */
-void RenderLayer::setLayerOrder(unsigned order) {
+void RenderLayer::setRenderPriority(unsigned priority) {
     /* If we are registered we have to re-register in the correct place in
      * the target's layer list. */
     if (m_registered)
         m_renderTarget->removeLayer(this);
 
-    m_layerOrder = order;
+    m_priority = priority;
 
     if (m_registered)
         m_renderTarget->addLayer(this);
 }
 
 /** Register the layer with its render target. */
-void RenderLayer::registerLayer() {
+void RenderLayer::registerRenderLayer() {
     check(m_renderTarget);
     check(!m_registered);
 
@@ -116,7 +119,7 @@ void RenderLayer::registerLayer() {
 }
 
 /** Unregister the layer from its render target. */
-void RenderLayer::unregisterLayer() {
+void RenderLayer::unregisterRenderLayer() {
     check(m_registered);
 
     m_renderTarget->removeLayer(this);
@@ -142,7 +145,7 @@ void RenderTarget::addLayer(RenderLayer *layer) {
     /* List is sorted by priority. */
     for (auto it = m_layers.begin(); it != m_layers.end(); ++it) {
         RenderLayer *exist = *it;
-        if (layer->layerOrder() < exist->layerOrder()) {
+        if (layer->renderPriority() < exist->renderPriority()) {
             m_layers.insert(it, layer);
             return;
         }

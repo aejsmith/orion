@@ -43,6 +43,7 @@
  */
 Camera::Camera(Entity *entity) :
     Component(Component::kCameraType, entity),
+    RenderLayer(RenderLayer::kCameraPriority),
     m_sceneView(&m_postEffectChain),
     m_renderPath(RenderPath::kDeferred)
 {
@@ -51,7 +52,6 @@ Camera::Camera(Entity *entity) :
 
     /* Default to the main window as the render target. */
     setRenderTarget(g_mainWindow);
-    setLayerOrder(RenderLayer::kCameraLayerOrder);
 }
 
 /** Render the scene from the camera to its render target. */
@@ -73,10 +73,10 @@ void Camera::transformed(unsigned changed) {
 
 /** Called when the camera becomes active in the world. */
 void Camera::activated() {
-    registerLayer();
+    registerRenderLayer();
 }
 
 /** Called when the camera becomes inactive in the world. */
 void Camera::deactivated() {
-    unregisterLayer();
+    unregisterRenderLayer();
 }

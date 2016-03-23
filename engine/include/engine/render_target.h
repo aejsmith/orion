@@ -39,23 +39,21 @@ struct GPUTextureImageRef;
  */
 class RenderLayer {
 public:
-    /** Standard layer order values. */
+    /** Standard rendering priority values. */
     enum {
         /** Default camera. */
-        kCameraLayerOrder = 0,
+        kCameraPriority = 0,
         /** GUI. */
-        kGUILayerOrder = 90,
+        kGUIPriority = 90,
         /** Debug overlay. */
-        kDebugOverlayLayerOrder = 99,
-        /** Console. */
-        kConsoleLayerOrder = 100,
+        kDebugOverlayPriority = 100,
     };
 public:
     virtual ~RenderLayer();
 
     void setRenderTarget(RenderTarget *target);
     void setViewport(const Rect &viewport);
-    void setLayerOrder(unsigned order);
+    void setRenderPriority(unsigned priority);
 
     /** @return             Render target. */
     RenderTarget *renderTarget() const { return m_renderTarget; }
@@ -63,8 +61,8 @@ public:
     const Rect &viewport() const { return m_viewport; }
     /** @return             Pixel (screen-space) viewport rectangle. */
     const IntRect &pixelViewport() const { return m_pixelViewport; }
-    /** @return             Layer order. */
-    unsigned layerOrder() const { return m_layerOrder; }
+    /** @return             Rendering priority. */
+    unsigned renderPriority() const { return m_priority; }
 
     /**
      * Render the layer.
@@ -75,10 +73,10 @@ public:
      */
     virtual void render() = 0;
 protected:
-    RenderLayer();
+    explicit RenderLayer(unsigned priority);
 
-    void registerLayer();
-    void unregisterLayer();
+    void registerRenderLayer();
+    void unregisterRenderLayer();
 
     /** Called when the viewport is changed. */
     virtual void viewportChanged() {}
@@ -86,7 +84,7 @@ private:
     RenderTarget *m_renderTarget;   /**< Render target for the camera. */
     Rect m_viewport;                /**< Normalized viewport rectangle. */
     IntRect m_pixelViewport;        /**< Pixel viewport coordinates. */
-    unsigned m_layerOrder;          /**< Layer order value. */
+    unsigned m_priority;            /**< Rendering priority. */
     bool m_registered;              /**< Whether the layer is registered. */
 };
 

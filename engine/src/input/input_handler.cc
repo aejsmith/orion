@@ -31,7 +31,8 @@ InputHandler::InputHandler(Priority priority) :
 
 /** Destroy the input handler. */
 InputHandler::~InputHandler() {
-    unregisterInputHandler();
+    if (m_registered)
+        unregisterInputHandler();
 }
 
 /** Set the input handling priority.
@@ -48,16 +49,16 @@ void InputHandler::setInputPriority(Priority priority) {
 
 /** Register the handler with the input manager. */
 void InputHandler::registerInputHandler() {
-    if (!m_registered) {
-        g_inputManager->registerHandler(this);
-        m_registered = true;
-    }
+    check(!m_registered);
+
+    g_inputManager->registerHandler(this);
+    m_registered = true;
 }
 
 /** Unregister the handler from the input manager. */
 void InputHandler::unregisterInputHandler() {
-    if (m_registered) {
-        g_inputManager->unregisterHandler(this);
-        m_registered = false;
-    }
+    check(m_registered);
+
+    g_inputManager->unregisterHandler(this);
+    m_registered = false;
 }
