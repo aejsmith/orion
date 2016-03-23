@@ -43,6 +43,8 @@ PlayerController::PlayerController(Entity *entity, TestGame *game, Camera *camer
     Behaviour(entity),
     m_game(game),
     m_camera(camera),
+    m_direction(0.0f),
+    m_firingCubes(false),
     m_sinceLastCube(0.0f)
 {}
 
@@ -61,37 +63,13 @@ void PlayerController::deactivated() {
 /** Called every frame to update the controller.
  * @param dt            Time delta. */
 void PlayerController::tick(float dt) {
-    if (g_inputManager->getButtonState(InputCode::kW)) {
-        entity()->translate(
-            m_camera->entity()->worldOrientation() * glm::vec3(0.0f, 0.0f, dt * -kMovementVelocity));
-    }
+    entity()->translate(
+        m_camera->entity()->worldOrientation() *
+            (dt * kMovementVelocity * glm::vec3(m_direction.x, 0.0f, m_direction.z)));
+    entity()->translate(
+        dt * kMovementVelocity * glm::vec3(0.0f, m_direction.y, 0.0f));
 
-    if (g_inputManager->getButtonState(InputCode::kS)) {
-        entity()->translate(
-            m_camera->entity()->worldOrientation() * glm::vec3(0.0f, 0.0f, dt * kMovementVelocity));
-    }
-
-    if (g_inputManager->getButtonState(InputCode::kA)) {
-        entity()->translate(
-            m_camera->entity()->worldOrientation() * glm::vec3(dt * -kMovementVelocity, 0.0f, 0.0f));
-    }
-
-    if (g_inputManager->getButtonState(InputCode::kD)) {
-        entity()->translate(
-            m_camera->entity()->worldOrientation() * glm::vec3(dt * kMovementVelocity, 0.0f, 0.0f));
-    }
-
-    if (g_inputManager->getButtonState(InputCode::kLeftCtrl)) {
-        entity()->translate(
-            glm::vec3(0.0f, dt * -kMovementVelocity, 0.0f));
-    }
-
-    if (g_inputManager->getButtonState(InputCode::kSpace)) {
-        entity()->translate(
-            glm::vec3(0.0f, dt * kMovementVelocity, 0.0f));
-    }
-
-    if (g_inputManager->getButtonState(InputCode::kMouseRight)) {
+    if (m_firingCubes) {
         m_sinceLastCube += dt;
 
         if (m_sinceLastCube >= 1.0f / static_cast<float>(kCubeRate)) {
@@ -106,11 +84,63 @@ void PlayerController::tick(float dt) {
  * @return              Whether to continue processing the event. */
 bool PlayerController::handleButtonDown(const ButtonEvent &event) {
     switch (event.code) {
+        case InputCode::kW:
+            m_direction.z -= 1.0f;
+            break;
+        case InputCode::kS:
+            m_direction.z += 1.0f;
+            break;
+        case InputCode::kA:
+            m_direction.x -= 1.0f;
+            break;
+        case InputCode::kD:
+            m_direction.x += 1.0f;
+            break;
+        case InputCode::kLeftCtrl:
+            m_direction.y -= 1.0f;
+            break;
+        case InputCode::kSpace:
+            m_direction.y += 1.0f;
+            break;
         case InputCode::kMouseLeft:
             makeCube(event.modifiers);
             break;
         case InputCode::kMouseRight:
+            m_firingCubes = true;
             m_sinceLastCube = 1.0f / static_cast<float>(kCubeRate);
+            break;
+        default:
+            break;
+    }
+
+    return true;
+}
+
+/** Handle a button up event.
+ * @param event         Input event details.
+ * @return              Whether to continue processing the event. */
+bool PlayerController::handleButtonUp(const ButtonEvent &event) {
+    switch (event.code) {
+        case InputCode::kW:
+            m_direction.z += 1.0f;
+            break;
+        case InputCode::kS:
+            m_direction.z -= 1.0f;
+            break;
+        case InputCode::kA:
+            m_direction.x += 1.0f;
+            break;
+        case InputCode::kD:
+            m_direction.x -= 1.0f;
+            break;
+        case InputCode::kLeftCtrl:
+            m_direction.y += 1.0f;
+            break;
+        case InputCode::kSpace:
+            m_direction.y -= 1.0f;
+            break;
+        case InputCode::kMouseRight:
+            m_firingCubes = false;
             break;
         default:
             break;

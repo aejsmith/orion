@@ -133,6 +133,11 @@ bool InputManager::handleEvent(SDL_Event *event) {
     /* Process the event. */
     switch (event->type) {
         case SDL_KEYDOWN:
+            /* Ignore repeats for now. FIXME: Want to handle this in future for
+             * text input, etc. */
+            if (event->key.repeat)
+                return false;
+
         case SDL_KEYUP:
         {
             /* Map the scan code to an input code. */

@@ -39,11 +39,14 @@ public:
     void tick(float dt) override;
 protected:
     bool handleButtonDown(const ButtonEvent &event) override;
+    bool handleButtonUp(const ButtonEvent &event) override;
     bool handleAxis(const AxisEvent &event) override;
 
     void makeCube(uint32_t modifiers);
 private:
     TestGame *m_game;               /**< Game class. */
     Camera *m_camera;               /**< Camera that the component is controlling. */
+    glm::vec3 m_direction;          /**< Current movement direction. */
+    bool m_firingCubes;             /**< Whether cubes are being fired. */
     float m_sinceLastCube;          /**< Time since last cube. */
 };
