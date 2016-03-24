@@ -34,7 +34,8 @@
 //---- Define constructor and implicit cast operators to convert back<>forth from your math types and ImVec2/ImVec4.
 #define IM_VEC2_CLASS_EXTRA \
     ImVec2(const glm::vec2& f) { x = f.x; y = f.y; } \
-    operator glm::vec2() const { return glm::vec2(x,y); }
+    operator glm::vec2() const { return glm::vec2(x,y); } \
+    ImVec2(const glm::ivec2& f) { x = f.x; y = f.y; }
 
 #define IM_VEC4_CLASS_EXTRA \
     ImVec4(const glm::vec4& f) { x = f.x; y = f.y; z = f.z; w = f.w; } \

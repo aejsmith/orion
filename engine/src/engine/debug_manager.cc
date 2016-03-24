@@ -23,6 +23,7 @@
 
 #include "engine/asset_manager.h"
 #include "engine/debug_manager.h"
+#include "engine/debug_window.h"
 #include "engine/engine.h"
 #include "engine/render_target.h"
 #include "engine/window.h"
@@ -34,15 +35,13 @@
 
 #include "render/primitive_renderer.h"
 
-#include <imgui/imgui.h>
-
 #include <SDL.h>
 
 /** Global debug manager. */
 EngineGlobal<DebugManager> g_debugManager;
 
 /** Debug GUI overlay. */
-class DebugOverlay : public RenderLayer {
+class DebugOverlay : public RenderLayer, public InputHandler {
 public:
     DebugOverlay();
     ~DebugOverlay();
@@ -51,6 +50,20 @@ public:
 
     void startFrame();
     void render() override;
+
+    void registerWindow(DebugWindow *window);
+    void unregisterWindow(DebugWindow *window);
+protected:
+    bool handleButtonDown(const ButtonEvent &event) override;
+    bool handleButtonUp(const ButtonEvent &event) override;
+    bool handleAxis(const AxisEvent &event) override;
+private:
+    /** State of the GUI. */
+    enum class State {
+        kInactive,                      /**< Not visible. */
+        kVisible,                       /**< Visible, not receiving input. */
+        kActive,                        /**< Visible, with input captured. */
+    };
 private:
     static const char *getClipboardText();
     static void setClipboardText(const char *text);
@@ -58,11 +71,16 @@ private:
     GPUVertexFormatPtr m_vertexFormat;  /**< Vertex format for GUI drawing. */
     MaterialPtr m_material;             /**< Material for GUI drawing. */
     Texture2DPtr m_texture;             /**< Font texture for GUI. */
+    State m_state;                      /**< State of the GUI. */
+    bool m_previousMouseCapture;        /**< Previous mouse capture state. */
+    std::list<DebugWindow *> m_windows; /**< List of GUI windows. */
 };
 
 /** Initialise the debug overlay. */
 DebugOverlay::DebugOverlay() :
     RenderLayer(RenderLayer::kDebugOverlayPriority),
+    InputHandler(InputHandler::kDebugOverlayPriority),
+    m_state(State::kInactive)
 {
     ImGuiIO &io = ImGui::GetIO();
     io.SetClipboardTextFn = setClipboardText;
@@ -131,6 +149,7 @@ DebugOverlay::DebugOverlay() :
     /* Add the overlay to the main window. */
     setRenderTarget(g_mainWindow);
     registerRenderLayer();
+    registerInputHandler();
 }
 
 /** Destroy the debug overlay. */
@@ -144,10 +163,13 @@ DebugOverlay::~DebugOverlay() {
 void DebugOverlay::addText(const std::string &text, const glm::vec4 &colour) {
     // FIXME: Don't do anything if we've disabled the overlay
 
-    /* Creating a window with the same title appends to it. */
+    /* Calculate dimensions of the text window. Avoid the menu bar if visible. */
     const IntRect &viewport = pixelViewport();
-    ImGui::SetNextWindowSize(ImVec2(viewport.width - 10, viewport.height - 10));
-    ImGui::SetNextWindowPos(ImVec2(5, 5));
+    int delta = (m_state >= State::kActive) ? 20 : 0;
+    ImGui::SetNextWindowSize(ImVec2(viewport.width - 20, viewport.height - 20 - delta));
+    ImGui::SetNextWindowPos(ImVec2(10, 10 + delta));
+
+    /* Creating a window with the same title appends to it. */
     ImGui::Begin(
         "Debug Text",
         nullptr,
@@ -181,12 +203,44 @@ void DebugOverlay::startFrame() {
     // FIXME: This is not quite accurate.
     io.DeltaTime = g_engine->stats().frameTime;
 
+    /* Pass input state. */
+    io.MousePos = (m_state >= State::kActive) ? g_inputManager->getCursorPosition() : ImVec2(-1, -1);
+    uint32_t modifiers = (m_state >= State::kActive) ? g_inputManager->getModifiers() : 0;
+    io.KeyShift = (modifiers & InputModifier::kShift) != 0;
+    io.KeyCtrl = (modifiers & InputModifier::kCtrl) != 0;
+    io.KeyAlt = (modifiers & InputModifier::kAlt) != 0;
+
     ImGui::NewFrame();
 }
 
 /** Render the debug overlay. */
 void DebugOverlay::render() {
-    /* Render the GUI. */
+    if (m_state >= State::kVisible) {
+        if (m_state >= State::kActive) {
+            /* Draw the main menu. */
+            if (ImGui::BeginMainMenuBar()) {
+                if (ImGui::BeginMenu("Windows")) {
+                    for (DebugWindow *window : m_windows) {
+                        if (ImGui::MenuItem(window->m_title.c_str(), "", window->m_open))
+                            window->m_open = !window->m_open;
+                    }
+
+                    ImGui::EndMenu();
+                }
+
+                ImGui::EndMainMenuBar();
+            }
+        }
+
+        /* Draw debug windows. */
+        for (DebugWindow *window : m_windows) {
+            if (window->m_open)
+                window->render();
+        }
+    }
+
+    /* Render the GUI. Always done because text overlay is independent of the
+     * main GUI. */
     ImGui::Render();
     const ImDrawData *drawData = ImGui::GetDrawData();
     if (!drawData)
@@ -260,6 +314,128 @@ void DebugOverlay::render() {
 
     // FIXME: this should be reset elsewhere
     g_gpuManager->setScissor(false, IntRect());
+}
+
+/** Register a debug GUI window.
+ * @param window        Window to register. */
+void DebugOverlay::registerWindow(DebugWindow *window) {
+    m_windows.push_back(window);
+}
+
+/** Unregister a debug GUI window.
+ * @param window        Window to unregister. */
+void DebugOverlay::unregisterWindow(DebugWindow *window) {
+    m_windows.remove(window);
+}
+
+/** Handle a button down event.
+ * @param event         Button event.
+ * @return              Whether the event was handled. */
+bool DebugOverlay::handleButtonDown(const ButtonEvent &event) {
+    if (m_state >= State::kActive) {
+        ImGuiIO &io = ImGui::GetIO();
+
+        if (event.code < InputCode::kNumKeyboardCodes) {
+            io.KeysDown[static_cast<int>(event.code)] = true;
+
+            // FIXME: Unicode. Need a proper text input API.
+            if (event.character)
+                io.AddInputCharacter(event.character);
+        } else if (event.code < InputCode::kNumMouseCodes) {
+            switch (event.code) {
+                case InputCode::kMouseLeft:
+                    io.MouseDown[0] = true;
+                    break;
+                case InputCode::kMouseRight:
+                    io.MouseDown[1] = true;
+                    break;
+                case InputCode::kMouseMiddle:
+                    io.MouseDown[2] = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+/** Handle a button up event.
+ * @param event         Button event.
+ * @return              Whether the event was handled. */
+bool DebugOverlay::handleButtonUp(const ButtonEvent &event) {
+    auto setState = [&] (State state) {
+        if (m_state < State::kActive && state >= State::kActive) {
+            /* Set the global mouse capture state to false because we want to
+             * use the OS cursor. */
+            m_previousMouseCapture = g_inputManager->mouseCaptured();
+            g_inputManager->setMouseCaptured(false);
+        } else if (m_state >= State::kActive && state < State::kActive) {
+            g_inputManager->setMouseCaptured(m_previousMouseCapture);
+        }
+
+        m_state = state;
+    };
+
+    if (event.code == InputCode::kF1) {
+        setState((m_state == State::kInactive) ? State::kActive : State::kInactive);
+        return true;
+    }
+
+    if (m_state >= State::kVisible) {
+        if (event.code == InputCode::kF2) {
+            setState((m_state == State::kVisible) ? State::kActive : State::kVisible);
+            return true;
+        } else if (m_state >= State::kActive) {
+            ImGuiIO &io = ImGui::GetIO();
+
+            if (event.code < InputCode::kNumKeyboardCodes) {
+                io.KeysDown[static_cast<int>(event.code)] = false;
+            } else if (event.code < InputCode::kNumMouseCodes) {
+                switch (event.code) {
+                    case InputCode::kMouseLeft:
+                        io.MouseDown[0] = false;
+                        break;
+                    case InputCode::kMouseRight:
+                        io.MouseDown[1] = false;
+                        break;
+                    case InputCode::kMouseMiddle:
+                        io.MouseDown[2] = false;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/** Handle an axis event.
+ * @param event         Axis event.
+ * @return              Whether the event was handled. */
+bool DebugOverlay::handleAxis(const AxisEvent &event) {
+    if (m_state >= State::kActive) {
+        ImGuiIO &io = ImGui::GetIO();
+
+        switch (event.code) {
+            case InputCode::kMouseScroll:
+                io.MouseWheel = event.delta;
+                break;
+            default:
+                break;
+        }
+
+        return true;
+    }
+
+    return false;
 }
 
 /** Get the current clipboard text. */
@@ -360,4 +536,16 @@ void DebugManager::startFrame() {
 void DebugManager::endFrame() {
     m_perFrameLines.clear();
     m_perViewLines.clear();
+}
+
+/** Register a debug GUI window.
+ * @param window        Window to register. */
+void DebugManager::registerWindow(DebugWindow *window) {
+    m_overlay->registerWindow(window);
+}
+
+/** Unregister a debug GUI window.
+ * @param window        Window to unregister. */
+void DebugManager::unregisterWindow(DebugWindow *window) {
+    m_overlay->unregisterWindow(window);
 }

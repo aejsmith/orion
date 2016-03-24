@@ -27,9 +27,8 @@
 
 #include "shader/material.h"
 
-#include "imgui.h"
-
 class DebugOverlay;
+class DebugWindow;
 class SceneView;
 
 /**
@@ -52,6 +51,9 @@ public:
 
     void startFrame();
     void endFrame();
+
+    void registerWindow(DebugWindow *window);
+    void unregisterWindow(DebugWindow *window);
 private:
     /** Details of a line to draw. */
     struct Line {
