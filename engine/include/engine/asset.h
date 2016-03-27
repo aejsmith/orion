@@ -48,6 +48,9 @@ protected:
     Asset() {}
 
     void released() override;
+
+    /** Display details of the asset in the debug explorer. */
+    virtual void explore() {}
 private:
     std::string m_path;             /**< Path to the asset (empty for unmanaged assets). */
 

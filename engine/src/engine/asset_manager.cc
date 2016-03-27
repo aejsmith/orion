@@ -35,15 +35,37 @@
 
 #include "engine/asset_loader.h"
 #include "engine/asset_manager.h"
+#include "engine/debug_manager.h"
+#include "engine/debug_window.h"
+
+#include <cxxabi.h>
+#include <typeinfo>
 
 /** Global asset manager instance. */
 AssetManager *g_assetManager;
+
+/** Asset explorer debug overlay window. */
+class AssetExplorerWindow : public DebugWindow {
+public:
+    AssetExplorerWindow() : DebugWindow("Asset Explorer") {}
+    void render() override {
+        ImGui::SetNextWindowSize(ImVec2(500, 500), ImGuiSetCond_Once);
+        ImGui::SetNextWindowPosCenter(ImGuiSetCond_Once);
+
+        if (begin())
+            g_assetManager->explore();
+
+        ImGui::End();
+    }
+};
 
 /** Initialize the asset manager. */
 AssetManager::AssetManager() {
     /* Register asset search paths. */
     m_searchPaths.insert(std::make_pair("engine", "engine/assets"));
     m_searchPaths.insert(std::make_pair("game", "game/assets"));
+
+    g_debugManager->registerWindow(std::make_unique<AssetExplorerWindow>());
 }
 
 /** Destroy the asset manager. */
@@ -161,4 +183,29 @@ Asset *AssetManager::lookupAsset(const Path &path) const {
 void AssetManager::unregisterAsset(Asset *asset) {
     size_t ret = m_assets.erase(asset->path());
     checkMsg(ret, "Destroying asset '%s' which is not in the cache", asset->path().c_str());
+}
+
+/** Render the asset explorer window. */
+void AssetManager::explore() {
+    for (auto &entry : m_assets) {
+        Asset *asset = entry.second;
+        ImGui::PushID(asset);
+
+        if (ImGui::TreeNode("asset", "%s", entry.first.c_str())) {
+            /* This is a temporary solution until object system is implemented. */
+            const std::type_info &type = typeid(*asset);
+            int status;
+            char *typeName = abi::__cxa_demangle(type.name(), 0, 0, &status);
+            ImGui::Text("Type: %s", typeName);
+            free(typeName);
+
+            ImGui::Text("Refcount: %d", asset->refcount());
+
+            asset->explore();
+
+            ImGui::TreePop();
+        }
+
+        ImGui::PopID();
+    }
 }

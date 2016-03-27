@@ -27,6 +27,7 @@
  *    reference if the texture is not referred to anywhere else.
  */
 
+#include "engine/debug_window.h"
 #include "engine/texture.h"
 
 #include "gpu/gpu_manager.h"
@@ -102,6 +103,88 @@ void TextureBase::updateSamplerState() {
     desc.maxAnisotropy = m_anisotropy;
     desc.addressU = desc.addressV = desc.addressW = m_addressMode;
     m_sampler = g_gpuManager->createSamplerState(desc);
+}
+
+/** Display details of the asset in the debug explorer. */
+void TextureBase::explore() {
+    if (m_gpu->type() == GPUTexture::kTexture3D || m_gpu->type() == GPUTexture::kTexture2DArray) {
+        ImGui::Text("Size: %ux%ux%u", m_gpu->width(), m_gpu->height(), m_gpu->depth());
+    } else {
+        ImGui::Text("Size: %ux%u", m_gpu->width(), m_gpu->height());
+    }
+
+    unsigned layers;
+    switch (m_gpu->type()) {
+        case GPUTexture::kTexture2D:
+            layers = 1;
+            break;
+        case GPUTexture::kTexture2DArray:
+            layers = m_gpu->depth();
+            break;
+        case GPUTexture::kTextureCube:
+            layers = CubeFace::kNumFaces;
+            break;
+        default:
+            /* Unsupported for now. */
+            return;
+    }
+
+    glm::vec2 texSize(m_gpu->width(), m_gpu->height());
+    float scaleFactor = (texSize.x > texSize.y)
+        ? glm::min(128.0f, texSize.x) / texSize.x
+        : glm::min(128.0f, texSize.y) / texSize.y;
+    glm::vec2 drawSize = texSize * scaleFactor;
+
+    for (unsigned i = 0; i < layers; i++) {
+        // FIXME: We're losing mipmapping because I was lazy when implementing
+        // implementing texture views.
+        GPUTexturePtr texture = (m_gpu->type() != GPUTexture::kTexture2D)
+            ? g_gpuManager->createTextureView(GPUTextureImageRef(m_gpu, i, 0))
+            : m_gpu;
+        ImTextureID textureRef = DebugWindow::refTexture(texture);
+
+        ImGui::Text("Image %u:", i);
+        ImGui::SameLine(100);
+        glm::vec2 texPos = ImGui::GetCursorScreenPos();
+        ImGui::Image(
+            textureRef,
+            drawSize,
+            ImVec2(0, 1), ImVec2(1, 0),
+            ImColor(255, 255, 255, 255),
+            ImColor(0, 0, 0, 0));
+
+        /* If we scaled down the texture, add a popup to zoom over it. */
+        if (scaleFactor < 1.0f && ImGui::IsItemHovered()) {
+            float focusSize = std::min(512.0f, std::min(texSize.x, texSize.y));
+
+            ImGui::BeginTooltip();
+
+            glm::vec2 mousePos = ImGui::GetMousePos();
+            glm::vec2 mouseRelPos = mousePos - texPos;
+            glm::vec2 mouseTexPos(
+                mouseRelPos.x / scaleFactor,
+                texSize.y - (mouseRelPos.y / scaleFactor));
+            float focusX = std::min(
+                std::max(0.0f, mouseTexPos.x - focusSize * 0.5f),
+                texSize.x - focusSize);
+            float focusY = std::min(
+                std::max(0.0f, mouseTexPos.y - focusSize * 0.5f),
+                texSize.y - focusSize);
+
+            ImGui::Text("Min: (%.2f, %.2f)", focusX, focusY);
+            ImGui::Text("Max: (%.2f, %.2f)", focusX + focusSize, focusY + focusSize);
+
+            ImGui::Image(
+                textureRef,
+                ImVec2(focusSize, focusSize),
+                ImVec2(focusX / texSize.x, (focusY + focusSize) / texSize.y),
+                ImVec2((focusX + focusSize) / texSize.x, focusY / texSize.y),
+                ImColor(255, 255, 255, 255),
+                ImColor(0, 0, 0, 0));
+
+            ImGui::EndTooltip();
+        }
+    }
 }
 
 /**

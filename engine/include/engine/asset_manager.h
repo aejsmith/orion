@@ -46,6 +46,8 @@ public:
 private:
     Asset *lookupAsset(const Path &path) const;
     void unregisterAsset(Asset *asset);
+
+    void explore();
 private:
     /**
      * Map of known assets.
@@ -62,6 +64,7 @@ private:
     std::map<std::string, std::string> m_searchPaths;
 
     friend class Asset;
+    friend class AssetExplorerWindow;
 };
 
 extern AssetManager *g_assetManager;

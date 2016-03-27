@@ -55,6 +55,8 @@ protected:
     TextureBase();
 
     void updateSamplerState();
+
+    void explore() override;
 protected:
     GPUTexturePtr m_gpu;                /**< GPU texture pointer. */
     GPUSamplerStatePtr m_sampler;       /**< GPU sampler state. */
