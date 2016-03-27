@@ -27,7 +27,7 @@ env['CCFLAGS'] += [
 ]
 
 env['CXXFLAGS'] += [
-    '-Wsign-promo', '-std=c++11'
+    '-Wsign-promo', '-std=c++14'
 ]
 
 env['CPPDEFINES'] = {
