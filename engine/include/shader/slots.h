@@ -75,5 +75,8 @@ namespace TextureSlots {
 
         /** Source texture for post-processing effects. */
         kSourceTexture = 22,
+
+        /** Texture slot for debug overlay. */
+        kDebugTexture = 23,
     };
 }

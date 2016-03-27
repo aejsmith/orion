@@ -1,6 +1,5 @@
 {
     "parameters": {
-        "tex": {"type": "Texture"},
         "projectionMatrix": {"type": "Mat4"}
     },
     "passes": [

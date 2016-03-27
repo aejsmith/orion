@@ -24,8 +24,8 @@ layout(location = 1) in vec4 vtxColour;
 
 layout(location = 0) out vec4 fragColour;
 
-uniform sampler2D tex;
+uniform sampler2D debugTexture;
 
 void main() {
-    fragColour = vtxColour * vec4(1.0, 1.0, 1.0, texture(tex, vtxTexcoord).r);
+    fragColour = vtxColour * vec4(1.0, 1.0, 1.0, texture(debugTexture, vtxTexcoord).r);
 }

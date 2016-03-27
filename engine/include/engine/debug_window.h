@@ -21,9 +21,11 @@
 
 #pragma once
 
-#include "core/core.h"
+#include "gpu/texture.h"
 
 #include <imgui.h>
+
+class Texture2D;
 
 /**
  * Debug window class.
@@ -37,6 +39,9 @@ class DebugWindow {
 public:
     /** Destroy a window. */
     virtual ~DebugWindow() {}
+
+    static ImTextureID refTexture(GPUTexture *texture);
+    static ImTextureID refTexture(Texture2D *texture);
 protected:
     /** Initialise a debug window.
      * @param title         Title for the window. */

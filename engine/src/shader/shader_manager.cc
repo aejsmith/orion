@@ -42,6 +42,7 @@ ShaderManager::ShaderManager() {
     setGlobalTexture("shadowMap", TextureSlots::kShadowMap);
     setGlobalTexture("depthBuffer", TextureSlots::kDepthBuffer);
     setGlobalTexture("sourceTexture", TextureSlots::kSourceTexture);
+    setGlobalTexture("debugTexture", TextureSlots::kDebugTexture);
 }
 
 /**

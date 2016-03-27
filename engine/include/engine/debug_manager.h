@@ -68,6 +68,8 @@ private:
 
     std::vector<Line> m_perFrameLines;  /**< Lines to draw for all views in the frame. */
     std::vector<Line> m_perViewLines;   /**< Lines to draw for the next view only. */
+
+    friend class DebugWindow;
 };
 
 extern EngineGlobal<DebugManager> g_debugManager;

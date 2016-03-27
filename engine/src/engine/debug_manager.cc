@@ -60,21 +60,55 @@ protected:
 private:
     /** State of the GUI. */
     enum class State {
-        kInactive,                      /**< Not visible. */
-        kVisible,                       /**< Visible, not receiving input. */
-        kActive,                        /**< Visible, with input captured. */
+        kInactive,                          /**< Not visible. */
+        kVisible,                           /**< Visible, not receiving input. */
+        kActive,                            /**< Visible, with input captured. */
     };
 private:
     static const char *getClipboardText();
     static void setClipboardText(const char *text);
 private:
-    GPUVertexFormatPtr m_vertexFormat;  /**< Vertex format for GUI drawing. */
-    MaterialPtr m_material;             /**< Material for GUI drawing. */
-    Texture2DPtr m_texture;             /**< Font texture for GUI. */
-    State m_state;                      /**< State of the GUI. */
-    bool m_previousMouseCapture;        /**< Previous mouse capture state. */
-    std::list<DebugWindow *> m_windows; /**< List of GUI windows. */
+    GPUVertexFormatPtr m_vertexFormat;      /**< Vertex format for GUI drawing. */
+    MaterialPtr m_material;                 /**< Material for GUI drawing. */
+    GPUTexturePtr m_fontTexture;            /**< Font texture for GUI. */
+    GPUSamplerStatePtr m_sampler;           /**< Texture sampler for the GUI. */
+    State m_state;                          /**< State of the GUI. */
+    bool m_previousMouseCapture;            /**< Previous mouse capture state. */
+    std::list<DebugWindow *> m_windows;     /**< List of GUI windows. */
+    std::list<GPUTexturePtr> m_textures;    /**< List of texture references. */
+
+    friend class DebugWindow;
 };
+
+/**
+ * Create an ImGUI texture ID from a GPU texture.
+ *
+ * Creates a texture ID that can be passed to ImGUI's image functions from
+ * a GPU texture. As part of this the texture is referenced to ensure it is
+ * not destroyed before it is drawn. The reference will be released after
+ * the debug overlay has been rendered.
+ *
+ * This function should only be used from within a render() method, as any
+ * references created will not get released if the debug overlay is not
+ * rendered.
+ *
+ * @param texture       Texture to reference.
+ *
+ * @return              Created texture ID.
+ */
+ImTextureID DebugWindow::refTexture(GPUTexture *texture) {
+    /* This adds a reference as we hold a list of GPUTexturePtrs. */
+    g_debugManager->m_overlay->m_textures.emplace_back(texture);
+    return texture;
+}
+
+/** Create an ImGUI texture ID from a texture asset.
+ * @see                 refTexture(GPUTexture *)
+ * @param texture       Texture to create from.
+ * @return              Created texture ID. */
+ImTextureID DebugWindow::refTexture(Texture2D *texture) {
+    return refTexture(texture->gpu());
+}
 
 /** Initialise the debug overlay. */
 DebugOverlay::DebugOverlay() :
@@ -141,10 +175,26 @@ DebugOverlay::DebugOverlay() :
     unsigned char *pixels;
     int width, height;
     io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
-    m_texture = new Texture2D(width, height, PixelFormat::kR8, 1);
-    m_texture->update(pixels);
-    io.Fonts->SetTexID(m_texture.get());
+    GPUTextureDesc textureDesc;
+    textureDesc.type = GPUTexture::kTexture2D;
+    textureDesc.width = width;
+    textureDesc.height = height;
+    textureDesc.format = PixelFormat::kR8;
+    textureDesc.mips = 1;
+    textureDesc.flags = 0;
+    m_fontTexture = g_gpuManager->createTexture(textureDesc);
+    m_fontTexture->update(
+        IntRect(0, 0, width, height),
+        pixels);
+    io.Fonts->SetTexID(m_fontTexture.get());
     io.Fonts->ClearTexData();
+
+    /* Create the texture sampler. */
+    GPUSamplerStateDesc samplerDesc;
+    samplerDesc.filterMode = SamplerFilterMode::kBilinear;
+    samplerDesc.maxAnisotropy = 1;
+    samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
+    m_sampler = g_gpuManager->createSamplerState(samplerDesc);
 
     /* Add the overlay to the main window. */
     setRenderTarget(g_mainWindow);
@@ -280,8 +330,8 @@ void DebugOverlay::render() {
 
         size_t indexBufferOffset = 0;
         for (const ImDrawCmd *cmd = cmdList->CmdBuffer.begin(); cmd != cmdList->CmdBuffer.end(); cmd++) {
-            TextureBasePtr texture(reinterpret_cast<TextureBase *>(cmd->TextureId));
-            m_material->setValue("tex", texture);
+            GPUTexture *texture = reinterpret_cast<GPUTexture *>(cmd->TextureId);
+            g_gpuManager->bindTexture(TextureSlots::kDebugTexture, texture, m_sampler);
 
             /* Create index data. */
             GPUIndexDataPtr indexData = g_gpuManager->createIndexData(
@@ -314,6 +364,9 @@ void DebugOverlay::render() {
 
     // FIXME: this should be reset elsewhere
     g_gpuManager->setScissor(false, IntRect());
+
+    /* Release any texture references held. */
+    m_textures.clear();
 }
 
 /** Register a debug GUI window.
