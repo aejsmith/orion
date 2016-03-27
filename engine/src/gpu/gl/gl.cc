@@ -36,6 +36,7 @@ static const int kGLMinorVersion = 3;
 static const char *g_requiredGLExtensions[] = {
     "GL_ARB_separate_shader_objects",
     "GL_ARB_texture_storage",
+    "GL_ARB_texture_view",
     "GL_EXT_texture_filter_anisotropic",
 };
 

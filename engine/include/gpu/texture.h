@@ -27,6 +27,7 @@
 #include "gpu/defs.h"
 
 struct GPUTextureDesc;
+struct GPUTextureImageRef;
 
 /**
  * Class storing a texture on the GPU.
@@ -93,6 +94,7 @@ public:
     uint32_t flags() const { return m_flags; }
 protected:
     explicit GPUTexture(const GPUTextureDesc &desc);
+    explicit GPUTexture(const GPUTextureImageRef &image);
 protected:
     Type m_type;                    /**< Type of the texture. */
     uint32_t m_width;               /**< Width of the texture. */

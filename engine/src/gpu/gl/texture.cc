@@ -32,7 +32,6 @@ GLTexture::GLTexture(const GPUTextureDesc &desc) :
     GPUTexture(desc),
     m_glTarget(GLUtil::convertTextureType(desc.type))
 {
-    /* Create the texture and bind it for the per-type constructor to use. */
     glGenTextures(1, &m_texture);
     bindForModification();
 
@@ -58,6 +57,30 @@ GLTexture::GLTexture(const GPUTextureDesc &desc) :
                 m_width, m_height, m_depth);
             break;
     }
+}
+
+/** Initialize a new texture view.
+ * @param image         Image to create the view for.
+ * @return              Pointer to created texture view. */
+GLTexture::GLTexture(const GPUTextureImageRef &image) :
+    GPUTexture(image),
+    m_glTarget(GLUtil::convertTextureType(m_type))
+{
+    GLTexture *source = static_cast<GLTexture *>(image.texture);
+
+    glGenTextures(1, &m_texture);
+    glTextureView(
+        m_texture,
+        m_glTarget,
+        source->m_texture,
+        g_opengl->pixelFormats[m_format].internalFormat,
+        image.mip,
+        1,
+        image.layer,
+        1);
+
+    bindForModification();
+    glTexParameteri(m_glTarget, GL_TEXTURE_MAX_LEVEL, m_mips);
 }
 
 /** Destroy the texture. */
@@ -162,4 +185,11 @@ void GLTexture::generateMipmap() {
  * @return              Pointer to created texture. */
 GPUTexturePtr GLGPUManager::createTexture(const GPUTextureDesc &desc) {
     return new GLTexture(desc);
+}
+
+/** Create a texture view.
+ * @param image         Image to create the view for.
+ * @return              Pointer to created texture view. */
+GPUTexturePtr GLGPUManager::createTextureView(const GPUTextureImageRef &image) {
+    return new GLTexture(image);
 }

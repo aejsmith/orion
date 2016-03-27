@@ -27,6 +27,7 @@
 class GLTexture : public GPUTexture {
 public:
     explicit GLTexture(const GPUTextureDesc &desc);
+    explicit GLTexture(const GPUTextureImageRef &image);
 
     ~GLTexture();
 
