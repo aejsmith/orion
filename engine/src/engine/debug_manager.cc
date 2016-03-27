@@ -184,15 +184,20 @@ void DebugOverlay::initResources() {
     ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/internal/debug_overlay");
     m_material = new Material(shader);
 
-    /* Upload the font atlas. */
+    /* Upload the font atlas. TODO: We're currently using an RGBA32 texture even
+     * though only the alpha channel is used by the font atlas. This is so that
+     * the shader is compatible with other textures. This is wasteful, the
+     * better thing to do in future would be to use a R8 texture and then use
+     * texture swizzling parameters to shift that into the alpha position (and
+     * make all other components 1) when sampling. */
     unsigned char *pixels;
     int width, height;
-    io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
     GPUTextureDesc textureDesc;
     textureDesc.type = GPUTexture::kTexture2D;
     textureDesc.width = width;
     textureDesc.height = height;
-    textureDesc.format = PixelFormat::kR8;
+    textureDesc.format = PixelFormat::kR8G8B8A8;
     textureDesc.mips = 1;
     textureDesc.flags = 0;
     m_fontTexture = g_gpuManager->createTexture(textureDesc);
