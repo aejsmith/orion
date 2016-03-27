@@ -22,4 +22,4 @@
 #include "core/filesystem.h"
 
 /** Global filesystem instance. */
-EngineGlobal<Filesystem> g_filesystem;
+Filesystem *g_filesystem;

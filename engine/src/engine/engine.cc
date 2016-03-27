@@ -59,27 +59,31 @@ Engine::Engine(const EngineConfiguration &config) :
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
         fatal("Failed to initialize SDL: %s", SDL_GetError());
 
+    /* Create the debug manager early to allow other systems to register things
+     * with it. Rendering resources are initialised later. */
+    g_debugManager = new DebugManager;
+
     /* Initialize the log. */
-    g_logManager() = new LogManager;
+    g_logManager = new LogManager;
     logInfo("Orion revision %s built at %s", g_versionString, g_versionTimestamp);
 
     /* Initialize platform systems. */
-    g_filesystem() = Platform::createFilesystem();
+    g_filesystem = Platform::createFilesystem();
 
     /* Create the GPU manager, create the main window, and finally properly
      * initialize the GPU interface. */
-    g_gpuManager() = GPUManager::create(config);
-    g_mainWindow() = new Window(config);
+    g_gpuManager = GPUManager::create(config);
+    g_mainWindow = new Window(config);
     g_gpuManager->init();
 
     /* Initialize other global systems. */
-    g_inputManager() = new InputManager;
-    g_shaderManager() = new ShaderManager;
-    g_assetManager() = new AssetManager;
-    g_renderManager() = new RenderManager;
+    g_inputManager = new InputManager;
+    g_shaderManager = new ShaderManager;
+    g_assetManager = new AssetManager;
+    g_renderManager = new RenderManager;
     g_renderManager->init();
-    g_debugManager() = new DebugManager;
-    g_physicsManager() = new PhysicsManager;
+    g_debugManager->initResources();
+    g_physicsManager = new PhysicsManager;
 
     /* Create the game instance. */
     m_game = game::createGame();
@@ -94,7 +98,16 @@ Engine::~Engine() {
     delete m_game;
 
     /* Shut down global systems. */
-    EngineGlobalBase::destroyAll();
+    delete g_physicsManager;
+    delete g_renderManager;
+    delete g_shaderManager;
+    delete g_debugManager;
+    delete g_assetManager;
+    delete g_inputManager;
+    delete g_gpuManager;
+    delete g_mainWindow;
+    delete g_filesystem;
+    delete g_logManager;
 
     SDL_Quit();
     g_engine = nullptr;

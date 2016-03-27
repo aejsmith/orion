@@ -34,7 +34,6 @@
 #pragma once
 
 #include "core/data_stream.h"
-#include "core/engine_global.h"
 #include "core/path.h"
 
 #include <algorithm>
@@ -128,7 +127,7 @@ protected:
     Filesystem() {}
 };
 
-extern EngineGlobal<Filesystem> g_filesystem;
+extern Filesystem *g_filesystem;
 
 namespace Platform {
 

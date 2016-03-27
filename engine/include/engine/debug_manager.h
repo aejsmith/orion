@@ -21,8 +21,6 @@
 
 #pragma once
 
-#include "core/engine_global.h"
-
 #include "engine/font.h"
 
 #include "shader/material.h"
@@ -42,6 +40,8 @@ class DebugManager : Noncopyable {
 public:
     DebugManager();
     ~DebugManager();
+
+    void initResources();
 
     void drawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &colour, bool perView = false);
 
@@ -72,4 +72,4 @@ private:
     friend class DebugWindow;
 };
 
-extern EngineGlobal<DebugManager> g_debugManager;
+extern DebugManager *g_debugManager;

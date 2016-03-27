@@ -38,13 +38,15 @@
 #include <SDL.h>
 
 /** Global debug manager. */
-EngineGlobal<DebugManager> g_debugManager;
+DebugManager *g_debugManager;
 
 /** Debug GUI overlay. */
 class DebugOverlay : public RenderLayer, public InputHandler {
 public:
     DebugOverlay();
     ~DebugOverlay();
+
+    void initResources();
 
     void addText(const std::string &text, const glm::vec4 &colour);
 
@@ -115,7 +117,15 @@ DebugOverlay::DebugOverlay() :
     RenderLayer(RenderLayer::kDebugOverlayPriority),
     InputHandler(InputHandler::kDebugOverlayPriority),
     m_state(State::kInactive)
-{
+{}
+
+/** Destroy the debug overlay. */
+DebugOverlay::~DebugOverlay() {
+    unregisterRenderLayer();
+}
+
+/** Create resources for the debug overlay. */
+void DebugOverlay::initResources() {
     ImGuiIO &io = ImGui::GetIO();
     io.SetClipboardTextFn = setClipboardText;
     io.GetClipboardTextFn = getClipboardText;
@@ -200,11 +210,6 @@ DebugOverlay::DebugOverlay() :
     setRenderTarget(g_mainWindow);
     registerRenderLayer();
     registerInputHandler();
-}
-
-/** Destroy the debug overlay. */
-DebugOverlay::~DebugOverlay() {
-    unregisterRenderLayer();
 }
 
 /** Add a block of text to draw on the debug overlay.
@@ -503,17 +508,21 @@ void DebugOverlay::setClipboardText(const char *text) {
 
 /** Initialise the debug manager. */
 DebugManager::DebugManager() {
-    /* Load debug primitive shader. */
-    ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/internal/debug_primitive");
-    m_primitiveMaterial = new Material(shader);
-
-    /* Create the debug overlay. */
     m_overlay = new DebugOverlay;
 }
 
 /** Destroy the debug manager. */
 DebugManager::~DebugManager() {
     delete m_overlay;
+}
+
+/** Create resources for the debug manager. */
+void DebugManager::initResources() {
+    /* Load debug primitive shader. */
+    ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/internal/debug_primitive");
+    m_primitiveMaterial = new Material(shader);
+
+    m_overlay->initResources();
 }
 
 /** Draw a line in the world.

@@ -43,4 +43,4 @@ private:
     ResourceMap m_globalUniformBlocks;  /**< Globally set uniform block bindings. */
 };
 
-extern EngineGlobal<ShaderManager> g_shaderManager;
+extern ShaderManager *g_shaderManager;

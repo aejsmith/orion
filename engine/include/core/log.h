@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "core/engine_global.h"
+#include "core/defs.h"
 
 /** Log level definitions. */
 enum class LogLevel {
@@ -40,7 +40,7 @@ public:
     void write(LogLevel level, const char *file, int line, const char *fmt, ...);
 };
 
-extern EngineGlobal<LogManager> g_logManager;
+extern LogManager *g_logManager;
 
 /** Write a debug log message.
  * @param fmt           Message format string.

@@ -64,7 +64,7 @@ private:
     friend class Asset;
 };
 
-extern EngineGlobal<AssetManager> g_assetManager;
+extern AssetManager *g_assetManager;
 
 /**
  * Load an asset of a certain type.

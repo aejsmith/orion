@@ -25,7 +25,6 @@
 
 #pragma once
 
-#include "core/engine_global.h"
 #include "core/log.h"
 #include "core/math.h"
 #include "core/utility.h"

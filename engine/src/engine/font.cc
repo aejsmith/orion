@@ -25,8 +25,6 @@
  *    X/Y coordinates in the atlas of each glyph.
  */
 
-#include "core/engine_global.h"
-
 #include "engine/font.h"
 
 #include <ft2build.h>

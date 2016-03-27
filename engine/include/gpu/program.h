@@ -24,6 +24,7 @@
 #include "gpu/defs.h"
 
 #include <array>
+#include <list>
 
 /** GPU program class. */
 class GPUProgram : public GPUResource {

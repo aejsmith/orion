@@ -29,7 +29,7 @@
 #include <ctime>
 
 /** Global log manager instance. */
-EngineGlobal<LogManager> g_logManager;
+LogManager *g_logManager;
 
 /** Initialize the log manager. */
 LogManager::LogManager() {}

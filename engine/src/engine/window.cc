@@ -27,7 +27,7 @@
 #include <SDL.h>
 
 /** Engine main window. */
-EngineGlobal<Window> g_mainWindow;
+Window *g_mainWindow;
 
 /** Create the main window.
  * @param config        Engine configuration structure. */

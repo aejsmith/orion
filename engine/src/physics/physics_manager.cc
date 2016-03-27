@@ -32,7 +32,7 @@ btBroadphaseInterface *g_btBroadphase;
 btConstraintSolver *g_btConstraintSolver;
 
 /** Global physics manager instance. */
-EngineGlobal<PhysicsManager> g_physicsManager;
+PhysicsManager *g_physicsManager;
 
 /** Initialise the physics manager. */
 PhysicsManager::PhysicsManager() {

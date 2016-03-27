@@ -55,4 +55,4 @@ private:
     friend class InputHandler;
 };
 
-extern EngineGlobal<InputManager> g_inputManager;
+extern InputManager *g_inputManager;

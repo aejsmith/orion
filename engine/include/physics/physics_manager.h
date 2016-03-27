@@ -36,4 +36,4 @@ private:
     PhysicsMaterialPtr m_defaultMaterial;
 };
 
-extern EngineGlobal<PhysicsManager> g_physicsManager;
+extern PhysicsManager *g_physicsManager;

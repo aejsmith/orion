@@ -182,13 +182,3 @@ protected:
 
 /** Type of a GPU resource pointer. */
 template <typename T> using GPUResourcePtr = ReferencePtr<T>;
-
-/**
- * Type of a global GPU resource pointer.
- *
- * Use this to store a global pointer to a GPU resource. It is implemented
- * using EngineGlobal and ensures that the pointer will be released before the
- * GPUManager is shut down.
- */
-template <typename T>
-using GlobalGPUResource = EngineGlobal<T, GPUResourcePtr<T>>;

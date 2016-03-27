@@ -31,7 +31,7 @@
 static const uint16_t kDefaultShadowMapResolution = 512;
 
 /** Manager of global renderer resources */
-EngineGlobal<RenderManager> g_renderManager;
+RenderManager *g_renderManager;
 
 /** Initialise the rendering manager. */
 RenderManager::RenderManager() :

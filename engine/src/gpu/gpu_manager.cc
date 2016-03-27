@@ -24,7 +24,7 @@
 #include "gl/gl.h"
 
 /** Global GPU manager instance. */
-EngineGlobal<GPUManager> g_gpuManager;
+GPUManager *g_gpuManager;
 
 /** Create the GPU manager.
  * @param config        Engine configuration.

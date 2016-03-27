@@ -50,4 +50,4 @@ private:
     uint32_t m_height;              /**< Height of the window. */
 };
 
-extern EngineGlobal<Window> g_mainWindow;
+extern Window *g_mainWindow;

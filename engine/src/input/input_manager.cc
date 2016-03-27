@@ -27,7 +27,7 @@
 #include <SDL.h>
 
 /** Global input manager. */
-EngineGlobal<InputManager> g_inputManager;
+InputManager *g_inputManager;
 
 /** Initialise the input manager. */
 InputManager::InputManager() :

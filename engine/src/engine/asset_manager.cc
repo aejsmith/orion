@@ -37,7 +37,7 @@
 #include "engine/asset_manager.h"
 
 /** Global asset manager instance. */
-EngineGlobal<AssetManager> g_assetManager;
+AssetManager *g_assetManager;
 
 /** Initialize the asset manager. */
 AssetManager::AssetManager() {

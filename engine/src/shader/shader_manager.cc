@@ -24,7 +24,7 @@
 #include "shader/uniform_buffer.h"
 
 /** Global shader manager. */
-EngineGlobal<ShaderManager> g_shaderManager;
+ShaderManager *g_shaderManager;
 
 /** Initialise the shader manager. */
 ShaderManager::ShaderManager() {

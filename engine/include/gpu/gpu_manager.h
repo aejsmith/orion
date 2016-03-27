@@ -259,6 +259,6 @@ protected:
     GPUManager() {}
 };
 
-extern EngineGlobal<GPUManager> g_gpuManager;
+extern GPUManager *g_gpuManager;
 
 #include "gpu/const_state.h"

@@ -137,4 +137,4 @@ private:
     uint16_t m_shadowMapResolution;         /**< Shadow map resolution. */
 };
 
-extern EngineGlobal<RenderManager> g_renderManager;
+extern RenderManager *g_renderManager;
