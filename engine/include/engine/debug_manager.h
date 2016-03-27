@@ -52,8 +52,7 @@ public:
     void startFrame();
     void endFrame();
 
-    void registerWindow(DebugWindow *window);
-    void unregisterWindow(DebugWindow *window);
+    void registerWindow(std::unique_ptr<DebugWindow> window);
 private:
     /** Details of a line to draw. */
     struct Line {

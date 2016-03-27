@@ -53,8 +53,7 @@ public:
     void startFrame();
     void render() override;
 
-    void registerWindow(DebugWindow *window);
-    void unregisterWindow(DebugWindow *window);
+    void registerWindow(std::unique_ptr<DebugWindow> window);
 protected:
     bool handleButtonDown(const ButtonEvent &event) override;
     bool handleButtonUp(const ButtonEvent &event) override;
@@ -62,22 +61,26 @@ protected:
 private:
     /** State of the GUI. */
     enum class State {
-        kInactive,                          /**< Not visible. */
-        kVisible,                           /**< Visible, not receiving input. */
-        kActive,                            /**< Visible, with input captured. */
+        kInactive,                      /**< Not visible. */
+        kVisible,                       /**< Visible, not receiving input. */
+        kActive,                        /**< Visible, with input captured. */
     };
 private:
     static const char *getClipboardText();
     static void setClipboardText(const char *text);
 private:
-    GPUVertexFormatPtr m_vertexFormat;      /**< Vertex format for GUI drawing. */
-    MaterialPtr m_material;                 /**< Material for GUI drawing. */
-    GPUTexturePtr m_fontTexture;            /**< Font texture for GUI. */
-    GPUSamplerStatePtr m_sampler;           /**< Texture sampler for the GUI. */
-    State m_state;                          /**< State of the GUI. */
-    bool m_previousMouseCapture;            /**< Previous mouse capture state. */
-    std::list<DebugWindow *> m_windows;     /**< List of GUI windows. */
-    std::list<GPUTexturePtr> m_textures;    /**< List of texture references. */
+    GPUVertexFormatPtr m_vertexFormat;  /**< Vertex format for GUI drawing. */
+    MaterialPtr m_material;             /**< Material for GUI drawing. */
+    GPUTexturePtr m_fontTexture;        /**< Font texture for GUI. */
+    GPUSamplerStatePtr m_sampler;       /**< Texture sampler for the GUI. */
+    State m_state;                      /**< State of the GUI. */
+    bool m_previousMouseCapture;        /**< Previous mouse capture state. */
+
+    /** List of GUI windows. */
+    std::list<std::unique_ptr<DebugWindow>> m_windows;
+
+    /** List of texture references. */
+    std::list<GPUTexturePtr> m_textures;
 
     friend class DebugWindow;
 };
@@ -275,7 +278,7 @@ void DebugOverlay::render() {
             /* Draw the main menu. */
             if (ImGui::BeginMainMenuBar()) {
                 if (ImGui::BeginMenu("Windows")) {
-                    for (DebugWindow *window : m_windows) {
+                    for (auto &window : m_windows) {
                         if (ImGui::MenuItem(window->m_title.c_str(), "", window->m_open))
                             window->m_open = !window->m_open;
                     }
@@ -288,7 +291,7 @@ void DebugOverlay::render() {
         }
 
         /* Draw debug windows. */
-        for (DebugWindow *window : m_windows) {
+        for (auto &window : m_windows) {
             if (window->m_open)
                 window->render();
         }
@@ -376,14 +379,8 @@ void DebugOverlay::render() {
 
 /** Register a debug GUI window.
  * @param window        Window to register. */
-void DebugOverlay::registerWindow(DebugWindow *window) {
-    m_windows.push_back(window);
-}
-
-/** Unregister a debug GUI window.
- * @param window        Window to unregister. */
-void DebugOverlay::unregisterWindow(DebugWindow *window) {
-    m_windows.remove(window);
+void DebugOverlay::registerWindow(std::unique_ptr<DebugWindow> window) {
+    m_windows.emplace_back(std::move(window));
 }
 
 /** Handle a button down event.
@@ -601,13 +598,7 @@ void DebugManager::endFrame() {
 }
 
 /** Register a debug GUI window.
- * @param window        Window to register. */
-void DebugManager::registerWindow(DebugWindow *window) {
-    m_overlay->registerWindow(window);
-}
-
-/** Unregister a debug GUI window.
- * @param window        Window to unregister. */
-void DebugManager::unregisterWindow(DebugWindow *window) {
-    m_overlay->unregisterWindow(window);
+ * @param window        Window to register. Will become owned by the manager. */
+void DebugManager::registerWindow(std::unique_ptr<DebugWindow> window) {
+    m_overlay->registerWindow(std::move(window));
 }
