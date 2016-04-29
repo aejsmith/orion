@@ -1,0 +1,7 @@
+Import('env')
+
+localEnv = env.Clone()
+localEnv.ParseConfig('llvm-config --cflags --ldflags')
+localEnv['LIBS'] = ['clang']
+
+localEnv.Program('objgen', ['main.cc'])
