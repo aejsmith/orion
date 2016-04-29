@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,12 +16,13 @@
 
 /**
  * @file
- * @brief               Object compiler main function.
+ * @brief               Object compiler.
  */
 
 #include <clang-c/Index.h>
 
 #include <list>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -30,6 +31,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+struct ParsedTranslationUnit;
 
 /** Details common to all parsed declarations. */
 struct ParsedDecl {
@@ -40,6 +43,9 @@ struct ParsedDecl {
 public:
     ParsedDecl(CXCursor _cursor, ParsedDecl *_parent);
     virtual ~ParsedDecl() {}
+
+    bool isFromMainFile() const;
+    ParsedTranslationUnit *getTranslationUnit();
 
     /** Dump this declaration.
      * @param depth         Indentation depth. */
@@ -86,7 +92,7 @@ protected:
 /** Details of a parsed translation unit. */
 struct ParsedTranslationUnit : ParsedDecl {
     /** List of child classes. */
-    std::list<std::unique_ptr<ParsedClass>> classes;
+    std::map<std::string, std::unique_ptr<ParsedClass>> classes;
 public:
     explicit ParsedTranslationUnit(CXCursor cursor);
 
@@ -162,6 +168,21 @@ ParsedDecl::ParsedDecl(CXCursor _cursor, ParsedDecl *_parent) :
     CXString name = clang_getCursorSpelling(cursor);
     this->name = clang_getCString(name);
     clang_disposeString(name);
+}
+
+/** @return             Whether this declaration is from the main file. */
+bool ParsedDecl::isFromMainFile() const {
+    return clang_Location_isFromMainFile(clang_getCursorLocation(this->cursor));
+}
+
+/** @return             The translation unit this declaration belongs to. */
+ParsedTranslationUnit *ParsedDecl::getTranslationUnit() {
+    ParsedDecl *decl = this;
+
+    while (decl->parent)
+        decl = decl->parent;
+
+    return static_cast<ParsedTranslationUnit *>(decl);
 }
 
 /** Handle an annotation attribute.
@@ -253,7 +274,7 @@ void ParsedProperty::dump(unsigned depth) {
  * @param _parent       Parent declaration. */
 ParsedClass::ParsedClass(CXCursor cursor, ParsedDecl *parent) :
     ParsedDecl(cursor, parent),
-    isObject(false)
+    isObject(name.compare("Object") == 0)
 {}
 
 /**
@@ -291,8 +312,24 @@ void ParsedClass::handleChild(CXCursor cursor, CXCursorKind kind) {
             std::string typeName(clang_getCString(str));
             clang_disposeString(str);
 
-            if (!typeName.compare("Object"))
+            /* The translation unit records all Object-derived classes seen,
+             * even those outside the main file. Therefore, we look for the
+             * base class name in there, and if it matches one of those, then
+             * we are an Object-derived class as well. */
+            ParsedTranslationUnit *translationUnit = getTranslationUnit();
+            auto it = translationUnit->classes.find(typeName);
+            if (it != translationUnit->classes.end()) {
+                /* If isObject is already set to true, then we have multiple
+                 * inheritance, which is unsupported. */
+                if (this->isObject) {
+                    parseError(
+                        cursor,
+                        "Inheritance from multiple Object-derived classes is unsupported (on class '%s')",
+                        this->name.c_str());
+                }
+
                 this->isObject = true;
+            }
 
             break;
         }
@@ -300,14 +337,14 @@ void ParsedClass::handleChild(CXCursor cursor, CXCursorKind kind) {
         case CXCursor_VarDecl:
         {
             /* Static class variable fall under VarDecl. The class annotation
-             * is applied to the metaClass member, so if we have that variable,
+             * is applied to the m_metaClass member, so if we have that variable,
              * then descend onto children keeping the same current declaration
              * so we see the annotation below. */
             CXString str = clang_getCursorSpelling(cursor);
             std::string typeName(clang_getCString(str));
             clang_disposeString(str);
 
-            if (!typeName.compare("metaClass"))
+            if (!typeName.compare("m_metaClass"))
                 visitChildren(cursor, this);
 
             break;
@@ -364,16 +401,15 @@ void ParsedTranslationUnit::handleChild(CXCursor cursor, CXCursorKind kind) {
     switch (kind) {
         case CXCursor_ClassDecl:
         case CXCursor_StructDecl:
-            /* Ignore class declarations outside the main source file. */
-            if (clang_Location_isFromMainFile(clang_getCursorLocation(cursor))) {
-                std::unique_ptr<ParsedClass> parsedClass(new ParsedClass(cursor, this));
-                visitChildren(cursor, parsedClass.get());
+        {
+            std::unique_ptr<ParsedClass> parsedClass(new ParsedClass(cursor, this));
+            visitChildren(cursor, parsedClass.get());
 
-                if (parsedClass->isValid())
-                    this->classes.emplace_back(std::move(parsedClass));
-            }
+            if (parsedClass->isValid())
+                this->classes.insert(std::make_pair(parsedClass->name, std::move(parsedClass)));
 
             break;
+        }
 
         default:
             break;
@@ -385,8 +421,12 @@ void ParsedTranslationUnit::handleChild(CXCursor cursor, CXCursorKind kind) {
 void ParsedTranslationUnit::dump(unsigned depth) {
     printf("%-*sTranslationUnit '%s'\n", depth * 2, "", this->name.c_str());
 
-    for (const std::unique_ptr<ParsedClass> &parsedClass : this->classes)
-        parsedClass->dump(depth + 1);
+    for (auto &it : this->classes) {
+        const std::unique_ptr<ParsedClass> &parsedClass = it.second;
+
+        if (parsedClass->isFromMainFile())
+            parsedClass->dump(depth + 1);
+    }
 }
 
 /** Print usage information.
