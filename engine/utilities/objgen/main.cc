@@ -19,8 +19,7 @@
  * @brief               Object compiler.
  */
 
-#include <clang-c/Index.h>
-
+#include <fstream>
 #include <list>
 #include <map>
 #include <memory>
@@ -31,6 +30,15 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include <clang-c/Index.h>
+
+#include <mustache/mustache.hpp>
+
+#include "objgen.mustache.h"
+
+using Mustache = Kainjow::BasicMustache<std::string>;
 
 struct ParsedTranslationUnit;
 
@@ -47,9 +55,13 @@ public:
     bool isFromMainFile() const;
     ParsedTranslationUnit *getTranslationUnit();
 
+    /** Generate this declaration.
+     * @return              Generated Mustache data object. */
+    virtual Mustache::Data generate() const { return Mustache::Data(); }
+
     /** Dump this declaration.
      * @param depth         Indentation depth. */
-    virtual void dump(unsigned depth) = 0;
+    virtual void dump(unsigned depth) const = 0;
 
     static void visitChildren(CXCursor cursor, ParsedDecl *decl);
 protected:
@@ -68,7 +80,7 @@ struct ParsedProperty : ParsedDecl {
 public:
     ParsedProperty(CXCursor cursor, ParsedDecl *parent);
 
-    void dump(unsigned depth) override;
+    void dump(unsigned depth) const override;
 protected:
     void handleChild(CXCursor cursor, CXCursorKind kind) override;
 };
@@ -76,6 +88,7 @@ protected:
 /** Details of a parsed class. */
 struct ParsedClass : ParsedDecl {
     bool isObject;                  /**< Whether the class derives from Object. */
+    ParsedClass *parentClass;       /**< Parent class. */
 
     /** List of child properties. */
     std::list<std::unique_ptr<ParsedProperty>> properties;
@@ -84,7 +97,8 @@ public:
 
     bool isValid() const;
 
-    void dump(unsigned depth) override;
+    Mustache::Data generate() const override;
+    void dump(unsigned depth) const override;
 protected:
     void handleChild(CXCursor cursor, CXCursorKind kind) override;
 };
@@ -96,7 +110,8 @@ struct ParsedTranslationUnit : ParsedDecl {
 public:
     explicit ParsedTranslationUnit(CXCursor cursor);
 
-    void dump(unsigned depth = 0) override;
+    Mustache::Data generate() const override;
+    void dump(unsigned depth = 0) const override;
 protected:
     void handleChild(CXCursor cursor, CXCursorKind kind) override;
 };
@@ -265,7 +280,7 @@ void ParsedProperty::handleChild(CXCursor cursor, CXCursorKind kind) {
 
 /** Dump this declaration.
  * @param depth         Indentation depth. */
-void ParsedProperty::dump(unsigned depth) {
+void ParsedProperty::dump(unsigned depth) const {
     printf("%-*sProperty '%s'\n", depth * 2, "", this->name.c_str());
 }
 
@@ -274,7 +289,8 @@ void ParsedProperty::dump(unsigned depth) {
  * @param _parent       Parent declaration. */
 ParsedClass::ParsedClass(CXCursor cursor, ParsedDecl *parent) :
     ParsedDecl(cursor, parent),
-    isObject(name.compare("Object") == 0)
+    isObject(name.compare("Object") == 0),
+    parentClass(nullptr)
 {}
 
 /**
@@ -329,6 +345,7 @@ void ParsedClass::handleChild(CXCursor cursor, CXCursorKind kind) {
                 }
 
                 this->isObject = true;
+                this->parentClass = it->second.get();
             }
 
             break;
@@ -336,15 +353,15 @@ void ParsedClass::handleChild(CXCursor cursor, CXCursorKind kind) {
 
         case CXCursor_VarDecl:
         {
-            /* Static class variable fall under VarDecl. The class annotation
-             * is applied to the m_metaClass member, so if we have that variable,
-             * then descend onto children keeping the same current declaration
-             * so we see the annotation below. */
+            /* Static class variables fall under VarDecl. The class annotation
+             * is applied to the staticMetaClass member, so if we have that
+             * variable, then descend onto children keeping the same current
+             * declaration so we see the annotation below. */
             CXString str = clang_getCursorSpelling(cursor);
             std::string typeName(clang_getCString(str));
             clang_disposeString(str);
 
-            if (!typeName.compare("m_metaClass"))
+            if (!typeName.compare("staticMetaClass"))
                 visitChildren(cursor, this);
 
             break;
@@ -379,9 +396,22 @@ void ParsedClass::handleChild(CXCursor cursor, CXCursorKind kind) {
     }
 }
 
+/** Generate this declaration.
+ * @return              Generated Mustache data object. */
+Mustache::Data ParsedClass::generate() const {
+    Mustache::Data data;
+
+    data.set("name", this->name);
+
+    if (this->parentClass)
+        data.set("parent", this->parentClass->name);
+
+    return data;
+}
+
 /** Dump this declaration.
  * @param depth         Indentation depth. */
-void ParsedClass::dump(unsigned depth) {
+void ParsedClass::dump(unsigned depth) const {
     printf("%-*sClass '%s'\n", depth * 2, "", this->name.c_str());
 
     for (const std::unique_ptr<ParsedProperty> &parsedProperty : this->properties)
@@ -416,9 +446,24 @@ void ParsedTranslationUnit::handleChild(CXCursor cursor, CXCursorKind kind) {
     }
 }
 
+/** Generate this declaration.
+ * @return              Generated Mustache data object. */
+Mustache::Data ParsedTranslationUnit::generate() const {
+    Mustache::Data data(Mustache::Data::List());
+
+    for (auto &it : this->classes) {
+        const std::unique_ptr<ParsedClass> &parsedClass = it.second;
+
+        if (parsedClass->isFromMainFile())
+            data.push_back(parsedClass->generate());
+    }
+
+    return data;
+}
+
 /** Dump this declaration.
  * @param depth         Indentation depth. */
-void ParsedTranslationUnit::dump(unsigned depth) {
+void ParsedTranslationUnit::dump(unsigned depth) const {
     printf("%-*sTranslationUnit '%s'\n", depth * 2, "", this->name.c_str());
 
     for (auto &it : this->classes) {
@@ -439,6 +484,7 @@ static void usage(const char *argv0) {
     printf("  -d            Dump parsed information, do not generate code\n");
     printf("  -D<define>    Preprocessor definition (as would be passed to clang)\n");
     printf("  -I<path>      Preprocessor include path (as would be passed to clang)\n");
+    printf("  -s            Generate standalone code, which does not include the source file\n");
 }
 
 /** Main function of the object compiler.
@@ -448,10 +494,11 @@ static void usage(const char *argv0) {
 int main(int argc, char **argv) {
     std::vector<const char *> clangArgs;
     bool dump = false;
+    bool standalone = false;
 
     /* Parse arguments. */
     int opt;
-    while ((opt = getopt(argc, argv, "hdD:I:")) != -1) {
+    while ((opt = getopt(argc, argv, "hdD:I:s")) != -1) {
         switch (opt) {
             case 'h':
                 usage(argv[0]);
@@ -466,6 +513,9 @@ int main(int argc, char **argv) {
             case 'I':
                 clangArgs.push_back("-I");
                 clangArgs.push_back(optarg);
+                break;
+            case 's':
+                standalone = true;
                 break;
             default:
                 return EXIT_FAILURE;
@@ -538,6 +588,21 @@ int main(int argc, char **argv) {
         parsedUnit.dump();
         return EXIT_SUCCESS;
     }
+
+    /* Open the output file. */
+    std::ofstream outputStream(outputFile, std::ofstream::out | std::ofstream::trunc);
+    if (!outputStream) {
+        fprintf(stderr, "%s: Failed to open '%s': %s\n", argv[0], outputFile, strerror(errno));
+        return EXIT_FAILURE;
+    }
+
+    /* Generate the output. */
+    Mustache codeTemplate(g_objgenTemplate);
+    Mustache::Data data;
+    if (!standalone)
+        data.set("include", sourceFile);
+    data.set("classes", parsedUnit.generate());
+    codeTemplate.render(data, outputStream);
 
     return EXIT_SUCCESS;
 }

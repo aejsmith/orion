@@ -4,4 +4,31 @@ localEnv = env.Clone()
 localEnv.ParseConfig('llvm-config --cflags --ldflags')
 localEnv['LIBS'] = ['clang']
 
+# Compile the Mustache template into the objgen binary so we don't have to find
+# it at runtime.
+def genMustacheHeader(target, source, env):
+    import json
+
+    # Read the source.
+    with open(str(source[0]), 'r') as sourceFile:
+        lines = sourceFile.readlines()
+
+    # Output the file.
+    with open(str(target[0]), 'w') as targetFile:
+        targetFile.write('const char *g_objgenTemplate =')
+
+        for line in lines:
+            # Make the generated code slightly nicer by stripping the newline
+            # from lines that only contain a Mustache tag. Could do this in the
+            # template but then that is less readable.
+            if line[0:2] == '{{' and line[-3:-1] == '}}':
+                line = line[:-1]
+
+            # Format the strings appropriately for C++. JSON rules for strings
+            # are pretty much equivalent so we can use the json module to do
+            # this.
+            targetFile.write('\n    %s' % (json.dumps(line)))
+        targetFile.write(';\n')
+localEnv.Command('objgen.mustache.h', 'objgen.mustache', Action(genMustacheHeader, '$GENCOMSTR'))
+
 localEnv.Program('objgen', ['main.cc'])

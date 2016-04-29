@@ -14,6 +14,7 @@ if not ARGUMENTS.get('V'):
     env['LINKCOMSTR']   = ' LINK   $TARGET'
     env['SHLINKCOMSTR'] = ' SHLINK $TARGET'
     env['RANLIBCOMSTR'] = ' RANLIB $TARGET'
+    env['GENCOMSTR']    = ' GEN    $TARGET'
 
 env['CCFLAGS'] += [
     # Optimization/debugging flags.
@@ -42,6 +43,7 @@ env['CPPPATH'] = [
     Dir('engine/3rdparty/glm'),
     Dir('engine/3rdparty/rapidjson/include'),
     Dir('engine/3rdparty/imgui'),
+    Dir('engine/3rdparty/mustache'),
 ]
 
 env['LIBS'] = []

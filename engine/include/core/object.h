@@ -37,6 +37,8 @@
  * This macro marks a class as a meta-object class, i.e. one which derives from
  * Object. All such classes must include this annotation in order to add
  * definitions for class metadata objects, and to mark the class for objgen.
+ * Note that this leaves the current class access specifier as private, as it
+ * is intended to be placed right at the top of a class declaration.
  *
  * Example:
  *
@@ -50,8 +52,29 @@
  */
 #define CLASS(...) \
     public: \
-        static META_ATTRIBUTE("class", __VA_ARGS__) MetaClass metaClass; \
+        static META_ATTRIBUTE("class", __VA_ARGS__) MetaClass staticMetaClass; \
+        virtual const MetaClass *metaClass() const { return &staticMetaClass; } \
     private:
+
+/**
+ * Annotation for meta-object structures.
+ *
+ * This macro is equivalent to CLASS() except for a struct. The only difference
+ * between the two is that this leaves the access specifier as public.
+ *
+ * Example:
+ *
+ *   struct Foobar : Object {
+ *       STRUCT()
+ *
+ *       ...
+ *   };
+ *
+ * @param ...           Directives for objgen indicating traits of the class.
+ */
+#define STRUCT(...) \
+        CLASS(__VA_ARGS__) \
+    public:
 
 /**
  * Annotation for class properties.
@@ -81,7 +104,15 @@
 /** Class providing metadata about a class. */
 class MetaClass {
 public:
+    MetaClass(const char *name, const MetaClass *parent = nullptr);
 
+    /** @return             Name of the class. */
+    const char *name() const { return m_name; }
+    /** @return             Metadata for parent class. */
+    const MetaClass *parent() const { return m_parent; }
+private:
+    const char *m_name;                 /**< Name of the class. */
+    const MetaClass *m_parent;          /**< Metadata for parent class. */
 };
 
 /** Class providing metadata about a property. */
@@ -94,5 +125,4 @@ public:
 class Object {
     CLASS()
 public:
-
 };
