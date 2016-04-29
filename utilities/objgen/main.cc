@@ -444,7 +444,7 @@ int main(int argc, char **argv) {
      * compiler. */
     clangArgs.push_back("-x");
     clangArgs.push_back("c++");
-    clangArgs.push_back("-std=c++11");
+    clangArgs.push_back("-std=c++14");
     clangArgs.push_back("-DORION_OBJGEN=1");
 
     /* Create an index with diagnostic output disabled. */
