@@ -1,7 +1,7 @@
 import os, sys
 
 # Add the path to our build utilities to the path.
-sys.path = [os.path.abspath(os.path.join('utilities', 'build'))] + sys.path
+sys.path = [os.path.abspath(os.path.join('dev', 'build'))] + sys.path
 
 env = Environment(ENV = os.environ)
 

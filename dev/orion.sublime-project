@@ -2,7 +2,7 @@
     "folders": [
         {
             "path": "..",
-            "folder_exclude_patterns": ["build"],
+            "folder_exclude_patterns": ["orion/build"],
             "file_exclude_patterns": [
                 "*.pyc",
                 "*.pyo",
