@@ -111,24 +111,20 @@ void InputManager::setMouseCaptured(bool captured) {
     }
 }
 
-/** Dispatch an event to a handler.
- * @param handler       Handlers list.
- * @param function      Function to call. */
-static void dispatchInputEvent(
-    const std::list<InputHandler *> &handlers,
-    const std::function<bool (InputHandler *)> &function)
-{
-    for (InputHandler *handler : handlers) {
-        if (function(handler))
-            break;
-    }
-}
-
 /** Handle an SDL event.
  * @param event         SDL event structure.
  * @return              Whether the event was handled. */
 bool InputManager::handleEvent(SDL_Event *event) {
     uint32_t modifiers = getModifiers();
+
+    /** Dispatch an event to a handler.
+     * @param function      Function to call. */
+    auto dispatchInputEvent = [&] (auto function) {
+        for (InputHandler *handler : m_handlers) {
+            if (function(handler))
+                break;
+        }
+    };
 
     /* Process the event. */
     switch (event->type) {
@@ -157,7 +153,7 @@ bool InputManager::handleEvent(SDL_Event *event) {
 
             ButtonEvent buttonEvent(inputInfo, modifiers, character);
 
-            dispatchInputEvent(m_handlers, [&] (InputHandler *handler) {
+            dispatchInputEvent([&] (InputHandler *handler) {
                 if (event->type == SDL_KEYDOWN) {
                     return handler->handleButtonDown(buttonEvent);
                 } else {
@@ -192,7 +188,7 @@ bool InputManager::handleEvent(SDL_Event *event) {
 
             ButtonEvent buttonEvent(inputInfo, modifiers, 0);
 
-            dispatchInputEvent(m_handlers, [&] (InputHandler *handler) {
+            dispatchInputEvent([&] (InputHandler *handler) {
                 if (event->type == SDL_MOUSEBUTTONDOWN) {
                     return handler->handleButtonDown(buttonEvent);
                 } else {
@@ -210,7 +206,7 @@ bool InputManager::handleEvent(SDL_Event *event) {
 
                 AxisEvent axisEvent(inputInfo, modifiers, event->motion.xrel);
 
-                dispatchInputEvent(m_handlers, [&] (InputHandler *handler) {
+                dispatchInputEvent([&] (InputHandler *handler) {
                     return handler->handleAxis(axisEvent);
                 });
             }
@@ -220,7 +216,7 @@ bool InputManager::handleEvent(SDL_Event *event) {
 
                 AxisEvent axisEvent(inputInfo, modifiers, event->motion.yrel);
 
-                dispatchInputEvent(m_handlers, [&] (InputHandler *handler) {
+                dispatchInputEvent([&] (InputHandler *handler) {
                     return handler->handleAxis(axisEvent);
                 });
             }
@@ -234,7 +230,7 @@ bool InputManager::handleEvent(SDL_Event *event) {
 
             AxisEvent axisEvent(inputInfo, modifiers, event->wheel.y);
 
-            dispatchInputEvent(m_handlers, [&] (InputHandler *handler) {
+            dispatchInputEvent([&] (InputHandler *handler) {
                 return handler->handleAxis(axisEvent);
             });
 
