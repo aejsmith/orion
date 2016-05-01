@@ -52,7 +52,7 @@
  */
 #define CLASS(...) \
     public: \
-        static META_ATTRIBUTE("class", __VA_ARGS__) MetaClass staticMetaClass; \
+        static const META_ATTRIBUTE("class", __VA_ARGS__) MetaClass staticMetaClass; \
         virtual const MetaClass *metaClass() const; \
     private:
 

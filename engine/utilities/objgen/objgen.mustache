@@ -4,7 +4,7 @@
 {{/include}}
 {{#classes}}
 
-MetaClass {{name}}::staticMetaClass("{{name}}"{{#parent}}, &{{parent}}::staticMetaClass{{/parent}});
+const MetaClass {{name}}::staticMetaClass("{{name}}"{{#parent}}, &{{parent}}::staticMetaClass{{/parent}});
 
 const MetaClass *{{name}}::metaClass() const {
     return &{{name}}::staticMetaClass;
