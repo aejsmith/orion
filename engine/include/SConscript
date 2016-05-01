@@ -1,11 +1,7 @@
 import util
 
-SConscript(dirs = ['utilities'])
-
 objects = util.flatten(SConscript(dirs = [
-    'include',
-    'src',
-    '3rdparty',
+    'core',
 ]))
 
 Return('objects')

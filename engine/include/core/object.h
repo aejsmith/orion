@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
 
 /**
  * @file
- * @brief               Meta-object system definitions.
+ * @brief               Meta-object system.
  */
 
 #pragma once
@@ -53,7 +53,7 @@
 #define CLASS(...) \
     public: \
         static META_ATTRIBUTE("class", __VA_ARGS__) MetaClass staticMetaClass; \
-        virtual const MetaClass *metaClass() const { return &staticMetaClass; } \
+        virtual const MetaClass *metaClass() const; \
     private:
 
 /**
@@ -105,6 +105,7 @@
 class MetaClass {
 public:
     MetaClass(const char *name, const MetaClass *parent = nullptr);
+    ~MetaClass();
 
     /** @return             Name of the class. */
     const char *name() const { return m_name; }

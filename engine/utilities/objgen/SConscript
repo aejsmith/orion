@@ -1,3 +1,6 @@
+import SCons.Scanner.C
+from subprocess import Popen, PIPE
+
 Import('env')
 
 localEnv = env.Clone()
@@ -31,4 +34,42 @@ def genMustacheHeader(target, source, env):
         targetFile.write(';\n')
 localEnv.Command('objgen.mustache.h', 'objgen.mustache', Action(genMustacheHeader, '$GENCOMSTR'))
 
-localEnv.Program('objgen', ['main.cc'])
+env['OBJGEN'] = localEnv.Program('objgen', ['main.cc'])
+
+# libclang doesn't add the compiler's built-in include directory to the default
+# path. Therefore we must get this manually and pass it to objgen.
+incdir = Popen([env['CC'], '-print-file-name=include'], stdout=PIPE).communicate()[0].strip()
+env['CPPSYSINCFLAG'] = '-I%s' % (incdir)
+
+#
+# Define builders to run objgen.
+#  - ObjgenHeader runs a header through objgen and uses env.Object to build it,
+#    and returns that target.
+#  - ObjgenSource runs a source file through objgen in standalone mode, and
+#    returns the target for that. The result can be included by another source
+#    file.
+#
+
+# Emitter to add a dependency on objgen for the generated files.
+def objgenEmitter(target, source, env):
+    Depends(target, env['OBJGEN'])
+    return (target, source)
+
+env['BUILDERS']['_ObjgenHeader'] = Builder(
+    action = Action('$OBJGEN $_CPPDEFFLAGS $CPPSYSINCFLAG $_CPPINCFLAGS $SOURCE $TARGET', '$GENCOMSTR'),
+    emitter = objgenEmitter,
+    suffix = '.obj.cc',
+    src_suffix = '.h',
+    source_scanner = SCons.Scanner.C.CScanner())
+
+# Wrapper method to compile the generated files.
+def objgenHeaderMethod(env, source):
+    return env.Object(env._ObjgenHeader(source))
+env.AddMethod(objgenHeaderMethod, 'ObjgenHeader')
+
+env['BUILDERS']['ObjgenSource'] = Builder(
+    action = Action('$OBJGEN $_CPPDEFFLAGS $CPPSYSINCFLAG $_CPPINCFLAGS -s $SOURCE $TARGET', '$GENCOMSTR'),
+    emitter = objgenEmitter,
+    suffix = '.obj.cc',
+    src_suffix = '.cc',
+    source_scanner = SCons.Scanner.C.CScanner())

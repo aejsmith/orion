@@ -1,0 +1,7 @@
+Import('env')
+
+objects = map(env.ObjgenHeader, [
+    'object.h',
+])
+
+Return('objects')

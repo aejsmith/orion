@@ -599,8 +599,23 @@ int main(int argc, char **argv) {
     /* Generate the output. */
     Mustache codeTemplate(g_objgenTemplate);
     Mustache::Data data;
-    if (!standalone)
-        data.set("include", sourceFile);
+
+    if (!standalone) {
+        /* For now resolve the source file path to an absolute path, and use
+         * that as the include. It's not ideal as things will break if the
+         * build tree is moved around, so if this becomes an issue in future
+         * we could instead try to calculate a relative path between the output
+         * directory and the source file. */
+        char *absoluteSourceFile = realpath(sourceFile, nullptr);
+        if (!absoluteSourceFile) {
+            fprintf(stderr, "%s: Failed to get absolute path of '%s': %s\n", argv[0], sourceFile, strerror(errno));
+            return EXIT_FAILURE;
+        }
+
+        data.set("include", absoluteSourceFile);
+        free(absoluteSourceFile);
+    }
+
     data.set("classes", parsedUnit.generate());
     codeTemplate.render(data, outputStream);
 
