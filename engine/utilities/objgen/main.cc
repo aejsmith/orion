@@ -530,7 +530,32 @@ int main(int argc, char **argv) {
     const char *sourceFile = argv[optind];
     const char *outputFile = argv[optind + 1];
 
-    /* Source code is C++11, and define a macro to indicate we are the object
+    /* Open the output file. This must be done first for standalone mode, so
+     * that the generated file included by the source file exists. The wrapper
+     * ensures that it is deleted if we fail. */
+    struct OutputStream : std::ofstream {
+        OutputStream(const char *_file, std::ios_base::openmode mode) :
+            std::ofstream(_file, mode),
+            file(_file)
+        {}
+
+        ~OutputStream() {
+            if (is_open()) {
+                close();
+                std::remove(this->file);
+            }
+        }
+
+        const char *file;
+    };
+
+    OutputStream outputStream(outputFile, std::ofstream::out | std::ofstream::trunc);
+    if (!outputStream) {
+        fprintf(stderr, "%s: Failed to open '%s': %s\n", argv[0], outputFile, strerror(errno));
+        return EXIT_FAILURE;
+    }
+
+    /* Source code is C++14, and define a macro to indicate we are the object
      * compiler. */
     clangArgs.push_back("-x");
     clangArgs.push_back("c++");
@@ -589,13 +614,6 @@ int main(int argc, char **argv) {
         return EXIT_SUCCESS;
     }
 
-    /* Open the output file. */
-    std::ofstream outputStream(outputFile, std::ofstream::out | std::ofstream::trunc);
-    if (!outputStream) {
-        fprintf(stderr, "%s: Failed to open '%s': %s\n", argv[0], outputFile, strerror(errno));
-        return EXIT_FAILURE;
-    }
-
     /* Generate the output. */
     Mustache codeTemplate(g_objgenTemplate);
     Mustache::Data data;
@@ -618,6 +636,9 @@ int main(int argc, char **argv) {
 
     data.set("classes", parsedUnit.generate());
     codeTemplate.render(data, outputStream);
+
+    /* We have succeeded, don't delete on exit. */
+    outputStream.close();
 
     return EXIT_SUCCESS;
 }

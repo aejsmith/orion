@@ -45,9 +45,8 @@ env['CPPSYSINCFLAG'] = '-I%s' % (incdir)
 # Define builders to run objgen.
 #  - ObjgenHeader runs a header through objgen and uses env.Object to build it,
 #    and returns that target.
-#  - ObjgenSource runs a source file through objgen in standalone mode, and
-#    returns the target for that. The result can be included by another source
-#    file.
+#  - ObjgenSource runs a source file through objgen in source mode, and returns
+#    the target for that. The result can be included in a source file.
 #
 
 # Emitter to add a dependency on objgen for the generated files.
@@ -67,9 +66,25 @@ def objgenHeaderMethod(env, source):
     return env.Object(env._ObjgenHeader(source))
 env.AddMethod(objgenHeaderMethod, 'ObjgenHeader')
 
+# We need to filter out the include of the generated source file to prevent a
+# dependency cycle. objgen will create the file before parsing it with clang to
+# ensure it doesn't error.
+class ObjgenSourceScanner:
+    def __init__(self):
+        self.name = "ObjgenSourceScanner"
+        self.path = SCons.Scanner.FindPathDirs("CPPPATH")
+    def __call__(self, node, env, path):
+        base = SCons.Scanner.C.CScanner()
+        deps = base(node, env, path)
+        return [dep for dep in deps if str(dep)[-7:] != '.obj.cc']
+    def recurse_nodes(self, nodes):
+        return nodes
+    def select(self, node):
+        return self
+
 env['BUILDERS']['ObjgenSource'] = Builder(
     action = Action('$OBJGEN $_CPPDEFFLAGS $CPPSYSINCFLAG $_CPPINCFLAGS -s $SOURCE $TARGET', '$GENCOMSTR'),
     emitter = objgenEmitter,
     suffix = '.obj.cc',
     src_suffix = '.cc',
-    source_scanner = SCons.Scanner.C.CScanner())
+    source_scanner = ObjgenSourceScanner())
