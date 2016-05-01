@@ -507,6 +507,7 @@ static void usage(const char *argv0) {
     printf("  -D<define>    Preprocessor definition (as would be passed to clang)\n");
     printf("  -I<path>      Preprocessor include path (as would be passed to clang)\n");
     printf("  -s            Generate standalone code, which does not include the source file\n");
+    printf("  -e            Ignore parse errors, generate empty output if any occur\n");
 }
 
 /** Main function of the object compiler.
@@ -517,10 +518,11 @@ int main(int argc, char **argv) {
     std::vector<const char *> clangArgs;
     bool dump = false;
     bool standalone = false;
+    bool ignoreErrors = false;
 
     /* Parse arguments. */
     int opt;
-    while ((opt = getopt(argc, argv, "hdD:I:s")) != -1) {
+    while ((opt = getopt(argc, argv, "hdD:I:se")) != -1) {
         switch (opt) {
             case 'h':
                 usage(argv[0]);
@@ -538,6 +540,9 @@ int main(int argc, char **argv) {
                 break;
             case 's':
                 standalone = true;
+                break;
+            case 'e':
+                ignoreErrors = true;
                 break;
             default:
                 return EXIT_FAILURE;
@@ -610,18 +615,33 @@ int main(int argc, char **argv) {
         if (clang_getDiagnosticSeverity(diag) >= CXDiagnostic_Error) {
             hadError = true;
 
-            CXString diagString = clang_formatDiagnostic(
-                diag,
-                clang_defaultDiagnosticDisplayOptions());
-            fprintf(stderr, "%s\n", clang_getCString(diagString));
-            clang_disposeString(diagString);
+            if (!ignoreErrors) {
+                CXString diagString = clang_formatDiagnostic(
+                    diag,
+                    clang_defaultDiagnosticDisplayOptions());
+                fprintf(stderr, "%s\n", clang_getCString(diagString));
+                clang_disposeString(diagString);
+            }
         }
 
         clang_disposeDiagnostic(diag);
     }
 
-    if (hadError)
-        return EXIT_FAILURE;
+    if (hadError) {
+        /* The ignore errors flag exists because in the case of a compilation
+         * error during the real build, we want the error to be reported by the
+         * actual compiler because those errors are usually more informative and
+         * with nicer formatting, etc. When this flag is set, we generate an
+         * empty output file and return success so that the build will proceed
+         * and error later on when the compiler reaches the real file. Note this
+         * only applies to clang errors, we still fail for our own errors. */
+        if (ignoreErrors) {
+            outputStream.close();
+            return EXIT_SUCCESS;
+        } else {
+            return EXIT_FAILURE;
+        }
+    }
 
     /* Iterate over the AST. */
     CXCursor cursor = clang_getTranslationUnitCursor(unit);
@@ -648,7 +668,10 @@ int main(int argc, char **argv) {
          * directory and the source file. */
         char *absoluteSourceFile = realpath(sourceFile, nullptr);
         if (!absoluteSourceFile) {
-            fprintf(stderr, "%s: Failed to get absolute path of '%s': %s\n", argv[0], sourceFile, strerror(errno));
+            fprintf(
+                stderr,
+                "%s: Failed to get absolute path of '%s': %s\n",
+                argv[0], sourceFile, strerror(errno));
             return EXIT_FAILURE;
         }
 
