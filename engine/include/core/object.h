@@ -115,6 +115,8 @@ public:
     const MetaClass *parent() const { return m_parent; }
 
     bool isBaseOf(const MetaClass &other) const;
+
+    static const MetaClass *lookup(const std::string &name);
 private:
     const char *m_name;                 /**< Name of the class. */
     const MetaClass *m_parent;          /**< Metadata for parent class. */

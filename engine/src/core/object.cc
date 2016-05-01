@@ -60,3 +60,12 @@ bool MetaClass::isBaseOf(const MetaClass &other) const {
 
     return false;
 }
+
+/** Look up a meta-class by name.
+ * @param name          Name of the meta-class.
+ * @return              Pointer to meta-class if found, or null if not. */
+const MetaClass *MetaClass::lookup(const std::string &name) {
+    auto &map = metaClassMap();
+    auto ret = map.find(name);
+    return (ret != map.end()) ? ret->second : nullptr;
+}
