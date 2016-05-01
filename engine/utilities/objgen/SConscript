@@ -45,8 +45,8 @@ env['CPPSYSINCFLAG'] = '-I%s' % (incdir)
 # Define builders to run objgen.
 #  - ObjgenHeader runs a header through objgen and uses env.Object to build it,
 #    and returns that target.
-#  - ObjgenSource runs a source file through objgen in source mode, and returns
-#    the target for that. The result can be included in a source file.
+#  - ObjgenSource runs a source file through objgen in standalone mode, and
+#    returns the target for that. The result can be included in a source file.
 #
 
 # Emitter to add a dependency on objgen for the generated files.

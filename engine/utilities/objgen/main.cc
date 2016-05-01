@@ -49,7 +49,7 @@ struct ParsedDecl {
     std::string name;               /**< Name of the declaration. */
     bool isAnnotated;               /**< Whether the declaration is annotated. */
 public:
-    ParsedDecl(CXCursor _cursor, ParsedDecl *_parent);
+    ParsedDecl(CXCursor _cursor, ParsedDecl *_parent = nullptr, bool nameFromType = false);
     virtual ~ParsedDecl() {}
 
     bool isFromMainFile() const;
@@ -174,13 +174,23 @@ static void tokenize(
 
 /** Initialise the declaration.
  * @param _cursor       Cursor to initialise from.
- * @param _parent       Parent declaration. */
-ParsedDecl::ParsedDecl(CXCursor _cursor, ParsedDecl *_parent) :
+ * @param _parent       Parent declaration.
+ * @param nameFromType  Whether to get name from the type rather than directly
+ *                      from the cursor. */
+ParsedDecl::ParsedDecl(CXCursor _cursor, ParsedDecl *_parent, bool nameFromType) :
     cursor(_cursor),
     parent(_parent),
     isAnnotated(false)
 {
-    CXString name = clang_getCursorSpelling(cursor);
+    CXString name;
+
+    if (nameFromType) {
+        CXType type = clang_getCursorType(cursor);
+        name = clang_getTypeSpelling(type);
+    } else {
+        name = clang_getCursorSpelling(cursor);
+    }
+
     this->name = clang_getCString(name);
     clang_disposeString(name);
 }
@@ -288,7 +298,7 @@ void ParsedProperty::dump(unsigned depth) const {
  * @param cursor        Cursor to initialise from.
  * @param _parent       Parent declaration. */
 ParsedClass::ParsedClass(CXCursor cursor, ParsedDecl *parent) :
-    ParsedDecl(cursor, parent),
+    ParsedDecl(cursor, parent, true),
     isObject(name.compare("Object") == 0),
     parentClass(nullptr)
 {}
@@ -322,7 +332,9 @@ void ParsedClass::handleChild(CXCursor cursor, CXCursorKind kind) {
     switch (kind) {
         case CXCursor_CXXBaseSpecifier:
         {
-            /* Check if this class is derived from Object. */
+            /* Check if this class is derived from Object. This gives us the
+             * fully-qualified name (with all namespaces) regardless of whether
+             * it was specified that way in the source. */
             CXType type = clang_getCursorType(cursor);
             CXString str = clang_getTypeSpelling(type);
             std::string typeName(clang_getCString(str));
@@ -412,7 +424,12 @@ Mustache::Data ParsedClass::generate() const {
 /** Dump this declaration.
  * @param depth         Indentation depth. */
 void ParsedClass::dump(unsigned depth) const {
-    printf("%-*sClass '%s'\n", depth * 2, "", this->name.c_str());
+    printf("%-*sClass '%s'", depth * 2, "", this->name.c_str());
+
+    if (this->parentClass)
+        printf(" (parent '%s')", this->parentClass->name.c_str());
+
+    printf("\n");
 
     for (const std::unique_ptr<ParsedProperty> &parsedProperty : this->properties)
         parsedProperty->dump(depth + 1);
@@ -421,7 +438,7 @@ void ParsedClass::dump(unsigned depth) const {
 /** Initialise the translation unit.
  * @param cursor        Cursor to initialise from. */
 ParsedTranslationUnit::ParsedTranslationUnit(CXCursor cursor) :
-    ParsedDecl(cursor, nullptr)
+    ParsedDecl(cursor)
 {}
 
 /** Called when a child is reached on this declaration.
@@ -429,6 +446,11 @@ ParsedTranslationUnit::ParsedTranslationUnit(CXCursor cursor) :
  * @param kind          Kind of the cursor. */
 void ParsedTranslationUnit::handleChild(CXCursor cursor, CXCursorKind kind) {
     switch (kind) {
+        case CXCursor_Namespace:
+            /* Descend into namespaces. */
+            visitChildren(cursor, this);
+            break;
+
         case CXCursor_ClassDecl:
         case CXCursor_StructDecl:
         {
@@ -534,8 +556,8 @@ int main(int argc, char **argv) {
      * that the generated file included by the source file exists. The wrapper
      * ensures that it is deleted if we fail. */
     struct OutputStream : std::ofstream {
-        OutputStream(const char *_file, std::ios_base::openmode mode) :
-            std::ofstream(_file, mode),
+        explicit OutputStream(const char *_file) :
+            std::ofstream(_file, std::ofstream::out | std::ofstream::trunc),
             file(_file)
         {}
 
@@ -549,7 +571,7 @@ int main(int argc, char **argv) {
         const char *file;
     };
 
-    OutputStream outputStream(outputFile, std::ofstream::out | std::ofstream::trunc);
+    OutputStream outputStream(outputFile);
     if (!outputStream) {
         fprintf(stderr, "%s: Failed to open '%s': %s\n", argv[0], outputFile, strerror(errno));
         return EXIT_FAILURE;
