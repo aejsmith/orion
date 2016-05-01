@@ -1,8 +1,8 @@
 Import('env')
 
-sources = map(env.Object, [
+objects = map(env.Object, [
     'player_controller.cc',
     'test_game.cc',
 ])
 
-Return('sources')
+Return('objects')

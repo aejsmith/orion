@@ -44,3 +44,19 @@ MetaClass::MetaClass(const char *name, const MetaClass *parent) :
 MetaClass::~MetaClass() {
     metaClassMap().erase(m_name);
 }
+
+/** Determine if this class is the base or the same as another.
+ * @param other         Class to check.
+ * @return              Whether this class is the base of the specified class. */
+bool MetaClass::isBaseOf(const MetaClass &other) const {
+    const MetaClass *current = &other;
+
+    while (current) {
+        if (current == this)
+            return true;
+
+        current = current->m_parent;
+    }
+
+    return false;
+}

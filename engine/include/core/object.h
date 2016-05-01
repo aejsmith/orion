@@ -23,6 +23,8 @@
 
 #include "core/defs.h"
 
+#include <type_traits>
+
 /** Macro to define an annotation attribute for objgen. */
 #ifdef ORION_OBJGEN
 #   define META_ATTRIBUTE(type, ...) \
@@ -53,7 +55,7 @@
 #define CLASS(...) \
     public: \
         static const META_ATTRIBUTE("class", __VA_ARGS__) MetaClass staticMetaClass; \
-        virtual const MetaClass *metaClass() const; \
+        virtual const MetaClass &metaClass() const; \
     private:
 
 /**
@@ -111,6 +113,8 @@ public:
     const char *name() const { return m_name; }
     /** @return             Metadata for parent class. */
     const MetaClass *parent() const { return m_parent; }
+
+    bool isBaseOf(const MetaClass &other) const;
 private:
     const char *m_name;                 /**< Name of the class. */
     const MetaClass *m_parent;          /**< Metadata for parent class. */
@@ -127,3 +131,31 @@ class Object {
     CLASS()
 public:
 };
+
+/**
+ * Cast an Object pointer down the inheritance hierarchy.
+ *
+ * This is similar to dynamic_cast, making use of the meta-object system's
+ * type information instead. Only down-casts are allowed, up-casts should just
+ * be explicit conversions.
+ *
+ * @tparam TargetPtr    Target pointer type.
+ * @param object        Object pointer to cast.
+ */
+template <typename TargetPtr, typename Source>
+inline TargetPtr object_cast(Source *object) {
+    static_assert(std::is_pointer<TargetPtr>::value, "target type must be a pointer");
+
+    using Target = typename std::remove_pointer<TargetPtr>::type;
+
+    static_assert(std::is_base_of<Object, Source>::value, "source type must be derived from Object");
+    static_assert(std::is_base_of<Source, Target>::value, "target type must be derived from source");
+    static_assert(
+        std::is_const<Target>::value == std::is_const<Source>::value &&
+            std::is_volatile<Target>::value == std::is_volatile<Source>::value,
+        "target and source cv-qualifiers must be the same");
+
+    return (Target::staticMetaClass.isBaseOf(object->metaClass()))
+        ? static_cast<TargetPtr>(object)
+        : nullptr;
+}
