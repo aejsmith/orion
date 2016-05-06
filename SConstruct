@@ -15,6 +15,7 @@ if not ARGUMENTS.get('V'):
     env['SHLINKCOMSTR'] = ' SHLINK $TARGET'
     env['RANLIBCOMSTR'] = ' RANLIB $TARGET'
     env['GENCOMSTR']    = ' GEN    $TARGET'
+    env['OBJGENCOMSTR'] = ' OBJGEN $TARGET'
 
 env['CCFLAGS'] += [
     # Optimization/debugging flags.
