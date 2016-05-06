@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "core/defs.h"
+#include "core/refcounted.h"
 
 #include <type_traits>
 
@@ -129,9 +129,10 @@ public:
 };
 
 /** Base class of all meta-objects. */
-class Object {
+class Object : public Refcounted {
     CLASS()
 public:
+
 };
 
 /**
