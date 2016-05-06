@@ -66,7 +66,7 @@ const InputInfo *InputInfo::lookup(InputCode code) {
  * @param name          Name to look up.
  * @return              Pointer to info if name known, null if not. */
 const InputInfo *InputInfo::lookup(const char *name) {
-    GlobalInputInfo::InfoMap map = GlobalInputInfo::infoMap();
+    auto &map = GlobalInputInfo::infoMap();
     auto ret = map.find(name);
     return (ret != map.end()) ? ret->second : nullptr;
 }
