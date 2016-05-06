@@ -63,7 +63,7 @@ AssetPtr AssetLoader::load(DataStream *data, DataStream *metadata, const char *p
 }
 
 /** @return             Registered loader factory map. */
-static std::map<std::string, AssetLoaderFactory *> &assetLoaderFactoryMap() {
+static auto &assetLoaderFactoryMap() {
     static std::map<std::string, AssetLoaderFactory *> map;
     return map;
 }
