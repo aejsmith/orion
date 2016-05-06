@@ -26,6 +26,7 @@
 #pragma once
 
 #include "core/core.h"
+#include "core/hash.h"
 
 /** Pixel format definitions. */
 struct PixelFormat {
