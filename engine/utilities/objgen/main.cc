@@ -16,7 +16,7 @@
 
 /**
  * @file
- * @brief               Object compiler.
+ * @brief               Object system metadata generator.
  */
 
 #include <fstream>
@@ -65,12 +65,15 @@ public:
 
     static void visitChildren(CXCursor cursor, ParsedDecl *decl);
 protected:
-    bool handleAnnotation(CXCursor cursor, const char *type);
+    /** Called when an annotation is observed on this declaration.
+     * @param type          Type of the annotation.
+     * @return              Whether the annotation was consumed. */
+    virtual bool handleAnnotation(const std::string &type) { return false; }
 
-    /** Called when a child is reached on this declaration.
+    /** Called when a (non-annotation) child is reached on this declaration.
      * @param cursor        Child cursor.
      * @param kind          Kind of the cursor. */
-    virtual void handleChild(CXCursor cursor, CXCursorKind kind) = 0;
+    virtual void handleChild(CXCursor cursor, CXCursorKind kind) {}
 private:
     static CXChildVisitResult astCallback(CXCursor cursor, CXCursor parent, CXClientData data);
 };
@@ -82,24 +85,28 @@ public:
 
     void dump(unsigned depth) const override;
 protected:
-    void handleChild(CXCursor cursor, CXCursorKind kind) override;
+    bool handleAnnotation(const std::string &type) override;
 };
 
 /** Details of a parsed class. */
 struct ParsedClass : ParsedDecl {
-    bool isObject;                  /**< Whether the class derives from Object. */
+    bool isObjectDerived;           /**< Whether the class derives from Object. */
     ParsedClass *parentClass;       /**< Parent class. */
+
+    /** Temporary state used while parsing. */
+    bool onMetaClass;
 
     /** List of child properties. */
     std::list<std::unique_ptr<ParsedProperty>> properties;
 public:
     ParsedClass(CXCursor cursor, ParsedDecl *parent);
 
-    bool isValid() const;
+    bool isObject() const;
 
     Mustache::Data generate() const override;
     void dump(unsigned depth) const override;
 protected:
+    bool handleAnnotation(const std::string &type) override;
     void handleChild(CXCursor cursor, CXCursorKind kind) override;
 };
 
@@ -210,45 +217,43 @@ ParsedTranslationUnit *ParsedDecl::getTranslationUnit() {
     return static_cast<ParsedTranslationUnit *>(decl);
 }
 
-/** Handle an annotation attribute.
- * @param cursor        Current cursor position.
- * @param type          Expected annotation type string.
- * @return              Whether this was the expected annotation type. */
-bool ParsedDecl::handleAnnotation(CXCursor cursor, const char *type) {
-    CXString str = clang_getCursorSpelling(cursor);
-    std::string annotation(clang_getCString(str));
-    clang_disposeString(str);
-
-    std::vector<std::string> tokens;
-    tokenize(annotation, tokens, ":", 3);
-
-    if (tokens[0].compare("orion")) {
-        /* Don't raise an error for annotations that aren't marked as being
-         * for us, could be annotations for other reasons. */
-        return false;
-    } else if (tokens.size() != 3) {
-        parseError(cursor, "malformed annotation");
-        return false;
-    } else if (tokens[1].compare(type)) {
-        parseError(cursor, "unexpected '%s' annotation", tokens[1].c_str());
-        return false;
-    }
-
-    // TODO: Parse the annotation arguments.
-
-    this->isAnnotated = true;
-    return true;
-}
-
 /** AST visitor callback function.
  * @param cursor        Current cursor.
  * @param parent        Parent cursor.
  * @param data          Next declaration pointer.
  * @return              Child visitor status code. */
 CXChildVisitResult ParsedDecl::astCallback(CXCursor cursor, CXCursor parent, CXClientData data) {
-    CXCursorKind kind = clang_getCursorKind(cursor);
     ParsedDecl *currentDecl = reinterpret_cast<ParsedDecl *>(data);
-    currentDecl->handleChild(cursor, kind);
+
+    CXCursorKind kind = clang_getCursorKind(cursor);
+    if (kind == CXCursor_AnnotateAttr) {
+        CXString str = clang_getCursorSpelling(cursor);
+        std::string annotation(clang_getCString(str));
+        clang_disposeString(str);
+
+        std::vector<std::string> tokens;
+        tokenize(annotation, tokens, ":", 3);
+
+        if (tokens[0].compare("orion")) {
+            /* Don't raise an error for annotations that aren't marked as being
+             * for us, could be annotations for other reasons. */
+            return CXChildVisit_Continue;
+        } else if (tokens.size() != 3) {
+            parseError(cursor, "malformed annotation");
+            return CXChildVisit_Continue;
+        }
+
+        // TODO: Parse the annotation arguments.
+
+        if (currentDecl->handleAnnotation(tokens[1])) {
+            currentDecl->isAnnotated = true;
+        } else {
+            parseError(cursor, "unexpected '%s' annotation", tokens[1].c_str());
+        }
+    } else {
+        currentDecl->handleChild(cursor, kind);
+    }
+
     return CXChildVisit_Continue;
 }
 
@@ -266,26 +271,23 @@ ParsedProperty::ParsedProperty(CXCursor cursor, ParsedDecl *parent) :
     ParsedDecl(cursor, parent)
 {}
 
-/** Called when a child is reached on this declaration.
- * @param cursor        Child cursor.
- * @param kind          Kind of the cursor. */
-void ParsedProperty::handleChild(CXCursor cursor, CXCursorKind kind) {
-    switch (kind) {
-        case CXCursor_AnnotateAttr:
-            if (handleAnnotation(cursor, "property")) {
-                ParsedClass *parent = static_cast<ParsedClass *>(this->parent);
-                if (!parent->isObject) {
-                    parseError(
-                        cursor,
-                        "'property' attribute on field '%s' in non-Object class '%s'",
-                        this->name.c_str(), this->parent->name.c_str());
-                }
-            }
+/** Called when an annotation is observed on this declaration.
+ * @param type          Type of the annotation.
+ * @return              Whether the annotation was consumed. */
+bool ParsedProperty::handleAnnotation(const std::string &type) {
+    if (type.compare("property") == 0) {
+        ParsedClass *parent = static_cast<ParsedClass *>(this->parent);
+        if (!parent->isObjectDerived) {
+            parseError(
+                cursor,
+                "'property' attribute on field '%s' in non-Object class '%s'",
+                this->name.c_str(), this->parent->name.c_str());
+        }
 
-            break;
-        default:
-            break;
+        return true;
     }
+
+    return false;
 }
 
 /** Dump this declaration.
@@ -299,27 +301,49 @@ void ParsedProperty::dump(unsigned depth) const {
  * @param _parent       Parent declaration. */
 ParsedClass::ParsedClass(CXCursor cursor, ParsedDecl *parent) :
     ParsedDecl(cursor, parent, true),
-    isObject(name.compare("Object") == 0),
-    parentClass(nullptr)
+    isObjectDerived(name.compare("Object") == 0),
+    parentClass(nullptr),
+    onMetaClass(false)
 {}
 
 /**
- * Check validity of the class.
+ * Check whether the class is a valid object class.
  *
- * Checks the whether the class is a valid meta-class. The return value
- * indicates whether this class should have code generated for it. If there
- * are any code errors then the global parse error flag will be set.
+ * The return value indicates whether this class should have code generated for
+ * it. If there are any code errors then the global parse error flag will be
+ * set.
  *
- * @return              Whether the class is valid.
+ * @return              Whether the class is an object class.
  */
-bool ParsedClass::isValid() const {
-    if (this->isAnnotated && this->isObject) {
+bool ParsedClass::isObject() const {
+    if (this->isAnnotated && this->isObjectDerived) {
         return true;
-    } else if (this->isObject) {
+    } else if (this->isObjectDerived) {
         parseError(
             this->cursor,
             "Object-derived class '%s' missing 'class' annotation; CLASS() macro missing?",
             this->name.c_str());
+    }
+
+    return false;
+}
+
+/** Called when an annotation is observed on this declaration.
+ * @param type          Type of the annotation.
+ * @return              Whether the annotation was consumed. */
+bool ParsedClass::handleAnnotation(const std::string &type) {
+    if (!this->onMetaClass)
+        return false;
+
+    if (type.compare("class") == 0) {
+        if (!this->isObjectDerived) {
+            parseError(
+                cursor,
+                "'class' attribute on non-Object class '%s'",
+                this->name.c_str());
+        }
+
+        return true;
     }
 
     return false;
@@ -347,16 +371,16 @@ void ParsedClass::handleChild(CXCursor cursor, CXCursorKind kind) {
             ParsedTranslationUnit *translationUnit = getTranslationUnit();
             auto it = translationUnit->classes.find(typeName);
             if (it != translationUnit->classes.end()) {
-                /* If isObject is already set to true, then we have multiple
-                 * inheritance, which is unsupported. */
-                if (this->isObject) {
+                /* If isObjectDerived is already set to true, then we have
+                 * multiple inheritance, which is unsupported. */
+                if (this->isObjectDerived) {
                     parseError(
                         cursor,
                         "Inheritance from multiple Object-derived classes is unsupported (on class '%s')",
                         this->name.c_str());
                 }
 
-                this->isObject = true;
+                this->isObjectDerived = true;
                 this->parentClass = it->second.get();
             }
 
@@ -373,23 +397,14 @@ void ParsedClass::handleChild(CXCursor cursor, CXCursorKind kind) {
             std::string typeName(clang_getCString(str));
             clang_disposeString(str);
 
-            if (!typeName.compare("staticMetaClass"))
+            if (!typeName.compare("staticMetaClass")) {
+                onMetaClass = true;
                 visitChildren(cursor, this);
-
-            break;
-        }
-
-        case CXCursor_AnnotateAttr:
-            if (handleAnnotation(cursor, "class")) {
-                if (!this->isObject) {
-                    parseError(
-                        cursor,
-                        "'class' attribute on non-Object class '%s'",
-                        this->name.c_str());
-                }
+                onMetaClass = false;
             }
 
             break;
+        }
 
         case CXCursor_FieldDecl:
         {
@@ -457,7 +472,7 @@ void ParsedTranslationUnit::handleChild(CXCursor cursor, CXCursorKind kind) {
             std::unique_ptr<ParsedClass> parsedClass(new ParsedClass(cursor, this));
             visitChildren(cursor, parsedClass.get());
 
-            if (parsedClass->isValid())
+            if (parsedClass->isObject())
                 this->classes.insert(std::make_pair(parsedClass->name, std::move(parsedClass)));
 
             break;
@@ -471,15 +486,16 @@ void ParsedTranslationUnit::handleChild(CXCursor cursor, CXCursorKind kind) {
 /** Generate this declaration.
  * @return              Generated Mustache data object. */
 Mustache::Data ParsedTranslationUnit::generate() const {
-    Mustache::Data data(Mustache::Data::List());
-
+    Mustache::Data classes(Mustache::Data::List());
     for (auto &it : this->classes) {
-        const std::unique_ptr<ParsedClass> &parsedClass = it.second;
+        const auto &parsedClass = it.second;
 
         if (parsedClass->isFromMainFile())
-            data.push_back(parsedClass->generate());
+            classes.push_back(parsedClass->generate());
     }
 
+    Mustache::Data data;
+    data.set("classes", classes);
     return data;
 }
 
@@ -489,7 +505,7 @@ void ParsedTranslationUnit::dump(unsigned depth) const {
     printf("%-*sTranslationUnit '%s'\n", depth * 2, "", this->name.c_str());
 
     for (auto &it : this->classes) {
-        const std::unique_ptr<ParsedClass> &parsedClass = it.second;
+        const auto &parsedClass = it.second;
 
         if (parsedClass->isFromMainFile())
             parsedClass->dump(depth + 1);
@@ -658,7 +674,7 @@ int main(int argc, char **argv) {
 
     /* Generate the output. */
     Mustache codeTemplate(g_objgenTemplate);
-    Mustache::Data data;
+    Mustache::Data data = parsedUnit.generate();
 
     if (!standalone) {
         /* For now resolve the source file path to an absolute path, and use
@@ -679,7 +695,6 @@ int main(int argc, char **argv) {
         free(absoluteSourceFile);
     }
 
-    data.set("classes", parsedUnit.generate());
     codeTemplate.render(data, outputStream);
 
     /* We have succeeded, don't delete on exit. */

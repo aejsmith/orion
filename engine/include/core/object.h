@@ -16,7 +16,7 @@
 
 /**
  * @file
- * @brief               Meta-object system.
+ * @brief               Object system.
  */
 
 #pragma once
@@ -24,6 +24,10 @@
 #include "core/refcounted.h"
 
 #include <type_traits>
+
+/**
+ * Annotation macros.
+ */
 
 /** Macro to define an annotation attribute for objgen. */
 #ifdef ORION_OBJGEN
@@ -34,55 +38,36 @@
 #endif
 
 /**
- * Annotation for meta-object classes.
+ * Metadata annotation for Object-derived classes.
  *
- * This macro marks a class as a meta-object class, i.e. one which derives from
- * Object. All such classes must include this annotation in order to add
- * definitions for class metadata objects, and to mark the class for objgen.
- * Note that this leaves the current class access specifier as private, as it
- * is intended to be placed right at the top of a class declaration.
+ * This macro must be placed on every class which derives from Object (directly
+ * or indirectly) in order to add and generate definitions for type metadata.
+ * It is expected to be placed in the public section of the class, and does not
+ * alter visibility in any way.
+ *
+ * Any header or source file using this macro must have code generated for it
+ * using objgen. Source files should include the objgen output manually after
+ * the class definition.
  *
  * Example:
  *
  *   class Foobar : public Object {
- *       CLASS()
  *   public:
+ *       CLASS();
  *       ...
  *   };
  *
  * @param ...           Directives for objgen indicating traits of the class.
  */
 #define CLASS(...) \
-    public: \
-        static const META_ATTRIBUTE("class", __VA_ARGS__) MetaClass staticMetaClass; \
-        virtual const MetaClass &metaClass() const; \
-    private:
+    static const META_ATTRIBUTE("class", __VA_ARGS__) MetaClass staticMetaClass; \
+    virtual const MetaClass &metaClass() const;
 
 /**
- * Annotation for meta-object structures.
- *
- * This macro is equivalent to CLASS() except for a struct. The only difference
- * between the two is that this leaves the access specifier as public.
- *
- * Example:
- *
- *   struct Foobar : Object {
- *       STRUCT()
- *
- *       ...
- *   };
- *
- * @param ...           Directives for objgen indicating traits of the class.
- */
-#define STRUCT(...) \
-        CLASS(__VA_ARGS__) \
-    public:
-
-/**
- * Annotation for class properties.
+ * Annotation for object properties.
  *
  * This macro marks a class member as a property. This means it can be accessed
- * through the generic property interface in Object, and information about it
+ * through the dynamic property interface in Object, and information about it
  * can be retrieved at runtime.
  *
  * Public members can be marked as a property with no additional support
@@ -103,10 +88,14 @@
 #define PROPERTY(...) \
     META_ATTRIBUTE("property", __VA_ARGS__)
 
-/** Class providing metadata about a class. */
+/**
+ * Metadata classes.
+ */
+
+/** Metadata for an Object-derived class. */
 class MetaClass {
 public:
-    MetaClass(const char *name, const MetaClass *parent = nullptr);
+    explicit MetaClass(const char *name, const MetaClass *parent = nullptr);
     ~MetaClass();
 
     /** @return             Name of the class. */
@@ -128,10 +117,15 @@ public:
 
 };
 
+/**
+ * Object class.
+ */
+
 /** Base class of all meta-objects. */
 class Object : public Refcounted {
-    CLASS()
 public:
+    CLASS();
+};
 
 };
 
@@ -147,12 +141,18 @@ public:
  */
 template <typename TargetPtr, typename Source>
 inline TargetPtr object_cast(Source *object) {
-    static_assert(std::is_pointer<TargetPtr>::value, "target type must be a pointer");
+    static_assert(
+        std::is_pointer<TargetPtr>::value,
+        "target type must be a pointer");
 
     using Target = typename std::remove_pointer<TargetPtr>::type;
 
-    static_assert(std::is_base_of<Object, Source>::value, "source type must be derived from Object");
-    static_assert(std::is_base_of<Source, Target>::value, "target type must be derived from source");
+    static_assert(
+        std::is_base_of<Object, Source>::value,
+        "source type must be derived from Object");
+    static_assert(
+        std::is_base_of<Source, Target>::value,
+        "target type must be derived from source");
     static_assert(
         std::is_const<Target>::value == std::is_const<Source>::value &&
             std::is_volatile<Target>::value == std::is_volatile<Source>::value,

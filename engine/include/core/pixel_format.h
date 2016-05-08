@@ -92,7 +92,7 @@ struct PixelFormat {
 
     static size_t bytesPerPixel(PixelFormat format);
 
-    /** Get a hash from a texture descriptor. */
+    /** Get a hash from a pixel format. */
     friend size_t hashValue(PixelFormat format) {
         return hashValue(format.m_value);
     }
