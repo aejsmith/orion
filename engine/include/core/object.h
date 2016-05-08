@@ -37,6 +37,10 @@
 #   define META_ATTRIBUTE(type, ...)
 #endif
 
+/** Helper for CLASS() and base Object definition. */
+#define DECLARE_STATIC_METACLASS(...) \
+    static const META_ATTRIBUTE("class", __VA_ARGS__) MetaClass staticMetaClass
+
 /**
  * Metadata annotation for Object-derived classes.
  *
@@ -60,8 +64,8 @@
  * @param ...           Directives for objgen indicating traits of the class.
  */
 #define CLASS(...) \
-    static const META_ATTRIBUTE("class", __VA_ARGS__) MetaClass staticMetaClass; \
-    virtual const MetaClass &metaClass() const;
+    DECLARE_STATIC_METACLASS(__VA_ARGS__); \
+    virtual const MetaClass &metaClass() const override;
 
 /**
  * Annotation for object properties.
@@ -202,9 +206,19 @@ public:
  */
 
 /** Base class of all meta-objects. */
-class Object : public Refcounted {
+class Object : public Refcounted, Noncopyable {
 public:
-    CLASS();
+    DECLARE_STATIC_METACLASS();
+
+    /**
+     * Get the meta-class of this Object.
+     *
+     * Gets the meta-class of this specific Object instance. This can be used
+     * to identify the type of this object.
+     *
+     * @return              Meta-class of this object.
+     */
+    virtual const MetaClass &metaClass() const;
 };
 
 /**

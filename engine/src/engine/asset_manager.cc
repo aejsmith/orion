@@ -38,9 +38,6 @@
 #include "engine/debug_manager.h"
 #include "engine/debug_window.h"
 
-#include <cxxabi.h>
-#include <typeinfo>
-
 /** Global asset manager instance. */
 AssetManager *g_assetManager;
 
@@ -192,12 +189,8 @@ void AssetManager::explore() {
         ImGui::PushID(asset);
 
         if (ImGui::TreeNode("asset", "%s", entry.first.c_str())) {
-            /* This is a temporary solution until object system is implemented. */
-            const std::type_info &type = typeid(*asset);
-            int status;
-            char *typeName = abi::__cxa_demangle(type.name(), 0, 0, &status);
-            ImGui::Text("Type: %s", typeName);
-            free(typeName);
+            const MetaClass &metaClass = asset->metaClass();
+            ImGui::Text("Type: %s", metaClass.name());
 
             ImGui::Text("Refcount: %d", asset->refcount());
 

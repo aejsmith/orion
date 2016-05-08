@@ -30,6 +30,8 @@
 /** Base texture asset class. */
 class TextureBase : public Asset {
 public:
+    CLASS();
+
     ~TextureBase() {}
 
     /** @return             Pixel format for the texture. */
@@ -93,6 +95,8 @@ private:
 /** Class implementing a 2D texture. */
 class Texture2D : public TextureBase {
 public:
+    CLASS();
+
     Texture2D(
         uint32_t width,
         uint32_t height,
@@ -123,6 +127,8 @@ typedef TypedAssetPtr<Texture2D> Texture2DPtr;
 /** Class implementing a cube texture. */
 class TextureCube : public TextureBase {
 public:
+    CLASS();
+
     TextureCube(
         uint32_t size,
         PixelFormat format = PixelFormat::kR8G8B8A8,

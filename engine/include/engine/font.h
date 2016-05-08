@@ -119,6 +119,8 @@ private:
  */
 class Font : public Asset {
 public:
+    CLASS();
+
     Font();
     ~Font();
 

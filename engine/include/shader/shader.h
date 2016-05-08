@@ -47,9 +47,11 @@ class Material;
  */
 class Shader : public Asset {
 public:
+    CLASS();
+
     /** Type of the parameter map. */
     typedef std::map<std::string, ShaderParameter> ParameterMap;
-public:
+
     ~Shader();
 
     /** @return             Uniform structure used by the shader. */
@@ -84,7 +86,7 @@ private:
 
     void addParameter(const std::string &name, ShaderParameter::Type type, unsigned textureSlot = -1);
     void addPass(Pass *pass);
-private:
+
     UniformStruct *m_uniformStruct;     /**< Uniform structure used by the shader. */
     ParameterMap m_parameters;          /**< Map of registered parameters. */
     unsigned m_nextTextureSlot;         /**< Next available texture slot. */

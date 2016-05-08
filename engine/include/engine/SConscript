@@ -1,0 +1,10 @@
+Import('env')
+
+objects = map(env.ObjgenHeader, [
+    'asset.h',
+    'font.h',
+    'mesh.h',
+    'texture.h',
+])
+
+Return('objects')

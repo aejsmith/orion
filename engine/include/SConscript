@@ -2,6 +2,9 @@ import util
 
 objects = util.flatten(SConscript(dirs = [
     'core',
+    'engine',
+    'physics',
+    'shader',
 ]))
 
 Return('objects')

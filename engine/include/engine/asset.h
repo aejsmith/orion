@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "core/refcounted.h"
+#include "core/object.h"
 
 /**
  * Base class of all assets.
@@ -32,8 +32,10 @@
  * created at runtime, these do not have any data on disk, and are lost when
  * they are destroyed.
  */
-class Asset : public Refcounted {
+class Asset : public Object {
 public:
+    CLASS();
+
     /** @return             Whether the asset is managed. */
     bool managed() const { return m_path.length(); }
     /** @return             Path to the asset (empty for unmanaged assets). */
@@ -58,7 +60,7 @@ private:
 };
 
 /** Smart pointer to a certain type of asset. */
-template <typename T> using TypedAssetPtr = ReferencePtr<T>;
+template <typename T> using TypedAssetPtr = ObjectPtr<T>;
 
 /** Type of a generic asset pointer. */
 typedef TypedAssetPtr<Asset> AssetPtr;

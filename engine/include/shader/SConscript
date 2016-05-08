@@ -1,0 +1,8 @@
+Import('env')
+
+objects = map(env.ObjgenHeader, [
+    'material.h',
+    'shader.h',
+])
+
+Return('objects')

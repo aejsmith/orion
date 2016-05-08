@@ -32,6 +32,8 @@
  */
 class PhysicsMaterial : public Asset {
 public:
+    CLASS();
+
     PhysicsMaterial();
     ~PhysicsMaterial();
 

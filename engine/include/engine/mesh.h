@@ -58,9 +58,11 @@ private:
  */
 class Mesh : public Asset {
 public:
+    CLASS();
+
     /** Type of the material map. */
     typedef std::map<std::string, size_t> MaterialMap;
-public:
+
     Mesh();
     ~Mesh();
 
@@ -82,7 +84,7 @@ public:
 
     SubMesh *addSubMesh();
     size_t addMaterial(const std::string &name);
-public:
+
     GPUVertexDataPtr sharedVertices;    /**< Vertex data shared by all submeshes. */
 private:
     std::vector<SubMesh *> m_children;  /**< Child submeshes. */
