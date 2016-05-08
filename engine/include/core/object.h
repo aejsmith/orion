@@ -92,14 +92,95 @@
  * Metadata classes.
  */
 
+class Object;
+
+/**
+ * Base type metadata class.
+ *
+ * This provides basic information about a type (currently only a name). For
+ * types outside of the object system, it just provides a means of doing type
+ * comparisons on such types inside the object system, for dynamic property
+ * accesses and method invocations. Metadata is generated dynamically the first
+ * time it is required. For Object-derived types, this class forms the base of
+ * MetaClass, and for these metadata is generated at build time.
+ */
+class MetaType {
+public:
+    /** @return             Name of the type. */
+    const char *name() const { return m_name; }
+
+    /** @return             Whether the type is an Object-derived class. */
+    bool isObject() const { return m_traits & kIsObject; }
+
+    /** Look up the meta-type for a given type.
+     * @tparam T            Type to get for.
+     * @return              Meta-type for that type. */
+    template <typename T>
+    static inline const MetaType *lookup() {
+        return LookupImpl<T>::get();
+    }
+protected:
+    /** Type trait flags. */
+    enum : uint32_t {
+        kIsObject = (1 << 0),           /**< Is an Object-derived class. */
+    };
+
+    MetaType(const char *name, uint32_t traits);
+private:
+    static const MetaType *allocate(const char *signature);
+
+    /** Helper to get the MetaType for a type. */
+    template <typename LookupT, typename LookupEnable = void>
+    struct LookupImpl {
+        /*
+         * The type name is determined using a compiler-provided macro to get
+         * the name of the get() function, from which we can extract the
+         * template parameter type. This is thoroughly evil, I love it!
+         * Remember to modify allocate() when adding new compiler support.
+         */
+        #ifdef __GNUC__
+            #define LOOKUP_FUNCTION_SIGNATURE __PRETTY_FUNCTION__
+        #else
+            #error "Unsupported compiler"
+        #endif
+
+        static NOINLINE const MetaType *get() {
+            /*
+             * In the generic case, we dynamically allocate a MetaType the first
+             * time it is requested for that type. Store a pointer to the
+             * MetaType as a static local variable. The allocation will take
+             * place the first time this function is called for a given type,
+             * and all calls after that will return the same. Although a copy
+             * of this function will be generated for every translation unit
+             * it is used in, they will all be merged into one by the linker.
+             * We force this to be not inline so the compiler doesn't duplicate
+             * guard variable stuff all over the place.
+             */
+            static const MetaType *type = allocate(LOOKUP_FUNCTION_SIGNATURE);
+            return type;
+        }
+
+        #undef LOOKUP_FUNCTION_SIGNATURE
+    };
+
+    /** Specialization for Object-derived classes to use the static MetaClass. */
+    template <typename T>
+    struct LookupImpl<T, typename std::enable_if<std::is_base_of<Object, T>::value>::type> {
+        static FORCEINLINE const MetaType *get() {
+            return &T::staticMetaClass;
+        }
+    };
+
+    const char *m_name;                 /**< Name of the type. */
+    uint32_t m_traits;                  /**< Traits for the type. */
+};
+
 /** Metadata for an Object-derived class. */
-class MetaClass {
+class MetaClass : public MetaType {
 public:
     explicit MetaClass(const char *name, const MetaClass *parent = nullptr);
     ~MetaClass();
 
-    /** @return             Name of the class. */
-    const char *name() const { return m_name; }
     /** @return             Metadata for parent class. */
     const MetaClass *parent() const { return m_parent; }
 
@@ -107,7 +188,6 @@ public:
 
     static const MetaClass *lookup(const std::string &name);
 private:
-    const char *m_name;                 /**< Name of the class. */
     const MetaClass *m_parent;          /**< Metadata for parent class. */
 };
 
@@ -127,6 +207,18 @@ public:
     CLASS();
 };
 
+/**
+ * Object-specific wrapper for ReferencePtr.
+ *
+ * No functional difference between the two, just to clarify intention and to
+ * allow for additional Object-specific behaviour to be added later without
+ * having to change any other code.
+ */
+template <typename T>
+class ObjectPtr : public ReferencePtr<T> {
+public:
+    static_assert(std::is_base_of<Object, T>::value, "type must be derived from Object");
+    using ReferencePtr<T>::ReferencePtr;
 };
 
 /**

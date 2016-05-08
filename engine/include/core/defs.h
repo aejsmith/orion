@@ -49,6 +49,7 @@
 # define ALIGNED(a)         __attribute__((aligned(a)))
 # define NORETURN           __attribute__((noreturn))
 # define FORCEINLINE        __attribute__((always_inline))
+# define NOINLINE           __attribute__((noinline))
 # define likely(x)          __builtin_expect(!!(x), 1)
 # define unlikely(x)        __builtin_expect(!!(x), 0)
 # define unreachable()      __builtin_unreachable()
