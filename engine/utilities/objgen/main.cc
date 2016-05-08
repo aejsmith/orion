@@ -468,15 +468,16 @@ void ParsedTranslationUnit::handleChild(CXCursor cursor, CXCursorKind kind) {
 
         case CXCursor_ClassDecl:
         case CXCursor_StructDecl:
-        {
-            std::unique_ptr<ParsedClass> parsedClass(new ParsedClass(cursor, this));
-            visitChildren(cursor, parsedClass.get());
+            /* Ignore forward declarations. */
+            if (clang_isCursorDefinition(cursor)) {
+                std::unique_ptr<ParsedClass> parsedClass(new ParsedClass(cursor, this));
+                visitChildren(cursor, parsedClass.get());
 
-            if (parsedClass->isObject())
-                this->classes.insert(std::make_pair(parsedClass->name, std::move(parsedClass)));
+                if (parsedClass->isObject())
+                    this->classes.insert(std::make_pair(parsedClass->name, std::move(parsedClass)));
+            }
 
             break;
-        }
 
         default:
             break;
