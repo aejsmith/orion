@@ -86,7 +86,7 @@
  *   public:
  *       PROPERTY() int wop;
  *   private:
- *       PROPERTY(set = setFoop)
+ *       PROPERTY("set": "setFoop")
  *       glm::vec3 foop;
  *
  * @param ...           Directives for objgen indicating traits of the property.

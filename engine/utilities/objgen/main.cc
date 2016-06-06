@@ -36,21 +36,25 @@
 
 #include <mustache/mustache.hpp>
 
+#include <rapidjson/document.h>
+#include <rapidjson/error/en.h>
+
 #include "objgen.mustache.h"
 
 using Mustache = Kainjow::BasicMustache<std::string>;
 
-struct ParsedTranslationUnit;
+class ParsedTranslationUnit;
 
 /** Details common to all parsed declarations. */
-struct ParsedDecl {
+class ParsedDecl {
+public:
+    ParsedDecl(CXCursor _cursor, ParsedDecl *_parent = nullptr, bool nameFromType = false);
+    virtual ~ParsedDecl() {}
+
     CXCursor cursor;                /**< Cursor for the declaration. */
     ParsedDecl *parent;             /**< Parent declaration. */
     std::string name;               /**< Name of the declaration. */
     bool isAnnotated;               /**< Whether the declaration is annotated. */
-public:
-    ParsedDecl(CXCursor _cursor, ParsedDecl *_parent = nullptr, bool nameFromType = false);
-    virtual ~ParsedDecl() {}
 
     bool isFromMainFile() const;
     ParsedTranslationUnit *getTranslationUnit();
@@ -67,8 +71,11 @@ public:
 protected:
     /** Called when an annotation is observed on this declaration.
      * @param type          Type of the annotation.
+     * @param attributes    Attributes specified for the annotation.
      * @return              Whether the annotation was consumed. */
-    virtual bool handleAnnotation(const std::string &type) { return false; }
+    virtual bool handleAnnotation(const std::string &type, const rapidjson::Document &attributes) {
+        return false;
+    }
 
     /** Called when a (non-annotation) child is reached on this declaration.
      * @param cursor        Child cursor.
@@ -79,20 +86,25 @@ private:
 };
 
 /** Details of a parsed property. */
-struct ParsedProperty : ParsedDecl {
+class ParsedProperty : public ParsedDecl {
 public:
     ParsedProperty(CXCursor cursor, ParsedDecl *parent);
 
     std::string type;               /**< Type of the property. */
+    std::string getFunction;        /**< Getter function for the property (empty for direct access). */
+    std::string setFunction;        /**< Setter function for the property (empty for direct access). */
 
     Mustache::Data generate() const override;
     void dump(unsigned depth) const override;
 protected:
-    bool handleAnnotation(const std::string &type) override;
+    bool handleAnnotation(const std::string &type, const rapidjson::Document &attributes) override;
 };
 
 /** Details of a parsed class. */
-struct ParsedClass : ParsedDecl {
+class ParsedClass : public ParsedDecl {
+public:
+    ParsedClass(CXCursor cursor, ParsedDecl *parent);
+
     bool isObjectDerived;           /**< Whether the class derives from Object. */
     ParsedClass *parentClass;       /**< Parent class. */
 
@@ -101,24 +113,23 @@ struct ParsedClass : ParsedDecl {
 
     /** List of child properties. */
     std::list<std::unique_ptr<ParsedProperty>> properties;
-public:
-    ParsedClass(CXCursor cursor, ParsedDecl *parent);
 
     bool isObject() const;
 
     Mustache::Data generate() const override;
     void dump(unsigned depth) const override;
 protected:
-    bool handleAnnotation(const std::string &type) override;
+    bool handleAnnotation(const std::string &type, const rapidjson::Document &attributes) override;
     void handleChild(CXCursor cursor, CXCursorKind kind) override;
 };
 
 /** Details of a parsed translation unit. */
-struct ParsedTranslationUnit : ParsedDecl {
-    /** List of child classes. */
-    std::map<std::string, std::unique_ptr<ParsedClass>> classes;
+class ParsedTranslationUnit : public ParsedDecl {
 public:
     explicit ParsedTranslationUnit(CXCursor cursor);
+
+    /** List of child classes. */
+    std::map<std::string, std::unique_ptr<ParsedClass>> classes;
 
     Mustache::Data generate() const override;
     void dump(unsigned depth = 0) const override;
@@ -220,6 +231,42 @@ ParsedTranslationUnit *ParsedDecl::getTranslationUnit() {
     return static_cast<ParsedTranslationUnit *>(decl);
 }
 
+/** Parse an annotation string.
+ * @param cursor        Cursor for annotation.
+ * @param type          Where to store annotation type.
+ * @param attributes    Where to store annotation attributes.
+ * @return              Whether parsed successfully. */
+static bool parseAnnotation(CXCursor cursor, std::string &type, rapidjson::Document &attributes) {
+    CXString str = clang_getCursorSpelling(cursor);
+    std::string annotation(clang_getCString(str));
+    clang_disposeString(str);
+
+    std::vector<std::string> tokens;
+    tokenize(annotation, tokens, ":", 3);
+
+    if (tokens[0].compare("orion")) {
+        /* Don't raise an error for annotations that aren't marked as being for
+         * us, could be annotations for other reasons. */
+        return false;
+    } else if (tokens.size() != 3) {
+        parseError(cursor, "malformed annotation");
+        return false;
+    }
+
+    type = tokens[1];
+
+    std::string json = std::string("{") + tokens[2] + std::string("}");
+
+    attributes.Parse(json.c_str());
+    if (attributes.HasParseError()) {
+        const char *msg = rapidjson::GetParseError_En(attributes.GetParseError());
+        parseError(cursor, "parse error in attributes (at %zu): %s", attributes.GetErrorOffset() - 1, msg);
+        return false;
+    }
+
+    return true;
+}
+
 /** AST visitor callback function.
  * @param cursor        Current cursor.
  * @param parent        Parent cursor.
@@ -230,28 +277,15 @@ CXChildVisitResult ParsedDecl::astCallback(CXCursor cursor, CXCursor parent, CXC
 
     CXCursorKind kind = clang_getCursorKind(cursor);
     if (kind == CXCursor_AnnotateAttr) {
-        CXString str = clang_getCursorSpelling(cursor);
-        std::string annotation(clang_getCString(str));
-        clang_disposeString(str);
-
-        std::vector<std::string> tokens;
-        tokenize(annotation, tokens, ":", 3);
-
-        if (tokens[0].compare("orion")) {
-            /* Don't raise an error for annotations that aren't marked as being
-             * for us, could be annotations for other reasons. */
+        std::string type;
+        rapidjson::Document attributes;
+        if (!parseAnnotation(cursor, type, attributes))
             return CXChildVisit_Continue;
-        } else if (tokens.size() != 3) {
-            parseError(cursor, "malformed annotation");
-            return CXChildVisit_Continue;
-        }
 
-        // TODO: Parse the annotation arguments.
-
-        if (currentDecl->handleAnnotation(tokens[1])) {
+        if (currentDecl->handleAnnotation(type, attributes)) {
             currentDecl->isAnnotated = true;
         } else {
-            parseError(cursor, "unexpected '%s' annotation", tokens[1].c_str());
+            parseError(cursor, "unexpected '%s' annotation", type.c_str());
         }
     } else {
         currentDecl->handleChild(cursor, kind);
@@ -273,6 +307,11 @@ void ParsedDecl::visitChildren(CXCursor cursor, ParsedDecl *decl) {
 ParsedProperty::ParsedProperty(CXCursor cursor, ParsedDecl *parent) :
     ParsedDecl(cursor, parent)
 {
+    /* Remove the "m_" prefix from property names. */
+    if (this->name.substr(0, 2) == "m_")
+        this->name = this->name.substr(2);
+
+    /* Get the property type. */
     CXType type = clang_getCursorType(cursor);
     CXString str = clang_getTypeSpelling(type);
     this->type = clang_getCString(str);
@@ -281,21 +320,63 @@ ParsedProperty::ParsedProperty(CXCursor cursor, ParsedDecl *parent) :
 
 /** Called when an annotation is observed on this declaration.
  * @param type          Type of the annotation.
+ * @param attributes    Attributes specified for the annotation.
  * @return              Whether the annotation was consumed. */
-bool ParsedProperty::handleAnnotation(const std::string &type) {
-    if (type.compare("property") == 0) {
-        ParsedClass *parent = static_cast<ParsedClass *>(this->parent);
-        if (!parent->isObjectDerived) {
-            parseError(
-                cursor,
-                "'property' attribute on field '%s' in non-Object class '%s'",
-                this->name.c_str(), this->parent->name.c_str());
-        }
+bool ParsedProperty::handleAnnotation(const std::string &type, const rapidjson::Document &attributes) {
+    if (type.compare("property") != 0)
+        return false;
 
+    ParsedClass *parent = static_cast<ParsedClass *>(this->parent);
+    if (!parent->isObjectDerived) {
+        parseError(
+            this->cursor,
+            "'property' annotation on field '%s' in non-Object class '%s'",
+            this->name.c_str(), this->parent->name.c_str());
         return true;
     }
 
-    return false;
+    if (attributes.HasMember("get")) {
+        const rapidjson::Value &value = attributes["get"];
+
+        if (!value.IsString()) {
+            parseError(this->cursor, "'get' attribute must be a string");
+            return true;
+        }
+
+        this->getFunction = value.GetString();
+    }
+
+    if (attributes.HasMember("set")) {
+        const rapidjson::Value &value = attributes["set"];
+
+        if (!value.IsString()) {
+            parseError(this->cursor, "'set' attribute must be a string");
+            return true;
+        }
+
+        this->setFunction = value.GetString();
+    }
+
+    if (this->getFunction.empty() != this->setFunction.empty()) {
+        parseError(this->cursor, "both 'get' and 'set' or neither of them must be specified");
+        return true;
+    }
+
+    bool isPublic = clang_getCXXAccessSpecifier(this->cursor) == CX_CXXPublic;
+
+    if (isPublic && !this->getFunction.empty()) {
+        /*
+         * This makes no sense - code can directly access/modify the property
+         * so usage of getter/setter methods should not be required.
+         */
+        parseError(this->cursor, "public properties cannot have getter/setter methods");
+        return true;
+    } else if (!isPublic && this->getFunction.empty()) {
+        parseError(this->cursor, "private properties must have getter/setter methods");
+        return true;
+    }
+
+    return true;
 }
 
 /** Generate this declaration.
@@ -306,13 +387,22 @@ Mustache::Data ParsedProperty::generate() const {
     data.set("propertyName", this->name);
     data.set("propertyType", this->type);
 
+    if (!this->getFunction.empty()) {
+        data.set("propertyGet", this->getFunction);
+        data.set("propertySet", this->setFunction);
+    }
+
     return data;
 }
 
 /** Dump this declaration.
  * @param depth         Indentation depth. */
 void ParsedProperty::dump(unsigned depth) const {
-    printf("%-*sProperty '%s' (type '%s')\n", depth * 2, "", this->name.c_str(), this->type.c_str());
+    printf(
+        "%-*sProperty '%s' (type '%s', get '%s', set '%s')\n",
+        depth * 2, "",
+        this->name.c_str(), this->type.c_str(), this->getFunction.c_str(),
+        this->setFunction.c_str());
 }
 
 /** Initialise the class.
@@ -349,23 +439,20 @@ bool ParsedClass::isObject() const {
 
 /** Called when an annotation is observed on this declaration.
  * @param type          Type of the annotation.
+ * @param attributes    Attributes specified for the annotation.
  * @return              Whether the annotation was consumed. */
-bool ParsedClass::handleAnnotation(const std::string &type) {
-    if (!this->onMetaClass)
+bool ParsedClass::handleAnnotation(const std::string &type, const rapidjson::Document &attributes) {
+    if (!this->onMetaClass || type.compare("class") != 0)
         return false;
 
-    if (type.compare("class") == 0) {
-        if (!this->isObjectDerived) {
-            parseError(
-                cursor,
-                "'class' attribute on non-Object class '%s'",
-                this->name.c_str());
-        }
-
-        return true;
+    if (!this->isObjectDerived) {
+        parseError(
+            cursor,
+            "'class' annotation on non-Object class '%s'",
+            this->name.c_str());
     }
 
-    return false;
+    return true;
 }
 
 /** Called when a child is reached on this declaration.
