@@ -49,7 +49,7 @@ UniformStruct::UniformStruct(
     unsigned inSlot,
     size_t inSize,
     InitFunc init)
-:
+    :
     name(inName),
     instanceName(inInstance),
     slot(inSlot),

@@ -83,6 +83,9 @@ struct ParsedProperty : ParsedDecl {
 public:
     ParsedProperty(CXCursor cursor, ParsedDecl *parent);
 
+    std::string type;               /**< Type of the property. */
+
+    Mustache::Data generate() const override;
     void dump(unsigned depth) const override;
 protected:
     bool handleAnnotation(const std::string &type) override;
@@ -269,7 +272,12 @@ void ParsedDecl::visitChildren(CXCursor cursor, ParsedDecl *decl) {
  * @param _parent       Parent declaration. */
 ParsedProperty::ParsedProperty(CXCursor cursor, ParsedDecl *parent) :
     ParsedDecl(cursor, parent)
-{}
+{
+    CXType type = clang_getCursorType(cursor);
+    CXString str = clang_getTypeSpelling(type);
+    this->type = clang_getCString(str);
+    clang_disposeString(str);
+}
 
 /** Called when an annotation is observed on this declaration.
  * @param type          Type of the annotation.
@@ -290,10 +298,21 @@ bool ParsedProperty::handleAnnotation(const std::string &type) {
     return false;
 }
 
+/** Generate this declaration.
+ * @return              Generated Mustache data object. */
+Mustache::Data ParsedProperty::generate() const {
+    Mustache::Data data;
+
+    data.set("propertyName", this->name);
+    data.set("propertyType", this->type);
+
+    return data;
+}
+
 /** Dump this declaration.
  * @param depth         Indentation depth. */
 void ParsedProperty::dump(unsigned depth) const {
-    printf("%-*sProperty '%s'\n", depth * 2, "", this->name.c_str());
+    printf("%-*sProperty '%s' (type '%s')\n", depth * 2, "", this->name.c_str(), this->type.c_str());
 }
 
 /** Initialise the class.
@@ -433,6 +452,12 @@ Mustache::Data ParsedClass::generate() const {
     if (this->parentClass)
         data.set("parent", this->parentClass->name);
 
+    Mustache::Data properties(Mustache::Data::List());
+    for (const std::unique_ptr<ParsedProperty> &parsedProperty : this->properties)
+        properties.push_back(parsedProperty->generate());
+
+    data.set("properties", properties);
+
     return data;
 }
 
@@ -489,7 +514,7 @@ void ParsedTranslationUnit::handleChild(CXCursor cursor, CXCursorKind kind) {
 Mustache::Data ParsedTranslationUnit::generate() const {
     Mustache::Data classes(Mustache::Data::List());
     for (auto &it : this->classes) {
-        const auto &parsedClass = it.second;
+        const std::unique_ptr<ParsedClass> &parsedClass = it.second;
 
         if (parsedClass->isFromMainFile())
             classes.push_back(parsedClass->generate());
@@ -506,7 +531,7 @@ void ParsedTranslationUnit::dump(unsigned depth) const {
     printf("%-*sTranslationUnit '%s'\n", depth * 2, "", this->name.c_str());
 
     for (auto &it : this->classes) {
-        const auto &parsedClass = it.second;
+        const std::unique_ptr<ParsedClass> &parsedClass = it.second;
 
         if (parsedClass->isFromMainFile())
             parsedClass->dump(depth + 1);

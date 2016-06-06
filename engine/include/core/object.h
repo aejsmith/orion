@@ -21,9 +21,11 @@
 
 #pragma once
 
+#include "core/hash_table.h"
 #include "core/refcounted.h"
 
 #include <type_traits>
+#include <vector>
 
 /**
  * Annotation macros.
@@ -120,7 +122,7 @@ public:
      * @tparam T            Type to get for.
      * @return              Meta-type for that type. */
     template <typename T>
-    static inline const MetaType *lookup() {
+    static inline const MetaType &lookup() {
         return LookupImpl<T>::get();
     }
 protected:
@@ -148,7 +150,7 @@ private:
             #error "Unsupported compiler"
         #endif
 
-        static NOINLINE const MetaType *get() {
+        static NOINLINE const MetaType &get() {
             /*
              * In the generic case, we dynamically allocate a MetaType the first
              * time it is requested for that type. Store a pointer to the
@@ -161,7 +163,7 @@ private:
              * guard variable stuff all over the place.
              */
             static const MetaType *type = allocate(LOOKUP_FUNCTION_SIGNATURE);
-            return type;
+            return *type;
         }
 
         #undef LOOKUP_FUNCTION_SIGNATURE
@@ -170,8 +172,8 @@ private:
     /** Specialization for Object-derived classes to use the static MetaClass. */
     template <typename T>
     struct LookupImpl<T, typename std::enable_if<std::is_base_of<Object, T>::value>::type> {
-        static FORCEINLINE const MetaType *get() {
-            return &T::staticMetaClass;
+        static FORCEINLINE const MetaType &get() {
+            return T::staticMetaClass;
         }
     };
 
@@ -179,26 +181,74 @@ private:
     uint32_t m_traits;                  /**< Traits for the type. */
 };
 
+/** Class providing metadata about a property. */
+class MetaProperty {
+public:
+    /** Type of the get function defined by objgen. */
+    using GetFunction = void (*)(const Object *object, void *value);
+    /** Type of the set function defined by objgen. */
+    using SetFunction = void (*)(Object *object, const void *value);
+
+    MetaProperty(
+        const char *name,
+        const MetaType &type,
+        GetFunction getFunction,
+        SetFunction setFunction);
+
+    /** @return             Name of the property. */
+    const char *name() const { return m_name; }
+    /** @return             Type of the property. */
+    const MetaType &type() const { return m_type; }
+private:
+    /** Get the property value.
+     * @param object        Object to get property from.
+     * @param value         Where to store property value. */
+    void get(const Object *object, void *value) const {
+        m_getFunction(object, value);
+    }
+
+    /** Set the property value.
+     * @param object        Object to set property on.
+     * @param value         Buffer containing new property value. */
+    void set(Object *object, const void *value) const {
+        m_setFunction(object, value);
+    }
+
+    const char *m_name;                 /**< Name of the property. */
+    const MetaType &m_type;             /**< Type of the property. */
+    GetFunction m_getFunction;          /**< Get function defined by objgen. */
+    SetFunction m_setFunction;          /**< Set function defined by objgen. */
+
+    friend class Object;
+};
+
 /** Metadata for an Object-derived class. */
 class MetaClass : public MetaType {
 public:
-    explicit MetaClass(const char *name, const MetaClass *parent = nullptr);
+    using PropertyArray = std::vector<MetaProperty>;
+
+    MetaClass(
+        const char *name,
+        const MetaClass *parent,
+        const PropertyArray &properties);
     ~MetaClass();
 
     /** @return             Metadata for parent class. */
     const MetaClass *parent() const { return m_parent; }
+    /** @return             Array of properties in the class. */
+    const PropertyArray &properties() const { return m_properties; }
 
     bool isBaseOf(const MetaClass &other) const;
+
+    const MetaProperty *lookupProperty(const char *name) const;
 
     static const MetaClass *lookup(const std::string &name);
 private:
     const MetaClass *m_parent;          /**< Metadata for parent class. */
-};
+    const PropertyArray &m_properties;  /**< Array of properties. */
 
-/** Class providing metadata about a property. */
-class MetaProperty {
-public:
-
+    /** Map of properties for fast lookup. */
+    HashMap<std::string, const MetaProperty *> m_propertyMap;
 };
 
 /**
@@ -219,6 +269,29 @@ public:
      * @return              Meta-class of this object.
      */
     virtual const MetaClass &metaClass() const;
+
+    /** Get a property value.
+     * @tparam T            Type of the property to get.
+     * @param name          Name of the property to get.
+     * @param value         Where to store property value.
+     * @return              Whether the property could be found. */
+    template <typename T>
+    bool getProperty(const char *name, T &value) const {
+        return getProperty(name, MetaType::lookup<T>(), &value);
+    }
+
+    /** Set a property value.
+     * @tparam T            Type of the property to get.
+     * @param name          Name of the property to get.
+     * @param value         New property value.
+     * @return              Whether the property could be found. */
+    template <typename T>
+    bool setProperty(const char *name, const T &value) {
+        return setProperty(name, MetaType::lookup<T>(), &value);
+    }
+private:
+    bool getProperty(const char *name, const MetaType &type, void *value) const;
+    bool setProperty(const char *name, const MetaType &type, const void *value);
 };
 
 /**

@@ -64,12 +64,23 @@ static auto &metaClassMap() {
 /** Initialise a meta-class.
  * @param name          Name of the meta-class.
  * @param parent        Parent meta-class. */
-MetaClass::MetaClass(const char *name, const MetaClass *parent) :
+MetaClass::MetaClass(
+    const char *name,
+    const MetaClass *parent,
+    const PropertyArray &properties)
+    :
     MetaType(name, MetaType::kIsObject),
-    m_parent(parent)
+    m_parent(parent),
+    m_properties(properties)
 {
     auto ret = metaClassMap().insert(std::make_pair(name, this));
     checkMsg(ret.second, "Registering meta-class '%s' that already exists", name);
+
+    /* Add properties to a map for fast lookup. */
+    for (const auto &property : properties) {
+        auto ret = m_propertyMap.insert(std::make_pair(property.name(), &property));
+        checkMsg(ret.second, "Meta-class '%s' has duplicate property '%s'", name, property.name());
+    }
 }
 
 /** Destroy a meta-class. */
@@ -93,11 +104,94 @@ bool MetaClass::isBaseOf(const MetaClass &other) const {
     return false;
 }
 
+/** Look up a property by name on the class.
+ * @param name          Name of the property to look up.
+ * @return              Pointer to property if found, null if not. */
+const MetaProperty *MetaClass::lookupProperty(const char *name) const {
+    const MetaClass *current = this;
+
+    while (current) {
+        auto ret = current->m_propertyMap.find(name);
+        if (ret != current->m_propertyMap.end())
+            return ret->second;
+
+        current = current->m_parent;
+    }
+
+    return nullptr;
+}
+
 /** Look up a meta-class by name.
  * @param name          Name of the meta-class.
- * @return              Pointer to meta-class if found, or null if not. */
+ * @return              Pointer to meta-class if found, null if not. */
 const MetaClass *MetaClass::lookup(const std::string &name) {
     auto &map = metaClassMap();
     auto ret = map.find(name);
     return (ret != map.end()) ? ret->second : nullptr;
+}
+
+/** Initialise a property.
+ * @param name          Name of the property.
+ * @param type          Type of the property.
+ * @param getFunction   Function to get the property value.
+ * @param setFunction   Function to set the property value. */
+MetaProperty::MetaProperty(
+    const char *name,
+    const MetaType &type,
+    GetFunction getFunction,
+    SetFunction setFunction)
+    :
+    m_name(name),
+    m_type(type),
+    m_getFunction(getFunction),
+    m_setFunction(setFunction)
+{}
+
+static const MetaProperty *lookupAndCheckProperty(
+    const MetaClass &metaClass,
+    const char *name,
+    const MetaType &type)
+{
+    const MetaProperty *property = metaClass.lookupProperty(name);
+    if (!property) {
+        logError("Attempt to access non-existant property '%s' on class '%s'", name, metaClass.name());
+        return nullptr;
+    }
+
+    if (&type != &property->type()) {
+        logError(
+            "Type mismatch accessing property '%s' on class '%s', requested '%s', actual '%s'",
+            name, metaClass.name(), type.name(), property->type().name());
+        return nullptr;
+    }
+
+    return property;
+}
+
+/** Get a property value.
+ * @param name          Name of the property to get.
+ * @param type          Type of the property to get.
+ * @param value         Where to store property value.
+ * @return              Whether the property could be found. */
+bool Object::getProperty(const char *name, const MetaType &type, void *value) const {
+    const MetaProperty *property = lookupAndCheckProperty(metaClass(), name, type);
+    if (!property)
+        return false;
+
+    property->get(this, value);
+    return true;
+}
+
+/** Set a property value.
+ * @param name          Name of the property to set.
+ * @param type          Type of the property to set.
+ * @param value         Buffer containing new property value.
+ * @return              Whether the property could be found. */
+bool Object::setProperty(const char *name, const MetaType &type, const void *value) {
+    const MetaProperty *property = lookupAndCheckProperty(metaClass(), name, type);
+    if (!property)
+        return false;
+
+    property->set(this, value);
+    return true;
 }

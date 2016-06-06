@@ -4,7 +4,28 @@
 {{/include}}
 {{#classes}}
 
-const MetaClass {{name}}::staticMetaClass("{{name}}"{{#parent}}, &{{parent}}::staticMetaClass{{/parent}});
+{{#properties}}
+void {{name}}_get_{{propertyName}}(const Object *base, void *value) {
+    auto object = static_cast<const {{name}} *>(base);
+    *reinterpret_cast<{{propertyType}} *>(value) = object->{{propertyName}};
+}
+
+void {{name}}_set_{{propertyName}}(Object *base, const void *value) {
+    auto object = static_cast<{{name}} *>(base);
+    object->{{propertyName}} = *reinterpret_cast<const {{propertyType}} *>(value);
+}
+
+{{/properties}}
+static const MetaClass::PropertyArray {{name}}_propertyTable = {
+{{#properties}}
+    MetaProperty("{{propertyName}}", MetaType::lookup<{{propertyType}}>(), {{name}}_get_{{propertyName}}, {{name}}_set_{{propertyName}}),
+{{/properties}}
+};
+
+const MetaClass {{name}}::staticMetaClass(
+    "{{name}}",
+    {{#parent}}&{{parent}}::staticMetaClass{{/parent}}{{^parent}}nullptr{{/parent}},
+    {{name}}_propertyTable);
 
 const MetaClass &{{name}}::metaClass() const {
     return {{name}}::staticMetaClass;
