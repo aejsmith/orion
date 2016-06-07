@@ -29,7 +29,7 @@
 /** Initialise the component.
  * @param entity        Entity that the component belongs to. */
 Renderer::Renderer(Entity *entity) :
-    Component(Component::kRendererType, entity),
+    Component(entity),
     m_castShadow(true)
 {}
 

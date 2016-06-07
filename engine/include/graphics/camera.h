@@ -31,8 +31,8 @@
 /** A view into the world from which the scene will be rendered. */
 class Camera : public Component, public RenderLayer {
 public:
-    DECLARE_COMPONENT(Component::kCameraType);
-public:
+    CLASS();
+
     explicit Camera(Entity *entity);
 
     /**
@@ -87,7 +87,7 @@ protected:
     void deactivated() override;
 private:
     void viewportChanged() override;
-private:
+
     SceneView m_sceneView;              /**< Scene view implementing this camera. */
     RenderPath m_renderPath;            /**< Render path to use for the camera. */
     PostEffectChain m_postEffectChain;  /**< Post-processing effect chain. */

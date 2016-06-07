@@ -88,7 +88,7 @@ MetaClass::~MetaClass() {
     metaClassMap().erase(name());
 }
 
-/** Determine if this class is the base or the same as another.
+/** Determine if this class is the base of or the same as another.
  * @param other         Class to check.
  * @return              Whether this class is the base of the specified class. */
 bool MetaClass::isBaseOf(const MetaClass &other) const {

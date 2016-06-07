@@ -49,15 +49,14 @@ class RigidBody;
  */
 class CollisionShape : public Component {
 public:
-    DECLARE_COMPONENT(Component::kCollisionShapeType);
-public:
-    ~CollisionShape();
+    CLASS();
 
     void transformed(unsigned changed) override;
     void activated() override;
     void deactivated() override;
 protected:
     explicit CollisionShape(Entity *entity);
+    ~CollisionShape();
 
     void setShape(btCollisionShape *shape);
 
@@ -91,6 +90,8 @@ private:
  */
 class BoxCollisionShape : public CollisionShape {
 public:
+    CLASS();
+
     explicit BoxCollisionShape(Entity *entity);
 
     /** @return             Half extents of the box. */
@@ -117,6 +118,8 @@ private:
  */
 class CapsuleCollisionShape : public CollisionShape {
 public:
+    CLASS();
+
     explicit CapsuleCollisionShape(Entity *entity);
 
     /** @return             Radius of the hemispherical parts of the capsule. */
@@ -144,6 +147,8 @@ private:
  */
 class SphereCollisionShape : public CollisionShape {
 public:
+    CLASS();
+
     explicit SphereCollisionShape(Entity *entity);
 
     /** @return             Radius of the sphere. */

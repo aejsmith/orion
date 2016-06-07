@@ -23,9 +23,6 @@
 
 #include "core/refcounted.h"
 
-template <typename T>
-class ObjectPtr;
-
 class TextureBase;
 
 struct UniformStructMember;
@@ -163,6 +160,6 @@ struct ShaderParameterTypeTraits<glm::ivec4> {
  * Implementing Texture2D here makes Material::value() unsafe.
  */
 template <>
-struct ShaderParameterTypeTraits<ObjectPtr<TextureBase>> {
+struct ShaderParameterTypeTraits<ReferencePtr<TextureBase>> {
     static constexpr ShaderParameter::Type kType = ShaderParameter::kTextureType;
 };

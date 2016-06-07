@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "core/core.h"
+#include "core/object.h"
 
 #include <list>
 
@@ -110,7 +110,7 @@ private:
 private:
     EngineConfiguration m_config;   /**< Engine configuration. */
     Game *m_game;                   /**< Game instance. */
-    World *m_world;                 /**< Active game world. */
+    ObjectPtr<World> m_world;       /**< Active game world. */
 
     /** List of render targets. */
     std::list<RenderTarget *> m_renderTargets;

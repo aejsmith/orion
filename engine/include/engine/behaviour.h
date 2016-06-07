@@ -27,14 +27,14 @@
  * Behaviour component class.
  *
  * This class is the base class for adding any custom behaviour to an entity.
- * It should be derived from rather than deriving directly from Component as it
- * includes the necessary boilerplate to set the component type. Custom
- * behaviour can be implemented via the Component hook functions.
+ * It doesn't provide any functionality on top of component, it exists just to
+ * give a common base for all behaviour types, e.g. to allow them to be looked
+ * up with Entity::findComponent().
  */
 class Behaviour : public Component {
 public:
-    DECLARE_COMPONENT(Component::kBehaviourType);
+    CLASS();
 protected:
-    explicit Behaviour(Entity *entity) : Component(Component::kBehaviourType, entity) {}
+    explicit Behaviour(Entity *entity) : Component(entity) {}
     ~Behaviour() {}
 };

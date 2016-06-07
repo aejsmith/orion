@@ -49,10 +49,9 @@ class CollisionShape;
  */
 class RigidBody : public Component {
 public:
-    DECLARE_COMPONENT(Component::kRigidBodyType);
-public:
+    CLASS();
+
     explicit RigidBody(Entity *entity);
-    ~RigidBody();
 
     void transformed(unsigned changed) override;
     void activated() override;
@@ -88,9 +87,11 @@ public:
 
     void setVelocity(const glm::vec3 &velocity);
     void setAngularVelocity(const glm::vec3 &velocity);
+protected:
+    ~RigidBody();
 private:
     class MotionState;
-private:
+
     void createBody(btCollisionShape *shape);
     void destroyBody();
 
@@ -100,7 +101,7 @@ private:
     void removeShape(CollisionShape *shape);
     void updateShape(CollisionShape *shape, btCollisionShape *btShape);
     void transformShape(CollisionShape *shape);
-private:
+
     float m_mass;                       /**< Mass of the body. */
     float m_linearDamping;              /**< Linear damping factor. */
     float m_angularDamping;             /**< Angular damping factor. */

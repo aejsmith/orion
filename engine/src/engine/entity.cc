@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -34,19 +34,30 @@ Entity::Entity(const std::string &name, World *world) :
     m_name(name),
     m_world(world),
     m_parent(nullptr),
-    m_components(Component::kNumComponentTypes, nullptr),
     m_active(false),
     m_activeInWorld(false)
 {}
 
 /** Private destructor. To destroy an entity use destroy(). */
-Entity::~Entity() {}
+Entity::~Entity() {
+    /*
+     * An entity is deleted when its reference count becomes 0. This should
+     * only happen if we have called destroy() to remove references to the
+     * entity from the world.
+     */
+    checkMsg(
+        !m_active && m_components.empty() && m_children.empty() && !m_parent,
+        "Entity '%s' has no remaining references yet has not been destroyed",
+        m_name.c_str());
+}
 
 /**
  * Destroy the entity.
  *
- * Destroys the entity. All attached components and all child entities will
- * also be deleted.
+ * Destroys the entity. This first deactivates the entity if it is active. Then,
+ * all child entities are destroyed, followed by all attached components.
+ * Finally the entity is removed from its parent. Once all other remaining
+ * references to the entity are released, it will be deleted.
  */
 void Entity::destroy() {
     setActive(false);
@@ -56,25 +67,28 @@ void Entity::destroy() {
         m_children.front()->destroy();
     }
 
-    for (Component *component : m_components) {
-        if (component)
-            component->destroy();
+    while (!m_components.empty()) {
+        /* Same as above. */
+        m_components.front()->destroy();
     }
 
-    if (m_parent)
-        m_parent->m_children.remove(this);
-
-    delete this;
+    if (m_parent) {
+        /*
+         * Must fetch the parent pointer and set it null before calling remove().
+         * It may be that the parent's reference is the last reference and
+         * therefore call could result in this entity being deleted.
+         */
+        EntityPtr parent(std::move(m_parent));
+        parent->m_children.remove(this);
+    }
 }
 
 /** Call the specified function on all components.
  * @param func          Function to call. */
 template <typename Func>
 inline void Entity::visitComponents(Func func) {
-    for (Component *component : m_components) {
-        if (component)
-            func(component);
-    }
+    for (Component *component : m_components)
+        func(component);
 }
 
 /** Call the specified function on all active components.
@@ -82,7 +96,7 @@ inline void Entity::visitComponents(Func func) {
 template <typename Func>
 inline void Entity::visitActiveComponents(Func func) {
     for (Component *component : m_components) {
-        if (component && component->active())
+        if (component->active())
             func(component);
     }
 }
@@ -130,25 +144,72 @@ Entity *Entity::createChild(const std::string &name) {
     return entity;
 }
 
+/**
+ * Find a component by class.
+ *
+ * Finds the first component that is an instance of the given class, or of a
+ * derived class if exactClass is false (the default).
+ *
+ * @param metaClass     Class of component to find.
+ * @param exactClass    Whether only the exact class (not derived classes)
+ *                      should be returned.
+ *
+ * @return              Pointer to component if found, null if not.
+ */
+Component *Entity::findComponent(const MetaClass &metaClass, bool exactClass) const {
+    for (Component *component : m_components) {
+        if (exactClass) {
+            if (&metaClass == &component->metaClass())
+                return component;
+        } else {
+            if (metaClass.isBaseOf(component->metaClass()))
+                return component;
+        }
+    }
+
+    return nullptr;
+}
+
 /** Add a component to the entity (internal method).
  * @param component     Component to add. */
 void Entity::addComponent(Component *component) {
-    checkMsg(!m_components[component->type()], "Component of type %d already registered", component->type());
+    /*
+     * This only checks for an exact match on class type, so for instance we
+     * don't forbid multiple Behaviour-derived classes on the same object.
+     */
+    checkMsg(
+        !findComponent(component->metaClass(), true),
+        "Component of type '%s' already exists on entity '%s'",
+        component->metaClass().name(), m_name.c_str());
 
     component->m_entity = this;
-    m_components[component->type()] = component;
+    m_components.push_back(component);
 
-    /* We do not need to activate the component at this point as the component
+    /*
+     * We do not need to activate the component at this point as the component
      * is initially inactive. We do however need to let it do anything it needs
-     * to with the new transformation. */
+     * to with the new transformation.
+     */
     component->transformed(kPositionChanged | kOrientationChanged | kScaleChanged);
 }
 
 /** Remove a component from the entity (internal method).
  * @param component     Component to remove. */
 void Entity::removeComponent(Component *component) {
-    check(m_components[component->type()] == component);
-    m_components[component->type()] = nullptr;
+    /*
+     * This avoids an unnecessary reference to the component compared to calling
+     * list::remove(), passing the raw pointer to that converts to a reference.
+     */
+    for (auto it = m_components.begin(); it != m_components.end(); ++it) {
+        if (component == *it) {
+            m_components.erase(it);
+            return;
+        }
+    }
+
+    checkMsg(
+        false, "Removing component '%s' which is not registered on entity '%s'",
+        component->metaClass().name(), m_name.c_str());
 }
 
 /**
@@ -277,8 +338,10 @@ void Entity::activated() {
 void Entity::deactivated() {
     m_activeInWorld = false;
 
-    /* Order is important: components on children deactivate before this
-     * entity's component. */
+    /*
+     * Order is important: components on children deactivate before this
+     * entity's component.
+     */
     visitActiveChildren([](Entity *e) { e->deactivated(); });
     visitActiveComponents([](Component *c) { c->deactivated(); });
 }

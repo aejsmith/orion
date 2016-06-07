@@ -70,7 +70,7 @@ private:
  * @param entity        Entity that the component belongs to.
  */
 RigidBody::RigidBody(Entity *entity) :
-    Component(Component::kRigidBodyType, entity),
+    Component(entity),
     m_mass(0.0f),
     m_linearDamping(0.0f),
     m_angularDamping(0.0f),

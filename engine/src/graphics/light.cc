@@ -34,7 +34,7 @@ static const glm::vec3 kDefaultDirection = glm::vec3(0.0f, 0.0f, -1.0f);
  * @param entity        Entity that the component belongs to.
  * @param type          SceneLight type. */
 Light::Light(Entity *entity, SceneLight::Type type) :
-    Component(Component::kLightType, entity),
+    Component(entity),
     m_sceneLight(type)
 {
     /* Set default colour/intensity. */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -23,10 +23,8 @@
 #include "engine/entity.h"
 
 /** Construct the component.
- * @param type          Component type ID.
  * @param entity        Entity the component belongs to. */
-Component::Component(Type type, Entity *entity) :
-    m_type(type),
+Component::Component(Entity *entity) :
     m_entity(entity),
     m_active(false)
 {}
@@ -34,14 +32,17 @@ Component::Component(Type type, Entity *entity) :
 /** Private destructor. To destroy a component use destroy(). */
 Component::~Component() {}
 
-/** Destroy the component. */
+/**
+ * Destroy the component.
+ *
+ * Deactives the component and removes it from its parent. Once no more other
+ * references remain to the component it will be deleted.
+ */
 void Component::destroy() {
     setActive(false);
 
     /* Remove from the parent. */
     m_entity->removeComponent(this);
-
-    delete this;
 }
 
 /**

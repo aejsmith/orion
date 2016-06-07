@@ -32,6 +32,8 @@ class TestGame;
 /** Behaviour class which takes input and translates it to player movement. */
 class PlayerController : public Behaviour, public InputHandler {
 public:
+    CLASS();
+
     PlayerController(Entity *entity, TestGame *game, Camera *camera);
 
     void activated() override;

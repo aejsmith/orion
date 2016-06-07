@@ -39,7 +39,7 @@
  * @param entity        Entity that the component belongs to.
  */
 CollisionShape::CollisionShape(Entity *entity) :
-    Component(Component::kCollisionShapeType, entity),
+    Component(entity),
     m_rigidBody(nullptr)
 {}
 

@@ -36,9 +36,7 @@ class SceneEntity;
  */
 class Renderer : public Component {
 public:
-    DECLARE_COMPONENT(Component::kRendererType);
-public:
-    ~Renderer();
+    CLASS();
 
     void setCastShadow(bool castShadow);
 
@@ -47,8 +45,9 @@ public:
 protected:
     /** Type of a scene entity list. */
     typedef std::list<SceneEntity *> SceneEntityList;
-protected:
+
     explicit Renderer(Entity *entity);
+    ~Renderer();
 
     void transformed(unsigned changed) override;
     void activated() override;

@@ -36,6 +36,8 @@
  */
 class Skybox : public Renderer {
 public:
+    CLASS();
+
     Skybox(Entity *entity, TextureCube *texture);
 
     /** @return             Texture that this skybox uses. */

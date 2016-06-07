@@ -91,8 +91,8 @@ Engine::Engine(const EngineConfiguration &config) :
 
 /** Shut down the engine. */
 Engine::~Engine() {
-    if (m_world)
-        delete m_world;
+    /* Unload the world. */
+    m_world.reset();
 
     /* Shut down the game. */
     delete m_game;
@@ -209,8 +209,7 @@ void Engine::renderAllTargets() {
 /** Create a world and make it the active world.
  * @return              Created world. */
 World *Engine::createWorld() {
-    if (m_world)
-        delete m_world;
+    m_world.reset();
 
     m_world = new World;
     return m_world;

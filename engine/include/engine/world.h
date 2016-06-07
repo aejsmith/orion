@@ -35,10 +35,11 @@ class Scene;
  * entities to these systems is handled automatically when they are activated
  * in the world.
  */
-class World : Noncopyable {
+class World : public Object {
 public:
+    CLASS();
+
     World();
-    ~World();
 
     void tick(float dt);
 
@@ -55,8 +56,10 @@ public:
 
     /** @return             Root entity of the world. */
     Entity *root() { return m_root; }
+protected:
+    ~World();
 private:
-    Entity *m_root;                 /**< Root of the entity hierarchy. */
+    EntityPtr m_root;               /**< Root of the entity hierarchy. */
     Scene *m_scene;                 /**< Scene manager. */
     PhysicsWorld *m_physics;        /**< Physics world. */
 };

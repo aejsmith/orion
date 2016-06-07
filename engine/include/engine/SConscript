@@ -2,9 +2,13 @@ Import('env')
 
 objects = map(env.ObjgenHeader, [
     'asset.h',
+    'behaviour.h',
+    'component.h',
+    'entity.h',
     'font.h',
     'mesh.h',
     'texture.h',
+    'world.h',
 ])
 
 Return('objects')

@@ -30,6 +30,8 @@
 /** Component which renders a mesh. */
 class MeshRenderer : public Renderer {
 public:
+    CLASS();
+
     MeshRenderer(Entity *entity, Mesh *mesh);
 
     /** @return             Mesh that this component renders. */

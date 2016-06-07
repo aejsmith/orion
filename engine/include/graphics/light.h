@@ -33,9 +33,7 @@
  */
 class Light : public Component {
 public:
-    DECLARE_COMPONENT(Component::kLightType);
-public:
-    ~Light();
+    CLASS();
 
     void setColour(const glm::vec3 &colour);
     void setIntensity(float intensity);
@@ -49,6 +47,7 @@ public:
     bool castShadows() const { return m_sceneLight.castShadows(); }
 protected:
     Light(Entity *entity, SceneLight::Type type);
+    ~Light();
 
     void transformed(unsigned changed) override;
     void activated() override;
@@ -90,6 +89,8 @@ protected:
  */
 class AmbientLight : public Light {
 public:
+    CLASS();
+
     explicit AmbientLight(Entity *entity);
 };
 
@@ -107,6 +108,8 @@ public:
  */
 class DirectionalLight : public Light {
 public:
+    CLASS();
+
     explicit DirectionalLight(Entity *entity);
 
     using Light::setDirection;
@@ -122,6 +125,8 @@ public:
  */
 class PointLight : public Light {
 public:
+    CLASS();
+
     explicit PointLight(Entity *entity);
 
     using Light::setRange;
@@ -142,6 +147,8 @@ public:
  */
 class SpotLight : public Light {
 public:
+    CLASS();
+
     explicit SpotLight(Entity *entity);
 
     using Light::setDirection;

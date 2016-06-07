@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -23,8 +23,12 @@
 
 #include "engine/entity.h"
 
+class Component;
 class Entity;
 class World;
+
+/** Type of a pointer to a component. */
+using ComponentPtr = ReferencePtr<Component>;
 
 /**
  * Class implementing a component.
@@ -57,24 +61,13 @@ class World;
  * As can be seen, this ensures that the hook functions are called when the
  * component is fully constructed.
  */
-class Component : Noncopyable {
+class Component : public Object {
 public:
-    /** Component type IDs. */
-    enum Type {
-        kBehaviourType,
-        kCameraType,
-        kCollisionShapeType,
-        kLightType,
-        kRendererType,
-        kRigidBodyType,
-        kNumComponentTypes,
-    };
-public:
+    CLASS();
+
     void destroy();
     void setActive(bool active);
 
-    /** @return             Type ID of the component. */
-    Type type() const { return m_type; }
     /** @return             Entity that the component is attached to. */
     Entity *entity() const { return m_entity; }
     /** @return             Whether the component is active. */
@@ -133,16 +126,11 @@ public:
      */
     virtual void tick(float dt) {}
 protected:
-    Component(Type type, Entity *entity);
-    virtual ~Component();
+    explicit Component(Entity *entity);
+    ~Component();
 private:
-    Type m_type;                    /**< Type of the component. */
     Entity *m_entity;               /**< Entity that the component is attached to. */
     bool m_active;                  /**< Whether the component is active. */
 
     friend class Entity;
 };
-
-/** Declare a component type. */
-#define DECLARE_COMPONENT(type) \
-    static const Component::Type kComponentTypeID = (type)

@@ -42,7 +42,7 @@
  * @param entity        Entity to attach the camera to.
  */
 Camera::Camera(Entity *entity) :
-    Component(Component::kCameraType, entity),
+    Component(entity),
     RenderLayer(RenderLayer::kCameraPriority),
     m_sceneView(&m_postEffectChain),
     m_renderPath(RenderPath::kDeferred)

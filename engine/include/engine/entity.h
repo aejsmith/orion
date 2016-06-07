@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,14 +21,18 @@
 
 #pragma once
 
-#include "core/core.h"
+#include "core/object.h"
 
 #include <algorithm>
 #include <list>
 #include <vector>
 
 class Component;
+class Entity;
 class World;
+
+/** Type of a reference-counted pointer to an Entity. */
+using EntityPtr = ObjectPtr<Entity>;
 
 /**
  * Class representing an entity in the world.
@@ -42,8 +46,10 @@ class World;
  * functions of this class operate on the relative transformation, except where
  * noted.
  */
-class Entity : Noncopyable {
+class Entity : public Object {
 public:
+    CLASS();
+
     /** Transformation change flags. */
     enum TransformFlags {
         /** Position of the entity changed. */
@@ -53,7 +59,7 @@ public:
         /** Scale of the entity changed. */
         kScaleChanged = (1 << 2),
     };
-public:
+
     void destroy();
 
     void tick(float dt);
@@ -100,7 +106,8 @@ public:
      */
 
     template<typename Type, typename ...Args> Type *createComponent(Args &&...args);
-    template<typename Type> Type *findComponent() const;
+    template<typename Type> Type *findComponent(bool exactClass = false) const;
+    Component *findComponent(const MetaClass &metaClass, bool exactClass = false) const;
 
     /**
      * Transformation.
@@ -129,9 +136,10 @@ public:
     const glm::quat &worldOrientation() const { return m_worldTransform.orientation(); }
     /** @return             Current absolute scale. */
     const glm::vec3 &worldScale() const { return m_worldTransform.scale(); }
+protected:
+    ~Entity();
 private:
     Entity(const std::string &name, World *world);
-    ~Entity();
 
     void addComponent(Component *component);
     void removeComponent(Component *component);
@@ -142,12 +150,13 @@ private:
     void transformed(unsigned changed);
     void activated();
     void deactivated();
-private:
+
     std::string m_name;                     /**< Name of the entity. */
     World *m_world;                         /**< World that this entity belongs to. */
-    Entity *m_parent;                       /**< Parent entity. */
-    std::list<Entity *> m_children;         /**< Child entities. */
-    std::vector<Component *> m_components;  /**< Components attached to the entity. */
+    EntityPtr m_parent;                     /**< Parent entity. */
+    std::list<EntityPtr> m_children;        /**< Child entities. */
+    /** Components attached to the entity. */
+    std::list<ReferencePtr<Component>> m_components;
     bool m_active;                          /**< Whether the entity is active. */
 
     /**
@@ -170,6 +179,7 @@ private:
 
     /** Component needs to use removeComponent(). */
     friend class Component;
+
     /** World needs access to constructor to create root entity. */
     friend class World;
 };
@@ -185,15 +195,25 @@ Type *Entity::createComponent(Args &&...args) {
     return component;
 }
 
-/** Get a component attached to the entity.
- * @tparam Type         Type of component to find.
- * @return              Component found, or null if no components of the
- *                      specified type are attached. */
+/**
+ * Find a component by class.
+ *
+ * Finds the first component that is an instance of the given class, or of a
+ * derived class if exactClass is false (the default).
+ *
+ * @tparam Type         Class of component to find.
+ * @param exactClass    Whether only the exact class (not derived classes)
+ *                      should be returned.
+ *
+ * @return              Pointer to component if found, null if not.
+ */
 template <typename Type>
-inline Type *Entity::findComponent() const {
-    return (m_components[Type::kComponentTypeID])
-        ? static_cast<Type *>(m_components[Type::kComponentTypeID])
-        : nullptr;
+inline Type *Entity::findComponent(bool exactClass) const {
+    static_assert(
+        std::is_base_of<Component, Type>::value,
+        "Type must be derived from Component");
+
+    return static_cast<Type *>(findComponent(Type::staticMetaClass));
 }
 
 /** Call the specified function on all children.

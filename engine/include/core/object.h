@@ -302,11 +302,7 @@ private:
  * having to change any other code.
  */
 template <typename T>
-class ObjectPtr : public ReferencePtr<T> {
-public:
-    static_assert(std::is_base_of<Object, T>::value, "type must be derived from Object");
-    using ReferencePtr<T>::ReferencePtr;
-};
+using ObjectPtr = ReferencePtr<T>;
 
 /**
  * Cast an Object pointer down the inheritance hierarchy.
@@ -317,6 +313,8 @@ public:
  *
  * @tparam TargetPtr    Target pointer type.
  * @param object        Object pointer to cast.
+ *
+ * @return              Pointer to object if cast was successful, nullptr if not.
  */
 template <typename TargetPtr, typename Source>
 inline TargetPtr object_cast(Source *object) {
