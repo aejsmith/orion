@@ -15,6 +15,7 @@ objects = map(env.Object, [
     'texture.cc',
     'window.cc',
     'world.cc',
+    'world_explorer.cc',
 ])
 
 objects += SConscript(dirs = [

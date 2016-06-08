@@ -28,6 +28,7 @@
 #include "engine/game.h"
 #include "engine/window.h"
 #include "engine/world.h"
+#include "engine/world_explorer.h"
 
 #include "gpu/gpu_manager.h"
 
@@ -84,6 +85,8 @@ Engine::Engine(const EngineConfiguration &config) :
     g_renderManager->init();
     g_debugManager->initResources();
     g_physicsManager = new PhysicsManager;
+
+    g_debugManager->registerWindow(std::make_unique<WorldExplorerWindow>());
 
     /* Create the game instance. */
     m_game = game::createGame();

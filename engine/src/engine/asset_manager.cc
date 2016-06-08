@@ -186,9 +186,8 @@ void AssetManager::unregisterAsset(Asset *asset) {
 void AssetManager::explore() {
     for (auto &entry : m_assets) {
         Asset *asset = entry.second;
-        ImGui::PushID(asset);
 
-        if (ImGui::TreeNode("asset", "%s", entry.first.c_str())) {
+        if (ImGui::TreeNode(asset, "%s", entry.first.c_str())) {
             const MetaClass &metaClass = asset->metaClass();
             ImGui::Text("Type: %s", metaClass.name());
 
@@ -198,7 +197,5 @@ void AssetManager::explore() {
 
             ImGui::TreePop();
         }
-
-        ImGui::PopID();
     }
 }
