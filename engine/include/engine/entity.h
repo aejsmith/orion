@@ -113,6 +113,10 @@ public:
      * Transformation.
      */
 
+    VPROPERTY(glm::vec3, position, "get": "position", "set": "setPosition");
+    VPROPERTY(glm::quat, orientation, "get": "orientation", "set": "setOrientation");
+    VPROPERTY(glm::vec3, scale, "get": "scale", "set": "setScale");
+
     void setPosition(const glm::vec3 &pos);
     void translate(const glm::vec3 &vec);
     void setOrientation(const glm::quat &orientation);

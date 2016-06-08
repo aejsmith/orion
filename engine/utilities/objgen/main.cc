@@ -307,9 +307,12 @@ void ParsedDecl::visitChildren(CXCursor cursor, ParsedDecl *decl) {
 ParsedProperty::ParsedProperty(CXCursor cursor, ParsedDecl *parent) :
     ParsedDecl(cursor, parent)
 {
-    /* Remove the "m_" prefix from property names. */
-    if (this->name.substr(0, 2) == "m_")
+    /* Remove prefixes from property names. */
+    if (this->name.substr(0, 2) == "m_") {
         this->name = this->name.substr(2);
+    } else if (this->name.substr(0, 6) == "vprop_") {
+        this->name = this->name.substr(6);
+    }
 
     /* Get the property type. */
     CXType type = clang_getCursorType(cursor);
@@ -363,17 +366,23 @@ bool ParsedProperty::handleAnnotation(const std::string &type, const rapidjson::
     }
 
     bool isPublic = clang_getCXXAccessSpecifier(this->cursor) == CX_CXXPublic;
+    bool isVirtual = clang_getCursorKind(this->cursor) == CXCursor_VarDecl;
 
-    if (isPublic && !this->getFunction.empty()) {
-        /*
-         * This makes no sense - code can directly access/modify the property
-         * so usage of getter/setter methods should not be required.
-         */
-        parseError(this->cursor, "public properties cannot have getter/setter methods");
-        return true;
-    } else if (!isPublic && this->getFunction.empty()) {
-        parseError(this->cursor, "private properties must have getter/setter methods");
-        return true;
+    if (isVirtual) {
+        if (this->getFunction.empty()) {
+            parseError(this->cursor, "virtual properties must have getter/setter methods");
+            return true;
+        }
+    } else {
+        if (isPublic && !this->getFunction.empty()) {
+            /* This makes no sense - code can directly access/modify the property
+             * so usage of getter/setter methods should not be required. */
+            parseError(this->cursor, "public properties cannot have getter/setter methods");
+            return true;
+        } else if (!isPublic && this->getFunction.empty()) {
+            parseError(this->cursor, "private properties must have getter/setter methods");
+            return true;
+        }
     }
 
     return true;
@@ -502,14 +511,14 @@ void ParsedClass::handleChild(CXCursor cursor, CXCursorKind kind) {
             CXString str = clang_getCursorSpelling(cursor);
             std::string typeName(clang_getCString(str));
             clang_disposeString(str);
-
             if (!typeName.compare("staticMetaClass")) {
                 onMetaClass = true;
                 visitChildren(cursor, this);
                 onMetaClass = false;
+                break;
             }
 
-            break;
+            /* Fall through to check for virtual properties. */
         }
 
         case CXCursor_FieldDecl:

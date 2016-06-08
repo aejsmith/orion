@@ -33,10 +33,10 @@
 
 /** Macro to define an annotation attribute for objgen. */
 #ifdef ORION_OBJGEN
-#   define META_ATTRIBUTE(type, ...) \
+    #define META_ATTRIBUTE(type, ...) \
         __attribute__((annotate("orion:" type ":" #__VA_ARGS__)))
 #else
-#   define META_ATTRIBUTE(type, ...)
+    #define META_ATTRIBUTE(type, ...)
 #endif
 
 /** Helper for CLASS() and base Object definition. */
@@ -63,7 +63,7 @@
  *       ...
  *   };
  *
- * @param ...           Directives for objgen indicating traits of the class.
+ * @param ...           Attributes of the class, parsed by objgen.
  */
 #define CLASS(...) \
     DECLARE_STATIC_METACLASS(__VA_ARGS__); \
@@ -77,22 +77,59 @@
  * can be retrieved at runtime.
  *
  * Public members can be marked as a property with no additional support
- * required. Private members require a setter method to be specified, this
- * is typically used when the property requires validation on the value set for
- * it.
+ * required. Private members require a getter and setter method to be specified,
+ * this is typically used when the property requires validation on the value set
+ * for it, or when something must be done when the property value changes.
  *
  * Example:
  *
+ *   class Foo {
  *   public:
- *       PROPERTY() int wop;
- *   private:
- *       PROPERTY("set": "setFoop")
- *       glm::vec3 foop;
+ *       CLASS();
  *
- * @param ...           Directives for objgen indicating traits of the property.
+ *       PROPERTY() int wop;
+ *       ...
+ *   private:
+ *       PROPERTY("get": "foop", "set": "setFoop")
+ *       glm::vec3 m_foop;
+ *   };
+ *
+ * @param ...           Attributes of the property, parsed by objgen.
  */
 #define PROPERTY(...) \
     META_ATTRIBUTE("property", __VA_ARGS__)
+
+/**
+ * Macro to declare a virtual object property.
+ *
+ * This macro can be used to declare a "virtual property" on a class. Such
+ * properties are not directly associated with a member variable, rather they
+ * must provide getter and setter methods to modify them. This is useful, for
+ * instance, to expose a property as a certain type for editing while using a
+ * different internal implementation.
+ *
+ * This macro does not declare a member variable with the given name. When not
+ * processing the source file with objgen, it expands to nothing.
+ *
+ * Example:
+ *
+ *   class Foo {
+ *   public:
+ *       VPROPERTY(glm::vec3, position, "get": "position", "set": "setPosition");
+ *       ...
+ *   };
+ *
+ * @param type          Type of the property.
+ * @param name          Name of the property.
+ * @param ...           Attributes of the property, parsed by objgen. At least
+ *                      a "get" and "set" attribute must be specified.
+ */
+#ifdef ORION_OBJGEN
+    #define VPROPERTY(type, name, ...) \
+        static META_ATTRIBUTE("property", __VA_ARGS__) type vprop_##name
+#else
+    #define VPROPERTY(type, name, ...)
+#endif
 
 /**
  * Metadata classes.
