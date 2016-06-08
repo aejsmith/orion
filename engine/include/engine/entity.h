@@ -28,11 +28,7 @@
 #include <vector>
 
 class Component;
-class Entity;
 class World;
-
-/** Type of a reference-counted pointer to an Entity. */
-using EntityPtr = ObjectPtr<Entity>;
 
 /**
  * Class representing an entity in the world.
@@ -60,14 +56,24 @@ public:
         kScaleChanged = (1 << 2),
     };
 
+    /** Type of the entity list. */
+    using EntityList = std::list<ObjectPtr<Entity>>;
+
+    /** Type of the component list. */
+    using ComponentList = std::list<ObjectPtr<Component>>;
+
     void destroy();
 
     void tick(float dt);
 
+    /** @return             Name of the entity. */
+    const std::string &name() const { return m_name; }
     /** @return             World that the entity belongs to. */
     World *world() const { return m_world; }
     /** @return             Parent of the entity. */
     Entity *parent() const { return m_parent; }
+
+    VPROPERTY(bool, active, "get": "active", "set": "setActive");
 
     void setActive(bool active);
 
@@ -98,8 +104,10 @@ public:
 
     Entity *createChild(const std::string &name);
 
-    template<typename Func> void visitChildren(Func func);
     template<typename Func> void visitActiveChildren(Func func);
+
+    /** @return             List of all child entities. */
+    const EntityList &children() const { return m_children; }
 
     /**
      * Components.
@@ -108,6 +116,11 @@ public:
     template<typename Type, typename ...Args> Type *createComponent(Args &&...args);
     template<typename Type> Type *findComponent(bool exactClass = false) const;
     Component *findComponent(const MetaClass &metaClass, bool exactClass = false) const;
+
+    template<typename Func> void visitActiveComponents(Func func);
+
+    /** @return             List of all components. */
+    const ComponentList &components() const { return m_components; }
 
     /**
      * Transformation.
@@ -148,19 +161,15 @@ private:
     void addComponent(Component *component);
     void removeComponent(Component *component);
 
-    template<typename Func> void visitComponents(Func func);
-    template<typename Func> void visitActiveComponents(Func func);
-
     void transformed(unsigned changed);
     void activated();
     void deactivated();
 
     std::string m_name;                     /**< Name of the entity. */
     World *m_world;                         /**< World that this entity belongs to. */
-    EntityPtr m_parent;                     /**< Parent entity. */
-    std::list<EntityPtr> m_children;        /**< Child entities. */
-    /** Components attached to the entity. */
-    std::list<ReferencePtr<Component>> m_components;
+    ObjectPtr<Entity> m_parent;             /**< Parent entity. */
+    EntityList m_children;                  /**< Child entities. */
+    ComponentList m_components;             /**< Components attached to the entity. */
     bool m_active;                          /**< Whether the entity is active. */
 
     /**
@@ -187,6 +196,9 @@ private:
     /** World needs access to constructor to create root entity. */
     friend class World;
 };
+
+/** Type of a reference-counted pointer to an Entity. */
+using EntityPtr = ObjectPtr<Entity>;
 
 /** Create a new component and attach it to the entity.
  * @tparam Type         Type of the component to create.
@@ -218,14 +230,6 @@ inline Type *Entity::findComponent(bool exactClass) const {
         "Type must be derived from Component");
 
     return static_cast<Type *>(findComponent(Type::staticMetaClass));
-}
-
-/** Call the specified function on all children.
- * @param func          Function to call. */
-template <typename Func>
-inline void Entity::visitChildren(Func func) {
-    for (Entity *child : m_children)
-        func(child);
 }
 
 /** Call the specified function on all active children.

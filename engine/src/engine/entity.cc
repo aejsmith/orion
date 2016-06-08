@@ -40,11 +40,9 @@ Entity::Entity(const std::string &name, World *world) :
 
 /** Private destructor. To destroy an entity use destroy(). */
 Entity::~Entity() {
-    /*
-     * An entity is deleted when its reference count becomes 0. This should
+    /* An entity is deleted when its reference count becomes 0. This should
      * only happen if we have called destroy() to remove references to the
-     * entity from the world.
-     */
+     * entity from the world. */
     checkMsg(
         !m_active && m_components.empty() && m_children.empty() && !m_parent,
         "Entity '%s' has no remaining references yet has not been destroyed",
@@ -73,31 +71,11 @@ void Entity::destroy() {
     }
 
     if (m_parent) {
-        /*
-         * Must fetch the parent pointer and set it null before calling remove().
+        /* Must fetch the parent pointer and set it null before calling remove().
          * It may be that the parent's reference is the last reference and
-         * therefore call could result in this entity being deleted.
-         */
+         * therefore call could result in this entity being deleted. */
         EntityPtr parent(std::move(m_parent));
         parent->m_children.remove(this);
-    }
-}
-
-/** Call the specified function on all components.
- * @param func          Function to call. */
-template <typename Func>
-inline void Entity::visitComponents(Func func) {
-    for (Component *component : m_components)
-        func(component);
-}
-
-/** Call the specified function on all active components.
- * @param func          Function to call. */
-template <typename Func>
-inline void Entity::visitActiveComponents(Func func) {
-    for (Component *component : m_components) {
-        if (component->active())
-            func(component);
     }
 }
 
@@ -173,10 +151,8 @@ Component *Entity::findComponent(const MetaClass &metaClass, bool exactClass) co
 /** Add a component to the entity (internal method).
  * @param component     Component to add. */
 void Entity::addComponent(Component *component) {
-    /*
-     * This only checks for an exact match on class type, so for instance we
-     * don't forbid multiple Behaviour-derived classes on the same object.
-     */
+    /* This only checks for an exact match on class type, so for instance we
+     * don't forbid multiple Behaviour-derived classes on the same object. */
     checkMsg(
         !findComponent(component->metaClass(), true),
         "Component of type '%s' already exists on entity '%s'",
@@ -185,21 +161,17 @@ void Entity::addComponent(Component *component) {
     component->m_entity = this;
     m_components.push_back(component);
 
-    /*
-     * We do not need to activate the component at this point as the component
+    /* We do not need to activate the component at this point as the component
      * is initially inactive. We do however need to let it do anything it needs
-     * to with the new transformation.
-     */
+     * to with the new transformation. */
     component->transformed(kPositionChanged | kOrientationChanged | kScaleChanged);
 }
 
 /** Remove a component from the entity (internal method).
  * @param component     Component to remove. */
 void Entity::removeComponent(Component *component) {
-    /*
-     * This avoids an unnecessary reference to the component compared to calling
-     * list::remove(), passing the raw pointer to that converts to a reference.
-     */
+    /* This avoids an unnecessary reference to the component compared to calling
+     * list::remove(), passing the raw pointer to that converts to a reference. */
     for (auto it = m_components.begin(); it != m_components.end(); ++it) {
         if (component == *it) {
             m_components.erase(it);
@@ -318,10 +290,12 @@ void Entity::transformed(unsigned changed) {
     m_worldTransform.set(position, orientation, scale);
 
     /* Let components know about the transformation. */
-    visitComponents([&](Component *c) { c->transformed(changed); });
+    for (Component *component : m_components)
+         component->transformed(changed);
 
     /* Visit children and recalculate their transformations. */
-    visitChildren([&](Entity *e) { e->transformed(changed); });
+    for (Entity *entity : m_children)
+        entity->transformed(changed);
 }
 
 /** Called when the entity is activated. */

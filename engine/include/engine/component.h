@@ -66,6 +66,9 @@ public:
     CLASS();
 
     void destroy();
+
+    VPROPERTY(bool, active, "get": "active", "set": "setActive");
+
     void setActive(bool active);
 
     /** @return             Entity that the component is attached to. */
@@ -134,3 +137,17 @@ private:
 
     friend class Entity;
 };
+
+/*
+ * Entity template methods which are dependent on Component's definition.
+ */
+
+/** Call the specified function on all active components.
+ * @param func          Function to call. */
+template <typename Func>
+inline void Entity::visitActiveComponents(Func func) {
+    for (Component *component : m_components) {
+        if (component->active())
+            func(component);
+    }
+}
