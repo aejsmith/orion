@@ -103,10 +103,17 @@
  * Macro to declare a virtual object property.
  *
  * This macro can be used to declare a "virtual property" on a class. Such
- * properties are not directly associated with a member variable, rather they
- * must provide getter and setter methods to modify them. This is useful, for
- * instance, to expose a property as a certain type for editing while using a
- * different internal implementation.
+ * properties are not directly associated with a member variable, rather getter
+ * and setter methods to modify them. This is useful, for instance, to expose a
+ * property as a certain type for editing while using a different internal
+ * implementation.
+ *
+ * The getter and settter methods to use can be specified with the "get" and
+ * "set" attributes. If these are not specified, then defaults are used - it is
+ * assumed that the getter function has the same name as the property, and the
+ * setter is named set<PropertyName> (camel case). For instance, for a property
+ * named "position", the default getter method is "position" and the setter is
+ * "setPosition".
  *
  * This macro does not declare a member variable with the given name. When not
  * processing the source file with objgen, it expands to nothing.
@@ -115,7 +122,10 @@
  *
  *   class Foo {
  *   public:
- *       VPROPERTY(glm::vec3, position, "get": "position", "set": "setPosition");
+ *       VPROPERTY(glm::vec3, position);
+ *
+ *       const glm::vec3 &position() const;
+ *       void setPosition(const glm::vec3 &position);
  *       ...
  *   };
  *

@@ -67,7 +67,7 @@ public:
 
     void destroy();
 
-    VPROPERTY(bool, active, "get": "active", "set": "setActive");
+    VPROPERTY(bool, active);
 
     void setActive(bool active);
 

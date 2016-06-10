@@ -365,24 +365,27 @@ bool ParsedProperty::handleAnnotation(const std::string &type, const rapidjson::
         return true;
     }
 
-    bool isPublic = clang_getCXXAccessSpecifier(this->cursor) == CX_CXXPublic;
+    if (clang_getCXXAccessSpecifier(this->cursor) != CX_CXXPublic) {
+        parseError(this->cursor, "property '%s' must be public", this->name.c_str());
+        return true;
+    }
+        
     bool isVirtual = clang_getCursorKind(this->cursor) == CXCursor_VarDecl;
-
     if (isVirtual) {
         if (this->getFunction.empty()) {
-            parseError(this->cursor, "virtual properties must have getter/setter methods");
-            return true;
+            /* These require getters and setters. If they are omitted, default
+             * names are used based on the property name. */
+            this->getFunction = this->name;
+            this->setFunction =
+                std::string("set") +
+                static_cast<char>(std::toupper(this->name[0])) +
+                this->name.substr(1);
         }
-    } else {
-        if (isPublic && !this->getFunction.empty()) {
-            /* This makes no sense - code can directly access/modify the property
-             * so usage of getter/setter methods should not be required. */
-            parseError(this->cursor, "public properties cannot have getter/setter methods");
-            return true;
-        } else if (!isPublic && this->getFunction.empty()) {
-            parseError(this->cursor, "private properties must have getter/setter methods");
-            return true;
-        }
+    } else if (!this->getFunction.empty()) {
+        /* This makes no sense - code can directly access/modify the property
+         * so usage of getter/setter methods should not be required. */
+        parseError(this->cursor, "public properties cannot have getter/setter methods");
+        return true;
     }
 
     return true;

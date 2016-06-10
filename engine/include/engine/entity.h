@@ -73,7 +73,7 @@ public:
     /** @return             Parent of the entity. */
     Entity *parent() const { return m_parent; }
 
-    VPROPERTY(bool, active, "get": "active", "set": "setActive");
+    VPROPERTY(bool, active);
 
     void setActive(bool active);
 
@@ -126,9 +126,9 @@ public:
      * Transformation.
      */
 
-    VPROPERTY(glm::vec3, position, "get": "position", "set": "setPosition");
-    VPROPERTY(glm::quat, orientation, "get": "orientation", "set": "setOrientation");
-    VPROPERTY(glm::vec3, scale, "get": "scale", "set": "setScale");
+    VPROPERTY(glm::vec3, position);
+    VPROPERTY(glm::quat, orientation);
+    VPROPERTY(glm::vec3, scale);
 
     void setPosition(const glm::vec3 &pos);
     void translate(const glm::vec3 &vec);
