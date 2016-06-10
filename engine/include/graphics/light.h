@@ -35,6 +35,10 @@ class Light : public Component {
 public:
     CLASS();
 
+    VPROPERTY(glm::vec3, colour);
+    VPROPERTY(float, intensity);
+    VPROPERTY(bool, castShadows);
+
     void setColour(const glm::vec3 &colour);
     void setIntensity(float intensity);
     void setCastShadows(bool castShadows);
@@ -60,7 +64,7 @@ protected:
     void setDirection(const glm::vec3 &direction);
     void setCutoff(float cutoff);
     void setRange(float range);
-    void setAttenuation(float constant, float linear, float exp);
+    void setAttenuation(const glm::vec3 &params);
 
     glm::vec3 direction() const;
 
@@ -68,12 +72,14 @@ protected:
     float cutoff() const { return m_sceneLight.cutoff(); }
     /** @return             Range of the light. */
     float range() const { return m_sceneLight.range(); }
-    /** @return             Constant attenuation factor. */
-    float attenuationConstant() const { return m_sceneLight.attenuationConstant(); }
-    /** @return             Linear attenuation factor. */
-    float attenuationLinear() const { return m_sceneLight.attenuationLinear(); }
-    /** @return             Exponential attenuation factor. */
-    float attenuationExp() const { return m_sceneLight.attenuationExp(); }
+
+    /** @return             Attenuation parameters (constant, linear, exponential). */
+    glm::vec3 attenuation() const {
+        return glm::vec3(
+            m_sceneLight.attenuationConstant(),
+            m_sceneLight.attenuationLinear(),
+            m_sceneLight.attenuationExp());
+    }
 protected:
     /** Scene light implementing this light. */
     SceneLight m_sceneLight;
@@ -112,6 +118,8 @@ public:
 
     explicit DirectionalLight(Entity *entity);
 
+    VPROPERTY(glm::vec3, direction);
+
     using Light::setDirection;
     using Light::direction;
 };
@@ -129,12 +137,13 @@ public:
 
     explicit PointLight(Entity *entity);
 
+    VPROPERTY(float, range);
+    VPROPERTY(glm::vec3, attenuation);
+
     using Light::setRange;
     using Light::setAttenuation;
     using Light::range;
-    using Light::attenuationConstant;
-    using Light::attenuationLinear;
-    using Light::attenuationExp;
+    using Light::attenuation;
 };
 
 /**
@@ -151,6 +160,11 @@ public:
 
     explicit SpotLight(Entity *entity);
 
+    VPROPERTY(glm::vec3, direction);
+    VPROPERTY(float, cutoff);
+    VPROPERTY(float, range);
+    VPROPERTY(glm::vec3, attenuation);
+
     using Light::setDirection;
     using Light::setCutoff;
     using Light::setRange;
@@ -158,9 +172,7 @@ public:
     using Light::direction;
     using Light::cutoff;
     using Light::range;
-    using Light::attenuationConstant;
-    using Light::attenuationLinear;
-    using Light::attenuationExp;
+    using Light::attenuation;
 };
 
 /** Set the colour of the light.
@@ -193,10 +205,8 @@ inline void Light::setRange(float range) {
     m_sceneLight.setRange(range);
 }
 
-/** Set the attenuation factors.
- * @param constant      Constant attenuation factor.
- * @param linear        Linear attenuation factor.
- * @param exp           Exponentional attenuation factor. */
-inline void Light::setAttenuation(float constant, float linear, float exp) {
-    m_sceneLight.setAttenuation(constant, linear, exp);
+/** Set the attenuation parameters.
+ * @param params        Attenuation parameters (constant, linear, exponential). */
+inline void Light::setAttenuation(const glm::vec3 &params) {
+    m_sceneLight.setAttenuation(params[0], params[1], params[2]);
 }

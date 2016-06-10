@@ -176,7 +176,7 @@ TestGame::TestGame() :
     SpotLight *spotLight = lightEntity->createComponent<SpotLight>();
     spotLight->setDirection(glm::vec3(-0.8f, -1.0f, 0.0f));
     spotLight->setRange(20.0f);
-    spotLight->setAttenuation(1.0f, 0.045f, 0.0075f);
+    spotLight->setAttenuation(glm::vec3(1.0f, 0.045f, 0.0075f));
     spotLight->setCutoff(45.0f);
     spotLight->setCastShadows(true);
     spotLight->setActive(true);
@@ -189,7 +189,7 @@ TestGame::TestGame() :
     pointLight->setColour(glm::vec3(0.0f, 0.0f, 1.0f));
     pointLight->setIntensity(1.0f);
     pointLight->setRange(50.0f);
-    pointLight->setAttenuation(1.0f, 0.09f, 0.032f);
+    pointLight->setAttenuation(glm::vec3(1.0f, 0.09f, 0.032f));
     pointLight->setCastShadows(true);
     pointLight->setActive(true);
     m_numLights++;
@@ -201,7 +201,7 @@ TestGame::TestGame() :
     pointLight->setColour(glm::vec3(0.0f, 1.0f, 0.0f));
     pointLight->setIntensity(1.0f);
     pointLight->setRange(50.0f);
-    pointLight->setAttenuation(1.0f, 0.09f, 0.032f);
+    pointLight->setAttenuation(glm::vec3(1.0f, 0.09f, 0.032f));
     pointLight->setCastShadows(true);
     pointLight->setActive(true);
     m_numLights++;
@@ -213,7 +213,7 @@ TestGame::TestGame() :
     pointLight->setColour(glm::vec3(1.0f, 0.0f, 0.0f));
     pointLight->setIntensity(1.0f);
     pointLight->setRange(50.0f);
-    pointLight->setAttenuation(1.0f, 0.09f, 0.032f);
+    pointLight->setAttenuation(glm::vec3(1.0f, 0.09f, 0.032f));
     pointLight->setCastShadows(true);
     pointLight->setActive(true);
     m_numLights++;
@@ -270,7 +270,7 @@ Entity *TestGame::makeCube(bool withLights) {
             light->setDirection(lights[i].direction);
             light->setColour(lights[i].colour);
             light->setRange(200.0f);
-            light->setAttenuation(1.0f, 0.1f, 0.0f);
+            light->setAttenuation(glm::vec3(1.0f, 0.1f, 0.0f));
             light->setIntensity(1.5f);
             light->setCutoff(30.0f);
             light->setCastShadows(false);

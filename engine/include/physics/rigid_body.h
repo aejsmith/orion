@@ -61,6 +61,10 @@ public:
      * Static properties.
      */
 
+    VPROPERTY(float, mass);
+    VPROPERTY(float, linearDamping);
+    VPROPERTY(float, angularDamping);
+
     /** @return             Mass of the body. */
     float mass() const { return m_mass; }
     /** @return             Whether the body is static. */

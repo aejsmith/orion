@@ -94,6 +94,8 @@ public:
 
     explicit BoxCollisionShape(Entity *entity);
 
+    VPROPERTY(glm::vec3, halfExtents);
+
     /** @return             Half extents of the box. */
     const glm::vec3 &halfExtents() const { return m_halfExtents; }
 
@@ -121,6 +123,9 @@ public:
     CLASS();
 
     explicit CapsuleCollisionShape(Entity *entity);
+
+    VPROPERTY(float, radius);
+    VPROPERTY(float, halfHeight);
 
     /** @return             Radius of the hemispherical parts of the capsule. */
     float radius() const { return m_radius; }
@@ -150,6 +155,8 @@ public:
     CLASS();
 
     explicit SphereCollisionShape(Entity *entity);
+
+    VPROPERTY(float, radius);
 
     /** @return             Radius of the sphere. */
     float radius() const { return m_radius; }

@@ -124,6 +124,10 @@ static void displayPropertyEditors(Object *object, const MetaClass *metaClass) {
             editProperty<bool>(
                 object, property,
                 [&] (bool *value) { return ImGui::Checkbox("", value); });
+        } else if (&property.type() == &MetaType::lookup<float>()) {
+            editProperty<float>(
+                object, property,
+                [&] (float *value) { return ImGui::InputFloat("", value); });
         } else if (&property.type() == &MetaType::lookup<glm::vec3>()) {
             editProperty<glm::vec3>(
                 object, property,

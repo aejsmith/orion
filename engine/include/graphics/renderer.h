@@ -38,6 +38,8 @@ class Renderer : public Component {
 public:
     CLASS();
 
+    VPROPERTY(bool, castShadow);
+
     void setCastShadow(bool castShadow);
 
     /** @return             Whether the rendered object casts a shadow. */

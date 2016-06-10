@@ -64,7 +64,7 @@ PointLight::PointLight(Entity *entity) :
 {
     /* Set default parameters. */
     setRange(100.0f);
-    setAttenuation(1.0f, 0.045f, 0.0075f);
+    setAttenuation(glm::vec3(1.0f, 0.045f, 0.0075f));
 }
 
 /** Initialize a spot light component.
@@ -74,7 +74,7 @@ SpotLight::SpotLight(Entity *entity) :
 {
     /* Set default parameters. */
     setRange(50.0f);
-    setAttenuation(1.0f, 0.09f, 0.032f);
+    setAttenuation(glm::vec3(1.0f, 0.09f, 0.032f));
     setCutoff(20.0f);
 }
 
