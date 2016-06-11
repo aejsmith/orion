@@ -34,8 +34,8 @@ WorldExplorerWindow::WorldExplorerWindow() :
 void WorldExplorerWindow::render() {
     // FIXME: Ideally we need a weak pointer here. This could hold on to an
     // Entity long after it is freed if the window is not opened.
-    if (m_currentEntity && m_currentEntity->refcount() == 1)
-        m_currentEntity = nullptr;
+    if (!m_currentEntity || m_currentEntity->refcount() == 1)
+        m_currentEntity = g_engine->world()->root();
 
     ImGui::SetNextWindowSize(ImVec2(500, 600), ImGuiSetCond_Once);
     ImGui::SetNextWindowPosCenter(ImGuiSetCond_Once);
@@ -71,6 +71,8 @@ void WorldExplorerWindow::displayEntityTree() {
             ImGuiTreeNodeFlags nodeFlags =
                 ImGuiTreeNodeFlags_OpenOnArrow |
                 ImGuiTreeNodeFlags_OpenOnDoubleClick;
+            if (entity == world->root())
+                nodeFlags |= ImGuiTreeNodeFlags_DefaultOpen;
             if (entity == m_currentEntity)
                 nodeFlags |= ImGuiTreeNodeFlags_Selected;
             if (entity->children().empty())
@@ -87,8 +89,7 @@ void WorldExplorerWindow::displayEntityTree() {
                     ImGui::TreePop();
             }
         };
-    for (Entity *child : world->root()->children())
-        addEntity(child);
+    addEntity(world->root());
 
     /* Change outside loop to avoid visual inconsistency if selection changes. */
     if (nextEntity)
@@ -185,7 +186,8 @@ void WorldExplorerWindow::displayEntityEditor() {
     ImGui::BeginChild("entityEditor", ImVec2(0, 0), false);
 
     /* Editor for entity properties. */
-    displayObjectEditor(m_currentEntity);
+    if (m_currentEntity->parent())
+        displayObjectEditor(m_currentEntity);
 
     /* Editor for each component's properties. */
     for (Component *component : m_currentEntity->components())
