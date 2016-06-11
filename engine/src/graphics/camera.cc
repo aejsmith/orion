@@ -38,11 +38,8 @@
  * Constructs the camera with a perspective projection with a 75 degree
  * horizontal FOV, near clipping plane of 1.0 and far clipping plane of 1000.0.
  * The default render target will be the main window.
- *
- * @param entity        Entity to attach the camera to.
  */
-Camera::Camera(Entity *entity) :
-    Component(entity),
+Camera::Camera() :
     RenderLayer(RenderLayer::kCameraPriority),
     m_sceneView(&m_postEffectChain),
     m_renderPath(RenderPath::kDeferred)

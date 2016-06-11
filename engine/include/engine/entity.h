@@ -206,7 +206,7 @@ using EntityPtr = ObjectPtr<Entity>;
  * @return              Pointer to created component. */
 template<typename Type, typename ...Args>
 Type *Entity::createComponent(Args &&...args) {
-    Type *component = new Type(this, std::forward<Args>(args)...);
+    Type *component = new Type(std::forward<Args>(args)...);
     addComponent(component);
     return component;
 }

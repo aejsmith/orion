@@ -36,11 +36,9 @@ static const unsigned kCubeRate = 5;
 static const glm::vec3 kInitialCubeVelocity(0.0f, 0.0f, -15.0f);
 
 /** Initialise the player controller.
- * @param entity        Entity that the controller is attached to.
  * @param game          Game class.
  * @param camera        Camera that the controller should move. */
-PlayerController::PlayerController(Entity *entity, TestGame *game, Camera *camera) :
-    Behaviour(entity),
+PlayerController::PlayerController(TestGame *game, Camera *camera) :
     m_game(game),
     m_camera(camera),
     m_direction(0.0f),

@@ -65,10 +65,8 @@ Material *SubMeshSceneEntity::material() const {
 }
 
 /** Initialize the mesh renderer.
- * @param entity        Entity the component belongs to.
  * @param mesh          Mesh to render. */
-MeshRenderer::MeshRenderer(Entity *entity, Mesh *mesh) :
-    Renderer(entity),
+MeshRenderer::MeshRenderer(Mesh *mesh) :
     m_mesh(mesh),
     m_materials(mesh->numMaterials())
 {}

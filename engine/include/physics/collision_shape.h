@@ -55,7 +55,7 @@ public:
     void activated() override;
     void deactivated() override;
 protected:
-    explicit CollisionShape(Entity *entity);
+    CollisionShape();
     ~CollisionShape();
 
     void setShape(btCollisionShape *shape);
@@ -92,7 +92,7 @@ class BoxCollisionShape : public CollisionShape {
 public:
     CLASS();
 
-    explicit BoxCollisionShape(Entity *entity);
+    BoxCollisionShape();
 
     VPROPERTY(glm::vec3, halfExtents);
 
@@ -101,6 +101,8 @@ public:
 
     void setHalfExtents(const glm::vec3 &halfExtents);
 protected:
+    ~BoxCollisionShape() {}
+
     void updateShape() override;
 private:
     glm::vec3 m_halfExtents;        /**< Half extents of the box. */
@@ -122,7 +124,7 @@ class CapsuleCollisionShape : public CollisionShape {
 public:
     CLASS();
 
-    explicit CapsuleCollisionShape(Entity *entity);
+    CapsuleCollisionShape();
 
     VPROPERTY(float, radius);
     VPROPERTY(float, halfHeight);
@@ -135,6 +137,8 @@ public:
     void setRadius(float radius);
     void setHalfHeight(float halfHeight);
 protected:
+    ~CapsuleCollisionShape() {}
+
     void updateShape() override;
 private:
     float m_radius;                 /**< Radius of the hemispherical part. */
@@ -154,7 +158,7 @@ class SphereCollisionShape : public CollisionShape {
 public:
     CLASS();
 
-    explicit SphereCollisionShape(Entity *entity);
+    SphereCollisionShape();
 
     VPROPERTY(float, radius);
 
@@ -163,6 +167,8 @@ public:
 
     void setRadius(float radius);
 protected:
+    ~SphereCollisionShape() {}
+
     void updateShape() override;
 private:
     float m_radius;                 /**< Radius of the sphere. */

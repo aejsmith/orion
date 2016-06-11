@@ -35,6 +35,5 @@ class Behaviour : public Component {
 public:
     CLASS();
 protected:
-    explicit Behaviour(Entity *entity) : Component(entity) {}
-    ~Behaviour() {}
+    Behaviour() {}
 };

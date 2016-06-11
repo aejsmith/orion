@@ -22,10 +22,9 @@
 #include "engine/component.h"
 #include "engine/entity.h"
 
-/** Construct the component.
- * @param entity        Entity the component belongs to. */
-Component::Component(Entity *entity) :
-    m_entity(entity),
+/** Construct the component. */
+Component::Component() :
+    m_entity(nullptr),
     m_active(false)
 {}
 

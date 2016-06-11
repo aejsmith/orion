@@ -63,14 +63,10 @@ Material *SkyboxSceneEntity::material() const {
 }
 
 /** Initialise the skybox.
- * @param entity        Entity the component belongs to (must be root entity).
  * @param texture       Texture for the skybox. */
-Skybox::Skybox(Entity *entity, TextureCube *texture) :
-    Renderer(entity),
+Skybox::Skybox(TextureCube *texture) :
     m_texture(texture)
 {
-    checkMsg(!entity->parent(), "Skybox must be attached to root entity");
-
     /* Create the skybox material. */
     ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/internal/skybox");
     m_material = new Material(shader);
@@ -83,6 +79,8 @@ Skybox::Skybox(Entity *entity, TextureCube *texture) :
 /** Create scene entities.
  * @param entities      List to populate. */
 void Skybox::createSceneEntities(SceneEntityList &entities) {
-    SkyboxSceneEntity *entity = new SkyboxSceneEntity(this);
-    entities.push_back(entity);
+    checkMsg(!entity()->parent(), "Skybox must be attached to root entity");
+
+    SkyboxSceneEntity *sceneEntity = new SkyboxSceneEntity(this);
+    entities.push_back(sceneEntity);
 }

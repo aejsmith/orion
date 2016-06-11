@@ -26,10 +26,8 @@
 #include "render/scene.h"
 #include "render/scene_entity.h"
 
-/** Initialise the component.
- * @param entity        Entity that the component belongs to. */
-Renderer::Renderer(Entity *entity) :
-    Component(entity),
+/** Initialise the component. */
+Renderer::Renderer() :
     m_castShadow(true)
 {}
 

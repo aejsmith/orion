@@ -38,11 +38,13 @@ class Skybox : public Renderer {
 public:
     CLASS();
 
-    Skybox(Entity *entity, TextureCube *texture);
+    explicit Skybox(TextureCube *texture);
 
     /** @return             Texture that this skybox uses. */
     TextureCube *texture() const { return m_texture; }
 protected:
+    ~Skybox() {}
+
     virtual void createSceneEntities(SceneEntityList &entities) override;
 private:
     TextureCubePtr m_texture;       /**< Skybox texture. */

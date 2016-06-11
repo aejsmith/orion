@@ -170,7 +170,7 @@ TestGame::TestGame() :
     FXAAEffect *fxaaEffect = new FXAAEffect;
     camera->postEffectChain().addEffect(fxaaEffect);
 
-    Entity *lightEntity = m_world->createEntity("light");
+    Entity *lightEntity = m_world->createEntity("light_0");
     lightEntity->setPosition(glm::vec3(2.0f, 3.0f, -7.0f));
     lightEntity->setActive(true);
     SpotLight *spotLight = lightEntity->createComponent<SpotLight>();
@@ -182,7 +182,7 @@ TestGame::TestGame() :
     spotLight->setActive(true);
     m_numLights++;
 
-    lightEntity = m_world->createEntity("light2");
+    lightEntity = m_world->createEntity("light_1");
     lightEntity->setPosition(glm::vec3(-2.0f, 3.0f, -3.5f));
     lightEntity->setActive(true);
     PointLight *pointLight = lightEntity->createComponent<PointLight>();
@@ -194,7 +194,7 @@ TestGame::TestGame() :
     pointLight->setActive(true);
     m_numLights++;
 
-    lightEntity = m_world->createEntity("light3");
+    lightEntity = m_world->createEntity("light_2");
     lightEntity->setPosition(glm::vec3(2.0f, 3.0f, -3.5f));
     lightEntity->setActive(true);
     pointLight = lightEntity->createComponent<PointLight>();
@@ -206,7 +206,7 @@ TestGame::TestGame() :
     pointLight->setActive(true);
     m_numLights++;
 
-    lightEntity = m_world->createEntity("light4");
+    lightEntity = m_world->createEntity("light_3");
     lightEntity->setPosition(glm::vec3(0.0f, 3.0f, -9.0f));
     lightEntity->setActive(true);
     pointLight = lightEntity->createComponent<PointLight>();

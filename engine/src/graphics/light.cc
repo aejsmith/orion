@@ -31,10 +31,8 @@
 static const glm::vec3 kDefaultDirection = glm::vec3(0.0f, 0.0f, -1.0f);
 
 /** Initialize a light component.
- * @param entity        Entity that the component belongs to.
  * @param type          SceneLight type. */
-Light::Light(Entity *entity, SceneLight::Type type) :
-    Component(entity),
+Light::Light(SceneLight::Type type) :
     m_sceneLight(type)
 {
     /* Set default colour/intensity. */
@@ -45,41 +43,34 @@ Light::Light(Entity *entity, SceneLight::Type type) :
     setCastShadows(false);
 }
 
-/** Initialize an ambient light component.
- * @param entity        Entity that the component belongs to. */
-AmbientLight::AmbientLight(Entity *entity) :
-    Light(entity, SceneLight::kAmbientLight)
+/** Initialize an ambient light component. */
+AmbientLight::AmbientLight() :
+    Light(SceneLight::kAmbientLight)
 {}
 
-/** Initialize a directional light component.
- * @param entity        Entity that the component belongs to. */
-DirectionalLight::DirectionalLight(Entity *entity) :
-    Light(entity, SceneLight::kDirectionalLight)
+/** Initialize a directional light component. */
+DirectionalLight::DirectionalLight() :
+    Light(SceneLight::kDirectionalLight)
 {}
 
-/** Initialize a point light component.
- * @param entity        Entity that the component belongs to. */
-PointLight::PointLight(Entity *entity) :
-    Light(entity, SceneLight::kPointLight)
+/** Initialize a point light component. */
+PointLight::PointLight() :
+    Light(SceneLight::kPointLight)
 {
     /* Set default parameters. */
     setRange(100.0f);
     setAttenuation(glm::vec3(1.0f, 0.045f, 0.0075f));
 }
 
-/** Initialize a spot light component.
- * @param entity        Entity that the component belongs to. */
-SpotLight::SpotLight(Entity *entity) :
-    Light(entity, SceneLight::kSpotLight)
+/** Initialize a spot light component. */
+SpotLight::SpotLight() :
+    Light(SceneLight::kSpotLight)
 {
     /* Set default parameters. */
     setRange(50.0f);
     setAttenuation(glm::vec3(1.0f, 0.09f, 0.032f));
     setCutoff(20.0f);
 }
-
-/** Destroy the light. */
-Light::~Light() {}
 
 /**
  * Set the light direction.

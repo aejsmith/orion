@@ -51,7 +51,7 @@ class RigidBody : public Component {
 public:
     CLASS();
 
-    explicit RigidBody(Entity *entity);
+    RigidBody();
 
     void transformed(unsigned changed) override;
     void activated() override;

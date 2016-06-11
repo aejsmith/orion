@@ -48,7 +48,7 @@ protected:
     /** Type of a scene entity list. */
     typedef std::list<SceneEntity *> SceneEntityList;
 
-    explicit Renderer(Entity *entity);
+    Renderer();
     ~Renderer();
 
     void transformed(unsigned changed) override;

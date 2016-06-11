@@ -129,7 +129,7 @@ public:
      */
     virtual void tick(float dt) {}
 protected:
-    explicit Component(Entity *entity);
+    Component();
     ~Component();
 private:
     Entity *m_entity;               /**< Entity that the component is attached to. */

@@ -34,7 +34,7 @@ class PlayerController : public Behaviour, public InputHandler {
 public:
     CLASS();
 
-    PlayerController(Entity *entity, TestGame *game, Camera *camera);
+    PlayerController(TestGame *game, Camera *camera);
 
     void activated() override;
     void deactivated() override;

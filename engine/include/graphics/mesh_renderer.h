@@ -32,7 +32,7 @@ class MeshRenderer : public Renderer {
 public:
     CLASS();
 
-    MeshRenderer(Entity *entity, Mesh *mesh);
+    MeshRenderer(Mesh *mesh);
 
     /** @return             Mesh that this component renders. */
     Mesh *mesh() const { return m_mesh; }
@@ -42,6 +42,8 @@ public:
     void setMaterial(const std::string &name, Material *material);
     void setMaterial(size_t index, Material *material);
 protected:
+    ~MeshRenderer() {}
+
     virtual void createSceneEntities(SceneEntityList &entities) override;
 private:
     MeshPtr m_mesh;                 /**< Mesh to render. */

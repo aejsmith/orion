@@ -66,11 +66,8 @@ private:
  * Initialises the rigid body to default properties: a mass of 0 (a static body),
  * and linear/angular damping factors as 0, and the default physics material as
  * the material.
- *
- * @param entity        Entity that the component belongs to.
  */
-RigidBody::RigidBody(Entity *entity) :
-    Component(entity),
+RigidBody::RigidBody() :
     m_mass(0.0f),
     m_linearDamping(0.0f),
     m_angularDamping(0.0f),

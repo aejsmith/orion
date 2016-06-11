@@ -33,7 +33,7 @@ class Camera : public Component, public RenderLayer {
 public:
     CLASS();
 
-    explicit Camera(Entity *entity);
+    Camera();
 
     /**
      * Rendering.
@@ -82,6 +82,8 @@ public:
     /** @return             View-to-projection matrix. */
     const glm::mat4 &projection() { return m_sceneView.projection(); }
 protected:
+    ~Camera() {}
+
     void transformed(unsigned changed) override;
     void activated() override;
     void deactivated() override;

@@ -50,8 +50,8 @@ public:
     /** @return             Whether the light casts shadows. */
     bool castShadows() const { return m_sceneLight.castShadows(); }
 protected:
-    Light(Entity *entity, SceneLight::Type type);
-    ~Light();
+    explicit Light(SceneLight::Type type);
+    ~Light() {}
 
     void transformed(unsigned changed) override;
     void activated() override;
@@ -97,7 +97,9 @@ class AmbientLight : public Light {
 public:
     CLASS();
 
-    explicit AmbientLight(Entity *entity);
+    AmbientLight();
+protected:
+    ~AmbientLight() {}
 };
 
 /**
@@ -116,12 +118,14 @@ class DirectionalLight : public Light {
 public:
     CLASS();
 
-    explicit DirectionalLight(Entity *entity);
+    DirectionalLight();
 
     VPROPERTY(glm::vec3, direction);
 
     using Light::setDirection;
     using Light::direction;
+protected:
+    ~DirectionalLight() {}
 };
 
 /**
@@ -135,7 +139,7 @@ class PointLight : public Light {
 public:
     CLASS();
 
-    explicit PointLight(Entity *entity);
+    PointLight();
 
     VPROPERTY(float, range);
     VPROPERTY(glm::vec3, attenuation);
@@ -144,6 +148,8 @@ public:
     using Light::setAttenuation;
     using Light::range;
     using Light::attenuation;
+protected:
+    ~PointLight() {}
 };
 
 /**
@@ -158,7 +164,7 @@ class SpotLight : public Light {
 public:
     CLASS();
 
-    explicit SpotLight(Entity *entity);
+    SpotLight();
 
     VPROPERTY(glm::vec3, direction);
     VPROPERTY(float, cutoff);
@@ -173,6 +179,8 @@ public:
     using Light::cutoff;
     using Light::range;
     using Light::attenuation;
+protected:
+    ~SpotLight() {}
 };
 
 /** Set the colour of the light.

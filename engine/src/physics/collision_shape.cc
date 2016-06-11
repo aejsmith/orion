@@ -35,16 +35,15 @@
  * Note that the shape pointer is initially set to null. The shape will be
  * created when transformed() is called, since that will call updateShape() as
  * the scale will be marked as changed.
- *
- * @param entity        Entity that the component belongs to.
  */
-CollisionShape::CollisionShape(Entity *entity) :
-    Component(entity),
+CollisionShape::CollisionShape() :
     m_rigidBody(nullptr)
 {}
 
 /** Destroy the collision shape. */
-CollisionShape::~CollisionShape() {}
+CollisionShape::~CollisionShape() {
+    /* Out of line definition due to dependency on Bullet internals. */
+}
 
 /** Called when the entity's transformation is changed.
  * @param changed       Flags indicating changes made. */
@@ -107,11 +106,8 @@ CollisionShape *CollisionShape::fromBtShape(btCollisionShape *btShape) {
  *
  * Initialises the box collision shape with half extents of 0.5 in each
  * direction.
- *
- * @param entity        Entity that the component belongs to.
  */
-BoxCollisionShape::BoxCollisionShape(Entity *entity) :
-    CollisionShape(entity),
+BoxCollisionShape::BoxCollisionShape() :
     m_halfExtents(0.5f, 0.5f, 0.5f)
 {}
 
@@ -133,11 +129,8 @@ void BoxCollisionShape::updateShape() {
  * Initialise the capsule collision shape.
  *
  * Initialises the capsule collision shape with a radius and half height of 0.5.
- *
- * @param entity        Entity that the component belongs to.
  */
-CapsuleCollisionShape::CapsuleCollisionShape(Entity *entity) :
-    CollisionShape(entity),
+CapsuleCollisionShape::CapsuleCollisionShape() :
     m_radius(0.5f),
     m_halfHeight(0.5f)
 {}
@@ -171,11 +164,8 @@ void CapsuleCollisionShape::updateShape() {
  * Initialise the sphere collision shape.
  *
  * Initialises the sphere collision shape with a radius of 0.5.
- *
- * @param entity        Entity that the component belongs to.
  */
-SphereCollisionShape::SphereCollisionShape(Entity *entity) :
-    CollisionShape(entity),
+SphereCollisionShape::SphereCollisionShape() :
     m_radius(0.5f)
 {}
 
