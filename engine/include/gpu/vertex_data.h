@@ -46,7 +46,8 @@ public:
     const GPUBufferArray &buffers() const { return m_buffers; }
 protected:
     GPUVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers);
-protected:
+    ~GPUVertexData() {}
+
     size_t m_count;                 /**< Vertex count. */
     GPUVertexFormatPtr m_format;    /**< Vertex format. */
     GPUBufferArray m_buffers;       /**< Vector of vertex buffers. */

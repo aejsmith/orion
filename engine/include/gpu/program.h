@@ -39,7 +39,7 @@ public:
      * @note                List rather than a vector to allow for sparse
      *                      indices. */
     typedef std::list<Resource> ResourceList;
-public:
+
     /** @return             Stage that the program is for. */
     unsigned stage() const { return m_stage; }
 
@@ -79,6 +79,8 @@ protected:
     /** Initialize the program.
      * @param stage         Stage that the program is for. */
     explicit GPUProgram(unsigned stage) : m_stage(stage) {}
+
+    ~GPUProgram() {}
 private:
     unsigned m_stage;                   /**< Type of the program. */
 };

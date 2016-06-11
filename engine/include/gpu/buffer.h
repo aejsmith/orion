@@ -91,8 +91,6 @@ public:
         /** Map for writing. */
         kWriteAccess = (1 << 1),
     };
-public:
-    virtual ~GPUBuffer();
 
     void write(size_t offset, size_t size, const void *buf);
     void *map(size_t offset, size_t size, uint32_t flags, uint32_t access);
@@ -106,6 +104,7 @@ public:
     size_t size() const { return m_size; }
 protected:
     GPUBuffer(Type type, Usage usage, size_t size);
+    ~GPUBuffer();
 
     /** API-specific implementation of write(). */
     virtual void writeImpl(size_t offset, size_t size, const void *buf) = 0;
@@ -115,7 +114,7 @@ protected:
 
     /** API-specific implementation of unmap(). */
     virtual void unmapImpl() = 0;
-protected:
+
     Type m_type;                    /**< Type of the buffer */
     Usage m_usage;                  /**< Buffer usage hint. */
     size_t m_size;                  /**< Buffer size. */

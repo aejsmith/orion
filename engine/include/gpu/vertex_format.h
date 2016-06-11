@@ -77,7 +77,7 @@ struct VertexAttribute {
         kFloatType,                 /**< Single-precision floating point. */
         kDoubleType,                /**< Double-precision floating point. */
     };
-public:
+
     Semantic semantic;              /**< Semantic of the attribute. */
     unsigned index;                 /**< Attribute index. */
     Type type;                      /**< Attribute data types. */
@@ -138,7 +138,8 @@ public:
     const VertexAttributeArray &attributes() const { return m_attributes; }
 protected:
     GPUVertexFormat(VertexBufferLayoutArray &buffers, VertexAttributeArray &attributes);
-protected:
+    ~GPUVertexFormat() {}
+
     /** Array of buffer descriptors. */
     VertexBufferLayoutArray m_buffers;
     /** Array of attributes. */

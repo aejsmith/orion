@@ -34,7 +34,8 @@ public:
     const Desc &desc() const { return m_desc; }
 protected:
     GPUState(const Desc &desc) : m_desc(desc) {}
-protected:
+    ~GPUState() {}
+
     Desc m_desc;                    /**< State descriptor. */
 };
 

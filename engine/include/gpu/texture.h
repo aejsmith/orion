@@ -54,7 +54,7 @@ public:
         /** Texture will be used as a render target. */
         kRenderTarget = (1 << 1),
     };
-public:
+
     /** Update 2D texture area.
      * @param area          Area to update (2D rectangle).
      * @param data          Data to update with, in same format as texture.
@@ -95,7 +95,8 @@ public:
 protected:
     explicit GPUTexture(const GPUTextureDesc &desc);
     explicit GPUTexture(const GPUTextureImageRef &image);
-protected:
+    ~GPUTexture() {}
+
     Type m_type;                    /**< Type of the texture. */
     uint32_t m_width;               /**< Width of the texture. */
     uint32_t m_height;              /**< Height of the texture. */

@@ -50,7 +50,8 @@ public:
     const GPUProgramArray &programs() const { return m_programs; }
 protected:
     explicit GPUPipeline(const GPUPipelineDesc &desc);
-protected:
+    ~GPUPipeline() {}
+
     GPUProgramArray m_programs;         /**< Array of programs for each stage. */
 
     /* For the default implementation of createPipeline(). */

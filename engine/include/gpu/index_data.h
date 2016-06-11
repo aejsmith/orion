@@ -39,7 +39,7 @@ public:
         kUnsignedShortType,         /**< Unsigned 16-bit. */
         kUnsignedIntType,           /**< Unsigned 32-bit. */
     };
-public:
+
     /** @return             Buffer containing index data. */
     GPUBuffer *buffer() const { return m_buffer; }
     /** @return             Type of index elements. */
@@ -68,7 +68,8 @@ public:
     }
 protected:
     GPUIndexData(GPUBuffer *buffer, Type type, size_t count, size_t offset);
-protected:
+    ~GPUIndexData() {}
+
     GPUBufferPtr m_buffer;          /**< Buffer containing index data. */
     Type m_type;                    /**< Type of index elements. */
     size_t m_count;                 /**< Number of indices. */
