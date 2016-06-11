@@ -27,8 +27,17 @@
 
 /** Initialise the world explorer. */
 WorldExplorerWindow::WorldExplorerWindow() :
-    DebugWindow("World Explorer")
-{}
+    DebugWindow("World Explorer"),
+    m_entityToOpen(nullptr)
+{
+    /* Build up a list of known component classes for the creation menu. */
+    MetaClass::visit(
+        [&] (const MetaClass &metaClass) {
+            if (&metaClass != &Component::staticMetaClass && Component::staticMetaClass.isBaseOf(metaClass))
+                m_componentClasses.insert(std::make_pair(metaClass.name(), &metaClass));
+        }
+    );
+}
 
 /** Render the world explorer. */
 void WorldExplorerWindow::render() {
@@ -45,15 +54,51 @@ void WorldExplorerWindow::render() {
         return;
     }
 
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-
+    displayOptions();
+    ImGui::Separator();
+    ImGui::Spacing();
     displayEntityTree();
     ImGui::Separator();
     ImGui::Spacing();
     displayEntityEditor();
 
-    ImGui::PopStyleVar();
     ImGui::End();
+}
+
+/** Display the option buttons. */
+void WorldExplorerWindow::displayOptions() {
+    if (ImGui::Button("New Entity")) {
+        /* Want to open the tree node that we're creating under. ImGUI only
+         * offers an API to open the next tree node specified, so save this to
+         * later and then we will open it. */
+        m_entityToOpen = m_currentEntity;
+        m_currentEntity = m_currentEntity->createChild("entity");
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("New Component"))
+        ImGui::OpenPopup("newComponent");
+    if (ImGui::BeginPopup("newComponent")) {
+        ImGuiTextFilter filter;
+        ImGui::PushItemWidth(-1);
+        filter.Draw("");
+        ImGui::PopItemWidth();
+
+        ImGui::BeginChild("newComponentList", ImVec2(250, 250), false);
+
+        for (auto it : m_componentClasses) {
+            if (filter.PassFilter(it.first.c_str())) {
+                if (ImGui::MenuItem(it.first.c_str())) {
+                    ImGui::CloseCurrentPopup();
+                    printf("create '%s'\n", it.first.c_str());
+                }
+            }
+        }
+
+        ImGui::EndChild();
+        ImGui::EndPopup();
+    }
 }
 
 /** Display the entity tree. */
@@ -77,6 +122,11 @@ void WorldExplorerWindow::displayEntityTree() {
                 nodeFlags |= ImGuiTreeNodeFlags_Selected;
             if (entity->children().empty())
                 nodeFlags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+
+            if (entity == m_entityToOpen) {
+                ImGui::SetNextTreeNodeOpen(true);
+                m_entityToOpen = nullptr;
+            }
 
             bool nodeOpen = ImGui::TreeNodeEx(entity, nodeFlags, "%s", entity->name.c_str());
             if (ImGui::IsItemClicked())
@@ -176,10 +226,14 @@ static void displayPropertyEditors(Object *object, const MetaClass *metaClass) {
     }
 }
 
-/** Display an editor for an object's properties. */
-static void displayObjectEditor(Object *object) {
-    if (!ImGui::CollapsingHeader(object->metaClass().name(), ImGuiTreeNodeFlags_DefaultOpen))
-        return;
+/** Display an editor for an object's properties.
+ * @param object        Object to display for.
+ * @return              Whether to destroy the object. */
+static bool displayObjectEditor(Object *object) {
+    bool open = true;
+
+    if (!ImGui::CollapsingHeader(object->metaClass().name(), &open, ImGuiTreeNodeFlags_DefaultOpen))
+        return false;
 
     ImGui::PushID(object);
     ImGui::Columns(2, nullptr, false);
@@ -189,6 +243,8 @@ static void displayObjectEditor(Object *object) {
 
     ImGui::Columns(1);
     ImGui::PopID();
+
+    return !open;
 }
 
 /** Display the entity editor for the current entity. */
@@ -199,12 +255,29 @@ void WorldExplorerWindow::displayEntityEditor() {
     ImGui::BeginChild("entityEditor", ImVec2(0, 0), false);
 
     /* Editor for entity properties. */
-    if (m_currentEntity->parent())
-        displayObjectEditor(m_currentEntity);
+    if (m_currentEntity->parent()) {
+        if (displayObjectEditor(m_currentEntity)) {
+            EntityPtr next = m_currentEntity->parent();
+            m_currentEntity->destroy();
+            m_currentEntity = std::move(next);
+
+            ImGui::EndChild();
+            return;
+        }
+    }
+
+    Component *toDestroy = nullptr;
 
     /* Editor for each component's properties. */
-    for (Component *component : m_currentEntity->components())
-        displayObjectEditor(component);
+    for (Component *component : m_currentEntity->components()) {
+        if (displayObjectEditor(component))
+            toDestroy = component;
+    }
+
+    /* Must destroy after the loop, otherwise we modify the list while it is in
+     * use and break things. */
+    if (toDestroy)
+        toDestroy->destroy();
 
     ImGui::EndChild();
 }

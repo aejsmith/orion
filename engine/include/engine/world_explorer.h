@@ -24,15 +24,22 @@
 #include "engine/entity.h"
 #include "engine/debug_window.h"
 
+#include <map>
+
 /** World explorer debug overlay window. */
 class WorldExplorerWindow : public DebugWindow {
 public:
     WorldExplorerWindow();
     void render() override;
 private:
+    void displayOptions();
     void displayEntityTree();
     void displayEntityEditor();
 
     // FIXME: This is an ideal use for a weak pointer.
     EntityPtr m_currentEntity;          /**< Currently selected entity. */
+    Entity *m_entityToOpen;             /**< Entity to force to be open. */
+
+    /** Map of known component classes. */
+    std::map<std::string, const MetaClass *> m_componentClasses;
 };

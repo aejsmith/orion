@@ -290,6 +290,7 @@ public:
     const MetaProperty *lookupProperty(const char *name) const;
 
     static const MetaClass *lookup(const std::string &name);
+    static void visit(const std::function<void (const MetaClass &)> &function);
 private:
     const MetaClass *m_parent;          /**< Metadata for parent class. */
     const PropertyArray &m_properties;  /**< Array of properties. */

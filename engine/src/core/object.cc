@@ -130,6 +130,20 @@ const MetaClass *MetaClass::lookup(const std::string &name) {
     return (ret != map.end()) ? ret->second : nullptr;
 }
 
+/**
+ * Visit all known meta-classes and execute a function for each.
+ *
+ * For every known meta-class, executes the specified function on it. This can
+ * be used, for example, to build up a list of meta-classes fulfilling certain
+ * criteria.
+ *
+ * @param function      Function to execute.
+ */
+void MetaClass::visit(const std::function<void (const MetaClass &)> &function) {
+    for (auto it : metaClassMap())
+        function(*it.second);
+}
+
 /** Initialise a property.
  * @param name          Name of the property.
  * @param type          Type of the property.

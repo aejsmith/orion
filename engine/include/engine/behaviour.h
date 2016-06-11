@@ -36,4 +36,5 @@ public:
     CLASS();
 protected:
     Behaviour() {}
+    ~Behaviour() {}
 };
