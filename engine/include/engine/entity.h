@@ -62,12 +62,21 @@ public:
     /** Type of the component list. */
     using ComponentList = std::list<ObjectPtr<Component>>;
 
+    /**
+     * Public properties.
+     */
+
+    /** Name of the entity. */
+    PROPERTY() std::string name;
+
+    /**
+     * Basic functionality.
+     */
+
     void destroy();
 
     void tick(float dt);
 
-    /** @return             Name of the entity. */
-    const std::string &name() const { return m_name; }
     /** @return             World that the entity belongs to. */
     World *world() const { return m_world; }
     /** @return             Parent of the entity. */
@@ -165,7 +174,6 @@ private:
     void activated();
     void deactivated();
 
-    std::string m_name;                     /**< Name of the entity. */
     World *m_world;                         /**< World that this entity belongs to. */
     ObjectPtr<Entity> m_parent;             /**< Parent entity. */
     EntityList m_children;                  /**< Child entities. */

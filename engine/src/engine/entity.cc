@@ -28,10 +28,10 @@
 #include "engine/entity.h"
 
 /** Initialize a new entity.
- * @param name          Name of the entity.
+ * @param inName        Name of the entity.
  * @param world         World the entity belongs to. */
-Entity::Entity(const std::string &name, World *world) :
-    m_name(name),
+Entity::Entity(const std::string &inName, World *world) :
+    name(inName),
     m_world(world),
     m_parent(nullptr),
     m_active(false),
@@ -46,7 +46,7 @@ Entity::~Entity() {
     checkMsg(
         !m_active && m_components.empty() && m_children.empty() && !m_parent,
         "Entity '%s' has no remaining references yet has not been destroyed",
-        m_name.c_str());
+        this->name.c_str());
 }
 
 /**
@@ -156,7 +156,7 @@ void Entity::addComponent(Component *component) {
     checkMsg(
         !findComponent(component->metaClass(), true),
         "Component of type '%s' already exists on entity '%s'",
-        component->metaClass().name(), m_name.c_str());
+        component->metaClass().name(), this->name.c_str());
 
     component->m_entity = this;
     m_components.push_back(component);
@@ -181,7 +181,7 @@ void Entity::removeComponent(Component *component) {
 
     checkMsg(
         false, "Removing component '%s' which is not registered on entity '%s'",
-        component->metaClass().name(), m_name.c_str());
+        component->metaClass().name(), this->name.c_str());
 }
 
 /**

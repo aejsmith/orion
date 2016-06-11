@@ -78,7 +78,7 @@ void WorldExplorerWindow::displayEntityTree() {
             if (entity->children().empty())
                 nodeFlags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
 
-            bool nodeOpen = ImGui::TreeNodeEx(entity, nodeFlags, "%s", entity->name().c_str());
+            bool nodeOpen = ImGui::TreeNodeEx(entity, nodeFlags, "%s", entity->name.c_str());
             if (ImGui::IsItemClicked())
                 nextEntity = entity;
             if (nodeOpen) {
@@ -129,6 +129,19 @@ static void displayPropertyEditors(Object *object, const MetaClass *metaClass) {
             editProperty<float>(
                 object, property,
                 [&] (float *value) { return ImGui::InputFloat("", value); });
+        } else if (&property.type() == &MetaType::lookup<std::string>()) {
+            editProperty<std::string>(
+                object, property,
+                [&] (std::string *value) {
+                    std::string &str = *value;
+                    str.resize(128);
+                    if (ImGui::InputText("", &str[0], 128)) {
+                        value->resize(std::strlen(&str[0]));
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
         } else if (&property.type() == &MetaType::lookup<glm::vec3>()) {
             editProperty<glm::vec3>(
                 object, property,
