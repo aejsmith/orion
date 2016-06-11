@@ -123,6 +123,26 @@ Entity *Entity::createChild(const std::string &name) {
 }
 
 /**
+ * Create a new component and attach it to the entity.
+ *
+ * Creates a new component of a specified class and attaches it to the entity.
+ * The component is constructed using its default constructor.
+ *
+ * @param metaClass     Class of the component to create.
+ *
+ * @return              Pointer to created component.
+ */
+Component *Entity::createComponent(const MetaClass &metaClass) {
+    checkMsg(
+        Component::staticMetaClass.isBaseOf(metaClass),
+        "Specified class must be derived from Component");
+
+    Component *component = static_cast<Component *>(metaClass.construct());
+    addComponent(component);
+    return component;
+}
+
+/**
  * Find a component by class.
  *
  * Finds the first component that is an instance of the given class, or of a

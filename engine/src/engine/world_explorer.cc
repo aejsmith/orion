@@ -33,10 +33,11 @@ WorldExplorerWindow::WorldExplorerWindow() :
     /* Build up a list of known component classes for the creation menu. */
     MetaClass::visit(
         [&] (const MetaClass &metaClass) {
-            if (&metaClass != &Component::staticMetaClass && Component::staticMetaClass.isBaseOf(metaClass))
+            if (&metaClass != &Component::staticMetaClass &&
+                    Component::staticMetaClass.isBaseOf(metaClass) &&
+                    metaClass.isConstructable())
                 m_componentClasses.insert(std::make_pair(metaClass.name(), &metaClass));
-        }
-    );
+        });
 }
 
 /** Render the world explorer. */
@@ -87,11 +88,11 @@ void WorldExplorerWindow::displayOptions() {
 
         ImGui::BeginChild("newComponentList", ImVec2(250, 250), false);
 
-        for (auto it : m_componentClasses) {
+        for (auto &it : m_componentClasses) {
             if (filter.PassFilter(it.first.c_str())) {
                 if (ImGui::MenuItem(it.first.c_str())) {
                     ImGui::CloseCurrentPopup();
-                    printf("create '%s'\n", it.first.c_str());
+                    m_currentEntity->createComponent(*it.second);
                 }
             }
         }

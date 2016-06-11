@@ -123,6 +123,7 @@ public:
      */
 
     template<typename Type, typename ...Args> Type *createComponent(Args &&...args);
+    Component *createComponent(const MetaClass &metaClass);
     template<typename Type> Type *findComponent(bool exactClass = false) const;
     Component *findComponent(const MetaClass &metaClass, bool exactClass = false) const;
 
