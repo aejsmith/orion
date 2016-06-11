@@ -81,7 +81,7 @@ void WorldExplorerWindow::displayOptions() {
     if (ImGui::Button("New Component"))
         ImGui::OpenPopup("newComponent");
     if (ImGui::BeginPopup("newComponent")) {
-        ImGuiTextFilter filter;
+        static ImGuiTextFilter filter;
         ImGui::PushItemWidth(-1);
         filter.Draw("");
         ImGui::PopItemWidth();
