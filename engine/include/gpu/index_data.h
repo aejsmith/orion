@@ -80,4 +80,4 @@ protected:
 };
 
 /** Type of a reference to GPUIndexData */
-typedef GPUResourcePtr<GPUIndexData> GPUIndexDataPtr;
+using GPUIndexDataPtr = GPUResourcePtr<GPUIndexData>;

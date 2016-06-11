@@ -69,7 +69,7 @@ protected:
 };
 
 /** Type of a base texture pointer. */
-typedef TypedAssetPtr<TextureBase> TextureBasePtr;
+using TextureBasePtr = TypedAssetPtr<TextureBase>;
 
 /** Texture render target class. */
 class RenderTexture : public RenderTarget {
@@ -122,7 +122,7 @@ private:
 };
 
 /** Type of a 2D texture pointer. */
-typedef TypedAssetPtr<Texture2D> Texture2DPtr;
+using Texture2DPtr = TypedAssetPtr<Texture2D>;
 
 /** Class implementing a cube texture. */
 class TextureCube : public TextureBase {
@@ -148,4 +148,4 @@ protected:
 };
 
 /** Type of a cube texture pointer. */
-typedef TypedAssetPtr<TextureCube> TextureCubePtr;
+using TextureCubePtr = TypedAssetPtr<TextureCube>;

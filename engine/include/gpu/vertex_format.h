@@ -42,7 +42,7 @@ public:
 };
 
 /** Type of a vertex buffer layout array. */
-typedef std::vector<VertexBufferLayout> VertexBufferLayoutArray;
+using VertexBufferLayoutArray = std::vector<VertexBufferLayout>;
 
 /**
  * Structure describing a vertex attribute.
@@ -116,7 +116,7 @@ public:
 };
 
 /** Type of a vertex attribute array. */
-typedef std::vector<VertexAttribute> VertexAttributeArray;
+using VertexAttributeArray = std::vector<VertexAttribute>;
 
 /**
  * Vertex format information.
@@ -150,4 +150,4 @@ protected:
 };
 
 /** Type of a reference to a GPUVertexFormat. */
-typedef GPUResourcePtr<GPUVertexFormat> GPUVertexFormatPtr;
+using GPUVertexFormatPtr = GPUResourcePtr<GPUVertexFormat>;

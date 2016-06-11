@@ -61,7 +61,7 @@ public:
     CLASS();
 
     /** Type of the material map. */
-    typedef std::map<std::string, size_t> MaterialMap;
+    using MaterialMap = std::map<std::string, size_t>;
 
     Mesh();
 
@@ -102,4 +102,4 @@ private:
 };
 
 /** Type of a mesh pointer. */
-typedef TypedAssetPtr<Mesh> MeshPtr;
+using MeshPtr = TypedAssetPtr<Mesh>;

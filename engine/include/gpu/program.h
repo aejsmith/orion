@@ -35,10 +35,13 @@ public:
         unsigned index;             /**< Index of the resource for use with bind functions. */
     };
 
-    /** Type of a resource list, given as a pair of name and index.
-     * @note                List rather than a vector to allow for sparse
-     *                      indices. */
-    typedef std::list<Resource> ResourceList;
+    /**
+     * Type of a resource list.
+     *
+     * This is given as a list of pairs of name and index rather than using a
+     * vector to allow for sparse indices.
+     */
+    using ResourceList = std::list<Resource>;
 
     /** @return             Stage that the program is for. */
     unsigned stage() const { return m_stage; }
@@ -86,7 +89,7 @@ private:
 };
 
 /** Type of a GPU program pointer. */
-typedef GPUResourcePtr<GPUProgram> GPUProgramPtr;
+using GPUProgramPtr = GPUResourcePtr<GPUProgram>;
 
 /** Type of an array of GPU programs, indexed by stage. */
-typedef std::array<GPUProgramPtr, ShaderStage::kNumStages> GPUProgramArray;
+using GPUProgramArray = std::array<GPUProgramPtr, ShaderStage::kNumStages>;

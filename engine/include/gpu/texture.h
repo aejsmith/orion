@@ -107,7 +107,7 @@ protected:
 };
 
 /** Type of a pointer to a texture. */
-typedef GPUResourcePtr<GPUTexture> GPUTexturePtr;
+using GPUTexturePtr = GPUResourcePtr<GPUTexture>;
 
 /** Texture descriptor. */
 struct GPUTextureDesc {

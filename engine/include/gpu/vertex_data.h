@@ -57,4 +57,4 @@ protected:
 };
 
 /** Type of a reference to GPUVertexData. */
-typedef GPUResourcePtr<GPUVertexData> GPUVertexDataPtr;
+using GPUVertexDataPtr = GPUResourcePtr<GPUVertexData>;

@@ -32,8 +32,8 @@ struct RectImpl {
     T height;               /**< Height. */
 public:
     /** Vector of type T. */
-    typedef glm::detail::tvec2<T, glm::highp> VecType;
-public:
+    using VecType = glm::detail::tvec2<T, glm::highp>;
+
     RectImpl() :
         x(0),
         y(0),
@@ -83,7 +83,7 @@ public:
 };
 
 /** Rectangle using single precision floating point values. */
-typedef RectImpl<float> Rect;
+using Rect = RectImpl<float>;
 
 /** Rectangle using integer values. */
-typedef RectImpl<int32_t> IntRect;
+using IntRect = RectImpl<int32_t>;

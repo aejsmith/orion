@@ -51,4 +51,4 @@ private:
 };
 
 /** Type of a physics material pointer. */
-typedef TypedAssetPtr<PhysicsMaterial> PhysicsMaterialPtr;
+using PhysicsMaterialPtr = TypedAssetPtr<PhysicsMaterial>;

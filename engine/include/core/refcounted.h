@@ -87,8 +87,8 @@ template <typename T>
 class ReferencePtr {
 public:
     /** Type of the referenced object. */
-    typedef T ReferencedType;
-public:
+    using ReferencedType = T;
+
     /** Create a null pointer. */
     ReferencePtr() : m_object(nullptr) {}
 

@@ -151,4 +151,4 @@ private:
 };
 
 /** Type of a font pointer. */
-typedef TypedAssetPtr<Font> FontPtr;
+using FontPtr = TypedAssetPtr<Font>;

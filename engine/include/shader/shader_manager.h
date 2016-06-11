@@ -37,8 +37,8 @@ public:
     bool lookupGlobalUniformBlock(const std::string &name, unsigned &slot);
 private:
     /** Type of the global texture/uniform block maps. */
-    typedef HashMap<std::string, unsigned> ResourceMap;
-private:
+    using ResourceMap = HashMap<std::string, unsigned>;
+
     ResourceMap m_globalTextures;       /**< Globally set texture bindings. */
     ResourceMap m_globalUniformBlocks;  /**< Globally set uniform block bindings. */
 };

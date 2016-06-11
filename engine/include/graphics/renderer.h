@@ -46,7 +46,7 @@ public:
     bool castShadow() const { return m_castShadow; }
 protected:
     /** Type of a scene entity list. */
-    typedef std::list<SceneEntity *> SceneEntityList;
+    using SceneEntityList = std::list<SceneEntity *>;
 
     Renderer();
     ~Renderer();

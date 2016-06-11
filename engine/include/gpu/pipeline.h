@@ -59,4 +59,4 @@ protected:
 };
 
 /** Type of a reference to GPUPipeline. */
-typedef GPUResourcePtr<GPUPipeline> GPUPipelinePtr;
+using GPUPipelinePtr = GPUResourcePtr<GPUPipeline>;

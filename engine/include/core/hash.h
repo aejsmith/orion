@@ -133,8 +133,8 @@ inline size_t hashCombine(size_t seed, const T &value) {
  */
 template <typename T>
 struct Hash {
-    typedef T argument_type;
-    typedef size_t result_type;
+    using argument_type = T;
+    using result_type = size_t;
 
     /** Calculate the hash.
      * @param value         Value to calculate hash of.

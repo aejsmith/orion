@@ -50,7 +50,7 @@ public:
     CLASS();
 
     /** Type of the parameter map. */
-    typedef std::map<std::string, ShaderParameter> ParameterMap;
+    using ParameterMap = std::map<std::string, ShaderParameter>;
 
     /** @return             Uniform structure used by the shader. */
     const UniformStruct *uniformStruct() const { return m_uniformStruct; }
@@ -103,4 +103,4 @@ private:
 };
 
 /** Type of a shader pointer. */
-typedef TypedAssetPtr<Shader> ShaderPtr;
+using ShaderPtr = TypedAssetPtr<Shader>;

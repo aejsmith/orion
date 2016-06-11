@@ -60,10 +60,10 @@ public:
 };
 
 /** Blend state object. */
-typedef GPUState<GPUBlendStateDesc> GPUBlendState;
+using GPUBlendState = GPUState<GPUBlendStateDesc>;
 
 /** Type of a pointer to a GPU blend state object. */
-typedef GPUResourcePtr<GPUBlendState> GPUBlendStatePtr;
+using GPUBlendStatePtr = GPUResourcePtr<GPUBlendState>;
 
 /** Depth/stencil state descriptor. */
 struct GPUDepthStencilStateDesc {
@@ -84,10 +84,10 @@ public:
 };
 
 /** Depth/stencil state object. */
-typedef GPUState<GPUDepthStencilStateDesc> GPUDepthStencilState;
+using GPUDepthStencilState = GPUState<GPUDepthStencilStateDesc>;
 
 /** Type of a pointer to a GPU depth/stencil state object. */
-typedef GPUResourcePtr<GPUDepthStencilState> GPUDepthStencilStatePtr;
+using GPUDepthStencilStatePtr = GPUResourcePtr<GPUDepthStencilState>;
 
 /** Rasterizer state descriptor. */
 struct GPURasterizerStateDesc {
@@ -108,10 +108,10 @@ public:
 };
 
 /** Rasterizer state object. */
-typedef GPUState<GPURasterizerStateDesc> GPURasterizerState;
+using GPURasterizerState = GPUState<GPURasterizerStateDesc>;
 
 /** Type of a pointer to a GPU rasterizer state object. */
-typedef GPUResourcePtr<GPURasterizerState> GPURasterizerStatePtr;
+using GPURasterizerStatePtr = GPUResourcePtr<GPURasterizerState>;
 
 /** Texture sampler state descriptor. */
 struct GPUSamplerStateDesc {
@@ -142,7 +142,7 @@ public:
 };
 
 /** Texture sampler state object. */
-typedef GPUState<GPUSamplerStateDesc> GPUSamplerState;
+using GPUSamplerState = GPUState<GPUSamplerStateDesc>;
 
 /** Type of a pointer to a GPU sampler state object. */
-typedef GPUResourcePtr<GPUSamplerState> GPUSamplerStatePtr;
+using GPUSamplerStatePtr = GPUResourcePtr<GPUSamplerState>;

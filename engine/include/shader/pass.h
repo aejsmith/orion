@@ -64,8 +64,8 @@ public:
     };
 
     /** Set of shader variation keywords. */
-    typedef std::set<std::string> KeywordSet;
-public:
+    using KeywordSet = std::set<std::string>;
+
     Pass(Shader *parent, Type type);
     ~Pass();
 
@@ -86,9 +86,9 @@ private:
         /** Pipeline created for the stage. */
         GPUPipelinePtr pipeline;
     };
-private:
+
     void finalize();
-private:
+
     Shader *m_parent;               /**< Parent shader. */
     Type m_type;                    /**< Type of the pass. */
 

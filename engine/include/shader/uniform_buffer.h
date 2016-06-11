@@ -41,14 +41,14 @@ struct UniformStructMember {
 /** Information about a uniform structure. */
 struct UniformStruct {
     /** Type of the global uniform structure list. */
-    typedef std::list<UniformStruct *> StructList;
+    using StructList = std::list<UniformStruct *>;
 
     /** Type of the member variable list. */
-    typedef std::list<UniformStructMember> MemberList;
+    using MemberList = std::list<UniformStructMember>;
 
     /** Type of the member initialization function. */
-    typedef void (*InitFunc)(UniformStruct *);
-public:
+    using InitFunc = void (*)(UniformStruct *);
+
     const char *name;                   /**< Name of the structure. */
     const char *instanceName;           /**< Instance name to use when declaring in shaders. */
     unsigned slot;                      /**< Uniform slot to bind to when used in shaders. */
@@ -82,7 +82,7 @@ public:
  * @param structName    Name of the structure. */
 #define UNIFORM_STRUCT_BEGIN(structName) \
     struct structName { \
-        typedef structName UniformStructType; \
+        using UniformStructType = structName; \
         static const UniformStruct kUniformStruct; \
         \
         static void _initMembers(UniformStruct *_struct) { \

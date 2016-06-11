@@ -122,10 +122,10 @@ protected:
 };
 
 /** Type of a pointer to a GPU buffer. */
-typedef GPUResourcePtr<GPUBuffer> GPUBufferPtr;
+using GPUBufferPtr = GPUResourcePtr<GPUBuffer>;
 
 /** Type of a GPU buffer array. */
-typedef std::vector<GPUBufferPtr> GPUBufferArray;
+using GPUBufferArray = std::vector<GPUBufferPtr>;
 
 /**
  * Scoped buffer mapper class.

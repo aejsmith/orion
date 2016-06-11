@@ -73,7 +73,7 @@ protected:
     ~Material();
 private:
     /** Type of the texture array, indexed by slot. */
-    typedef std::array<TextureBasePtr, TextureSlots::kMaterialTexturesEnd + 1> TextureArray;
+    using TextureArray = std::array<TextureBasePtr, TextureSlots::kMaterialTexturesEnd + 1>;
 
     ShaderPtr m_shader;             /**< Shader being used by the material. */
     UniformBufferBase *m_uniforms;  /**< Uniform buffer containing material parameters. */
@@ -83,4 +83,4 @@ private:
 };
 
 /** Type of a material pointer. */
-typedef TypedAssetPtr<Material> MaterialPtr;
+using MaterialPtr = TypedAssetPtr<Material>;

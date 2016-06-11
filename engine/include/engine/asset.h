@@ -65,4 +65,4 @@ private:
 template <typename T> using TypedAssetPtr = ObjectPtr<T>;
 
 /** Type of a generic asset pointer. */
-typedef TypedAssetPtr<Asset> AssetPtr;
+using AssetPtr = TypedAssetPtr<Asset>;

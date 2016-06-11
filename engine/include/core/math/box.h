@@ -34,8 +34,8 @@ struct BoxImpl {
     T depth;                /**< Depth. */
 public:
     /** Vector of type T. */
-    typedef glm::detail::tvec3<T, glm::highp> VecType;
-public:
+    using VecType = glm::detail::tvec3<T, glm::highp>;
+
     BoxImpl() :
         x(0),
         y(0),
@@ -93,7 +93,7 @@ public:
 };
 
 /** Box using single precision floating point values. */
-typedef BoxImpl<float> Box;
+using Box = BoxImpl<float>;
 
 /** Box using integer values. */
-typedef BoxImpl<int32_t> IntBox;
+using IntBox = BoxImpl<int32_t>;

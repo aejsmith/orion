@@ -48,7 +48,7 @@ struct ShaderParameter {
         /** Special types (cannot be used in uniform structures). */
         kTextureType,               /**< Texture. */
     };
-public:
+
     Type type;                      /**< Parameter type. */
 
     union {

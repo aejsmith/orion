@@ -48,7 +48,7 @@ public:
         /** Debug overlay. */
         kDebugOverlayPriority = 100,
     };
-public:
+
     virtual ~RenderLayer();
 
     void setRenderTarget(RenderTarget *target);
@@ -115,8 +115,8 @@ public:
     };
 
     /** Type of the registered layer list. */
-    typedef std::list<RenderLayer *> LayerList;
-public:
+    using LayerList = std::list<RenderLayer *>;
+
     virtual ~RenderTarget();
 
     /** @return             Width of the render target (in pixels). */
