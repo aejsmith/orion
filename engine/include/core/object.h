@@ -81,12 +81,9 @@
  *
  * This macro marks a class member as a property. This means it can be accessed
  * through the dynamic property interface in Object, and information about it
- * can be retrieved at runtime.
- *
- * Public members can be marked as a property with no additional support
- * required. Private members require a getter and setter method to be specified,
- * this is typically used when the property requires validation on the value set
- * for it, or when something must be done when the property value changes.
+ * can be retrieved at runtime. Properties specified using this macro must be
+ * public members. For private members which require getter/setter methods, see
+ * VPROPERTY().
  *
  * Example:
  *
@@ -94,11 +91,7 @@
  *   public:
  *       CLASS();
  *
- *       PROPERTY() int wop;
- *       ...
- *   private:
- *       PROPERTY("get": "foop", "set": "setFoop")
- *       glm::vec3 m_foop;
+ *       PROPERTY() int bar;
  *   };
  *
  * @param ...           Attributes of the property, parsed by objgen.
