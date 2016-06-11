@@ -115,8 +115,12 @@
  * named "position", the default getter method is "position" and the setter is
  * "setPosition".
  *
- * This macro does not declare a member variable with the given name. When not
- * processing the source file with objgen, it expands to nothing.
+ * This functionality is implemented by declaring a static member variable in
+ * the class named "vprop_<name>", which is picked up by objgen. These variables
+ * should never be used (using them should result in link errors because they
+ * have no definition). The variable is still declared when compiling outside
+ * of objgen so that errors (e.g. bad types, name conflicts) are still reported
+ * by the main compiler.
  *
  * Example:
  *
@@ -134,12 +138,8 @@
  * @param ...           Attributes of the property, parsed by objgen. At least
  *                      a "get" and "set" attribute must be specified.
  */
-#ifdef ORION_OBJGEN
-    #define VPROPERTY(type, name, ...) \
-        static META_ATTRIBUTE("property", __VA_ARGS__) type vprop_##name
-#else
-    #define VPROPERTY(type, name, ...)
-#endif
+#define VPROPERTY(type, name, ...) \
+    static META_ATTRIBUTE("property", __VA_ARGS__) type vprop_##name
 
 /**
  * Metadata classes.
