@@ -20,6 +20,7 @@
  */
 
 #include <fstream>
+#include <functional>
 #include <list>
 #include <map>
 #include <memory>
@@ -67,7 +68,11 @@ public:
      * @param depth         Indentation depth. */
     virtual void dump(unsigned depth) const = 0;
 
+    /** Type of the visitor function. */
+    using VisitFunction = std::function<void (CXCursor, CXCursorKind)>;
+
     static void visitChildren(CXCursor cursor, ParsedDecl *decl);
+    static void visitChildren(CXCursor cursor, const VisitFunction &function);
 protected:
     /** Called when an annotation is observed on this declaration.
      * @param type          Type of the annotation.
@@ -82,7 +87,8 @@ protected:
      * @param kind          Kind of the cursor. */
     virtual void handleChild(CXCursor cursor, CXCursorKind kind) {}
 private:
-    static CXChildVisitResult astCallback(CXCursor cursor, CXCursor parent, CXClientData data);
+    static CXChildVisitResult visitDeclCallback(CXCursor cursor, CXCursor parent, CXClientData data);
+    static CXChildVisitResult visitFunctionCallback(CXCursor cursor, CXCursor parent, CXClientData data);
 };
 
 /** Details of a parsed property. */
@@ -115,12 +121,25 @@ public:
     std::list<std::unique_ptr<ParsedProperty>> properties;
 
     bool isObject() const;
+    bool isConstructable() const;
+    bool isPublicConstructable() const;
 
     Mustache::Data generate() const override;
     void dump(unsigned depth) const override;
 protected:
     bool handleAnnotation(const std::string &type, const rapidjson::Document &attributes) override;
     void handleChild(CXCursor cursor, CXCursorKind kind) override;
+private:
+    /** Whether the class is constructable. */
+    enum class Constructability {
+        kDefault,                   /**< No constructors have yet been declared. */
+        kPublic,                    /**< Publically, the default when no constructor is declared. */
+        kPrivate,                   /**< Private or protected. Only usable for deserialization. */
+        kNone,                      /**< None, if no suitable constructor found. */
+        kForcedNone,                /**< Forced off by attribute. */
+    };
+
+    Constructability m_constructable;
 };
 
 /** Details of a parsed translation unit. */
@@ -272,7 +291,7 @@ static bool parseAnnotation(CXCursor cursor, std::string &type, rapidjson::Docum
  * @param parent        Parent cursor.
  * @param data          Next declaration pointer.
  * @return              Child visitor status code. */
-CXChildVisitResult ParsedDecl::astCallback(CXCursor cursor, CXCursor parent, CXClientData data) {
+CXChildVisitResult ParsedDecl::visitDeclCallback(CXCursor cursor, CXCursor parent, CXClientData data) {
     ParsedDecl *currentDecl = reinterpret_cast<ParsedDecl *>(data);
 
     CXCursorKind kind = clang_getCursorKind(cursor);
@@ -298,7 +317,26 @@ CXChildVisitResult ParsedDecl::astCallback(CXCursor cursor, CXCursor parent, CXC
  * @param cursor        Current cursor position.
  * @param decl          Declaration to visit with. */
 void ParsedDecl::visitChildren(CXCursor cursor, ParsedDecl *decl) {
-    clang_visitChildren(cursor, astCallback, decl);
+    clang_visitChildren(cursor, visitDeclCallback, decl);
+}
+
+/** AST visitor callback function.
+ * @param cursor        Current cursor.
+ * @param parent        Parent cursor.
+ * @param data          Pointer to std::function to call.
+ * @return              Child visitor status code. */
+CXChildVisitResult ParsedDecl::visitFunctionCallback(CXCursor cursor, CXCursor parent, CXClientData data) {
+    const VisitFunction &function = *reinterpret_cast<const VisitFunction *>(data);
+    CXCursorKind kind = clang_getCursorKind(cursor);
+    function(cursor, kind);
+    return CXChildVisit_Continue;
+}
+
+/** Visit child nodes.
+ * @param cursor        Current cursor position.
+ * @param function      Function to call on each child. */
+void ParsedDecl::visitChildren(CXCursor cursor, const VisitFunction &function) {
+    clang_visitChildren(cursor, visitFunctionCallback, const_cast<VisitFunction *>(&function));
 }
 
 /** Initialise the property.
@@ -424,7 +462,8 @@ ParsedClass::ParsedClass(CXCursor cursor, ParsedDecl *parent) :
     ParsedDecl(cursor, parent, true),
     isObjectDerived(name.compare("Object") == 0),
     parentClass(nullptr),
-    onMetaClass(false)
+    onMetaClass(false),
+    m_constructable(Constructability::kDefault)
 {}
 
 /**
@@ -449,6 +488,29 @@ bool ParsedClass::isObject() const {
     return false;
 }
 
+/** @return             Whether the class is constructable (public or otherwise). */
+bool ParsedClass::isConstructable() const {
+    switch (m_constructable) {
+    case Constructability::kDefault:
+    case Constructability::kPublic:
+    case Constructability::kPrivate:
+        return true;
+    default:
+        return false;
+    }
+};
+
+/** @return             Whether the constructor is publically constructable. */
+bool ParsedClass::isPublicConstructable() const {
+    switch (m_constructable) {
+    case Constructability::kDefault:
+    case Constructability::kPublic:
+        return true;
+    default:
+        return false;
+    }
+}
+
 /** Called when an annotation is observed on this declaration.
  * @param type          Type of the annotation.
  * @param attributes    Attributes specified for the annotation.
@@ -464,6 +526,23 @@ bool ParsedClass::handleAnnotation(const std::string &type, const rapidjson::Doc
             this->name.c_str());
     }
 
+    if (attributes.HasMember("constructable")) {
+        const rapidjson::Value &value = attributes["constructable"];
+
+        if (!value.IsBool()) {
+            parseError(this->cursor, "'constructable' attribute must be a boolean");
+            return true;
+        }
+
+        bool constructable = value.GetBool();
+        if (constructable) {
+            parseError(this->cursor, "constructability cannot be forced on, only off");
+            return true;
+        }
+
+        m_constructable = Constructability::kForcedNone;
+    }
+
     return true;
 }
 
@@ -471,6 +550,9 @@ bool ParsedClass::handleAnnotation(const std::string &type, const rapidjson::Doc
  * @param cursor        Child cursor.
  * @param kind          Kind of the cursor. */
 void ParsedClass::handleChild(CXCursor cursor, CXCursorKind kind) {
+    if (this->onMetaClass)
+        return;
+
     switch (kind) {
         case CXCursor_CXXBaseSpecifier:
         {
@@ -500,6 +582,38 @@ void ParsedClass::handleChild(CXCursor cursor, CXCursorKind kind) {
 
                 this->isObjectDerived = true;
                 this->parentClass = it->second.get();
+            }
+
+            break;
+        }
+
+        case CXCursor_Constructor:
+        {
+            /* Ignore if forced to be non-constructable. */
+            if (m_constructable == Constructability::kForcedNone)
+                break;
+
+            /* Determine the number of parameters to this constructor. */
+            unsigned numParams = 0;
+            visitChildren(
+                cursor,
+                [&numParams] (CXCursor cursor, CXCursorKind kind) {
+                    if (kind == CXCursor_ParmDecl)
+                        numParams++;
+                });
+
+            /* Only constructors with no parameters are suitable. */
+            if (numParams == 0) {
+                if (clang_getCXXAccessSpecifier(cursor) == CX_CXXPublic) {
+                    m_constructable = Constructability::kPublic;
+                } else {
+                    m_constructable = Constructability::kPrivate;
+                }
+            } else {
+                /* If no other constructors have been seen so far, mark as
+                 * non-constructable. */
+                if (m_constructable == Constructability::kDefault)
+                    m_constructable = Constructability::kNone;
             }
 
             break;
@@ -536,6 +650,18 @@ void ParsedClass::handleChild(CXCursor cursor, CXCursorKind kind) {
             break;
         }
 
+        case CXCursor_CXXMethod:
+            /* Classes with pure virtual methods are not constructable.
+             * TODO: This does not handle a class which is abstract because a
+             * parent class has virtual methods that it does not override.
+             * libclang doesn't appear to have an easy way to identify this, so
+             * for now don't handle it. If it does become a problem it can be
+             * worked around using the constructable attribute. */
+            if (clang_CXXMethod_isPureVirtual(cursor))
+                m_constructable = Constructability::kForcedNone;
+
+            break;
+
         default:
             break;
     }
@@ -551,6 +677,11 @@ Mustache::Data ParsedClass::generate() const {
     if (this->parentClass)
         data.set("parent", this->parentClass->name);
 
+    if (isConstructable())
+        data.set("isConstructable", Mustache::Data::Type::True);
+    if (isPublicConstructable())
+        data.set("isPublicConstructable", Mustache::Data::Type::True);
+
     Mustache::Data properties(Mustache::Data::List());
     for (const std::unique_ptr<ParsedProperty> &parsedProperty : this->properties)
         properties.push_back(parsedProperty->generate());
@@ -563,12 +694,12 @@ Mustache::Data ParsedClass::generate() const {
 /** Dump this declaration.
  * @param depth         Indentation depth. */
 void ParsedClass::dump(unsigned depth) const {
-    printf("%-*sClass '%s'", depth * 2, "", this->name.c_str());
+    printf("%-*sClass '%s' (", depth * 2, "", this->name.c_str());
 
     if (this->parentClass)
-        printf(" (parent '%s')", this->parentClass->name.c_str());
+        printf("parent '%s', ", this->parentClass->name.c_str());
 
-    printf("\n");
+    printf("constructable %d %d)\n", isConstructable(), isPublicConstructable());
 
     for (const std::unique_ptr<ParsedProperty> &parsedProperty : this->properties)
         parsedProperty->dump(depth + 1);

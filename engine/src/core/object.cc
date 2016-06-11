@@ -63,14 +63,20 @@ static auto &metaClassMap() {
 
 /** Initialise a meta-class.
  * @param name          Name of the meta-class.
- * @param parent        Parent meta-class. */
+ * @param parent        Parent meta-class.
+ * @param traits        Traits of the class.
+ * @param constructor   Constructor function (if constructable).
+ * @param properties    Array of properties. */
 MetaClass::MetaClass(
     const char *name,
     const MetaClass *parent,
+    uint32_t traits,
+    ConstructorFunction constructor,
     const PropertyArray &properties)
     :
-    MetaType(name, MetaType::kIsObject),
+    MetaType(name, traits | MetaType::kIsObject),
     m_parent(parent),
+    m_constructor(std::move(constructor)),
     m_properties(properties)
 {
     auto ret = metaClassMap().insert(std::make_pair(name, this));
@@ -102,6 +108,22 @@ bool MetaClass::isBaseOf(const MetaClass &other) const {
     }
 
     return false;
+}
+
+/**
+ * Construct an object of this class.
+ *
+ * Constructs an object of this class using its default constructor. The class
+ * must be publically constructable, as indicated by isConstructable().
+ *
+ * @return              Pointer to constructed object.
+ */
+Object *MetaClass::construct() const {
+    checkMsg(
+        m_traits & kIsPublicConstructable,
+        "Attempt to construct object of class '%s' which is not publically constructable",
+        m_name);
+    return m_constructor();
 }
 
 /** Look up a property by name on the class.

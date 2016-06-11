@@ -4,6 +4,15 @@
 {{/include}}
 {{#classes}}
 
+static const uint32_t {{name}}_traits =
+{{#isConstructable}}
+    MetaType::kIsConstructable |
+{{/isConstructable}}
+{{#isPublicConstructable}}
+    MetaType::kIsPublicConstructable |
+{{/isPublicConstructable}}
+    0;
+
 {{#properties}}
 void {{name}}_get_{{propertyName}}(const Object *base, void *value) {
     auto object = static_cast<const {{name}} *>(base);
@@ -35,6 +44,13 @@ static const MetaClass::PropertyArray {{name}}_propertyTable = {
 const MetaClass {{name}}::staticMetaClass(
     "{{name}}",
     {{#parent}}&{{parent}}::staticMetaClass{{/parent}}{{^parent}}nullptr{{/parent}},
+    {{name}}_traits,
+{{#isConstructable}}
+    [] () -> Object * { return new {{name}}; },
+{{/isConstructable}}
+{{^isConstructable}}
+    MetaClass::ConstructorFunction(),
+{{/isConstructable}}
     {{name}}_propertyTable);
 
 const MetaClass &{{name}}::metaClass() const {
