@@ -41,7 +41,6 @@ public:
     CLASS();
 
     explicit Material(Shader *shader);
-    ~Material();
 
     /** @return             Shader for the material. */
     Shader *shader() const { return m_shader; }
@@ -70,6 +69,8 @@ public:
     template <typename T> void setValue(const char *name, const T &value) {
         setValue(name, ShaderParameterTypeTraits<T>::kType, std::addressof(value));
     }
+protected:
+    ~Material();
 private:
     /** Type of the texture array, indexed by slot. */
     typedef std::array<TextureBasePtr, TextureSlots::kMaterialTexturesEnd + 1> TextureArray;

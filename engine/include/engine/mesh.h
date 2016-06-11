@@ -64,7 +64,6 @@ public:
     typedef std::map<std::string, size_t> MaterialMap;
 
     Mesh();
-    ~Mesh();
 
     /** @return             Number of submeshes. */
     size_t numSubMeshes() const { return m_children.size(); }
@@ -86,6 +85,8 @@ public:
     size_t addMaterial(const std::string &name);
 
     GPUVertexDataPtr sharedVertices;    /**< Vertex data shared by all submeshes. */
+protected:
+    ~Mesh();
 private:
     std::vector<SubMesh *> m_children;  /**< Child submeshes. */
 

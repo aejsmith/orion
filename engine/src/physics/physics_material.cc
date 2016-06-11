@@ -34,9 +34,6 @@ PhysicsMaterial::PhysicsMaterial() :
     m_friction(0.5f)
 {}
 
-/** Destroy the physics material. */
-PhysicsMaterial::~PhysicsMaterial() {}
-
 /** Set the restitution (bounciness) coefficient.
  * @param restitution   New restitution coefficient. */
 void PhysicsMaterial::setRestitution(float restitution) {

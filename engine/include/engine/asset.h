@@ -49,6 +49,8 @@ protected:
      */
     Asset() {}
 
+    ~Asset() {}
+
     void released() override;
 
     /** Display details of the asset in the debug explorer. */

@@ -32,8 +32,6 @@ class TextureBase : public Asset {
 public:
     CLASS();
 
-    ~TextureBase() {}
-
     /** @return             Pixel format for the texture. */
     PixelFormat format() const { return m_gpu->format(); }
     /** @return             Number of mip levels. */
@@ -55,6 +53,7 @@ public:
     GPUSamplerState *sampler() const { return m_sampler; }
 protected:
     TextureBase();
+    ~TextureBase() {}
 
     void updateSamplerState();
 
@@ -103,7 +102,6 @@ public:
         PixelFormat format = PixelFormat::kR8G8B8A8,
         unsigned mips = 0,
         uint32_t flags = GPUTexture::kAutoMipmap);
-    ~Texture2D();
 
     void clear();
 
@@ -117,6 +115,8 @@ public:
     uint32_t width() const { return m_gpu->width(); }
     /** @return             Height of the texture. */
     uint32_t height() const { return m_gpu->height(); }
+protected:
+    ~Texture2D();
 private:
     RenderTexture *m_renderTexture;     /**< Render target for the texture. */
 };
@@ -134,7 +134,6 @@ public:
         PixelFormat format = PixelFormat::kR8G8B8A8,
         unsigned mips = 0,
         uint32_t flags = GPUTexture::kAutoMipmap);
-    ~TextureCube();
 
     void clear();
 
@@ -144,6 +143,8 @@ public:
 
     /** @return             Size of the texture. */
     uint32_t size() const { return m_gpu->width(); }
+protected:
+    ~TextureCube() {}
 };
 
 /** Type of a cube texture pointer. */

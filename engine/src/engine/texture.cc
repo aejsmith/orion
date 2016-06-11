@@ -204,7 +204,13 @@ void TextureBase::explore() {
  * @param mips          Number of mip levels (0 for full pyramid).
  * @param flags         GPU texture creation flags.
  */
-Texture2D::Texture2D(uint32_t width, uint32_t height, PixelFormat format, unsigned mips, uint32_t flags) :
+Texture2D::Texture2D(
+    uint32_t width,
+    uint32_t height,
+    PixelFormat format,
+    unsigned mips,
+    uint32_t flags)
+    :
     m_renderTexture(nullptr)
 {
     GPUTextureDesc desc;
@@ -340,9 +346,6 @@ TextureCube::TextureCube(uint32_t size, PixelFormat format, unsigned mips, uint3
 
     m_gpu = g_gpuManager->createTexture(desc);
 }
-
-/** Destroy the texture. */
-TextureCube::~TextureCube() {}
 
 /** Clear the entire texture contents to 0. */
 void TextureCube::clear() {

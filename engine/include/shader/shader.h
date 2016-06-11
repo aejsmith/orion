@@ -52,8 +52,6 @@ public:
     /** Type of the parameter map. */
     typedef std::map<std::string, ShaderParameter> ParameterMap;
 
-    ~Shader();
-
     /** @return             Uniform structure used by the shader. */
     const UniformStruct *uniformStruct() const { return m_uniformStruct; }
     /** @return             Parameter map for the shader. */
@@ -81,6 +79,8 @@ public:
     }
 
     void setDrawState(Material *material) const;
+protected:
+    ~Shader();
 private:
     Shader();
 

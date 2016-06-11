@@ -122,7 +122,6 @@ public:
     CLASS();
 
     Font();
-    ~Font();
 
     FontVariant *getVariant(const FontVariantDesc &desc);
 
@@ -138,6 +137,8 @@ public:
         data = m_data.get();
         size = m_dataSize;
     }
+protected:
+    ~Font();
 private:
     std::unique_ptr<char[]> m_data;     /**< TTF file data. */
     size_t m_dataSize;                  /**< TTF file data size. */

@@ -35,7 +35,6 @@ public:
     CLASS();
 
     PhysicsMaterial();
-    ~PhysicsMaterial();
 
     /** @return             Restitution (bounciness) coefficient. */
     float restitution() const { return m_restitution; }
@@ -44,6 +43,8 @@ public:
 
     void setRestitution(float restitution);
     void setFriction(float friction);
+protected:
+    ~PhysicsMaterial() {}
 private:
     float m_restitution;                /**< Restitution (bounciness) coefficient. */
     float m_friction;                   /**< Friction coefficient. */

@@ -27,9 +27,6 @@ class Component;
 class Entity;
 class World;
 
-/** Type of a pointer to a component. */
-using ComponentPtr = ReferencePtr<Component>;
-
 /**
  * Class implementing a component.
  *
@@ -56,7 +53,7 @@ using ComponentPtr = ReferencePtr<Component>;
  *   Component::destroy()
  *    |-> Component::deactivated() (if currently active)
  *    |-> Entity::removeComponent()
- *    |-> destructors
+ *    |-> destructors (once no other references remain)
  *
  * As can be seen, this ensures that the hook functions are called when the
  * component is fully constructed.
@@ -137,6 +134,9 @@ private:
 
     friend class Entity;
 };
+
+/** Type of a pointer to a component. */
+using ComponentPtr = ReferencePtr<Component>;
 
 /*
  * Entity template methods which are dependent on Component's definition.
