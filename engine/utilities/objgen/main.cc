@@ -899,38 +899,38 @@ int main(int argc, char **argv) {
         clang_disposeDiagnostic(diag);
     }
 
-    if (hadError) {
-        /* The ignore errors flag exists because in the case of a compilation
-         * error during the real build, we want the error to be reported by the
-         * actual compiler because those errors are usually more informative and
-         * with nicer formatting, etc. When this flag is set, we generate an
-         * empty output file and return success so that the build will proceed
-         * and error later on when the compiler reaches the real file. Note this
-         * only applies to clang errors, we still fail for our own errors. */
-        if (ignoreErrors) {
-            outputStream.close();
-            return EXIT_SUCCESS;
-        } else {
-            return EXIT_FAILURE;
-        }
-    }
-
-    /* Iterate over the AST. */
-    CXCursor cursor = clang_getTranslationUnitCursor(unit);
-    ParsedTranslationUnit parsedUnit(cursor);
-    ParsedDecl::visitChildren(cursor, &parsedUnit);
-
-    if (g_parseErrorOccurred)
-        return EXIT_FAILURE;
-
-    if (dump) {
-        parsedUnit.dump();
-        return EXIT_SUCCESS;
-    }
-
-    /* Generate the output. */
+    /* Begin output generation. */
     Mustache codeTemplate(g_objgenTemplate);
-    Mustache::Data data = parsedUnit.generate();
+    Mustache::Data codeData;
+
+    /* The ignore errors flag exists because in the case of a compilation error
+     * during the real build, we want the error to be reported by the actual
+     * compiler because those errors are usually more informative and with nicer
+     * formatting, etc. When this flag is set, we generate an output file that
+     * only includes the offending source file, and return success so that the
+     * build will proceed and error when the compiler tries to compile our
+     * output. Note this only applies to clang errors, we still fail for our
+     * own errors. */
+    if (hadError) {
+        if (!ignoreErrors)
+            return EXIT_FAILURE;
+    } else {
+        /* Iterate over the AST. */
+        CXCursor cursor = clang_getTranslationUnitCursor(unit);
+        ParsedTranslationUnit parsedUnit(cursor);
+        ParsedDecl::visitChildren(cursor, &parsedUnit);
+
+        if (g_parseErrorOccurred)
+            return EXIT_FAILURE;
+
+        if (dump) {
+            parsedUnit.dump();
+            return EXIT_SUCCESS;
+        }
+
+        /* Generate the output data. */
+        codeData = parsedUnit.generate();
+    }
 
     if (!standalone) {
         /* For now resolve the source file path to an absolute path, and use
@@ -947,11 +947,11 @@ int main(int argc, char **argv) {
             return EXIT_FAILURE;
         }
 
-        data.set("include", absoluteSourceFile);
+        codeData.set("include", absoluteSourceFile);
         free(absoluteSourceFile);
     }
 
-    codeTemplate.render(data, outputStream);
+    codeTemplate.render(codeData, outputStream);
 
     /* We have succeeded, don't delete on exit. */
     outputStream.close();
