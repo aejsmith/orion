@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,28 +21,34 @@
 
 #pragma once
 
-#include "core/core.h"
+#include "engine/engine.h"
 
-/** Global game class. */
-class Game : Noncopyable {
+/**
+ * Global game class.
+ *
+ * This is the class that is responsible for configuring the engine and
+ * setting up the game once the engine has been initialised. Game code must
+ * define a single class which is derived from this. It will be looked up by
+ * the engine and an instance of it will be constructed early in initialisation.
+ * Once the engine is initialised, the init() method will be called to set the
+ * game up.
+ */
+class Game : public Object {
 public:
-    Game() {}
-    virtual ~Game() {}
+    CLASS();
+
+    /** Get the engine configuration.
+     * @param config        Engine configuration to fill in. */
+    virtual void engineConfiguration(EngineConfiguration &config) = 0;
+
+    /** Initialise the game. */
+    virtual void init() = 0;
 
     /** Called at the beginning of each frame. */
     virtual void startFrame() {}
 
     /** Called at the end of each frame. */
     virtual void endFrame() {}
+protected:
+    Game() {}
 };
-
-/** Interface to game code. */
-namespace game {
-    /** Get the engine configuration.
-     * @param config        Engine configuration to fill in. */
-    void engineConfiguration(EngineConfiguration &config);
-
-    /** Create the Game instance.
-     * @return              Created Game instance. */
-    Game *createGame();
-}

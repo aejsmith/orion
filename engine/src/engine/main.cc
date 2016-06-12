@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -20,7 +20,6 @@
  */
 
 #include "engine/engine.h"
-#include "engine/game.h"
 
 #include <SDL.h>
 
@@ -28,10 +27,7 @@
  * @param argc          Argument count.
  * @param argv          Argument array. */
 int main(int argc, char **argv) {
-    EngineConfiguration config;
-    game::engineConfiguration(config);
-
-    Engine engine(config);
+    Engine engine;
     engine.run();
     return 0;
 }

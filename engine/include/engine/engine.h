@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -72,7 +72,7 @@ public:
 /** Main class of the engine. */
 class Engine : Noncopyable {
 public:
-    Engine(const EngineConfiguration &config);
+    Engine();
     ~Engine();
 
     void run();
@@ -109,7 +109,7 @@ private:
     void renderAllTargets();
 private:
     EngineConfiguration m_config;   /**< Engine configuration. */
-    Game *m_game;                   /**< Game instance. */
+    ObjectPtr<Game> m_game;         /**< Game instance. */
     ObjectPtr<World> m_world;       /**< Active game world. */
 
     /** List of render targets. */

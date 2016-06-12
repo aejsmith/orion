@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -45,10 +45,8 @@
 /** Global instance of the engine. */
 Engine *g_engine = nullptr;
 
-/** Initialize the engine.
- * @param config        Engine configuration structure. */
-Engine::Engine(const EngineConfiguration &config) :
-    m_config(config),
+/** Initialize the engine. */
+Engine::Engine() :
     m_world(nullptr),
     m_lastTick(0),
     m_lastFPS(0),
@@ -56,6 +54,21 @@ Engine::Engine(const EngineConfiguration &config) :
 {
     check(!g_engine);
     g_engine = this;
+
+    /* Find the game class and get the engine configuration from it. */
+    const MetaClass *gameClass = nullptr;
+    MetaClass::visit(
+        [&] (const MetaClass &metaClass) {
+            if (&metaClass != &Game::staticMetaClass &&
+                Game::staticMetaClass.isBaseOf(metaClass) &&
+                metaClass.isConstructable())
+            {
+                checkMsg(!gameClass, "Multiple Game classes found");
+                gameClass = &metaClass;
+            }
+        });
+    m_game = static_cast<Game *>(gameClass->construct());
+    m_game->engineConfiguration(m_config);
 
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
         fatal("Failed to initialize SDL: %s", SDL_GetError());
@@ -73,8 +86,8 @@ Engine::Engine(const EngineConfiguration &config) :
 
     /* Create the GPU manager, create the main window, and finally properly
      * initialize the GPU interface. */
-    g_gpuManager = GPUManager::create(config);
-    g_mainWindow = new Window(config);
+    g_gpuManager = GPUManager::create(m_config);
+    g_mainWindow = new Window(m_config);
     g_gpuManager->init();
 
     /* Initialize other global systems. */
@@ -88,8 +101,8 @@ Engine::Engine(const EngineConfiguration &config) :
 
     g_debugManager->registerWindow(std::make_unique<WorldExplorerWindow>());
 
-    /* Create the game instance. */
-    m_game = game::createGame();
+    /* Initialise the game. */
+    m_game->init();
 }
 
 /** Shut down the engine. */
@@ -98,7 +111,7 @@ Engine::~Engine() {
     m_world.reset();
 
     /* Shut down the game. */
-    delete m_game;
+    m_game.reset();
 
     /* Shut down global systems. */
     delete g_physicsManager;

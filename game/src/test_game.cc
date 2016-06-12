@@ -109,11 +109,25 @@ static inline Entity *createPlane(
     return entity;
 }
 
-/** Initialize the game world. */
+/** Construct the game class. */
 TestGame::TestGame() :
     m_numCubes(0),
     m_numLights(0)
-{
+{}
+
+/** Get the engine configuration.
+ * @param config        Engine configuration to fill in. */
+void TestGame::engineConfiguration(EngineConfiguration &config) {
+    config.title = "Cubes";
+    config.graphicsAPI = EngineConfiguration::kGLGraphicsAPI;
+    config.displayWidth = 1440;
+    config.displayHeight = 900;
+    config.displayFullscreen = false;
+    config.displayVsync = false;
+}
+
+/** Initialize the game world. */
+void TestGame::init() {
     m_cubeMaterial = g_assetManager->load<Material>("game/materials/companion_cube");
     m_cubeMesh = g_assetManager->load<Mesh>("game/models/companion_cube");
     m_cubePhysicsMaterial = g_assetManager->load<PhysicsMaterial>("game/physics_materials/companion_cube");
@@ -281,25 +295,4 @@ Entity *TestGame::makeCube(bool withLights) {
     }
 
     return entity;
-}
-
-/**
- * Game code interface.
- */
-
-/** Get the engine configuration.
- * @param config        Engine configuration to fill in. */
-void game::engineConfiguration(EngineConfiguration &config) {
-    config.title = "Cubes";
-    config.graphicsAPI = EngineConfiguration::kGLGraphicsAPI;
-    config.displayWidth = 1440;
-    config.displayHeight = 900;
-    config.displayFullscreen = false;
-    config.displayVsync = false;
-}
-
-/** Create the Game instance.
- * @return              Created Game instance. */
-Game *game::createGame() {
-    return new TestGame;
 }
