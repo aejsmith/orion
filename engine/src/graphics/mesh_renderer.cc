@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -64,12 +64,23 @@ Material *SubMeshSceneEntity::material() const {
     return m_parent->m_materials[m_subMesh->material];
 }
 
-/** Initialize the mesh renderer.
- * @param mesh          Mesh to render. */
-MeshRenderer::MeshRenderer(Mesh *mesh) :
-    m_mesh(mesh),
-    m_materials(mesh->numMaterials())
-{}
+/** Initialize the mesh renderer. */
+MeshRenderer::MeshRenderer() {}
+
+/**
+ * Set the mesh used by the renderer.
+ *
+ * Sets the mesh that will be rendered by the renderer. This will clear all
+ * currently set materials, therefore they will need to be reconfigured for the
+ * new mesh.
+ *
+ * @param mesh          Mesh to use.
+ */
+void MeshRenderer::setMesh(Mesh *mesh) {
+    m_mesh = mesh;
+    m_materials.clear();
+    m_materials.resize(mesh->numMaterials());
+}
 
 /** Get the material with the specified name.
  * @param name          Name of the material to get.
@@ -120,6 +131,8 @@ void MeshRenderer::setMaterial(size_t index, Material *material) {
 /** Create scene entities.
  * @param entities      List to populate. */
 void MeshRenderer::createSceneEntities(SceneEntityList &entities) {
+    checkMsg(m_mesh, "No mesh set for MeshRenderer on '%s'", entity()->name.c_str());
+
     for (size_t i = 0; i < m_mesh->numSubMeshes(); i++) {
         SubMeshSceneEntity *entity = new SubMeshSceneEntity(m_mesh->subMesh(i), this);
         entities.push_back(entity);

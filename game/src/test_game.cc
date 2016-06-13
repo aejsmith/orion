@@ -101,7 +101,8 @@ static inline Entity *createPlane(
         buffers);
 
     Entity *entity = parent->createChild(name);
-    MeshRenderer *renderer = entity->createComponent<MeshRenderer>(mesh);
+    MeshRenderer *renderer = entity->createComponent<MeshRenderer>();
+    renderer->setMesh(mesh);
     renderer->setMaterial(subMesh->material, material);
     renderer->setCastShadow(false);
     renderer->setActive(true);
@@ -253,7 +254,8 @@ Entity *TestGame::makeCube(bool withLights) {
     Entity *entity = m_world->createEntity(String::format("cube_%u", cubeNum));
     entity->setScale(glm::vec3(0.2f, 0.2f, 0.2f));
 
-    MeshRenderer *renderer = entity->createComponent<MeshRenderer>(m_cubeMesh);
+    MeshRenderer *renderer = entity->createComponent<MeshRenderer>();
+    renderer->setMesh(m_cubeMesh);
     renderer->setMaterial("Material.004", m_cubeMaterial);
     renderer->setActive(true);
 

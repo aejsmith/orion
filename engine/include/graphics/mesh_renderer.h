@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -32,10 +32,12 @@ class MeshRenderer : public Renderer {
 public:
     CLASS();
 
-    MeshRenderer(Mesh *mesh);
+    MeshRenderer();
 
     /** @return             Mesh that this component renders. */
     Mesh *mesh() const { return m_mesh; }
+
+    void setMesh(Mesh *mesh);
 
     Material *material(const std::string &name) const;
     Material *material(size_t index) const;
