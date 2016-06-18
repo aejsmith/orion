@@ -153,35 +153,79 @@ void WorldExplorerWindow::displayEntityTree() {
 /** Helper for property editor functions. */
 template <typename T, typename Func>
 void editProperty(Object *object, const MetaProperty &property, Func display) {
-    if (&property.type() == &MetaType::lookup<T>()) {
-        ImGui::PushID(&property);
+    if (&property.type() != &MetaType::lookup<T>())
+        return;
 
-        ImGui::Text(property.name());
-        ImGui::NextColumn();
+    ImGui::PushID(&property);
 
-        ImGui::PushItemWidth(-1);
+    ImGui::Text(property.name());
+    ImGui::NextColumn();
+    ImGui::PushItemWidth(-1);
 
-        T value;
-        object->getProperty<T>(property.name(), value);
-        if (display(&value))
-            object->setProperty<T>(property.name(), value);
+    T value;
+    object->getProperty<T>(property.name(), value);
+    if (display(&value))
+        object->setProperty<T>(property.name(), value);
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-        ImGui::PopID();
+    ImGui::PopItemWidth();
+    ImGui::NextColumn();
+    ImGui::PopID();
+}
+
+static bool enumItemGetter(void *data, int index, const char **outText) {
+    auto constants = *reinterpret_cast<const MetaType::EnumConstantArray *>(data);
+    if (outText)
+        *outText = constants[index].first.c_str();
+    return true;
+}
+
+/** Edit enum properties. */
+static void editEnumProperty(Object *object, const MetaProperty &property) {
+    if (!property.type().isEnum())
+        return;
+
+    ImGui::PushID(&property);
+
+    ImGui::Text(property.name());
+    ImGui::NextColumn();
+    ImGui::PushItemWidth(-1);
+
+    const MetaType::EnumConstantArray &constants = property.type().enumConstants();
+
+    /* Get current value and match it against a constant. FIXME: int is not
+     * always right, might be a different size... */
+    int value;
+    object->getProperty(property.name(), property.type(), &value);
+    int index;
+    for (index = 0; static_cast<size_t>(index) < constants.size(); index++) {
+        if (value == constants[index].second)
+            break;
     }
+
+    if (ImGui::Combo(
+        "", &index, enumItemGetter,
+        const_cast<MetaType::EnumConstantArray *>(&constants),
+        constants.size()))
+    {
+        value = constants[index].second;
+        object->setProperty(property.name(), property.type(), &value);
+    }
+
+    ImGui::PushItemWidth(-1);
+    ImGui::NextColumn();
+    ImGui::PopID();
 }
 
 /** Edit properties which reference an asset. */
 static void editAssetProperty(Object *object, const MetaProperty &property) {
     if (!property.type().isPointer())
         return;
-    if (!property.type().pointedType().isObject())
+    if (!property.type().pointeeType().isObject())
         return;
 
-    const MetaClass &pointedClass = static_cast<const MetaClass &>(property.type().pointedType());
+    const MetaClass &pointeeClass = static_cast<const MetaClass &>(property.type().pointeeType());
 
-    if (!Asset::staticMetaClass.isBaseOf(pointedClass))
+    if (!Asset::staticMetaClass.isBaseOf(pointeeClass))
         return;
 
     ImGui::PushID(&property);
@@ -200,7 +244,7 @@ static void editAssetProperty(Object *object, const MetaProperty &property) {
     static std::string errorIncorrectType;
     std::string path = (asset) ? asset->path() : "";
     path.resize(128);
-    if (ImGui::InputText(pointedClass.name(), &path[0], 128, ImGuiInputTextFlags_EnterReturnsTrue)) {
+    if (ImGui::InputText(pointeeClass.name(), &path[0], 128, ImGuiInputTextFlags_EnterReturnsTrue)) {
         path.resize(std::strlen(&path[0]));
 
         /* Try to load the new asset. */
@@ -209,7 +253,7 @@ static void editAssetProperty(Object *object, const MetaProperty &property) {
             errorPath = path;
             errorIncorrectType.clear();
             ImGui::OpenPopup("Invalid Asset");
-        } else if (!pointedClass.isBaseOf(asset->metaClass())) {
+        } else if (!pointeeClass.isBaseOf(asset->metaClass())) {
             errorPath = path;
             errorIncorrectType = asset->metaClass().name();
             ImGui::OpenPopup("Invalid Asset");
@@ -242,6 +286,8 @@ static void displayPropertyEditors(Object *object, const MetaClass *metaClass) {
         displayPropertyEditors(object, metaClass->parent());
 
     for (const MetaProperty &property : metaClass->properties()) {
+        /* These all do nothing if the type does not match. */
+
         editProperty<bool>(
             object, property,
             [&] (bool *value) {
@@ -293,6 +339,7 @@ static void displayPropertyEditors(Object *object, const MetaClass *metaClass) {
                 }
             });
 
+        editEnumProperty(object, property);
         editAssetProperty(object, property);
     }
 }
