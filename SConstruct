@@ -6,16 +6,18 @@ sys.path = [os.path.abspath(os.path.join('dev', 'build'))] + sys.path
 env = Environment(ENV = os.environ)
 
 if not ARGUMENTS.get('V'):
-    env['ARCOMSTR']     = ' AR     $TARGET'
-    env['CCCOMSTR']     = ' CC     $SOURCE'
-    env['SHCCCOMSTR']   = ' CC     $SOURCE'
-    env['CXXCOMSTR']    = ' CXX    $SOURCE'
-    env['SHCXXCOMSTR']  = ' CXX    $SOURCE'
-    env['LINKCOMSTR']   = ' LINK   $TARGET'
-    env['SHLINKCOMSTR'] = ' SHLINK $TARGET'
-    env['RANLIBCOMSTR'] = ' RANLIB $TARGET'
-    env['GENCOMSTR']    = ' GEN    $TARGET'
-    env['OBJGENCOMSTR'] = ' OBJGEN $TARGET'
+    def compile_str(msg, var):
+        return '\033[1;34m%8s\033[0m %s' % (msg, var)
+    env['ARCOMSTR']     = compile_str('AR',     '$TARGET')
+    env['CCCOMSTR']     = compile_str('CC',     '$SOURCE')
+    env['SHCCCOMSTR']   = compile_str('CC',     '$SOURCE')
+    env['CXXCOMSTR']    = compile_str('CXX',    '$SOURCE')
+    env['SHCXXCOMSTR']  = compile_str('CXX',    '$SOURCE')
+    env['LINKCOMSTR']   = compile_str('LINK',   '$TARGET')
+    env['SHLINKCOMSTR'] = compile_str('SHLINK', '$TARGET')
+    env['RANLIBCOMSTR'] = compile_str('RANLIB', '$TARGET')
+    env['GENCOMSTR']    = compile_str('GEN',    '$TARGET')
+    env['OBJGENCOMSTR'] = compile_str('OBJGEN', '$TARGET')
 
 env['CCFLAGS'] += [
     # Optimization/debugging flags.
