@@ -34,6 +34,8 @@ public:
 
     MeshRenderer();
 
+    VPROPERTY(MeshPtr, mesh);
+
     /** @return             Mesh that this component renders. */
     Mesh *mesh() const { return m_mesh; }
 

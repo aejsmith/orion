@@ -78,8 +78,15 @@ MeshRenderer::MeshRenderer() {}
  */
 void MeshRenderer::setMesh(Mesh *mesh) {
     m_mesh = mesh;
+
+    /* Deactivate and reactivate to re-create the scene entities. */
+    bool wasActive = active();
+    setActive(false);
+
     m_materials.clear();
     m_materials.resize(mesh->numMaterials());
+
+    setActive(wasActive);
 }
 
 /** Get the material with the specified name.
