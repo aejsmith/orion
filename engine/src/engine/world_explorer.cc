@@ -198,7 +198,7 @@ static void editAssetProperty(Object *object, const MetaProperty &property) {
      * while a textbox is being edited. */
     static std::string errorPath;
     static std::string errorIncorrectType;
-    std::string path = asset->path();
+    std::string path = (asset) ? asset->path() : "";
     path.resize(128);
     if (ImGui::InputText(pointedClass.name(), &path[0], 128, ImGuiInputTextFlags_EnterReturnsTrue)) {
         path.resize(std::strlen(&path[0]));
