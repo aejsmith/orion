@@ -136,7 +136,8 @@ void TestGame::init() {
     m_world = g_engine->createWorld();
 
     TextureCubePtr skyboxTexture = g_assetManager->load<TextureCube>("game/textures/skybox");
-    Skybox *skybox = m_world->root()->createComponent<Skybox>(skyboxTexture);
+    Skybox *skybox = m_world->root()->createComponent<Skybox>();
+    skybox->setTexture(skyboxTexture);
     skybox->setActive(true);
 
     AmbientLight *ambientLight = m_world->root()->createComponent<AmbientLight>();

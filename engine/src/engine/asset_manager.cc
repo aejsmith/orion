@@ -180,6 +180,8 @@ Asset *AssetManager::lookupAsset(const Path &path) const {
 void AssetManager::unregisterAsset(Asset *asset) {
     size_t ret = m_assets.erase(asset->path());
     checkMsg(ret, "Destroying asset '%s' which is not in the cache", asset->path().c_str());
+
+    logDebug("Unregistered asset '%s'", asset->path().c_str());
 }
 
 /** Render the asset explorer window. */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -62,14 +62,17 @@ Material *SkyboxSceneEntity::material() const {
     return m_parent->m_material;
 }
 
-/** Initialise the skybox.
- * @param texture       Texture for the skybox. */
-Skybox::Skybox(TextureCube *texture) :
-    m_texture(texture)
-{
+/** Initialise the skybox. */
+Skybox::Skybox() {
     /* Create the skybox material. */
     ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/internal/skybox");
     m_material = new Material(shader);
+}
+
+/** Set the texture used by the skybox.
+ * @param texture       Texture to set. */
+void Skybox::setTexture(TextureCube *texture) {
+    m_texture = texture;
 
     // FIXME: Need to make setValue work for different texture types.
     TextureBasePtr baseTexture = texture;
@@ -79,6 +82,7 @@ Skybox::Skybox(TextureCube *texture) :
 /** Create scene entities.
  * @param entities      List to populate. */
 void Skybox::createSceneEntities(SceneEntityList &entities) {
+    checkMsg(m_texture, "No texture set for Skybox");
     checkMsg(!entity()->parent(), "Skybox must be attached to root entity");
 
     SkyboxSceneEntity *sceneEntity = new SkyboxSceneEntity(this);

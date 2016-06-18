@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -38,10 +38,14 @@ class Skybox : public Renderer {
 public:
     CLASS();
 
-    explicit Skybox(TextureCube *texture);
+    Skybox();
+
+    VPROPERTY(TextureCubePtr, texture);
 
     /** @return             Texture that this skybox uses. */
     TextureCube *texture() const { return m_texture; }
+
+    void setTexture(TextureCube *texture);
 protected:
     ~Skybox() {}
 
