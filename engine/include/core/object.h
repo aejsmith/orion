@@ -161,19 +161,29 @@ class MetaType {
 public:
     /** Type trait flags. */
     enum : uint32_t {
+        /** Is a pointer. */
+        kIsPointer = (1 << 0),
         /** Is an Object-derived class. */
-        kIsObject = (1 << 0),
+        kIsObject = (1 << 1),
         /** Type is constructable through the Object system. */
-        kIsConstructable = (1 << 1),
+        kIsConstructable = (1 << 2),
         /** Type is publically constructable. */
-        kIsPublicConstructable = (1 << 2),
+        kIsPublicConstructable = (1 << 3),
     };
 
     /** @return             Name of the type. */
     const char *name() const { return m_name; }
 
+    /** @return             Whether the type is a pointer. */
+    bool isPointer() const { return m_traits & kIsPointer; }
     /** @return             Whether the type is an Object-derived class. */
     bool isObject() const { return m_traits & kIsObject; }
+
+    /** @return             For pointer types, the type pointed to. */
+    const MetaType &pointedType() const {
+        check(isPointer());
+        return *m_parent;
+    }
 
     /** Look up the meta-type for a given type.
      * @tparam T            Type to get for.
@@ -183,28 +193,46 @@ public:
         return LookupImpl<T>::get();
     }
 protected:
-    MetaType(const char *name, uint32_t traits);
+    MetaType(const char *name, uint32_t traits, const MetaType *parent);
 
-    static const MetaType *allocate(const char *signature);
+    const char *m_name;                 /**< Name of the type. */
+    uint32_t m_traits;                  /**< Traits for the type. */
+
+    /**
+     * Metadata for parent type.
+     *
+     * For pointers, this gives the type being pointed to. For Object-derived
+     * classes, it gives the parent class. Otherwise, it is null.
+     */
+    const MetaType *m_parent;
+
+    /**
+     * Metadata lookup implementation.
+     */
+
+    static const MetaType *allocate(
+        const char *signature,
+        uint32_t traits = 0,
+        const MetaType *parent = nullptr);
+
+    /*
+     * The type name string is determined using a compiler-provided macro to
+     * get the name of the get() function, from which we can extract the
+     * template parameter type. This is thoroughly evil, I love it! Remember to
+     * modify allocate() when adding new compiler support.
+     */
+    #ifdef __GNUC__
+        #define LOOKUP_FUNCTION_SIGNATURE __PRETTY_FUNCTION__
+    #else
+        #error "Unsupported compiler"
+    #endif
 
     /** Helper to get the MetaType for a type. */
     template <typename LookupT, typename LookupEnable = void>
     struct LookupImpl {
-        /*
-         * The type name is determined using a compiler-provided macro to get
-         * the name of the get() function, from which we can extract the
-         * template parameter type. This is thoroughly evil, I love it!
-         * Remember to modify allocate() when adding new compiler support.
-         */
-        #ifdef __GNUC__
-            #define LOOKUP_FUNCTION_SIGNATURE __PRETTY_FUNCTION__
-        #else
-            #error "Unsupported compiler"
-        #endif
-
         static NOINLINE const MetaType &get() {
             /*
-             * In the generic case, we dynamically allocate a MetaType the first
+             * For arbitrary types, we dynamically allocate a MetaType the first
              * time it is requested for that type. Store a pointer to the
              * MetaType as a static local variable. The allocation will take
              * place the first time this function is called for a given type,
@@ -217,20 +245,41 @@ protected:
             static const MetaType *type = allocate(LOOKUP_FUNCTION_SIGNATURE);
             return *type;
         }
-
-        #undef LOOKUP_FUNCTION_SIGNATURE
     };
 
-    /** Specialization for Object-derived classes to use the static MetaClass. */
-    template <typename T>
-    struct LookupImpl<T, typename std::enable_if<std::is_base_of<Object, T>::value>::type> {
-        static FORCEINLINE const MetaType &get() {
-            return T::staticMetaClass;
+    /** Specialization for pointers. */
+    template <typename LookupT>
+    struct LookupImpl<LookupT, typename std::enable_if<std::is_pointer<LookupT>::value>::type> {
+        static NOINLINE const MetaType &get() {
+            static const MetaType *type = allocate(
+                LOOKUP_FUNCTION_SIGNATURE,
+                kIsPointer,
+                &MetaType::lookup<typename std::remove_pointer<LookupT>::type>());
+            return *type;
         }
     };
 
-    const char *m_name;                 /**< Name of the type. */
-    uint32_t m_traits;                  /**< Traits for the type. */
+    /** Specialization for reference-counted pointers. */
+    template <typename PointedT>
+    struct LookupImpl<ReferencePtr<PointedT>> {
+        static NOINLINE const MetaType &get() {
+            static const MetaType *type = allocate(
+                LOOKUP_FUNCTION_SIGNATURE,
+                kIsPointer,
+                &MetaType::lookup<PointedT>());
+            return *type;
+        }
+    };
+
+    /** Specialization for Object-derived classes to use the static MetaClass. */
+    template <typename LookupT>
+    struct LookupImpl<LookupT, typename std::enable_if<std::is_base_of<Object, LookupT>::value>::type> {
+        static FORCEINLINE const MetaType &get() {
+            return LookupT::staticMetaClass;
+        }
+    };
+
+    #undef LOOKUP_FUNCTION_SIGNATURE
 };
 
 /** Class providing metadata about a property. */
@@ -292,7 +341,7 @@ public:
     ~MetaClass();
 
     /** @return             Metadata for parent class. */
-    const MetaClass *parent() const { return m_parent; }
+    const MetaClass *parent() const { return static_cast<const MetaClass *>(m_parent); }
     /** @return             Array of properties in the class. */
     const PropertyArray &properties() const { return m_properties; }
 
@@ -306,7 +355,6 @@ public:
     static const MetaClass *lookup(const std::string &name);
     static void visit(const std::function<void (const MetaClass &)> &function);
 private:
-    const MetaClass *m_parent;          /**< Metadata for parent class. */
     ConstructorFunction m_constructor;  /**< Constructor function object. */
     const PropertyArray &m_properties;  /**< Array of properties. */
 
@@ -375,6 +423,8 @@ public:
         return getProperty(name, MetaType::lookup<T>(), &value);
     }
 
+    bool getProperty(const char *name, const MetaType &type, void *value) const;
+
     /** Set a property value.
      * @tparam T            Type of the property to get.
      * @param name          Name of the property to get.
@@ -384,11 +434,10 @@ public:
     bool setProperty(const char *name, const T &value) {
         return setProperty(name, MetaType::lookup<T>(), &value);
     }
+
+    bool setProperty(const char *name, const MetaType &type, const void *value);
 protected:
     Object() {}
-private:
-    bool getProperty(const char *name, const MetaType &type, void *value) const;
-    bool setProperty(const char *name, const MetaType &type, const void *value);
 };
 
 /**

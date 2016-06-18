@@ -31,16 +31,20 @@
 #include <map>
 
 /** Initialise a meta-type.
- * @param name          Name of the meta-type. */
-MetaType::MetaType(const char *name, uint32_t traits) :
+ * @param name          Name of the meta-type.
+ * @param parent        Parent type (for pointers and Object-derived classes). */
+MetaType::MetaType(const char *name, uint32_t traits, const MetaType *parent) :
     m_name(name),
-    m_traits(traits)
+    m_traits(traits),
+    m_parent(parent)
 {}
 
 /** Allocate a new meta-type.
  * @param signature     Signature for lookup function to extract type name from.
+ * @param traits        Traits for the type.
+ * @param parent        Parent type (for pointers).
  * @return              Pointer to allocated meta-type. */
-const MetaType *MetaType::allocate(const char *signature) {
+const MetaType *MetaType::allocate(const char *signature, uint32_t traits, const MetaType *parent) {
     /*
      * Derive the type name from the function signature (see LookupImpl).
      * Currently works for GCC/clang only, object.h will error if the compiler
@@ -51,7 +55,7 @@ const MetaType *MetaType::allocate(const char *signature) {
     size_t end = name.rfind(", LookupEnable") - start;
     name = name.substr(start, end);
 
-    return new MetaType(strdup(name.c_str()), 0);
+    return new MetaType(strdup(name.c_str()), traits, parent);
 }
 
 /** @return             Map of globally declared meta-classes. */
@@ -74,8 +78,7 @@ MetaClass::MetaClass(
     ConstructorFunction constructor,
     const PropertyArray &properties)
     :
-    MetaType(name, traits | MetaType::kIsObject),
-    m_parent(parent),
+    MetaType(name, traits | MetaType::kIsObject, parent),
     m_constructor(std::move(constructor)),
     m_properties(properties)
 {
@@ -104,7 +107,7 @@ bool MetaClass::isBaseOf(const MetaClass &other) const {
         if (current == this)
             return true;
 
-        current = current->m_parent;
+        current = current->parent();
     }
 
     return false;
@@ -137,7 +140,7 @@ const MetaProperty *MetaClass::lookupProperty(const char *name) const {
         if (ret != current->m_propertyMap.end())
             return ret->second;
 
-        current = current->m_parent;
+        current = current->parent();
     }
 
     return nullptr;
