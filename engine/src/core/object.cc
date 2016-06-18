@@ -36,7 +36,8 @@
 MetaType::MetaType(const char *name, uint32_t traits, const MetaType *parent) :
     m_name(name),
     m_traits(traits),
-    m_parent(parent)
+    m_parent(parent),
+    m_enumConstants(nullptr)
 {}
 
 /** Allocate a new meta-type.
@@ -45,11 +46,9 @@ MetaType::MetaType(const char *name, uint32_t traits, const MetaType *parent) :
  * @param parent        Parent type (for pointers).
  * @return              Pointer to allocated meta-type. */
 const MetaType *MetaType::allocate(const char *signature, uint32_t traits, const MetaType *parent) {
-    /*
-     * Derive the type name from the function signature (see LookupImpl).
+    /* Derive the type name from the function signature (see LookupImpl).
      * Currently works for GCC/clang only, object.h will error if the compiler
-     * is not recognised to remind that support needs to be added here.
-     */
+     * is not recognised to remind that support needs to be added here. */
     std::string name(signature);
     size_t start = name.rfind("LookupT = ") + 10;
     size_t end = name.rfind(", LookupEnable") - start;

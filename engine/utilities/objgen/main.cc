@@ -114,9 +114,6 @@ public:
     bool isObjectDerived;           /**< Whether the class derives from Object. */
     ParsedClass *parentClass;       /**< Parent class. */
 
-    /** Temporary state used while parsing. */
-    bool onMetaClass;
-
     /** List of child properties. */
     std::list<std::unique_ptr<ParsedProperty>> properties;
 
@@ -140,6 +137,28 @@ private:
     };
 
     Constructability m_constructable;
+    bool m_onMetaClass;             /**< Temporary state used while parsing. */
+};
+
+/** Details of a parsed enumeration. */
+class ParsedEnum : public ParsedDecl {
+public:
+    bool shouldGenerate;            /**< Whether this enum is used and should have code generated. */
+
+    Mustache::Data generate() const override;
+    void dump(unsigned depth) const override;
+
+    static void create(CXCursor cursor, ParsedDecl *parent);
+protected:
+    void handleChild(CXCursor cursor, CXCursorKind kind) override;
+private:
+    /** Type of a pair describing an enum constant. */
+    using EnumConstant = std::pair<std::string, long long>;
+
+    ParsedEnum(CXCursor cursor, ParsedDecl *parent);
+
+    /** Possible values of the enum. */
+    std::list<EnumConstant> m_constants;
 };
 
 /** Details of a parsed translation unit. */
@@ -149,6 +168,9 @@ public:
 
     /** List of child classes. */
     std::map<std::string, std::unique_ptr<ParsedClass>> classes;
+
+    /** List of child enumerations (including ones nested within classes). */
+    std::map<std::string, std::unique_ptr<ParsedEnum>> enums;
 
     Mustache::Data generate() const override;
     void dump(unsigned depth = 0) const override;
@@ -367,6 +389,24 @@ bool ParsedProperty::handleAnnotation(const std::string &type, const rapidjson::
     if (type.compare("property") != 0)
         return false;
 
+    /* Now that we know that we are really a property, if our type is an enum,
+     * mark that enum for code generation. */
+    CXType propertyType = clang_getCursorType(cursor);
+    CXCursor propertyTypeDecl = clang_getTypeDeclaration(propertyType);
+    if (clang_getCursorKind(propertyTypeDecl) == CXCursor_EnumDecl) {
+        const ParsedTranslationUnit *translationUnit = getTranslationUnit();
+        auto it = translationUnit->enums.find(this->type);
+        if (it != translationUnit->enums.end()) {
+            it->second->shouldGenerate = true;
+        } else {
+            parseError(
+                this->cursor,
+                "full declaration of enum '%s' must be available for property '%s'",
+                this->type.c_str(), this->name.c_str());
+            return true;
+        }
+    }
+
     ParsedClass *parent = static_cast<ParsedClass *>(this->parent);
     if (!parent->isObjectDerived) {
         parseError(
@@ -462,8 +502,8 @@ ParsedClass::ParsedClass(CXCursor cursor, ParsedDecl *parent) :
     ParsedDecl(cursor, parent, true),
     isObjectDerived(name.compare("Object") == 0),
     parentClass(nullptr),
-    onMetaClass(false),
-    m_constructable(Constructability::kDefault)
+    m_constructable(Constructability::kDefault),
+    m_onMetaClass(false)
 {}
 
 /**
@@ -516,7 +556,7 @@ bool ParsedClass::isPublicConstructable() const {
  * @param attributes    Attributes specified for the annotation.
  * @return              Whether the annotation was consumed. */
 bool ParsedClass::handleAnnotation(const std::string &type, const rapidjson::Document &attributes) {
-    if (!this->onMetaClass || type.compare("class") != 0)
+    if (!m_onMetaClass || type.compare("class") != 0)
         return false;
 
     if (!this->isObjectDerived) {
@@ -550,7 +590,7 @@ bool ParsedClass::handleAnnotation(const std::string &type, const rapidjson::Doc
  * @param cursor        Child cursor.
  * @param kind          Kind of the cursor. */
 void ParsedClass::handleChild(CXCursor cursor, CXCursorKind kind) {
-    if (this->onMetaClass)
+    if (m_onMetaClass)
         return;
 
     switch (kind) {
@@ -568,7 +608,7 @@ void ParsedClass::handleChild(CXCursor cursor, CXCursorKind kind) {
              * even those outside the main file. Therefore, we look for the
              * base class name in there, and if it matches one of those, then
              * we are an Object-derived class as well. */
-            ParsedTranslationUnit *translationUnit = getTranslationUnit();
+            const ParsedTranslationUnit *translationUnit = getTranslationUnit();
             auto it = translationUnit->classes.find(typeName);
             if (it != translationUnit->classes.end()) {
                 /* If isObjectDerived is already set to true, then we have
@@ -629,9 +669,9 @@ void ParsedClass::handleChild(CXCursor cursor, CXCursorKind kind) {
             std::string typeName(clang_getCString(str));
             clang_disposeString(str);
             if (!typeName.compare("staticMetaClass")) {
-                onMetaClass = true;
+                m_onMetaClass = true;
                 visitChildren(cursor, this);
-                onMetaClass = false;
+                m_onMetaClass = false;
                 break;
             }
 
@@ -660,6 +700,10 @@ void ParsedClass::handleChild(CXCursor cursor, CXCursorKind kind) {
             if (clang_CXXMethod_isPureVirtual(cursor))
                 m_constructable = Constructability::kForcedNone;
 
+            break;
+
+        case CXCursor_EnumDecl:
+            ParsedEnum::create(cursor, this);
             break;
 
         default:
@@ -705,6 +749,85 @@ void ParsedClass::dump(unsigned depth) const {
         parsedProperty->dump(depth + 1);
 }
 
+/** Initialise the enum.
+ * @param cursor        Cursor to initialise from.
+ * @param _parent       Parent declaration. */
+ParsedEnum::ParsedEnum(CXCursor cursor, ParsedDecl *parent) :
+    ParsedDecl(cursor, parent, true),
+    shouldGenerate(false)
+{}
+
+/** Create an enum and add it to the translation unit.
+ * @param cursor        Cursor to initialise from.
+ * @param parent        Parent declaration. */
+void ParsedEnum::create(CXCursor cursor, ParsedDecl *parent) {
+    if (!clang_isCursorDefinition(cursor))
+        return;
+
+    /* We don't handle anonymous enums. There is no function that specifically
+     * identifies this, so the way we do this is to check if the cursor
+     * spelling is empty. Have to do this separately rather than checking the
+     * name obtained by the constructor because that gets the type spelling
+     * which is not empty for an anonymous enum. */
+    CXString name = clang_getCursorSpelling(cursor);
+    bool anonymous = std::strlen(clang_getCString(name)) == 0;
+    clang_disposeString(name);
+    if (anonymous)
+        return;
+
+    std::unique_ptr<ParsedEnum> parsedEnum(new ParsedEnum(cursor, parent));
+
+    visitChildren(cursor, parsedEnum.get());
+    parent->getTranslationUnit()->enums.insert(std::make_pair(parsedEnum->name, std::move(parsedEnum)));
+}
+
+/** Called when a child is reached on this declaration.
+ * @param cursor        Child cursor.
+ * @param kind          Kind of the cursor. */
+void ParsedEnum::handleChild(CXCursor cursor, CXCursorKind kind) {
+    if (kind == CXCursor_EnumConstantDecl) {
+        long long value = clang_getEnumConstantDeclValue(cursor);
+
+        CXString str = clang_getCursorSpelling(cursor);
+        std::string name(clang_getCString(str));
+        clang_disposeString(str);
+
+        m_constants.push_back(std::make_pair(name, value));
+    }
+}
+
+/** Generate this declaration.
+ * @return              Generated Mustache data object. */
+Mustache::Data ParsedEnum::generate() const {
+    Mustache::Data data;
+
+    data.set("name", this->name);
+
+    Mustache::Data constants(Mustache::Data::List());
+    for (const EnumConstant &constant : m_constants) {
+        std::stringstream valueStr;
+        valueStr << constant.second;
+
+        Mustache::Data constantData;
+        constantData.set("constantName", constant.first);
+        constantData.set("constantValue", valueStr.str());
+        constants.push_back(constantData);
+    }
+
+    data.set("constants", constants);
+
+    return data;
+}
+
+/** Dump this declaration.
+ * @param depth         Indentation depth. */
+void ParsedEnum::dump(unsigned depth) const {
+    printf("%-*sEnum '%s'\n", depth * 2, "", this->name.c_str());
+
+    for (auto &pair : m_constants)
+        printf("%-*s'%s' = %lld\n", (depth + 1) * 2, "", pair.first.c_str(), pair.second);
+}
+
 /** Initialise the translation unit.
  * @param cursor        Cursor to initialise from. */
 ParsedTranslationUnit::ParsedTranslationUnit(CXCursor cursor) :
@@ -734,6 +857,10 @@ void ParsedTranslationUnit::handleChild(CXCursor cursor, CXCursorKind kind) {
 
             break;
 
+        case CXCursor_EnumDecl:
+            ParsedEnum::create(cursor, this);
+            break;
+
         default:
             break;
     }
@@ -750,8 +877,17 @@ Mustache::Data ParsedTranslationUnit::generate() const {
             classes.push_back(parsedClass->generate());
     }
 
+    Mustache::Data enums(Mustache::Data::List());
+    for (auto &it : this->enums) {
+        const std::unique_ptr<ParsedEnum> &parsedEnum = it.second;
+
+        if (parsedEnum->shouldGenerate)
+            enums.push_back(parsedEnum->generate());
+    }
+
     Mustache::Data data;
     data.set("classes", classes);
+    data.set("enums", enums);
     return data;
 }
 
@@ -765,6 +901,13 @@ void ParsedTranslationUnit::dump(unsigned depth) const {
 
         if (parsedClass->isFromMainFile())
             parsedClass->dump(depth + 1);
+    }
+
+    for (auto &it : this->enums) {
+        const std::unique_ptr<ParsedEnum> &parsedEnum = it.second;
+
+        if (parsedEnum->shouldGenerate)
+            parsedEnum->dump(depth + 1);
     }
 }
 

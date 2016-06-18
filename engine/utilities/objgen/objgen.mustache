@@ -57,3 +57,11 @@ const MetaClass &{{name}}::metaClass() const {
     return {{name}}::staticMetaClass;
 }
 {{/classes}}
+{{#enums}}
+
+static MetaType::EnumData<{{name}}> {{name}}_data = {
+{{#constants}}
+    { "{{constantName}}", {{constantValue}} },
+{{/constants}}
+};
+{{/enums}}
