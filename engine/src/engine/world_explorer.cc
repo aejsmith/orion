@@ -19,6 +19,7 @@
  * @brief               World explorer debug window.
  */
 
+#include "engine/asset_manager.h"
 #include "engine/component.h"
 #include "engine/engine.h"
 #include "engine/entity.h"
@@ -152,10 +153,86 @@ void WorldExplorerWindow::displayEntityTree() {
 /** Helper for property editor functions. */
 template <typename T, typename Func>
 void editProperty(Object *object, const MetaProperty &property, Func display) {
-    T value;
-    object->getProperty<T>(property.name(), value);
-    if (display(&value))
-        object->setProperty<T>(property.name(), value);
+    if (&property.type() == &MetaType::lookup<T>()) {
+        ImGui::PushID(&property);
+
+        ImGui::Text(property.name());
+        ImGui::NextColumn();
+
+        ImGui::PushItemWidth(-1);
+
+        T value;
+        object->getProperty<T>(property.name(), value);
+        if (display(&value))
+            object->setProperty<T>(property.name(), value);
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+        ImGui::PopID();
+    }
+}
+
+/** Edit properties which reference an asset. */
+static void editAssetProperty(Object *object, const MetaProperty &property) {
+    if (!property.type().isPointer())
+        return;
+    if (!property.type().pointedType().isObject())
+        return;
+
+    const MetaClass &pointedClass = static_cast<const MetaClass &>(property.type().pointedType());
+
+    if (!Asset::staticMetaClass.isBaseOf(pointedClass))
+        return;
+
+    ImGui::PushID(&property);
+
+    ImGui::Text(property.name());
+    ImGui::NextColumn();
+
+    /* Get current asset. */
+    AssetPtr asset;
+    object->getProperty(property.name(), property.type(), &asset);
+
+    /* Edit the asset path. Only update when enter is pressed. It's OK that we
+     * allocate this string each time we're called, ImGui buffers internally
+     * while a textbox is being edited. */
+    static std::string errorPath;
+    static std::string errorIncorrectType;
+    std::string path = asset->path();
+    path.resize(128);
+    if (ImGui::InputText(pointedClass.name(), &path[0], 128, ImGuiInputTextFlags_EnterReturnsTrue)) {
+        path.resize(std::strlen(&path[0]));
+
+        /* Try to load the new asset. */
+        asset = g_assetManager->load(path);
+        if (!asset) {
+            errorPath = path;
+            errorIncorrectType.clear();
+            ImGui::OpenPopup("Invalid Asset");
+        } else if (!pointedClass.isBaseOf(asset->metaClass())) {
+            errorPath = path;
+            errorIncorrectType = asset->metaClass().name();
+            ImGui::OpenPopup("Invalid Asset");
+        } else {
+            object->setProperty(property.name(), property.type(), &asset);
+        }
+    }
+
+    if (ImGui::BeginPopupModal("Invalid Asset", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (errorIncorrectType.empty()) {
+            ImGui::Text("Asset '%s' could not be found", errorPath.c_str());
+        } else {
+            ImGui::Text("Asset '%s' is incorrect type '%s'", errorPath.c_str(), errorIncorrectType.c_str());
+        }
+
+        ImGui::Spacing();
+        if (ImGui::Button("OK", ImVec2(120,0)))
+            ImGui::CloseCurrentPopup();
+        ImGui::EndPopup();
+    }
+
+    ImGui::NextColumn();
+    ImGui::PopID();
 }
 
 /** Display editors for a specific class' properties. */
@@ -165,65 +242,58 @@ static void displayPropertyEditors(Object *object, const MetaClass *metaClass) {
         displayPropertyEditors(object, metaClass->parent());
 
     for (const MetaProperty &property : metaClass->properties()) {
-        ImGui::PushID(&property);
+        editProperty<bool>(
+            object, property,
+            [&] (bool *value) {
+                return ImGui::Checkbox("", value);
+            });
 
-        ImGui::Text(property.name());
-        ImGui::NextColumn();
+        editProperty<float>(
+            object, property,
+            [&] (float *value) {
+                return ImGui::InputFloat("", value);
+            });
 
-        ImGui::PushItemWidth(-1);
+        editProperty<std::string>(
+            object, property,
+            [&] (std::string *value) {
+                std::string &str = *value;
+                str.resize(128);
+                if (ImGui::InputText("", &str[0], 128)) {
+                    str.resize(std::strlen(&str[0]));
+                    return true;
+                } else {
+                    return false;
+                }
+            });
 
-        if (&property.type() == &MetaType::lookup<bool>()) {
-            editProperty<bool>(
-                object, property,
-                [&] (bool *value) { return ImGui::Checkbox("", value); });
-        } else if (&property.type() == &MetaType::lookup<float>()) {
-            editProperty<float>(
-                object, property,
-                [&] (float *value) { return ImGui::InputFloat("", value); });
-        } else if (&property.type() == &MetaType::lookup<std::string>()) {
-            editProperty<std::string>(
-                object, property,
-                [&] (std::string *value) {
-                    std::string &str = *value;
-                    str.resize(128);
-                    if (ImGui::InputText("", &str[0], 128)) {
-                        value->resize(std::strlen(&str[0]));
-                        return true;
-                    } else {
-                        return false;
-                    }
-                });
-        } else if (&property.type() == &MetaType::lookup<glm::vec3>()) {
-            editProperty<glm::vec3>(
-                object, property,
-                [&] (glm::vec3 *value) { return ImGui::InputFloat3("", &value->x); });
-        } else if (&property.type() == &MetaType::lookup<glm::quat>()) {
-            editProperty<glm::quat>(
-                object, property,
-                [&] (glm::quat *value) {
-                    glm::vec3 eulerAngles = glm::eulerAngles(*value);
+        editProperty<glm::vec3>(
+            object, property,
+            [&] (glm::vec3 *value) {
+                return ImGui::InputFloat3("", &value->x);
+            });
+
+        editProperty<glm::quat>(
+            object, property,
+            [&] (glm::quat *value) {
+                glm::vec3 eulerAngles = glm::eulerAngles(*value);
+                eulerAngles = glm::vec3(
+                    glm::degrees(eulerAngles.x),
+                    glm::degrees(eulerAngles.y),
+                    glm::degrees(eulerAngles.z));
+                if (ImGui::InputFloat3("", &eulerAngles.x)) {
                     eulerAngles = glm::vec3(
-                        glm::degrees(eulerAngles.x),
-                        glm::degrees(eulerAngles.y),
-                        glm::degrees(eulerAngles.z));
-                    if (ImGui::InputFloat3("", &eulerAngles.x)) {
-                        eulerAngles = glm::vec3(
-                            glm::radians(eulerAngles.x),
-                            glm::radians(eulerAngles.y),
-                            glm::radians(eulerAngles.z));
-                        *value = glm::quat(eulerAngles);
-                        return true;
-                    } else {
-                        return false;
-                    }
-                });
-        }
+                        glm::radians(eulerAngles.x),
+                        glm::radians(eulerAngles.y),
+                        glm::radians(eulerAngles.z));
+                    *value = glm::quat(eulerAngles);
+                    return true;
+                } else {
+                    return false;
+                }
+            });
 
-        ImGui::PopItemWidth();
-
-        ImGui::NextColumn();
-
-        ImGui::PopID();
+        editAssetProperty(object, property);
     }
 }
 
