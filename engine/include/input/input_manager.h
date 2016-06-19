@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -46,11 +46,15 @@ public:
 private:
     void registerHandler(InputHandler *handler);
     void unregisterHandler(InputHandler *handler);
+    void beginTextInput(InputHandler *handler);
+    void endTextInput(InputHandler *handler);
 private:
     bool m_mouseCaptured;               /**< Whether the mouse is captured. */
 
     /** List of handlers, sorted by priority. */
     std::list<InputHandler *> m_handlers;
+
+    InputHandler *m_textInputHandler;   /**< Current text input handler. */
 
     friend class InputHandler;
 };

@@ -58,6 +58,7 @@ protected:
     bool handleButtonDown(const ButtonEvent &event) override;
     bool handleButtonUp(const ButtonEvent &event) override;
     bool handleAxis(const AxisEvent &event) override;
+    void handleTextInput(const TextInputEvent &event) override;
 private:
     /** State of the GUI. */
     enum class State {
@@ -75,6 +76,7 @@ private:
     GPUSamplerStatePtr m_sampler;       /**< Texture sampler for the GUI. */
     State m_state;                      /**< State of the GUI. */
     bool m_previousMouseCapture;        /**< Previous mouse capture state. */
+    bool m_inputtingText;               /**< Whether currently inputting text. */
 
     /** List of GUI windows. */
     std::list<std::unique_ptr<DebugWindow>> m_windows;
@@ -119,7 +121,8 @@ ImTextureID DebugWindow::refTexture(Texture2D *texture) {
 DebugOverlay::DebugOverlay() :
     RenderLayer(RenderLayer::kDebugOverlayPriority),
     InputHandler(InputHandler::kDebugOverlayPriority),
-    m_state(State::kInactive)
+    m_state(State::kInactive),
+    m_inputtingText(false)
 {}
 
 /** Destroy the debug overlay. */
@@ -274,6 +277,16 @@ void DebugOverlay::startFrame() {
     io.KeyAlt = (modifiers & InputModifier::kAlt) != 0;
 
     ImGui::NewFrame();
+
+    if (io.WantTextInput != m_inputtingText) {
+        if (io.WantTextInput) {
+            beginTextInput();
+        } else {
+            endTextInput();
+        }
+
+        m_inputtingText = io.WantTextInput;
+    }
 }
 
 /** Render the debug overlay. */
@@ -397,10 +410,6 @@ bool DebugOverlay::handleButtonDown(const ButtonEvent &event) {
 
         if (event.code < InputCode::kNumKeyboardCodes) {
             io.KeysDown[static_cast<int>(event.code)] = true;
-
-            // FIXME: Unicode. Need a proper text input API.
-            if (event.character)
-                io.AddInputCharacter(event.character);
         } else if (event.code < InputCode::kNumMouseCodes) {
             switch (event.code) {
                 case InputCode::kMouseLeft:
@@ -496,6 +505,13 @@ bool DebugOverlay::handleAxis(const AxisEvent &event) {
     }
 
     return false;
+}
+
+/** Handle a text input event.
+ * @param event         Text input event. */
+void DebugOverlay::handleTextInput(const TextInputEvent &event) {
+    ImGuiIO &io = ImGui::GetIO();
+    io.AddInputCharactersUTF8(event.text.c_str());
 }
 
 /** Get the current clipboard text. */

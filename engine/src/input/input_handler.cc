@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -61,4 +61,20 @@ void InputHandler::unregisterInputHandler() {
 
     g_inputManager->unregisterHandler(this);
     m_registered = false;
+}
+
+/**
+ * Begin text input.
+ *
+ * This function starts collecting text input and delivers the input to this
+ * handler via handleTextInput(). When text input is no longer required,
+ * endTextInput() should be called to stop collecting input.
+ */
+void InputHandler::beginTextInput() {
+    g_inputManager->beginTextInput(this);
+}
+
+/** End text input. */
+void InputHandler::endTextInput() {
+    g_inputManager->endTextInput(this);
 }

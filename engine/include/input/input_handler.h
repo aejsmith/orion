@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -51,6 +51,9 @@ protected:
     void registerInputHandler();
     void unregisterInputHandler();
 
+    void beginTextInput();
+    void endTextInput();
+
     /** Handle a button down event.
      * @param event         Button event.
      * @return              Whether the event was handled. If false, the event
@@ -71,6 +74,10 @@ protected:
      *                      will be passed to the next highest priority input
      *                      handler. */
     virtual bool handleAxis(const AxisEvent &event) { return false; }
+
+    /** Handle a text input event.
+     * @param event         Text input event. */
+    virtual void handleTextInput(const TextInputEvent &event) { }
 private:
     Priority m_priority;            /**< Input handling priority. */
     bool m_registered;              /**< Whether the handler is registered with the input manager. */

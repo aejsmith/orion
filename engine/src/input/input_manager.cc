@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -31,8 +31,11 @@ InputManager *g_inputManager;
 
 /** Initialise the input manager. */
 InputManager::InputManager() :
-    m_mouseCaptured(false)
-{}
+    m_mouseCaptured(false),
+    m_textInputHandler(nullptr)
+{
+    SDL_StopTextInput();
+}
 
 /** Get the current input modifier state.
  * @return              Bitmask of currently held modifier keys. */
@@ -236,6 +239,14 @@ bool InputManager::handleEvent(SDL_Event *event) {
 
             return true;
         }
+
+        case SDL_TEXTINPUT:
+            if (m_textInputHandler) {
+                TextInputEvent textInputEvent(event->text.text);
+                m_textInputHandler->handleTextInput(textInputEvent);
+            }
+
+            return true;
     }
 
     return false;
@@ -261,4 +272,22 @@ void InputManager::registerHandler(InputHandler *handler) {
  * @param handler       Handler to unregister. */
 void InputManager::unregisterHandler(InputHandler *handler) {
     m_handlers.remove(handler);
+}
+
+/** Begin text input.
+ * @param handler       Handler which is requesting the input. */
+void InputManager::beginTextInput(InputHandler *handler) {
+    checkMsg(!m_textInputHandler, "Multiple input handlers requesting text input");
+
+    m_textInputHandler = handler;
+    SDL_StartTextInput();
+}
+
+/** End text input.
+ * @param handler       Handler which was requesting the input. */
+void InputManager::endTextInput(InputHandler *handler) {
+    check(m_textInputHandler == handler);
+
+    SDL_StopTextInput();
+    m_textInputHandler = nullptr;
 }
