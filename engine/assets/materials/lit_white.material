@@ -1,0 +1,7 @@
+{
+    "shader": "engine/shaders/lit_diffuse_coloured",
+    "parameters": {
+        "diffuseColour": [1.0, 1.0, 1.0]
+    }
+}
+
