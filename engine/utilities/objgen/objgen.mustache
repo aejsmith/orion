@@ -4,7 +4,7 @@
 {{/include}}
 {{#classes}}
 
-static const uint32_t {{name}}_traits =
+static const uint32_t {{mangledName}}_traits =
 {{#isConstructable}}
     MetaType::kIsConstructable |
 {{/isConstructable}}
@@ -14,7 +14,7 @@ static const uint32_t {{name}}_traits =
     0;
 
 {{#properties}}
-void {{name}}_get_{{propertyName}}(const Object *base, void *value) {
+void {{mangledName}}_get_{{propertyName}}(const Object *base, void *value) {
     auto object = static_cast<const {{name}} *>(base);
 {{#propertyGet}}
     *reinterpret_cast<{{propertyType}} *>(value) = object->{{propertyGet}}();
@@ -24,7 +24,7 @@ void {{name}}_get_{{propertyName}}(const Object *base, void *value) {
 {{/propertyGet}}
 }
 
-void {{name}}_set_{{propertyName}}(Object *base, const void *value) {
+void {{mangledName}}_set_{{propertyName}}(Object *base, const void *value) {
     auto object = static_cast<{{name}} *>(base);
 {{#propertySet}}
     object->{{propertySet}}(*reinterpret_cast<const {{propertyType}} *>(value));
@@ -35,23 +35,23 @@ void {{name}}_set_{{propertyName}}(Object *base, const void *value) {
 }
 
 {{/properties}}
-static const MetaClass::PropertyArray {{name}}_propertyTable = {
+static const MetaClass::PropertyArray {{mangledName}}_propertyTable = {
 {{#properties}}
-    MetaProperty("{{propertyName}}", MetaType::lookup<{{propertyType}}>(), {{name}}_get_{{propertyName}}, {{name}}_set_{{propertyName}}),
+    MetaProperty("{{propertyName}}", MetaType::lookup<{{propertyType}}>(), {{mangledName}}_get_{{propertyName}}, {{mangledName}}_set_{{propertyName}}),
 {{/properties}}
 };
 
 const MetaClass {{name}}::staticMetaClass(
     "{{name}}",
     {{#parent}}&{{parent}}::staticMetaClass{{/parent}}{{^parent}}nullptr{{/parent}},
-    {{name}}_traits,
+    {{mangledName}}_traits,
 {{#isConstructable}}
     [] () -> Object * { return new {{name}}; },
 {{/isConstructable}}
 {{^isConstructable}}
     MetaClass::ConstructorFunction(),
 {{/isConstructable}}
-    {{name}}_propertyTable);
+    {{mangledName}}_propertyTable);
 
 const MetaClass &{{name}}::metaClass() const {
     return {{name}}::staticMetaClass;
@@ -59,7 +59,7 @@ const MetaClass &{{name}}::metaClass() const {
 {{/classes}}
 {{#enums}}
 
-static MetaType::EnumData<{{name}}> {{name}}_data = {
+static MetaType::EnumData<{{name}}> {{mangledName}}_data = {
 {{#constants}}
     { "{{constantName}}", {{constantValue}} },
 {{/constants}}

@@ -234,6 +234,28 @@ static void tokenize(
     }
 }
 
+/**
+ * Mangle a name string for use in generated code.
+ *
+ * In the generated code we base the name of some of the variables we define
+ * on the name of the class or enum. For a class or enum that is nested in a
+ * namespace or inside another class, the name is of the form "Foo::Bar". This
+ * cannot be directly used to name a variable, e.g. "Foo::Bar_data". This
+ * function solves this by replacing "::" in the name string with "_" to give
+ * a name suitable for naming our generated variables.
+ *
+ * @param name          Original name string.
+ *
+ * @return              Mangled name string.
+ */
+static std::string mangleName(std::string name) {
+    size_t pos;
+    while ((pos = name.find("::")) != std::string::npos)
+        name.replace(pos, 2, "_");
+
+    return name;
+}
+
 /** Initialise the declaration.
  * @param _cursor       Cursor to initialise from.
  * @param _parent       Parent declaration.
@@ -717,6 +739,7 @@ Mustache::Data ParsedClass::generate() const {
     Mustache::Data data;
 
     data.set("name", this->name);
+    data.set("mangledName", mangleName(this->name));
 
     if (this->parentClass)
         data.set("parent", this->parentClass->name);
@@ -802,6 +825,7 @@ Mustache::Data ParsedEnum::generate() const {
     Mustache::Data data;
 
     data.set("name", this->name);
+    data.set("mangledName", mangleName(this->name));
 
     Mustache::Data constants(Mustache::Data::List());
     for (const EnumConstant &constant : m_constants) {
