@@ -39,6 +39,8 @@ public:
      * Rendering.
      */
 
+    VPROPERTY(RenderPath, renderPath);
+
     /**
      * Set the rendering path.
      *
@@ -57,21 +59,35 @@ public:
     void render() override;
 
     /**
-     * Viewing manipulation.
+     * View settings.
      */
 
     /** @return             World-to-view matrix. */
     const glm::mat4 &view() { return m_sceneView.view(); }
 
     /**
-     * Projection manipulation.
+     * Projection settings.
      */
 
+    /** Type of the projection. */
+    enum class ProjectionMode {
+        kPerspective,
+        //kOrthographic,
+    };
+
+    VPROPERTY(ProjectionMode, projectionMode);
+    VPROPERTY(float, fov, "get": "fov", "set": "setFOV");
+    VPROPERTY(float, zNear);
+    VPROPERTY(float, zFar);
+
+    void setProjectionMode(ProjectionMode mode) {}
     void perspective(float fov = 75.0f, float zNear = 0.1f, float zfar = 1000.0f);
     void setFOV(float fov);
     void setZNear(float zNear);
     void setZFar(float zFar);
 
+    /** @return             Current projection mode. */
+    ProjectionMode projectionMode() const { return ProjectionMode::kPerspective; }
     /** @return             Horizontal field of view. */
     float fov() const { return m_sceneView.fov(); }
     /** @return             Near clipping plane. */
