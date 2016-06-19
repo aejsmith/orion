@@ -120,8 +120,6 @@ public:
 
     DirectionalLight();
 
-    VPROPERTY(glm::vec3, direction);
-
     using Light::setDirection;
     using Light::direction;
 protected:
@@ -166,7 +164,6 @@ public:
 
     SpotLight();
 
-    VPROPERTY(glm::vec3, direction);
     VPROPERTY(float, cutoff);
     VPROPERTY(float, range);
     VPROPERTY(glm::vec3, attenuation);
