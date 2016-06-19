@@ -297,7 +297,7 @@ static void displayPropertyEditors(Object *object, const MetaClass *metaClass) {
         editProperty<float>(
             object, property,
             [&] (float *value) {
-                return ImGui::InputFloat("", value);
+                return ImGui::InputFloat("", value, 0.0f, 0.0f, -1, ImGuiInputTextFlags_EnterReturnsTrue);
             });
 
         editProperty<std::string>(
@@ -305,7 +305,7 @@ static void displayPropertyEditors(Object *object, const MetaClass *metaClass) {
             [&] (std::string *value) {
                 std::string &str = *value;
                 str.resize(128);
-                if (ImGui::InputText("", &str[0], 128)) {
+                if (ImGui::InputText("", &str[0], 128, ImGuiInputTextFlags_EnterReturnsTrue)) {
                     str.resize(std::strlen(&str[0]));
                     return true;
                 } else {
@@ -316,7 +316,7 @@ static void displayPropertyEditors(Object *object, const MetaClass *metaClass) {
         editProperty<glm::vec3>(
             object, property,
             [&] (glm::vec3 *value) {
-                return ImGui::InputFloat3("", &value->x);
+                return ImGui::InputFloat3("", &value->x, -1, ImGuiInputTextFlags_EnterReturnsTrue);
             });
 
         editProperty<glm::quat>(
@@ -327,7 +327,7 @@ static void displayPropertyEditors(Object *object, const MetaClass *metaClass) {
                     glm::degrees(eulerAngles.x),
                     glm::degrees(eulerAngles.y),
                     glm::degrees(eulerAngles.z));
-                if (ImGui::InputFloat3("", &eulerAngles.x)) {
+                if (ImGui::InputFloat3("", &eulerAngles.x, -1, ImGuiInputTextFlags_EnterReturnsTrue)) {
                     eulerAngles = glm::vec3(
                         glm::radians(eulerAngles.x),
                         glm::radians(eulerAngles.y),
