@@ -51,65 +51,6 @@
 #include "render/utility.h"
 #include "render/vertex.h"
 
-/** Create a 2D plane centered at the origin extending in the X/Y direction.
- * @param parent        Parent entity.
- * @param name          Name of the entity.
- * @param material      Material to use for the plane.
- * @param tiles         Texture tiling count. */
-static inline Entity *createPlane(
-    Entity *parent,
-    const std::string &name,
-    Material *material,
-    float tiles)
-{
-    /* Vertices of the plane. */
-    glm::vec3 vertices[] = {
-        glm::vec3(-0.5f, -0.5f, 0.0f),
-        glm::vec3(0.5f, -0.5f, 0.0f),
-        glm::vec3(0.5f, 0.5f, 0.0f),
-        glm::vec3(-0.5f, 0.5f, 0.0f),
-    };
-
-    /* We only have a single normal. */
-    glm::vec3 normal(0.0f, 0.0f, 1.0f);
-
-    /* Texture coordinates. */
-    glm::vec2 texcoords[] = {
-        glm::vec2(0.0f, 0.0f), glm::vec2(tiles, 0.0f),
-        glm::vec2(tiles, tiles), glm::vec2(0.0f, tiles),
-    };
-
-    MeshPtr mesh(new Mesh());
-    SubMesh *subMesh = mesh->addSubMesh();
-    subMesh->material = mesh->addMaterial("default");
-    subMesh->boundingBox.minimum = glm::vec3(-0.5f, -0.5f, 0.0f);
-    subMesh->boundingBox.maximum = glm::vec3(0.5f, 0.5f, 0.0f);
-
-    std::vector<SimpleVertex> data;
-    data.emplace_back(vertices[0], normal, texcoords[0]);
-    data.emplace_back(vertices[1], normal, texcoords[1]);
-    data.emplace_back(vertices[2], normal, texcoords[2]);
-    data.emplace_back(vertices[2], normal, texcoords[2]);
-    data.emplace_back(vertices[3], normal, texcoords[3]);
-    data.emplace_back(vertices[0], normal, texcoords[0]);
-
-    GPUBufferArray buffers(1);
-    buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, data);
-    subMesh->vertices = g_gpuManager->createVertexData(
-        data.size(),
-        g_renderManager->simpleVertexFormat(),
-        buffers);
-
-    Entity *entity = parent->createChild(name);
-    MeshRenderer *renderer = entity->createComponent<MeshRenderer>();
-    renderer->setMesh(mesh);
-    renderer->setMaterial(subMesh->material, material);
-    renderer->setCastShadow(false);
-    renderer->setActive(true);
-
-    return entity;
-}
-
 /** Construct the game class. */
 TestGame::TestGame() :
     m_numCubes(0),
@@ -144,14 +85,17 @@ void TestGame::init() {
     ambientLight->setIntensity(0.05f);
     ambientLight->setActive(true);
 
-    Entity *floor = createPlane(
-        m_world->root(),
-        "floor",
-        g_assetManager->load<Material>("game/materials/floor"),
-        16.0f);
+    Entity *floor = m_world->createEntity("floor");
     floor->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
     floor->setScale(glm::vec3(100.0f, 100.0f, 1.0f));
     floor->setActive(true);
+    MeshRenderer *renderer = floor->createComponent<MeshRenderer>();
+    MeshPtr floorMesh = g_assetManager->load<Mesh>("game/models/floor");
+    renderer->setMesh(floorMesh);
+    MaterialPtr floorMaterial = g_assetManager->load<Material>("game/materials/floor");
+    renderer->setMaterial("default", floorMaterial);
+    renderer->setCastShadow(false);
+    renderer->setActive(true);
     BoxCollisionShape *collisionShape = floor->createComponent<BoxCollisionShape>();
     collisionShape->setHalfExtents(glm::vec3(0.5f, 0.5f, 0.01f));
     collisionShape->setActive(true);
