@@ -26,6 +26,8 @@
 #include "engine/world_explorer.h"
 #include "engine/world.h"
 
+#include "graphics/mesh_renderer.h"
+
 /** Initialise the world explorer. */
 WorldExplorerWindow::WorldExplorerWindow() :
     DebugWindow("World Explorer"),
@@ -152,7 +154,7 @@ void WorldExplorerWindow::displayEntityTree() {
 
 /** Helper for property editor functions. */
 template <typename T, typename Func>
-void editProperty(Object *object, const MetaProperty &property, Func display) {
+void displayPropertyEditor(Object *object, const MetaProperty &property, Func display) {
     if (&property.type() != &MetaType::lookup<T>())
         return;
 
@@ -180,7 +182,7 @@ static bool enumItemGetter(void *data, int index, const char **outText) {
 }
 
 /** Edit enum properties. */
-static void editEnumProperty(Object *object, const MetaProperty &property) {
+static void displayEnumPropertyEditor(Object *object, const MetaProperty &property) {
     if (!property.type().isEnum())
         return;
 
@@ -216,26 +218,12 @@ static void editEnumProperty(Object *object, const MetaProperty &property) {
     ImGui::PopID();
 }
 
-/** Edit properties which reference an asset. */
-static void editAssetProperty(Object *object, const MetaProperty &property) {
-    if (!property.type().isPointer())
-        return;
-    if (!property.type().pointeeType().isObject())
-        return;
-
-    const MetaClass &pointeeClass = static_cast<const MetaClass &>(property.type().pointeeType());
-
-    if (!Asset::staticMetaClass.isBaseOf(pointeeClass))
-        return;
-
-    ImGui::PushID(&property);
-
-    ImGui::Text(property.name());
-    ImGui::NextColumn();
-
-    /* Get current asset. */
-    AssetPtr asset;
-    object->getProperty(property.name(), property.type(), &asset);
+/** Display an asset editor.
+ * @param asset         Asset pointer to modify.
+ * @param metaClass     Expected class of the asset.
+ * @return              Whether the asset was changed. */
+static bool displayAssetEditor(AssetPtr &asset, const MetaClass &metaClass) {
+    bool ret = false;
 
     /* Edit the asset path. Only update when enter is pressed. It's OK that we
      * allocate this string each time we're called, ImGui buffers internally
@@ -244,7 +232,7 @@ static void editAssetProperty(Object *object, const MetaProperty &property) {
     static std::string errorIncorrectType;
     std::string path = (asset) ? asset->path() : "";
     path.resize(128);
-    if (ImGui::InputText(pointeeClass.name(), &path[0], 128, ImGuiInputTextFlags_EnterReturnsTrue)) {
+    if (ImGui::InputText(metaClass.name(), &path[0], 128, ImGuiInputTextFlags_EnterReturnsTrue)) {
         path.resize(std::strlen(&path[0]));
 
         /* Try to load the new asset. */
@@ -253,12 +241,12 @@ static void editAssetProperty(Object *object, const MetaProperty &property) {
             errorPath = path;
             errorIncorrectType.clear();
             ImGui::OpenPopup("Invalid Asset");
-        } else if (!pointeeClass.isBaseOf(asset->metaClass())) {
+        } else if (!metaClass.isBaseOf(asset->metaClass())) {
             errorPath = path;
             errorIncorrectType = asset->metaClass().name();
             ImGui::OpenPopup("Invalid Asset");
         } else {
-            object->setProperty(property.name(), property.type(), &asset);
+            ret = true;
         }
     }
 
@@ -275,6 +263,31 @@ static void editAssetProperty(Object *object, const MetaProperty &property) {
         ImGui::EndPopup();
     }
 
+    return ret;
+}
+
+/** Edit properties which reference an asset. */
+static void displayAssetPropertyEditor(Object *object, const MetaProperty &property) {
+    if (!property.type().isPointer())
+        return;
+    if (!property.type().pointeeType().isObject())
+        return;
+
+    const MetaClass &pointeeClass = static_cast<const MetaClass &>(property.type().pointeeType());
+
+    if (!Asset::staticMetaClass.isBaseOf(pointeeClass))
+        return;
+
+    ImGui::PushID(&property);
+
+    ImGui::Text(property.name());
+    ImGui::NextColumn();
+
+    AssetPtr asset;
+    object->getProperty(property.name(), property.type(), &asset);
+    if (displayAssetEditor(asset, pointeeClass))
+        object->setProperty(property.name(), property.type(), &asset);
+
     ImGui::NextColumn();
     ImGui::PopID();
 }
@@ -288,19 +301,19 @@ static void displayPropertyEditors(Object *object, const MetaClass *metaClass) {
     for (const MetaProperty &property : metaClass->properties()) {
         /* These all do nothing if the type does not match. */
 
-        editProperty<bool>(
+        displayPropertyEditor<bool>(
             object, property,
             [&] (bool *value) {
                 return ImGui::Checkbox("", value);
             });
 
-        editProperty<float>(
+        displayPropertyEditor<float>(
             object, property,
             [&] (float *value) {
                 return ImGui::InputFloat("", value, 0.0f, 0.0f, -1, ImGuiInputTextFlags_EnterReturnsTrue);
             });
 
-        editProperty<std::string>(
+        displayPropertyEditor<std::string>(
             object, property,
             [&] (std::string *value) {
                 std::string &str = *value;
@@ -313,13 +326,13 @@ static void displayPropertyEditors(Object *object, const MetaClass *metaClass) {
                 }
             });
 
-        editProperty<glm::vec3>(
+        displayPropertyEditor<glm::vec3>(
             object, property,
             [&] (glm::vec3 *value) {
                 return ImGui::InputFloat3("", &value->x, -1, ImGuiInputTextFlags_EnterReturnsTrue);
             });
 
-        editProperty<glm::quat>(
+        displayPropertyEditor<glm::quat>(
             object, property,
             [&] (glm::quat *value) {
                 glm::vec3 eulerAngles = glm::eulerAngles(*value);
@@ -339,8 +352,32 @@ static void displayPropertyEditors(Object *object, const MetaClass *metaClass) {
                 }
             });
 
-        editEnumProperty(object, property);
-        editAssetProperty(object, property);
+        displayEnumPropertyEditor(object, property);
+        displayAssetPropertyEditor(object, property);
+    }
+}
+
+/** Custom editor for a MeshRenderer.
+ * @param renderer      Renderer to edit. */
+static void displayMeshRendererEditor(MeshRenderer *renderer) {
+    const Mesh *mesh = renderer->mesh();
+    if (!mesh)
+        return;
+
+    ImGui::Text("materials"); ImGui::Spacing();
+    ImGui::NextColumn(); ImGui::NextColumn();
+
+    for (const std::pair<std::string, size_t> &materialPair : mesh->materials()) {
+        ImGui::Indent();
+        ImGui::Text(materialPair.first.c_str());
+        ImGui::Unindent();
+        ImGui::NextColumn();
+
+        AssetPtr material = renderer->material(materialPair.second);
+        if (displayAssetEditor(material, Material::staticMetaClass))
+            renderer->setMaterial(materialPair.second, static_cast<Material *>(material.get()));
+
+        ImGui::NextColumn();
     }
 }
 
@@ -357,7 +394,12 @@ static bool displayObjectEditor(Object *object) {
     ImGui::Columns(2, nullptr, false);
     ImGui::SetColumnOffset(1, ImGui::GetWindowContentRegionWidth() * 0.3f);
 
+    /* Generic editors based on class properties. */
     displayPropertyEditors(object, &object->metaClass());
+
+    /* Custom editors beyond what can be done with the property system. */
+    if (&object->metaClass() == &MeshRenderer::staticMetaClass)
+        displayMeshRendererEditor(static_cast<MeshRenderer *>(object));
 
     ImGui::Columns(1);
     ImGui::PopID();
