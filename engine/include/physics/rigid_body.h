@@ -64,6 +64,7 @@ public:
     VPROPERTY(float, mass);
     VPROPERTY(float, linearDamping);
     VPROPERTY(float, angularDamping);
+    VPROPERTY(PhysicsMaterialPtr, material);
 
     /** @return             Mass of the body. */
     float mass() const { return m_mass; }
