@@ -152,7 +152,7 @@ public:
     /** Copy another pointer of compatible type, increasing the reference count.
      * @param other         Pointer to copy. */
     template <typename U>
-    typename std::enable_if<std::is_convertible<U *, ReferencedType *>::value, ReferencePtr &>
+    typename std::enable_if<std::is_convertible<U *, ReferencedType *>::value, ReferencePtr &>::type
     operator =(const ReferencePtr<U> &other) {
         reset(other.get());
         return *this;
