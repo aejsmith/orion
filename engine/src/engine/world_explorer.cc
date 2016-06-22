@@ -177,7 +177,7 @@ void displayPropertyEditor(Object *object, const MetaProperty &property, Func di
 static bool enumItemGetter(void *data, int index, const char **outText) {
     auto constants = *reinterpret_cast<const MetaType::EnumConstantArray *>(data);
     if (outText)
-        *outText = constants[index].first.c_str();
+        *outText = constants[index].first;
     return true;
 }
 
