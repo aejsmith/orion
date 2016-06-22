@@ -163,26 +163,32 @@ public:
     enum : uint32_t {
         /** Is a pointer. */
         kIsPointer = (1 << 0),
+        /** Is a reference-counted pointer. */
+        kIsRefcounted = (1 << 1),
         /** Is an enumeration. */
-        kIsEnum = (1 << 1),
+        kIsEnum = (1 << 2),
         /** Is an Object-derived class. */
-        kIsObject = (1 << 2),
+        kIsObject = (1 << 3),
         /** Type is constructable through the Object system. */
-        kIsConstructable = (1 << 3),
+        kIsConstructable = (1 << 4),
         /** Type is publically constructable. */
-        kIsPublicConstructable = (1 << 4),
+        kIsPublicConstructable = (1 << 5),
     };
 
     /** Type of a pair describing an enumeration constant. */
-    using EnumConstant = std::pair<std::string, long long>;
+    using EnumConstant = std::pair<const char *, long long>;
     /** Type of the enumeration constant list. */
     using EnumConstantArray = std::vector<EnumConstant>;
 
     /** @return             Name of the type. */
     const char *name() const { return m_name; }
+    /** @return             Size of an instance of this type. */
+    size_t size() const { return m_size; }
 
     /** @return             Whether the type is a pointer. */
     bool isPointer() const { return m_traits & kIsPointer; }
+    /** @return             Whether the type is a reference-counted pointer. */
+    bool isRefcounted() const { return m_traits & kIsRefcounted; }
     /** @return             Whether the type is an enumeration. */
     bool isEnum() const { return m_traits & kIsEnum; }
     /** @return             Whether the type is an Object-derived class. */
@@ -219,9 +225,10 @@ public:
         return LookupImpl<T>::get();
     }
 protected:
-    MetaType(const char *name, uint32_t traits, const MetaType *parent);
+    MetaType(const char *name, size_t size, uint32_t traits, const MetaType *parent);
 
     const char *m_name;                 /**< Name of the type. */
+    size_t m_size;                      /**< Size of an instance of the type. */
     uint32_t m_traits;                  /**< Traits for the type. */
 
     /**
@@ -247,6 +254,7 @@ protected:
 
     static const MetaType *allocate(
         const char *signature,
+        size_t size,
         uint32_t traits = 0,
         const MetaType *parent = nullptr);
 
@@ -279,6 +287,7 @@ protected:
              */
             static const MetaType *type = allocate(
                 LOOKUP_FUNCTION_SIGNATURE,
+                sizeof(LookupT),
                 (std::is_enum<LookupT>::value) ? kIsEnum : 0);
             return *type;
         }
@@ -290,6 +299,7 @@ protected:
         static NOINLINE const MetaType &get() {
             static const MetaType *type = allocate(
                 LOOKUP_FUNCTION_SIGNATURE,
+                sizeof(LookupT),
                 kIsPointer,
                 &MetaType::lookup<typename std::remove_pointer<LookupT>::type>());
             return *type;
@@ -302,7 +312,21 @@ protected:
         static NOINLINE const MetaType &get() {
             static const MetaType *type = allocate(
                 LOOKUP_FUNCTION_SIGNATURE,
-                kIsPointer,
+                sizeof(ReferencePtr<PointeeT>),
+                kIsPointer | kIsRefcounted,
+                &MetaType::lookup<PointeeT>());
+            return *type;
+        }
+    };
+
+    /** Specialization for reference-counted pointers. */
+    template <typename PointeeT>
+    struct LookupImpl<const ReferencePtr<PointeeT>> {
+        static NOINLINE const MetaType &get() {
+            static const MetaType *type = allocate(
+                LOOKUP_FUNCTION_SIGNATURE,
+                sizeof(const ReferencePtr<PointeeT>),
+                kIsPointer | kIsRefcounted,
                 &MetaType::lookup<PointeeT>());
             return *type;
         }
@@ -341,9 +365,9 @@ public:
 class MetaProperty {
 public:
     /** Type of the get function defined by objgen. */
-    using GetFunction = void (*)(const Object *object, void *value);
+    using GetFunction = void (*)(const Object *, void *);
     /** Type of the set function defined by objgen. */
-    using SetFunction = void (*)(Object *object, const void *value);
+    using SetFunction = void (*)(Object *, const void *);
 
     MetaProperty(
         const char *name,
@@ -389,8 +413,9 @@ public:
 
     MetaClass(
         const char *name,
-        const MetaClass *parent,
+        size_t size,
         uint32_t traits,
+        const MetaClass *parent,
         ConstructorFunction constructor,
         const PropertyArray &properties);
     ~MetaClass();

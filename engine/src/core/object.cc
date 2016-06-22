@@ -32,9 +32,12 @@
 
 /** Initialise a meta-type.
  * @param name          Name of the meta-type.
+ * @param size          Size of an instance of the type.
+ * @param traits        Traits for the type.
  * @param parent        Parent type (for pointers and Object-derived classes). */
-MetaType::MetaType(const char *name, uint32_t traits, const MetaType *parent) :
+MetaType::MetaType(const char *name, size_t size, uint32_t traits, const MetaType *parent) :
     m_name(name),
+    m_size(size),
     m_traits(traits),
     m_parent(parent),
     m_enumConstants(nullptr)
@@ -42,10 +45,11 @@ MetaType::MetaType(const char *name, uint32_t traits, const MetaType *parent) :
 
 /** Allocate a new meta-type.
  * @param signature     Signature for lookup function to extract type name from.
+ * @param size          Size of an instance of the type.
  * @param traits        Traits for the type.
  * @param parent        Parent type (for pointers).
  * @return              Pointer to allocated meta-type. */
-const MetaType *MetaType::allocate(const char *signature, uint32_t traits, const MetaType *parent) {
+const MetaType *MetaType::allocate(const char *signature, size_t size, uint32_t traits, const MetaType *parent) {
     /* Derive the type name from the function signature (see LookupImpl).
      * Currently works for GCC/clang only, object.h will error if the compiler
      * is not recognised to remind that support needs to be added here. */
@@ -54,7 +58,7 @@ const MetaType *MetaType::allocate(const char *signature, uint32_t traits, const
     size_t end = name.rfind(", LookupEnable") - start;
     name = name.substr(start, end);
 
-    return new MetaType(strdup(name.c_str()), traits, parent);
+    return new MetaType(strdup(name.c_str()), size, traits, parent);
 }
 
 /** @return             Map of globally declared meta-classes. */
@@ -66,18 +70,20 @@ static auto &metaClassMap() {
 
 /** Initialise a meta-class.
  * @param name          Name of the meta-class.
- * @param parent        Parent meta-class.
+ * @param size          Size of an instance of the class.
  * @param traits        Traits of the class.
+ * @param parent        Parent meta-class.
  * @param constructor   Constructor function (if constructable).
  * @param properties    Array of properties. */
 MetaClass::MetaClass(
     const char *name,
-    const MetaClass *parent,
+    size_t size,
     uint32_t traits,
+    const MetaClass *parent,
     ConstructorFunction constructor,
     const PropertyArray &properties)
     :
-    MetaType(name, traits | MetaType::kIsObject, parent),
+    MetaType(name, size, traits | MetaType::kIsObject, parent),
     m_constructor(std::move(constructor)),
     m_properties(properties)
 {
@@ -185,6 +191,12 @@ MetaProperty::MetaProperty(
     m_setFunction(setFunction)
 {}
 
+/** Look up a property and check that it is the given type.
+ * @param metaClass     Class of the object.
+ * @param name          Name of the property to look up.
+ * @param type          Requested type.
+ * @return              Pointer to property if found and correct type, null
+ *                      otherwise. */
 static const MetaProperty *lookupAndCheckProperty(
     const MetaClass &metaClass,
     const char *name,

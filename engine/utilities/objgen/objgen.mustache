@@ -43,8 +43,9 @@ static const MetaClass::PropertyArray {{mangledName}}_propertyTable = {
 
 const MetaClass {{name}}::staticMetaClass(
     "{{name}}",
-    {{#parent}}&{{parent}}::staticMetaClass{{/parent}}{{^parent}}nullptr{{/parent}},
+    sizeof({{name}}),
     {{mangledName}}_traits,
+    {{#parent}}&{{parent}}::staticMetaClass{{/parent}}{{^parent}}nullptr{{/parent}},
 {{#isConstructable}}
     [] () -> Object * { return new {{name}}; },
 {{/isConstructable}}
