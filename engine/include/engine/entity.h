@@ -111,7 +111,7 @@ public:
      * Children.
      */
 
-    Entity *createChild(const std::string &name);
+    Entity *createChild(std::string name);
 
     template<typename Func> void visitActiveChildren(Func func);
 
@@ -165,8 +165,13 @@ public:
     const glm::vec3 &worldScale() const { return m_worldTransform.scale(); }
 protected:
     ~Entity();
+
+    void serialise(Serialiser &serialiser) const override;
+    void deserialise(Serialiser &serialiser) override;
 private:
-    Entity(const std::string &name, World *world);
+    Entity();
+
+    void addChild(Entity *entity);
 
     void addComponent(Component *component);
     void removeComponent(Component *component);

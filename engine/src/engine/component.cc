@@ -19,6 +19,8 @@
  * @brief               Component class.
  */
 
+#include "core/serialiser.h"
+
 #include "engine/component.h"
 #include "engine/entity.h"
 
@@ -42,6 +44,31 @@ void Component::destroy() {
 
     /* Remove from the parent. */
     m_entity->removeComponent(this);
+}
+
+/** Serialise the component.
+ * @param serialiser    Serialiser to write to. */
+void Component::serialise(Serialiser &serialiser) const {
+    /* Serialise a reference to our entity (see deserialise()). */
+    serialiser.write("entity", m_entity);
+
+    /* Serialise properties. */
+    Object::serialise(serialiser);
+}
+
+/** Deserialise the component.
+ * @param serialiser    Serialiser to read from. */
+void Component::deserialise(Serialiser &serialiser) {
+    /* At this point we are not associated with our entity. Similarly to
+     * Entity::deserialise(), the first thing we must do *before* we deserialise
+     * any properties is to set up this association and ensure the entity is
+     * instantiated. We are added to the entity's component list by
+     * Entity::deserialise(), which ensures that order of components is
+     * maintained. */
+    serialiser.read("entity", m_entity);
+
+    /* Deserialise properties. */
+    Object::deserialise(serialiser);
 }
 
 /**

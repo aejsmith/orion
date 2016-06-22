@@ -128,8 +128,11 @@ public:
 protected:
     Component();
     ~Component();
+
+    void serialise(Serialiser &serialiser) const override;
+    void deserialise(Serialiser &serialiser) override;
 private:
-    Entity *m_entity;               /**< Entity that the component is attached to. */
+    EntityPtr m_entity;             /**< Entity that the component is attached to. */
     bool m_active;                  /**< Whether the component is active. */
 
     friend class Entity;

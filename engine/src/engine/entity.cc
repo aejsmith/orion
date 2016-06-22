@@ -24,15 +24,15 @@
  *  - Disallow transformation of root entity.
  */
 
+#include "core/serialiser.h"
+
 #include "engine/component.h"
 #include "engine/entity.h"
+#include "engine/world.h"
 
-/** Initialize a new entity.
- * @param inName        Name of the entity.
- * @param world         World the entity belongs to. */
-Entity::Entity(const std::string &inName, World *world) :
-    name(inName),
-    m_world(world),
+/** Initialize a new entity. */
+Entity::Entity() :
+    m_world(nullptr),
     m_parent(nullptr),
     m_active(false),
     m_activeInWorld(false)
@@ -79,6 +79,76 @@ void Entity::destroy() {
     }
 }
 
+/** Serialise the entity.
+ * @param serialiser    Serialiser to write to. */
+void Entity::serialise(Serialiser &serialiser) const {
+    /* Serialise a reference to our world and our parent (see deserialise()). */
+    serialiser.write("world", m_world);
+    serialiser.write("parent", m_parent);
+
+    Object::serialise(serialiser);
+
+    serialiser.beginArray("components");
+
+    for (Component *component : m_components)
+        serialiser.push(component);
+
+    serialiser.endArray();
+
+    serialiser.beginArray("children");
+
+    for (Entity *child : m_children)
+        serialiser.push(child);
+
+    serialiser.endArray();
+}
+
+/** Deserialise the entity.
+ * @param serialiser    Serialiser to read from. */
+void Entity::deserialise(Serialiser &serialiser) {
+    /* At this point we are not associated with our parent or a world. The
+     * first thing we must do *before* we deserialise any properties is to set
+     * up this association. Due to references held by other objects, it may be
+     * the case that we are actually instantiated before our parent (rather
+     * than as a result of the parent's deserialisation). This ensures that the
+     * parent and all of its components are instantiated before we try to set
+     * any of our properties. Note that we don't get added to the parent's
+     * child list until it's deserialise() call reaches us, to ensure that the
+     * correct child order is maintained. */
+    serialiser.read("world", m_world);
+    serialiser.read("parent", m_parent);
+
+    /* If this is the root entity, we don't deserialise properties. Two reasons:
+     * firstly, the root entity's transformation cannot be changed anyway. Due
+     * to floating point inaccuracy, deserialising the transformation can
+     * trigger the assertion in transformed() to ensure that the root is not
+     * transformed. Secondly, we do not want to activate things in the middle of
+     * deserialisation as this will cause problems. We instead delay activation
+     * to the end of deserialisation (in World::deserialise()). */
+    if (m_parent) {
+        /* Deserialise properties. */
+        Object::deserialise(serialiser);
+    }
+
+    /* Deserialise components. We want these all available before our children. */
+    if (serialiser.beginArray("components")) {
+        ComponentPtr component;
+        while (serialiser.pop(component))
+            addComponent(component);
+
+        serialiser.endArray();
+    }
+
+    /* Deserialise children. */
+    if (serialiser.beginArray("children")) {
+        EntityPtr entity;
+        while (serialiser.pop(entity))
+            addChild(entity);
+
+        serialiser.endArray();
+    }
+}
+
 /**
  * Set whether the entity is active.
  *
@@ -110,16 +180,22 @@ void Entity::setActive(bool active) {
  *
  * @return              Pointer to created entity.
  */
-Entity *Entity::createChild(const std::string &name) {
-    Entity *entity = new Entity(name, m_world);
+Entity *Entity::createChild(std::string name) {
+    Entity *entity = new Entity();
+    entity->name = std::move(name);
+    addChild(entity);
+    return entity;
+}
 
+/** Add a child entity to the list.
+ * @param entity        Entity to add. */
+void Entity::addChild(Entity *entity) {
+    entity->m_world = m_world;
     entity->m_parent = this;
     m_children.push_back(entity);
 
     /* Update the cached transform to incorporate our transformation. */
     entity->transformed(kPositionChanged | kOrientationChanged | kScaleChanged);
-
-    return entity;
 }
 
 /**

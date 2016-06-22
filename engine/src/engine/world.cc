@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -19,6 +19,8 @@
  * @brief               World class.
  */
 
+#include "core/serialiser.h"
+
 #include "engine/world.h"
 
 #include "physics/physics_world.h"
@@ -34,7 +36,9 @@ World::World() {
     m_physics = new PhysicsWorld;
 
     /* Create the root entity. */
-    m_root = new Entity("root", this);
+    m_root = new Entity();
+    m_root->name = "root";
+    m_root->m_world = this;
     m_root->setActive(true);
 }
 
@@ -43,6 +47,32 @@ World::~World() {
     m_root->destroy();
     delete m_physics;
     delete m_scene;
+}
+
+/** Serialise the world.
+ * @param serialiser    Serialiser to write to. */
+void World::serialise(Serialiser &serialiser) const {
+    Object::serialise(serialiser);
+    serialiser.write("root", m_root);
+}
+
+/** Deserialise the world.
+ * @param serialiser    Serialiser to write to. */
+void World::deserialise(Serialiser &serialiser) {
+    Object::deserialise(serialiser);
+
+    /* Deserialise all entities. */
+    EntityPtr newRoot;
+    if (serialiser.read("root", newRoot)) {
+        /* Destroy existing root to make sure it is safe to free. */
+        m_root->destroy();
+
+        m_root = std::move(newRoot);
+
+        /* Entity::deserialise() does not activate the root entity. Do this now. */
+        m_root->name = "root";
+        m_root->setActive(true);
+    }
 }
 
 /** Update the world.

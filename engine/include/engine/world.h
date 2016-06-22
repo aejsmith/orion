@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -58,6 +58,9 @@ public:
     Entity *root() { return m_root; }
 protected:
     ~World();
+
+    void serialise(Serialiser &serialiser) const override;
+    void deserialise(Serialiser &serialiser) override;
 private:
     EntityPtr m_root;               /**< Root of the entity hierarchy. */
     Scene *m_scene;                 /**< Scene manager. */
