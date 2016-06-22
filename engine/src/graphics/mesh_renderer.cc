@@ -19,6 +19,8 @@
  * @brief               Mesh renderer component.
  */
 
+#include "core/serialiser.h"
+
 #include "gpu/gpu_manager.h"
 
 #include "graphics/mesh_renderer.h"
@@ -66,6 +68,34 @@ Material *SubMeshSceneEntity::material() const {
 
 /** Initialize the mesh renderer. */
 MeshRenderer::MeshRenderer() {}
+
+/** Serialise the mesh renderer.
+ * @param serialiser    Serialiser to write to. */
+void MeshRenderer::serialise(Serialiser &serialiser) const {
+    Component::serialise(serialiser);
+
+    /* Serialise materials. */
+    serialiser.beginGroup("materials");
+
+    for (const auto &materialPair : m_mesh->materials())
+        serialiser.write(materialPair.first.c_str(), m_materials[materialPair.second]);
+
+    serialiser.endGroup();
+}
+
+/** Deserialise the mesh renderer.
+ * @param serialiser    Serialiser to read from. */
+void MeshRenderer::deserialise(Serialiser &serialiser) {
+    Component::deserialise(serialiser);
+
+    /* Deserialise materials. */
+    if (serialiser.beginGroup("materials")) {
+        for (const auto &materialPair : m_mesh->materials())
+            serialiser.read(materialPair.first.c_str(), m_materials[materialPair.second]);
+
+        serialiser.endGroup();
+    }
+}
 
 /**
  * Set the mesh used by the renderer.

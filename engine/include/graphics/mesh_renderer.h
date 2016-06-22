@@ -48,7 +48,10 @@ public:
 protected:
     ~MeshRenderer() {}
 
-    virtual void createSceneEntities(SceneEntityList &entities) override;
+    void serialise(Serialiser &serialiser) const override;
+    void deserialise(Serialiser &serialiser) override;
+
+    void createSceneEntities(SceneEntityList &entities) override;
 private:
     MeshPtr m_mesh;                 /**< Mesh to render. */
 
