@@ -34,7 +34,10 @@ class PlayerController : public Behaviour, public InputHandler {
 public:
     CLASS();
 
-    PlayerController(TestGame *game, Camera *camera);
+    PlayerController();
+
+    /** Camera that the component is controlling. */
+    PROPERTY() ObjectPtr<Camera> camera;
 
     void activated() override;
     void deactivated() override;
@@ -47,7 +50,6 @@ protected:
     void makeCube(uint32_t modifiers);
 private:
     TestGame *m_game;               /**< Game class. */
-    Camera *m_camera;               /**< Camera that the component is controlling. */
     glm::vec3 m_direction;          /**< Current movement direction. */
     bool m_firingCubes;             /**< Whether cubes are being fired. */
     float m_sinceLastCube;          /**< Time since last cube. */

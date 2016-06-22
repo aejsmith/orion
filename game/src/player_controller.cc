@@ -35,12 +35,9 @@ static const unsigned kCubeRate = 5;
 /** Initial moving cube velocity. */
 static const glm::vec3 kInitialCubeVelocity(0.0f, 0.0f, -15.0f);
 
-/** Initialise the player controller.
- * @param game          Game class.
- * @param camera        Camera that the controller should move. */
-PlayerController::PlayerController(TestGame *game, Camera *camera) :
-    m_game(game),
-    m_camera(camera),
+/** Initialise the player controller. */
+PlayerController::PlayerController() :
+    m_game(static_cast<TestGame *>(g_engine->game())),
     m_direction(0.0f),
     m_firingCubes(false),
     m_sinceLastCube(0.0f)
@@ -62,7 +59,7 @@ void PlayerController::deactivated() {
  * @param dt            Time delta. */
 void PlayerController::tick(float dt) {
     entity()->translate(
-        m_camera->entity()->worldOrientation() *
+        this->camera->entity()->worldOrientation() *
             (dt * kMovementVelocity * glm::vec3(m_direction.x, 0.0f, m_direction.z)));
     entity()->translate(
         dt * kMovementVelocity * glm::vec3(0.0f, m_direction.y, 0.0f));
@@ -156,7 +153,7 @@ bool PlayerController::handleAxis(const AxisEvent &event) {
             entity()->rotate(-event.delta / 4, glm::vec3(0.0f, 1.0f, 0.0f));
             break;
         case InputCode::kMouseY:
-            m_camera->entity()->rotate(-event.delta / 4, glm::vec3(1.0f, 0.0f, 0.0f));
+            this->camera->entity()->rotate(-event.delta / 4, glm::vec3(1.0f, 0.0f, 0.0f));
             break;
         default:
             break;
@@ -175,7 +172,7 @@ void PlayerController::makeCube(uint32_t modifiers) {
         cube->setPosition(position() + (orientation() * glm::vec3(0.0f, 0.0f, -4.0f)));
         cube->setOrientation(orientation());
     } else {
-        glm::quat cubeOrientation = m_camera->entity()->worldOrientation();
+        glm::quat cubeOrientation = this->camera->entity()->worldOrientation();
 
         cube->setPosition(position() + (cubeOrientation * glm::vec3(0.0f, 0.0f, -4.0f)));
         cube->setOrientation(cubeOrientation);

@@ -110,7 +110,7 @@ void TestGame::init() {
     cube->setActive(true);
 
     cube = makeCube();
-    cube->setPosition(glm::vec3(0.2f, 7.0f, -7.0f));
+    cube->setPosition(glm::vec3(0.4f, 7.0f, -7.0f));
     cube->rotate(45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
     cube->rotate(20.0f, glm::vec3(0.0f, 0.0f, 1.0f));
     cube->setActive(true);
@@ -124,7 +124,8 @@ void TestGame::init() {
     Camera *camera = camEntity->createComponent<Camera>();
     camera->perspective(90.0f, 0.25f, 200.0f);
     camera->setActive(true);
-    PlayerController *controller = m_playerEntity->createComponent<PlayerController>(this, camera);
+    PlayerController *controller = m_playerEntity->createComponent<PlayerController>();
+    controller->camera = camera;
     controller->setActive(true);
 
     FXAAEffect *fxaaEffect = new FXAAEffect;
