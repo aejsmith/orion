@@ -19,7 +19,7 @@
  * @brief               Engine asset manager.
  *
  * The way this works now is somewhat temporary. At the moment we always load
- * in data from disk. I think in future we will store assets as serialized
+ * in data from disk. I think in future we will store assets as serialised
  * objects, which would include the asset data as well as attributes.
  *
  * Loaders would become importers that initially create an asset from a file in

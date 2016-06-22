@@ -131,7 +131,7 @@ private:
     enum class Constructability {
         kDefault,                   /**< No constructors have yet been declared. */
         kPublic,                    /**< Publically, the default when no constructor is declared. */
-        kPrivate,                   /**< Private or protected. Only usable for deserialization. */
+        kPrivate,                   /**< Private or protected. Only usable for deserialisation. */
         kNone,                      /**< None, if no suitable constructor found. */
         kForcedNone,                /**< Forced off by attribute. */
     };

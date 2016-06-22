@@ -27,6 +27,9 @@
 #include <type_traits>
 #include <vector>
 
+class Object;
+class Serialiser;
+
 /**
  * Annotation macros.
  */
@@ -60,7 +63,7 @@
  * The following attributes are supported:
  *
  *  - constructable: Set to false to disallow construction of this class through
- *    the object system. This also disables serialization for the class.
+ *    the object system. This also disables serialisation for the class.
  *
  * Example:
  *
@@ -144,8 +147,6 @@
 /**
  * Metadata classes.
  */
-
-class Object;
 
 /**
  * Base type metadata class.
@@ -435,11 +436,16 @@ public:
     static const MetaClass *lookup(const std::string &name);
     static void visit(const std::function<void (const MetaClass &)> &function);
 private:
+    Object *constructPrivate() const;
+
     ConstructorFunction m_constructor;  /**< Constructor function object. */
     const PropertyArray &m_properties;  /**< Array of properties. */
 
     /** Map of properties for fast lookup. */
     HashMap<std::string, const MetaProperty *> m_propertyMap;
+
+    friend class Object;
+    friend class Serialiser;
 };
 
 /** @return             Whether the class is constructable with construct(). */
@@ -447,7 +453,7 @@ inline bool MetaClass::isConstructable() const {
     /* To the outside world, we only return true if the class is publically
      * constructable. The public construct() method only works for classes for
      * which this is the case. Private construction is only used during
-     * deserialization, which is done internally. */
+     * deserialisation, which is done internally. */
     return m_traits & kIsPublicConstructable;
 }
 
@@ -472,11 +478,11 @@ inline bool MetaClass::isConstructable() const {
  * of those macros.
  *
  * In order for a class to be constructable through the object system (and
- * therefore able to be deserialized or created through the editor), it must
+ * therefore able to be deserialised or created through the editor), it must
  * have a default constructor, i.e. one with no parameters. Other constructors
  * may exist as well, however these are not usable by the object system. To be
  * constructable by MetaClass::construct(), this default constructor must also
- * be public. A non-public constructor can still be used to deserialize an
+ * be public. A non-public constructor can still be used to deserialise an
  * object, however.
  */
 class Object : public Refcounted, Noncopyable {
@@ -518,6 +524,11 @@ public:
     bool setProperty(const char *name, const MetaType &type, const void *value);
 protected:
     Object() {}
+
+    virtual void serialise(Serialiser &serialiser) const;
+    virtual void deserialise(Serialiser &serialiser);
+
+    friend class Serialiser;
 };
 
 /**

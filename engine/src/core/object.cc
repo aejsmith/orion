@@ -24,11 +24,20 @@
  *    MetaTypes are registered dynamically a given type may not be registered
  *    at the time it is looked up, and secondly because I can't think of a need
  *    to be able to look up a non-Object type by name.
+ *
+ * TODO:
+ *  - Can we enforce at compile time that properties must be a supported type,
+ *    to ensure we don't run into issues with serialisation (SerialisationBuffer
+ *    for example needs to handle the type properly). Perhaps inject something
+ *    into the objgen-generated code, similar to HasSerialise, to check it.
+ *  - A Variant class could be used instead of SerialisationBuffer?
  */
 
 #include "core/object.h"
+#include "core/serialiser.h"
 
 #include <map>
+#include <new>
 
 /** Initialise a meta-type.
  * @param name          Name of the meta-type.
@@ -130,6 +139,23 @@ Object *MetaClass::construct() const {
     checkMsg(
         m_traits & kIsPublicConstructable,
         "Attempt to construct object of class '%s' which is not publically constructable",
+        m_name);
+    return m_constructor();
+}
+
+/**
+ * Construct an object of this class.
+ *
+ * Constructs an object of this class using its default constructor. This
+ * version allows construction even if the constructor is not public. The
+ * primary use for this is deserialisation.
+ *
+ * @return              Pointer to constructed object.
+ */
+Object *MetaClass::constructPrivate() const {
+    checkMsg(
+        m_traits & kIsConstructable,
+        "Attempt to construct object of class '%s' which is not constructable",
         m_name);
     return m_constructor();
 }
@@ -244,4 +270,111 @@ bool Object::setProperty(const char *name, const MetaType &type, const void *val
 
     property->set(this, value);
     return true;
+}
+
+/**
+ * Class providing a temporary buffer for (de)serialisation.
+ *
+ * We need some temporary storage when (de)serialising properties. The trouble
+ * is that for non-POD types we must ensure that the constructor/destructor is
+ * called on the buffer, as property get functions and Serialiser::read()
+ * assume that the buffer is constructed. This class allocates a buffer and
+ * calls the constructor/destructor as necessary. We only need to handle types
+ * that are supported as properties here.
+ */
+struct SerialisationBuffer {
+    const MetaType *type;
+    uint8_t *data;
+
+    SerialisationBuffer(const MetaType &inType) :
+        type(&inType),
+        data(new uint8_t[type->size()])
+    {
+        if (this->type == &MetaType::lookup<std::string>()) {
+            new (data) std::string();
+        } else if (this->type->isPointer() && this->type->isRefcounted()) {
+            new (data) ReferencePtr<Refcounted>();
+        }
+    }
+
+    ~SerialisationBuffer() {
+        if (this->type == &MetaType::lookup<std::string>()) {
+            /* Workaround clang bug. The standard allows:
+             *   reinterpret_cast<std::string *>(data)->~string();
+             * but clang does not. */
+            using namespace std;
+            reinterpret_cast<string *>(data)->~string();
+        } else if (this->type->isPointer() && this->type->isRefcounted()) {
+            reinterpret_cast<ReferencePtr<Refcounted> *>(data)->~ReferencePtr();
+        }
+    }
+};
+
+/**
+ * Serialise the object.
+ *
+ * Serialises the object. The default implementation of this method will
+ * automatically serialise all of the object's properties. Additional data can
+ * be serialised by overridding this method to serialise it, as well as
+ * deserialise() to restore it. Overridden implementations *must* call their
+ * parent class' implementation.
+ *
+ * @param serialiser    Serialiser to serialise to.
+ */
+void Object::serialise(Serialiser &serialiser) const {
+    /* Serialise properties into a separate group. */
+    serialiser.beginGroup("properties");
+
+    /* We should serialise base class properties first. It may be that, for
+     * example, the set method of a derived class property depends on the value
+     * of a base class property. */
+    std::function<void (const MetaClass *)> serialiseProperties =
+        [&] (const MetaClass *metaClass) {
+            if (metaClass->parent())
+                serialiseProperties(metaClass->parent());
+
+            for (const MetaProperty &property : metaClass->properties()) {
+                SerialisationBuffer buf(property.type());
+                property.get(this, buf.data);
+                serialiser.write(property.name(), property.type(), buf.data);
+            }
+        };
+    serialiseProperties(&metaClass());
+
+    serialiser.endGroup();
+}
+
+/**
+ * Deserialise the object.
+ *
+ * Deserialises the object. For a class to be deserialisable, it must be
+ * constructable (does not need to be publically), i.e. it must have a zero
+ * argument constructor. When an object is being created from a serialised
+ * data file, an instance of the class is first constructed using the zero-
+ * argument constructor. It is the responsibility of this constructor to
+ * initialise default values of all properties. Then, this method is called to
+ * restore serialised data. The default implementation of this method will
+ * automatically deserialise all of the object's properties. Additional data
+ * that was serialised by serialise() can be restored by overriding this method.
+ * Overridden implementations *must* call their parent class' implementation.
+ *
+ * @param serialiser    Serialiser to deserialise from.
+ */
+void Object::deserialise(Serialiser &serialiser) {
+    if (serialiser.beginGroup("properties")) {
+        std::function<void (const MetaClass *)> deserialiseProperties =
+            [&] (const MetaClass *metaClass) {
+                if (metaClass->parent())
+                    deserialiseProperties(metaClass->parent());
+
+                for (const MetaProperty &property : metaClass->properties()) {
+                    SerialisationBuffer buf(property.type());
+                    if (serialiser.read(property.name(), property.type(), buf.data))
+                        property.set(this, buf.data);
+                }
+            };
+        deserialiseProperties(&metaClass());
+
+        serialiser.endGroup();
+    }
 }
