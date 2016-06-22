@@ -151,12 +151,12 @@ class Serialiser;
 /**
  * Base type metadata class.
  *
- * This provides basic information about a type (currently only a name). For
- * types outside of the object system, it just provides a means of doing type
- * comparisons on such types inside the object system, for dynamic property
- * accesses and method invocations. Metadata is generated dynamically the first
- * time it is required. For Object-derived types, this class forms the base of
- * MetaClass, and for these metadata is generated at build time.
+ * This provides basic information about a type. For types outside of the
+ * object system, it just provides a means of getting the information required
+ * by the object system for dynamic property accesses, serialisation, etc.
+ * Metadata is generated dynamically the first time it is required. For Object-
+ * derived types, this class forms the base of MetaClass, and for these
+ * metadata is generated at build time.
  */
 class MetaType {
 public:
