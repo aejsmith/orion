@@ -469,7 +469,7 @@ bool ParsedProperty::handleAnnotation(const std::string &type, const rapidjson::
         parseError(this->cursor, "property '%s' must be public", this->name.c_str());
         return true;
     }
-        
+
     bool isVirtual = clang_getCursorKind(this->cursor) == CXCursor_VarDecl;
     if (isVirtual) {
         if (this->getFunction.empty()) {
