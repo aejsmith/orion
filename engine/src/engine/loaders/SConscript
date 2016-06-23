@@ -4,7 +4,6 @@ objects = map(env.Object, [
     'material_loader.cc',
     'obj_loader.cc',
     'object_loader.cc',
-    'physics_material_loader.cc',
     'shader_loader.cc',
     'texture_loader.cc',
     'tga_loader.cc',

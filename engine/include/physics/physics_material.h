@@ -36,6 +36,9 @@ public:
 
     PhysicsMaterial();
 
+    VPROPERTY(float, restitution);
+    VPROPERTY(float, friction);
+
     /** @return             Restitution (bounciness) coefficient. */
     float restitution() const { return m_restitution; }
     /** @return             Friction coefficient. */

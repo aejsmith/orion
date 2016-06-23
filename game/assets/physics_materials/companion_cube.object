@@ -1,0 +1,10 @@
+[
+    {
+        "objectClass": "PhysicsMaterial",
+        "objectID": 0,
+        "properties": {
+            "restitution": 0.25,
+            "friction": 0.95
+        }
+    }
+]
