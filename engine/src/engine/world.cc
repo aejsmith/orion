@@ -52,14 +52,14 @@ World::~World() {
 /** Serialise the world.
  * @param serialiser    Serialiser to write to. */
 void World::serialise(Serialiser &serialiser) const {
-    Object::serialise(serialiser);
+    Asset::serialise(serialiser);
     serialiser.write("root", m_root);
 }
 
 /** Deserialise the world.
  * @param serialiser    Serialiser to write to. */
 void World::deserialise(Serialiser &serialiser) {
-    Object::deserialise(serialiser);
+    Asset::deserialise(serialiser);
 
     /* Deserialise all entities. */
     EntityPtr newRoot;

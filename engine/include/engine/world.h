@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "engine/asset.h"
 #include "engine/entity.h"
 
 class PhysicsWorld;
@@ -35,7 +36,7 @@ class Scene;
  * entities to these systems is handled automatically when they are activated
  * in the world.
  */
-class World : public Object {
+class World : public Asset {
 public:
     CLASS();
 

@@ -222,12 +222,37 @@ void Engine::renderAllTargets() {
         target->render();
 }
 
-/** Create a world and make it the active world.
- * @return              Created world. */
+/**
+ * Create a new, empty world.
+ *
+ * Releases the reference on the currently active world (if any) so that it
+ * will be unloaded if no other references to it remain, then creates a new,
+ * empty world and makes it the active world.
+ *
+ * @return              Created world.
+ */
 World *Engine::createWorld() {
     m_world.reset();
-
     m_world = new World;
+    return m_world;
+}
+
+/**
+ * Load a world asset.
+ *
+ * Releases the reference on the currently active world (if any) so that it
+ * will be unloaded if no other references to it remain, then loads a new world
+ * from an asset.
+ *
+ * @return              Loaded world.
+ */
+World *Engine::loadWorld(const std::string &path) {
+    m_world.reset();
+
+    m_world = g_assetManager->load<World>(path);
+    if (!m_world)
+        fatal("Failed to load world '%s'", path.c_str());
+
     return m_world;
 }
 

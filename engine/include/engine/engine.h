@@ -89,6 +89,7 @@ public:
      */
 
     World *createWorld();
+    World *loadWorld(const std::string &path);
 
     /** @return             Active game world. */
     World *world() const { return m_world; }
