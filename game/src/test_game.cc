@@ -70,124 +70,34 @@ void TestGame::engineConfiguration(EngineConfiguration &config) {
 
 /** Initialize the game world. */
 void TestGame::init() {
+    /* Load assets we need to create new cubes. */
     m_cubeMaterial = g_assetManager->load<Material>("game/materials/companion_cube");
     m_cubeMesh = g_assetManager->load<Mesh>("game/models/companion_cube");
     m_cubePhysicsMaterial = g_assetManager->load<PhysicsMaterial>("game/physics_materials/companion_cube");
 
-    m_world = g_engine->createWorld();
+    /* Load the world. */
+    m_world = g_engine->loadWorld("game/worlds/main");
 
-    TextureCubePtr skyboxTexture = g_assetManager->load<TextureCube>("game/textures/skybox");
-    Skybox *skybox = m_world->root()->createComponent<Skybox>();
-    skybox->setTexture(skyboxTexture);
-    skybox->setActive(true);
+    // TODO: see below.
+    std::function<void (Entity *)> getStats =
+        [&] (Entity *entity) {
+            if (entity->name.compare(0, 5, "cube_") == 0) {
+                m_numCubes++;
+            } else if (entity->name.compare(0, 6, "light_") == 0) {
+                m_numLights++;
+            }
 
-    AmbientLight *ambientLight = m_world->root()->createComponent<AmbientLight>();
-    ambientLight->setIntensity(0.05f);
-    ambientLight->setActive(true);
-
-    Entity *floor = m_world->createEntity("floor");
-    floor->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-    floor->setScale(glm::vec3(100.0f, 100.0f, 1.0f));
-    floor->setActive(true);
-    MeshRenderer *renderer = floor->createComponent<MeshRenderer>();
-    MeshPtr floorMesh = g_assetManager->load<Mesh>("game/models/floor");
-    renderer->setMesh(floorMesh);
-    MaterialPtr floorMaterial = g_assetManager->load<Material>("game/materials/floor");
-    renderer->setMaterial("default", floorMaterial);
-    renderer->setCastShadow(false);
-    renderer->setActive(true);
-    BoxCollisionShape *collisionShape = floor->createComponent<BoxCollisionShape>();
-    collisionShape->setHalfExtents(glm::vec3(0.5f, 0.5f, 0.01f));
-    collisionShape->setActive(true);
-    RigidBody *rigidBody = floor->createComponent<RigidBody>();
-    rigidBody->setMass(0.0f);
-    rigidBody->setActive(true);
-
-    Entity *cube = makeCube();
-    cube->setPosition(glm::vec3(0.0f, 4.0f, -7.0f));
-    cube->rotate(45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-    cube->rotate(20.0f, glm::vec3(0.0f, 0.0f, -1.0f));
-    cube->setActive(true);
-
-    cube = makeCube();
-    cube->setPosition(glm::vec3(0.4f, 7.0f, -7.0f));
-    cube->rotate(45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-    cube->rotate(20.0f, glm::vec3(0.0f, 0.0f, 1.0f));
-    cube->setActive(true);
-
-    m_playerEntity = m_world->createEntity("player");
-    m_playerEntity->setPosition(glm::vec3(0.0f, 1.0f, 0.0f));
-    m_playerEntity->setActive(true);
-    Entity *camEntity = m_playerEntity->createChild("camera");
-    camEntity->setPosition(glm::vec3(0.0f, 1.0f, 0.0f));
-    camEntity->setActive(true);
-    Camera *camera = camEntity->createComponent<Camera>();
-    camera->perspective(90.0f, 0.25f, 200.0f);
-    camera->setActive(true);
-    PlayerController *controller = m_playerEntity->createComponent<PlayerController>();
-    controller->camera = camera;
-    controller->setActive(true);
-
-    FXAAEffect *fxaaEffect = new FXAAEffect;
-    camera->postEffectChain().addEffect(fxaaEffect);
-
-    Entity *lightEntity = m_world->createEntity("light_0");
-    lightEntity->setPosition(glm::vec3(2.0f, 3.0f, -7.0f));
-    lightEntity->setActive(true);
-    SpotLight *spotLight = lightEntity->createComponent<SpotLight>();
-    spotLight->setDirection(glm::vec3(-0.8f, -1.0f, 0.0f));
-    spotLight->setRange(20.0f);
-    spotLight->setAttenuation(glm::vec3(1.0f, 0.045f, 0.0075f));
-    spotLight->setCutoff(45.0f);
-    spotLight->setCastShadows(true);
-    spotLight->setActive(true);
-    m_numLights++;
-
-    lightEntity = m_world->createEntity("light_1");
-    lightEntity->setPosition(glm::vec3(-2.0f, 3.0f, -3.5f));
-    lightEntity->setActive(true);
-    PointLight *pointLight = lightEntity->createComponent<PointLight>();
-    pointLight->setColour(glm::vec3(0.0f, 0.0f, 1.0f));
-    pointLight->setIntensity(1.0f);
-    pointLight->setRange(50.0f);
-    pointLight->setAttenuation(glm::vec3(1.0f, 0.09f, 0.032f));
-    pointLight->setCastShadows(true);
-    pointLight->setActive(true);
-    m_numLights++;
-
-    lightEntity = m_world->createEntity("light_2");
-    lightEntity->setPosition(glm::vec3(2.0f, 3.0f, -3.5f));
-    lightEntity->setActive(true);
-    pointLight = lightEntity->createComponent<PointLight>();
-    pointLight->setColour(glm::vec3(0.0f, 1.0f, 0.0f));
-    pointLight->setIntensity(1.0f);
-    pointLight->setRange(50.0f);
-    pointLight->setAttenuation(glm::vec3(1.0f, 0.09f, 0.032f));
-    pointLight->setCastShadows(true);
-    pointLight->setActive(true);
-    m_numLights++;
-
-    lightEntity = m_world->createEntity("light_3");
-    lightEntity->setPosition(glm::vec3(0.0f, 3.0f, -9.0f));
-    lightEntity->setActive(true);
-    pointLight = lightEntity->createComponent<PointLight>();
-    pointLight->setColour(glm::vec3(1.0f, 0.0f, 0.0f));
-    pointLight->setIntensity(1.0f);
-    pointLight->setRange(50.0f);
-    pointLight->setAttenuation(glm::vec3(1.0f, 0.09f, 0.032f));
-    pointLight->setCastShadows(true);
-    pointLight->setActive(true);
-    m_numLights++;
+            for (Entity *child : entity->children())
+                getStats(child);
+        };
+    getStats(m_world->root());
 }
 
 /** Called at the start of the frame. */
 void TestGame::startFrame() {
+    // TODO: This is best being handled generically, i.e. some renderer stats.
     g_debugManager->writeText(String::format("Cubes: %u\n", m_numCubes));
     g_debugManager->writeText(String::format("Lights: %u\n", m_numLights));
-
-    glm::vec3 position = m_playerEntity->worldPosition();
-    g_debugManager->writeText(
-        String::format("Position: %.2f %.2f %.2f\n", position.x, position.y, position.z));
 }
 
 /** Spawn a cube in the world.
