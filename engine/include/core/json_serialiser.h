@@ -40,8 +40,8 @@ protected:
     void write(const char *name, const MetaType &type, const void *value) override;
     bool read(const char *name, const MetaType &type, void *value) override;
 private:
-    uint32_t getOrSerialiseObject(const Object *object);
-    ObjectPtr<Object> getOrDeserialiseObject(uint32_t id, const MetaClass &metaClass);
+    uint32_t addObject(const Object *object);
+    ObjectPtr<Object> findObject(uint32_t id, const MetaClass &metaClass);
 
     struct State;
     State *m_state;                 /**< State of current operation. */

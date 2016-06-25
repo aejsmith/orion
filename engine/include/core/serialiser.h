@@ -375,14 +375,13 @@ public:
      */
     template <typename T, typename std::enable_if<Detail::HasDeserialise<T>::value>::type * = nullptr>
     bool read(const char *name, T &value) {
-        bool success = false;
-
         if (beginGroup(name)) {
-            success = value.deserialise(*this);
+            value.deserialise(*this);
             endGroup();
+            return true;
+        } else {
+            return false;
         }
-
-        return success;
     }
 
     /** Pop an entry from the current array.

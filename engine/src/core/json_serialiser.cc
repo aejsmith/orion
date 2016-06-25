@@ -64,9 +64,9 @@ struct JSONSerialiser::State {
      * Scope stack.
      *
      * This is used to keep track of which value we are currently reading from
-     * or writing to. Each getOr(De)SerialiseObject(), beginChild() and
-     * beginArray() call pushes a new scope on to the end. read() and write()
-     * operate on the scope at the end of the list.
+     * or writing to. Each (add|find)Object(), beginChild() and beginArray()
+     * call pushes a new scope on to the end. read() and write() operate on the
+     * scope at the end of the list.
      */
     std::list<Scope> scopes;
 
@@ -162,7 +162,7 @@ std::vector<uint8_t> JSONSerialiser::serialise(const Object *object) {
     m_state->document.SetArray();
 
     /* Serialise the object. */
-    getOrSerialiseObject(object);
+    addObject(object);
 
     /* Write out the JSON stream. */
     rapidjson::StringBuffer buffer;
@@ -175,15 +175,10 @@ std::vector<uint8_t> JSONSerialiser::serialise(const Object *object) {
     return data;
 }
 
-/** Serialise an object or return an existing ID if already serialised.
- * @param object        Object to serialise.
+/** Serialise an object.
+ * @param object        Object to serialise. Must not already be added.
  * @return              ID of object within file. */
-uint32_t JSONSerialiser::getOrSerialiseObject(const Object *object) {
-    /* Check if it is already serialised. */
-    auto existing = m_state->objectToIDMap.find(object);
-    if (existing != m_state->objectToIDMap.end())
-        return existing->second;
-
+uint32_t JSONSerialiser::addObject(const Object *object) {
     /* Create a new object. */
     uint32_t id = m_state->document.Size();
     m_state->document.PushBack(rapidjson::kObjectType, m_state->document.GetAllocator());
@@ -225,7 +220,7 @@ ObjectPtr<Object> JSONSerialiser::deserialise(const std::vector<uint8_t> &data, 
     }
 
     /* The object to return is the first object in the file. */
-    ObjectPtr<Object> object = getOrDeserialiseObject(0, metaClass);
+    ObjectPtr<Object> object = findObject(0, metaClass);
 
     m_state = nullptr;
     return object;
@@ -235,7 +230,7 @@ ObjectPtr<Object> JSONSerialiser::deserialise(const std::vector<uint8_t> &data, 
  * @param id            ID of the object.
  * @param metaClass     Expected type of the object.
  * @return              Pointer to object, or null on failure. */
-ObjectPtr<Object> JSONSerialiser::getOrDeserialiseObject(uint32_t id, const MetaClass &metaClass) {
+ObjectPtr<Object> JSONSerialiser::findObject(uint32_t id, const MetaClass &metaClass) {
     /* Check if it is already deserialised. */
     auto existing = m_state->idToObjectMap.find(id);
     if (existing != m_state->idToObjectMap.end())
@@ -331,19 +326,23 @@ void JSONSerialiser::write(const char *name, const MetaType &type, const void *v
 
         const Object *object = *reinterpret_cast<const Object *const *>(value);
         if (object) {
-            if (Asset::staticMetaClass.isBaseOf(object->metaClass())) {
-                const Asset *asset = static_cast<const Asset *>(object);
-                if (asset->managed()) {
-                    std::string path = asset->path();
-                    Serialiser::write("asset", path);
-                    endGroup();
-                    return;
-                }
-            }
+            const Asset *asset;
 
-            /* Serialise the object (or retrieve an existing ID). */
-            uint32_t id = getOrSerialiseObject(object);
-            Serialiser::write("objectID", id);
+            /* Check if it is already serialised. We check this before handling
+             * assets, because if we are serialising an asset and that contains
+             * any child objects, we want any references they contain back to
+             * the asset itself to point to the object within the serialised
+             * file rather than using an asset path reference. */
+            auto existing = m_state->objectToIDMap.find(object);
+            if (existing != m_state->objectToIDMap.end()) {
+                Serialiser::write("objectID", existing->second);
+            } else if ((asset = object_cast<const Asset *>(object)) && asset->managed()) {
+                std::string path = asset->path();
+                Serialiser::write("asset", path);
+            } else {
+                uint32_t id = addObject(object);
+                Serialiser::write("objectID", id);
+            }
         }
 
         endGroup();
@@ -464,7 +463,7 @@ bool JSONSerialiser::read(const char *name, const MetaType &type, void *value) {
             /* Must be serialised within the file. */
             uint32_t id;
             if (Serialiser::read("objectID", id))
-                ret = getOrDeserialiseObject(id, metaClass);
+                ret = findObject(id, metaClass);
         }
 
         endGroup();
