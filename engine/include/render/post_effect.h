@@ -29,8 +29,10 @@
  * This class is the base of all post-processing effects which can be applied to
  * the image after rendering.
  */
-class PostEffect {
+class PostEffect : public Object {
 public:
+    CLASS();
+
     /** Destroy the effect. */
     virtual ~PostEffect() {}
 
@@ -72,10 +74,13 @@ public:
     PostEffectChain();
     ~PostEffectChain();
 
-    void addEffect(PostEffect *effect);
+    void serialise(Serialiser &serialiser) const;
+    void deserialise(Serialiser &serialiser);
+
+    void addEffect(ObjectPtr<PostEffect> effect);
 
     GPUTexture *render(GPUTexture *colour, GPUTexture *depth, const glm::ivec2 &size) const;
 private:
     /** List of effects. */
-    std::list<PostEffect *> m_effects;
+    std::list<ObjectPtr<PostEffect>> m_effects;
 };

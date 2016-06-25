@@ -26,6 +26,8 @@
 /** FXAA post-processing effect. */
 class FXAAEffect : public PostEffect {
 public:
+    CLASS();
+
     FXAAEffect();
 
     bool render(GPUTexture *source, GPUTexture *dest) override;

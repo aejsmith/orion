@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -22,6 +22,8 @@
  *  - Recalculate projection and viewport when render target is resized (add
  *    listeners to RenderTarget).
  */
+
+#include "core/serialiser.h"
 
 #include "engine/entity.h"
 #include "engine/render_target.h"
@@ -49,6 +51,22 @@ Camera::Camera() :
 
     /* Default to the main window as the render target. */
     setRenderTarget(g_mainWindow);
+}
+
+/** Serialise the camera.
+ * @param serialiser    Serialiser to write to. */
+void Camera::serialise(Serialiser &serialiser) const {
+    Component::serialise(serialiser);
+
+    serialiser.write("postEffectChain", m_postEffectChain);
+}
+
+/** Deserialise the camera.
+ * @param serialiser    Serialiser to read from. */
+void Camera::deserialise(Serialiser &serialiser) {
+    Component::deserialise(serialiser);
+
+    serialiser.read("postEffectChain", m_postEffectChain);
 }
 
 /** Render the scene from the camera to its render target. */

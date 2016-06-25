@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -99,6 +99,9 @@ public:
     const glm::mat4 &projection() { return m_sceneView.projection(); }
 protected:
     ~Camera() {}
+
+    void serialise(Serialiser &serialiser) const override;
+    void deserialise(Serialiser &serialiser) override;
 
     void transformed(unsigned changed) override;
     void activated() override;

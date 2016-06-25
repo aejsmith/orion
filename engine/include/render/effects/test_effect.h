@@ -26,6 +26,8 @@
 /** Test post-processing effect. */
 class TestEffect : public PostEffect {
 public:
+    CLASS();
+
     TestEffect();
 
     bool render(GPUTexture *source, GPUTexture *dest) override;

@@ -5,6 +5,7 @@ objects = util.flatten(SConscript(dirs = [
     'engine',
     'graphics',
     'physics',
+    'render',
     'shader',
 ]))
 

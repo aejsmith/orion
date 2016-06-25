@@ -19,6 +19,8 @@
  * @brief               Post-processing effect class.
  */
 
+#include "core/serialiser.h"
+
 #include "render/draw_list.h"
 #include "render/post_effect.h"
 #include "render/render_manager.h"
@@ -94,10 +96,33 @@ PostEffectChain::PostEffectChain() {}
 /** Destroy the post-processing effect chain. */
 PostEffectChain::~PostEffectChain() {}
 
+/** Serialise the chain.
+ * @param serialiser    Serialiser to write to. */
+void PostEffectChain::serialise(Serialiser &serialiser) const {
+    serialiser.beginArray("effects");
+
+    for (PostEffect *effect : m_effects)
+        serialiser.push(effect);
+
+    serialiser.endArray();
+}
+
+/** Deserialise the chain.
+ * @param serialiser    Serialiser to read from. */
+void PostEffectChain::deserialise(Serialiser &serialiser) {
+    if (serialiser.beginArray("effects")) {
+        ObjectPtr<PostEffect> effect;
+        while (serialiser.pop(effect))
+            m_effects.emplace_back(std::move(effect));
+
+        serialiser.endArray();
+    }
+}
+
 /** Add an effect to the end of the chain.
  * @param effect        Effect to add. */
-void PostEffectChain::addEffect(PostEffect *effect) {
-    m_effects.push_back(effect);
+void PostEffectChain::addEffect(ObjectPtr<PostEffect> effect) {
+    m_effects.emplace_back(std::move(effect));
 }
 
 /**
