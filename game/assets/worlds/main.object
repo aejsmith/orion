@@ -56,16 +56,16 @@
                 "objectID": 16
             },
             {
-                "objectID": 20
+                "objectID": 21
             },
             {
-                "objectID": 22
+                "objectID": 23
             },
             {
-                "objectID": 24
+                "objectID": 25
             },
             {
-                "objectID": 26
+                "objectID": 27
             }
         ]
     },
@@ -442,6 +442,13 @@
             "fov": 90.0,
             "zNear": 0.25,
             "zFar": 200.0
+        },
+        "postEffectChain": {
+            "effects": [
+                {
+                    "objectID": 20
+                }
+            ]
         }
     },
     {
@@ -481,8 +488,13 @@
         "children": []
     },
     {
-        "objectClass": "Entity",
+        "objectClass": "FXAAEffect",
         "objectID": 20,
+        "properties": {}
+    },
+    {
+        "objectClass": "Entity",
+        "objectID": 21,
         "world": {
             "objectID": 0
         },
@@ -511,16 +523,16 @@
         },
         "components": [
             {
-                "objectID": 21
+                "objectID": 22
             }
         ],
         "children": []
     },
     {
         "objectClass": "SpotLight",
-        "objectID": 21,
+        "objectID": 22,
         "entity": {
-            "objectID": 20
+            "objectID": 21
         },
         "properties": {
             "active": true,
@@ -542,7 +554,7 @@
     },
     {
         "objectClass": "Entity",
-        "objectID": 22,
+        "objectID": 23,
         "world": {
             "objectID": 0
         },
@@ -571,16 +583,15 @@
         },
         "components": [
             {
-                "objectID": 23
+                "objectID": 24
             }
-        ],
-        "children": []
+        ]
     },
     {
         "objectClass": "PointLight",
-        "objectID": 23,
+        "objectID": 24,
         "entity": {
-            "objectID": 22
+            "objectID": 23
         },
         "properties": {
             "active": true,
@@ -601,7 +612,7 @@
     },
     {
         "objectClass": "Entity",
-        "objectID": 24,
+        "objectID": 25,
         "world": {
             "objectID": 0
         },
@@ -630,16 +641,16 @@
         },
         "components": [
             {
-                "objectID": 25
+                "objectID": 26
             }
         ],
         "children": []
     },
     {
         "objectClass": "PointLight",
-        "objectID": 25,
+        "objectID": 26,
         "entity": {
-            "objectID": 24
+            "objectID": 25
         },
         "properties": {
             "active": true,
@@ -660,7 +671,7 @@
     },
     {
         "objectClass": "Entity",
-        "objectID": 26,
+        "objectID": 27,
         "world": {
             "objectID": 0
         },
@@ -689,16 +700,16 @@
         },
         "components": [
             {
-                "objectID": 27
+                "objectID": 28
             }
         ],
         "children": []
     },
     {
         "objectClass": "PointLight",
-        "objectID": 27,
+        "objectID": 28,
         "entity": {
-            "objectID": 26
+            "objectID": 27
         },
         "properties": {
             "active": true,
