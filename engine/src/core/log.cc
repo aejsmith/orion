@@ -24,7 +24,10 @@
  */
 
 #include "core/log.h"
+#include "core/path.h"
 #include "core/string.h"
+
+#include <sys/ioctl.h>
 
 #include <ctime>
 
@@ -73,7 +76,17 @@ void LogManager::write(LogLevel level, const char *file, int line, const char *f
             break;
     }
 
-    fprintf((level < LogLevel::kError) ? stdout : stderr,
-        "%s%s \033[0m%s\n",
-        levelString, timeString, msg.c_str());
+    Path path(file);
+    Path fileName = path.fileName();
+    std::string fileDetails = String::format("%s:%d", fileName.c_str(), line);
+
+    struct winsize w; 
+    ioctl(0, TIOCGWINSZ, &w);
+
+    fprintf(
+        (level < LogLevel::kError) ? stdout : stderr,
+        "%s%s \033[0m%s\033[0;34m%*s\033[0m\n",
+        levelString, timeString, msg.c_str(),
+        w.ws_col - std::strlen(timeString) - msg.length() - 2,
+        fileDetails.c_str());
 }
