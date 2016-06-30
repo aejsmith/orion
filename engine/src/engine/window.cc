@@ -30,24 +30,21 @@
 Window *g_mainWindow;
 
 /** Create the main window.
- * @param config        Engine configuration structure. */
-Window::Window(const EngineConfiguration &config) :
+ * @param config        Engine configuration structure.
+ * @param sdlFlags      Additional SDL window flags. */
+Window::Window(const EngineConfiguration &config, uint32_t sdlFlags) :
     RenderTarget(kWindowPriority),
     m_width(config.displayWidth),
     m_height(config.displayHeight)
 {
-    uint32_t flags = 0;
-
     if (config.displayFullscreen)
-        flags |= SDL_WINDOW_FULLSCREEN;
-    if (config.graphicsAPI == EngineConfiguration::kGLGraphicsAPI)
-        flags |= SDL_WINDOW_OPENGL;
+        sdlFlags |= SDL_WINDOW_FULLSCREEN;
 
     m_sdlWindow = SDL_CreateWindow(
         config.title.c_str(),
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         config.displayWidth, config.displayHeight,
-        flags);
+        sdlFlags);
     if (!m_sdlWindow)
         fatal("Failed to create main window: %s", SDL_GetError());
 }

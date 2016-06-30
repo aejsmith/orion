@@ -6,11 +6,18 @@ sys.path = [os.path.abspath(os.path.join('dev', 'build'))] + sys.path
 # Configurable build options.
 opts = Variables('.options.cache')
 opts.AddVariables(
-    BoolVariable('DEBUG', 'Whether to perform a debug build.', 1),
+    ('GPU_API', 'GPU API to use (gl, vulkan)', 'gl'),
+    BoolVariable('DEBUG', 'Whether to perform a debug build', 1),
 )
 
 env = Environment(ENV = os.environ, variables = opts)
 opts.Save('.options.cache', env)
+
+helptext = \
+    'The following build options can be set on the command line. These will be saved\n' + \
+    'for later invocations of SCons, so you do not need to specify them every time:\n' + \
+    opts.GenerateHelpText(env)
+Help(helptext)
 
 # Set up pretty build output.
 if not ARGUMENTS.get('V'):

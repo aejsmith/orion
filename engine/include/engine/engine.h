@@ -38,16 +38,8 @@ class World;
  *    preferences class that will save and restore settings.
  */
 struct EngineConfiguration {
-    /** Graphics API IDs. */
-    enum GraphicsAPI {
-        kGLGraphicsAPI,
-    };
-public:
     /** Title of the game. */
     std::string title;
-
-    /** Graphics API to use. */
-    GraphicsAPI graphicsAPI;
 
     /** Display parameters. */
     uint32_t displayWidth;          /**< Screen width. */

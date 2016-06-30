@@ -29,7 +29,7 @@ struct SDL_Window;
 /** Engine main window class. */
 class Window : public RenderTarget {
 public:
-    Window(const EngineConfiguration &config);
+    Window(const EngineConfiguration &config, uint32_t sdlFlags);
     ~Window();
 
     void set(const IntRect *viewport) override;

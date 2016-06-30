@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -31,6 +31,8 @@
 
 struct EngineConfiguration;
 
+class Window;
+
 /**
  * Low-level GPU interface.
  *
@@ -41,19 +43,9 @@ struct EngineConfiguration;
  */
 class GPUManager : Noncopyable {
 public:
-    static GPUManager *create(const EngineConfiguration &config);
+    static GPUManager *create(const EngineConfiguration &config, Window *&window);
 
     virtual ~GPUManager() {}
-
-    /**
-     * Initialize the GPU interface.
-     *
-     * This function is called after the main window has been created to
-     * properly initialize the GPU interface. The constructor will be called
-     * before the main window is created so that any necessary SDL attributes
-     * can be configured.
-     */
-    virtual void init() = 0;
 
     /**
      * Resource creation methods.

@@ -61,7 +61,6 @@ TestGame::TestGame() :
  * @param config        Engine configuration to fill in. */
 void TestGame::engineConfiguration(EngineConfiguration &config) {
     config.title = "Cubes";
-    config.graphicsAPI = EngineConfiguration::kGLGraphicsAPI;
     config.displayWidth = 1440;
     config.displayHeight = 900;
     config.displayFullscreen = false;

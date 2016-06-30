@@ -87,10 +87,8 @@ public:
     /** Type of the pixel format mapping array. */
     typedef std::array<GLPixelFormat, PixelFormat::kNumFormats> PixelFormatArray;
 public:
-    GLGPUManager();
+    GLGPUManager(const EngineConfiguration &config, Window *&window);
     ~GLGPUManager();
-
-    void init() override;
 
     /**
      * GPU interface methods.

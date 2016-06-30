@@ -1,8 +1,10 @@
+import util
+
 Import('env')
 
-objects = SConscript(dirs = [
-    'gl',
-])
+if not Glob(env['GPU_API']):
+    util.StopError("GPU API '%s' is not recognised." % (env['GPU_API']))
+objects = SConscript(dirs = [env['GPU_API']])
 
 objects += map(env.Object, [
     'buffer.cc',

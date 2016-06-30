@@ -84,11 +84,8 @@ Engine::Engine() :
     /* Initialize platform systems. */
     g_filesystem = Platform::createFilesystem();
 
-    /* Create the GPU manager, create the main window, and finally properly
-     * initialize the GPU interface. */
-    g_gpuManager = GPUManager::create(m_config);
-    g_mainWindow = new Window(m_config);
-    g_gpuManager->init();
+    /* Create the GPU manager and the main window. */
+    g_gpuManager = GPUManager::create(m_config, g_mainWindow);
 
     /* Initialize other global systems. */
     g_inputManager = new InputManager;

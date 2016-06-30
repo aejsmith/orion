@@ -40,6 +40,14 @@ static const char *g_requiredGLExtensions[] = {
     "GL_EXT_texture_filter_anisotropic",
 };
 
+/** Create the GPU manager.
+ * @param config        Engine configuration.
+ * @param window        Where to store pointer to created window.
+ * @return              Pointer to created GPU manager. */
+GPUManager *GPUManager::create(const EngineConfiguration &config, Window *&window) {
+    return new GLGPUManager(config, window);
+}
+
 /**
  * Identify the highest supported GL core profile version.
  *
@@ -91,8 +99,10 @@ static void identifyGLCoreVersion() {
     fatal("OpenGL %u.%u or later is not supported", kGLMinMajorVersion, kGLMinMinorVersion);
 }
 
-/** Initialize the GPU interface. */
-GLGPUManager::GLGPUManager() :
+/** Initialise the OpenGL GPU manager.
+ * @param config        Engine configuration.
+ * @param window        Where to store pointer to created window. */
+GLGPUManager::GLGPUManager(const EngineConfiguration &config, Window *&window) :
     defaultVertexArray(0),
     m_sdlContext(nullptr)
 {
@@ -115,18 +125,10 @@ GLGPUManager::GLGPUManager() :
          * that we can use ARB_debug_output. */
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
     #endif
-}
 
-/** Shut down the GPU interface. */
-GLGPUManager::~GLGPUManager() {
-    if (m_sdlContext)
-        SDL_GL_DeleteContext(m_sdlContext);
+    /* Create the window. */
+    window = new Window(config, SDL_WINDOW_OPENGL);
 
-    g_opengl = nullptr;
-}
-
-/** Initialize the GPU interface. */
-void GLGPUManager::init() {
     m_sdlContext = SDL_GL_CreateContext(g_mainWindow->sdlWindow());
     if (!m_sdlContext)
         fatal("Failed to create GL context: %s", SDL_GetError());
@@ -168,6 +170,14 @@ void GLGPUManager::init() {
     this->state.setCullFace(GL_BACK);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+}
+
+/** Shut down the GPU interface. */
+GLGPUManager::~GLGPUManager() {
+    if (m_sdlContext)
+        SDL_GL_DeleteContext(m_sdlContext);
+
+    g_opengl = nullptr;
 }
 
 /** Detect GL features and check requirements. */

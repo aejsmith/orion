@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -19,28 +19,10 @@
  * @brief               GPU manager.
  */
 
-#include "engine/engine.h"
-
-#include "gl/gl.h"
+#include "gpu/gpu_manager.h"
 
 /** Global GPU manager instance. */
 GPUManager *g_gpuManager;
-
-/** Create the GPU manager.
- * @param config        Engine configuration.
- * @return              Pointer to created GPU manager. */
-GPUManager *GPUManager::create(const EngineConfiguration &config) {
-    switch (config.graphicsAPI) {
-        case EngineConfiguration::kGLGraphicsAPI:
-            return new GLGPUManager;
-        default:
-            fatal("Configuration specifies unknown graphics API");
-    }
-}
-
-/**
- * Default object creation methods.
- */
 
 GPUIndexDataPtr GPUManager::createIndexData(GPUBuffer *buffer, GPUIndexData::Type type, size_t count, size_t offset) {
     return new GPUIndexData(buffer, type, count, offset);
