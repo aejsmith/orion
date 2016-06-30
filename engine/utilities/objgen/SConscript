@@ -1,10 +1,22 @@
+import os
 import SCons.Scanner.C
 from subprocess import Popen, PIPE
 
 Import('env')
 
 localEnv = env.Clone()
-localEnv.ParseConfig('llvm-config --cflags --ldflags')
+
+if os.uname()[0] == 'Darwin':
+    # We have to use Xcode's supplied libclang as the MacPorts one does not
+    # work correctly. However, Xcode does not ship the headers for it, so rely
+    # on the external ones still.
+    localEnv.ParseConfig('llvm-config --cflags')
+    xcodePath = Popen(['xcode-select', '--print-path'], stdout=PIPE).communicate()[0].strip()
+    libPath = xcodePath + '/Toolchains/XcodeDefault.xctoolchain/usr/lib'
+    localEnv['LIBPATH'] = [libPath]
+    localEnv['LINKFLAGS'] = ['-rpath', libPath]
+else:
+    localEnv.ParseConfig('llvm-config --cflags --ldflags')
 localEnv['LIBS'] = ['clang']
 
 # Compile the Mustache template into the objgen binary so we don't have to find
