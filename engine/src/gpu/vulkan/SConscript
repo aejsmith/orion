@@ -1,0 +1,11 @@
+import os
+
+Import('env')
+
+env['LIBS'] += ['vulkan']
+
+objects = map(env.Object, [
+    'vulkan.cc',
+])
+
+Return('objects')
