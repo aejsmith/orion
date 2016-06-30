@@ -40,34 +40,34 @@
  */
 
 #ifdef __GNUC__
-# define PACKED             __attribute__((packed))
-# define ALIGNED(a)         __attribute__((aligned(a)))
-# define NORETURN           __attribute__((noreturn))
-# define FORCEINLINE        __attribute__((always_inline))
-# define NOINLINE           __attribute__((noinline))
-# define likely(x)          __builtin_expect(!!(x), 1)
-# define unlikely(x)        __builtin_expect(!!(x), 0)
-# define unreachable()      __builtin_unreachable()
+    #define PACKED        __attribute__((packed))
+    #define ALIGNED(a)    __attribute__((aligned(a)))
+    #define NORETURN      __attribute__((noreturn))
+    #define FORCEINLINE   __attribute__((always_inline))
+    #define NOINLINE      __attribute__((noinline))
+    #define likely(x)     __builtin_expect(!!(x), 1)
+    #define unlikely(x)   __builtin_expect(!!(x), 0)
+    #define unreachable() __builtin_unreachable()
 #else
-# error "Compiler is not supported"
+    #error "Compiler is not supported"
 #endif
 
 /** Target bitness definition. */
 #if INTPTR_MAX == INT32_MAX
-# define ORION_32BIT 1
+    #define ORION_32BIT 1
 #elif INTPTR_MAX == INT64_MAX
-# define ORION_64BIT 1
+    #define ORION_64BIT 1
 #else
-# error "Cannot determine target bitness"
+    #error "Cannot determine target bitness"
 #endif
 
 /** Target endianness definition. */
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-# define ORION_LITTLE_ENDIAN 1
+    #define ORION_LITTLE_ENDIAN 1
 #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-# define ORION_BIG_ENDIAN 1
+    #define ORION_BIG_ENDIAN 1
 #else
-# error "Cannot determine target endianness"
+    #error "Cannot determine target endianness"
 #endif
 
 /**
@@ -98,6 +98,8 @@ extern void __fatal(const char *file, int line, const char *fmt, ...) NORETURN;
 #define fatal(fmt, ...) \
     __fatal(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
+#ifdef ORION_BUILD_DEBUG
+
 /**
  * Check that a condition is true.
  *
@@ -127,6 +129,13 @@ extern void __fatal(const char *file, int line, const char *fmt, ...) NORETURN;
         if (unlikely(!(cond))) \
             __fatal(__FILE__, __LINE__, fmt, ##__VA_ARGS__); \
     } while (0)
+
+#else /* ORION_BUILD_DEBUG */
+
+#define check(cond) do { (void)sizeof(cond); } while(0)
+#define checkMsg(cond, fmt, ...) check(cond)
+
+#endif /* ORION_BUILD_DEBUG */
 
 /**
  * Simple utility classes.
