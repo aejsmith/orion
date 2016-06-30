@@ -1,12 +1,12 @@
 [submodule "engine/3rdparty/glm"]
-	path = engine/3rdparty/glm
+	path = engine/3rdparty/glm/repo
 	url = https://github.com/g-truc/glm.git
 [submodule "engine/3rdparty/rapidjson"]
-	path = engine/3rdparty/rapidjson
+	path = engine/3rdparty/rapidjson/repo
 	url = https://github.com/miloyip/rapidjson.git
 [submodule "engine/3rdparty/imgui/imgui"]
-	path = engine/3rdparty/imgui/imgui
+	path = engine/3rdparty/imgui/repo
 	url = https://github.com/ocornut/imgui.git
 [submodule "engine/3rdparty/mustache/mustache"]
-	path = engine/3rdparty/mustache/mustache
+	path = engine/3rdparty/mustache/repo
 	url = https://github.com/kainjow/Mustache.git

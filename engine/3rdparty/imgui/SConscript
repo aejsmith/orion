@@ -1,14 +1,10 @@
 Import('env')
 
-localEnv = env.Clone()
-localEnv['IMGUI_H'] = File('imgui.h')
-localEnv['CCFLAGS'] += ['-include', '${IMGUI_H}']
+env['CPPPATH'] += [Dir('include')]
 
-objects = map(localEnv.Object, [
-    'imgui/imgui.cpp',
-    'imgui/imgui_draw.cpp',
+objects = map(env.Object, [
+    'repo/imgui.cpp',
+    'repo/imgui_draw.cpp',
 ])
-
-Depends(objects, localEnv['IMGUI_H'])
 
 Return('objects')

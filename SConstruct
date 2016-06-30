@@ -3,25 +3,40 @@ import os, sys
 # Add the path to our build utilities to the path.
 sys.path = [os.path.abspath(os.path.join('dev', 'build'))] + sys.path
 
-env = Environment(ENV = os.environ)
+# Configurable build options.
+opts = Variables('.options.cache')
+opts.AddVariables(
+    BoolVariable('DEBUG', 'Whether to perform a debug build.', 1),
+)
 
+env = Environment(ENV = os.environ, variables = opts)
+opts.Save('.options.cache', env)
+
+# Set up pretty build output.
 if not ARGUMENTS.get('V'):
-    def compile_str(msg, var):
+    def compileString(msg, var):
         return '\033[1;34m%8s\033[0m %s' % (msg, var)
-    env['ARCOMSTR']     = compile_str('AR',     '$TARGET')
-    env['CCCOMSTR']     = compile_str('CC',     '$SOURCE')
-    env['SHCCCOMSTR']   = compile_str('CC',     '$SOURCE')
-    env['CXXCOMSTR']    = compile_str('CXX',    '$SOURCE')
-    env['SHCXXCOMSTR']  = compile_str('CXX',    '$SOURCE')
-    env['LINKCOMSTR']   = compile_str('LINK',   '$TARGET')
-    env['SHLINKCOMSTR'] = compile_str('SHLINK', '$TARGET')
-    env['RANLIBCOMSTR'] = compile_str('RANLIB', '$TARGET')
-    env['GENCOMSTR']    = compile_str('GEN',    '$TARGET')
-    env['OBJGENCOMSTR'] = compile_str('OBJGEN', '$TARGET')
+    env['ARCOMSTR']     = compileString('AR',     '$TARGET')
+    env['CCCOMSTR']     = compileString('CC',     '$SOURCE')
+    env['SHCCCOMSTR']   = compileString('CC',     '$SOURCE')
+    env['CXXCOMSTR']    = compileString('CXX',    '$SOURCE')
+    env['SHCXXCOMSTR']  = compileString('CXX',    '$SOURCE')
+    env['LINKCOMSTR']   = compileString('LINK',   '$TARGET')
+    env['SHLINKCOMSTR'] = compileString('SHLINK', '$TARGET')
+    env['RANLIBCOMSTR'] = compileString('RANLIB', '$TARGET')
+    env['GENCOMSTR']    = compileString('GEN',    '$TARGET')
+    env['OBJGENCOMSTR'] = compileString('OBJGEN', '$TARGET')
+
+##################
+# Compiler setup #
+##################
+
+env['CC'] = 'clang'
+env['CXX'] = 'clang++'
 
 env['CCFLAGS'] += [
-    # Optimization/debugging flags.
-    '-O2', '-g',
+    # Optimization flags.
+    '-O2',
 
     # Warning flags.
     '-Wall', '-Wextra', '-Wno-variadic-macros', '-Wno-unused-parameter',
@@ -34,38 +49,27 @@ env['CXXFLAGS'] += [
     '-Wsign-promo', '-std=c++14'
 ]
 
-env['CPPDEFINES'] = {
-    'ORION_BUILD_DEBUG': None,
-    'GLM_FORCE_CXX11': None,
-    'GLM_FORCE_RADIANS': None,
-    'GLM_FORCE_SIZE_T_LENGTH': None,
-}
-
-env['CPPPATH'] = [
-    Dir('engine/include'),
-    Dir('engine/3rdparty/glm'),
-    Dir('engine/3rdparty/rapidjson/include'),
-    Dir('engine/3rdparty/imgui'),
-    Dir('engine/3rdparty/mustache'),
-]
-
+env['CPPDEFINES'] = {}
+env['CPPPATH'] = []
 env['LIBS'] = []
 
-env['CC'] = 'clang'
-env['CXX'] = 'clang++'
+# Set debug build flags.
+if env['DEBUG']:
+    env['CCFLAGS'] += ['-g']
+    env['CPPDEFINES']['ORION_BUILD_DEBUG'] = None
+
+#########################
+# Platform dependencies #
+#########################
+
 if os.uname()[0] == 'Darwin':
     env['CXXFLAGS'] += ['-stdlib=libc++']
     env['LINKFLAGS'] += ['-stdlib=libc++']
     env['CPPPATH'] += ['/opt/local/include']
-    env['FRAMEWORKS'] = ['OpenGL']
-else:
-    env['LIBS'] += ['GL']
 
-# Configure libraries.
-env['LIBS'] += ['GLEW']
-env.ParseConfig('sdl2-config --cflags --libs')
-env.ParseConfig('pkg-config --cflags --libs freetype2')
-env.ParseConfig('pkg-config --cflags --libs bullet')
+##############
+# Main build #
+##############
 
 Export('env')
 SConscript('SConscript', variant_dir = 'build')

@@ -1,4 +1,13 @@
+import os
+
 Import('env')
+
+if os.uname()[0] == 'Darwin':
+    env['FRAMEWORKS'] = ['OpenGL']
+else:
+    env['LIBS'] += ['GL']
+
+env['LIBS'] += ['GLEW']
 
 objects = map(env.Object, [
     'buffer.cc',

@@ -1,0 +1,6 @@
+Import('env')
+
+env['CPPPATH'] += [Dir('include')]
+
+objects = []
+Return('objects')

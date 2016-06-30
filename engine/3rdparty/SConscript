@@ -1,5 +1,16 @@
+Import('env')
+
+# Configure external dependencies.
+env.ParseConfig('sdl2-config --cflags --libs')
+env.ParseConfig('pkg-config --cflags --libs freetype2')
+env.ParseConfig('pkg-config --cflags --libs bullet')
+
+# Build local libraries.
 objects = SConscript(dirs = [
+    'glm',
     'imgui',
+    'mustache',
+    'rapidjson',
 ])
 
 Return('objects')

@@ -40,6 +40,3 @@
 #define IM_VEC4_CLASS_EXTRA \
     ImVec4(const glm::vec4& f) { x = f.x; y = f.y; z = f.z; w = f.w; } \
     operator glm::vec4() const { return glm::vec4(x,y,z,w); }
-
-#define IMGUI_DISABLE_INCLUDE_IMCONFIG_H
-#include "imgui/imgui.h"
