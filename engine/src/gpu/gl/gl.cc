@@ -26,11 +26,11 @@
 /** Global GL GPU interface. */
 GLGPUManager *g_opengl = nullptr;
 
-/** Target GL major version. */
-static const int kGLMajorVersion = 3;
-
-/** Target GL minor version. */
-static const int kGLMinorVersion = 3;
+/** Minimum and maximum supported OpenGL versions. */
+static const int kGLMinMajorVersion = 3;
+static const int kGLMinMinorVersion = 3;
+static const int kGLMaxMajorVersion = 4;
+static const int kGLMaxMinorVersion = 5;
 
 /** Required OpenGL extensions. */
 static const char *g_requiredGLExtensions[] = {
@@ -39,6 +39,57 @@ static const char *g_requiredGLExtensions[] = {
     "GL_ARB_texture_view",
     "GL_EXT_texture_filter_anisotropic",
 };
+
+/**
+ * Identify the highest supported GL core profile version.
+ *
+ * Creates dummy windows/OpenGL contexts to identify the highest supported
+ * OpenGL core profile versionm, and leaves the SDL_GL_* attributes set
+ * accordingly.
+ *
+ * We want to create a core profile because OS X and Mesa only give 2.x support
+ * when a compatibility profile is requested, unlike the NVIDIA driver which
+ * gives the highest version it supports. However, if we request a core profile,
+ * the NVIDIA driver gives the exact version requested. We want the highest
+ * available version. Therefore, we must repeatedly try to recreate contexts
+ * with different versions until we succeed.
+ */
+static void identifyGLCoreVersion() {
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+    int majorVersion = kGLMaxMajorVersion;
+    int minorVersion = kGLMaxMinorVersion;
+
+    while (
+        majorVersion > kGLMinMajorVersion ||
+        (majorVersion == kGLMinMajorVersion && minorVersion >= kGLMinMinorVersion))
+    {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, majorVersion);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minorVersion);
+
+        SDL_Window *window = SDL_CreateWindow(
+            nullptr, 0, 0, 1, 1,
+            SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS | SDL_WINDOW_HIDDEN);
+        if (!window)
+            fatal("Failed to create dummy window: %s", SDL_GetError());
+
+        SDL_GLContext context = SDL_GL_CreateContext(window);
+        if (context)
+            SDL_GL_DeleteContext(context);
+        SDL_DestroyWindow(window);
+        if (context)
+            return;
+
+        if (minorVersion == 0) {
+            majorVersion--;
+            minorVersion = 3;
+        } else {
+            minorVersion--;
+        }
+    }
+
+    fatal("OpenGL %u.%u or later is not supported", kGLMinMajorVersion, kGLMinMinorVersion);
+}
 
 /** Initialize the GPU interface. */
 GLGPUManager::GLGPUManager() :
@@ -56,21 +107,8 @@ GLGPUManager::GLGPUManager() :
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-    #ifdef __APPLE__
-        /* On OS X, we want to create a Core profile context. If we do
-         * not, we get a legacy profile which only supports GL 2.1.
-         * However, on other systems, use a compatibility profile.
-         * Creating a core profile tends to give a context which only
-         * supports the specific GL version requested (even though the
-         * GLX spec, for example, permits later versions to be
-         * returned). A compatibility profile on the other hand will
-         * always support the latest version supported by the driver.
-         * In fact, NVIDIA recommend that you use a compatibility
-         * profile instead of core profile. */
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, kGLMajorVersion);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, kGLMinorVersion);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    #endif
+    /* Determine the OpenGL profile version to create. */
+    identifyGLCoreVersion();
 
     #if ORION_GL_DEBUG
         /* If GL debugging is enabled, enable the debug context flag so
@@ -154,12 +192,10 @@ void GLGPUManager::initFeatures() {
     for (const std::string &extension : features.extensions)
         logDebug("  %s", extension.c_str());
 
-    /* Check whether the version number is high enough. */
     GLint major = 0, minor = 0;
     glGetIntegerv(GL_MAJOR_VERSION, &major);
     glGetIntegerv(GL_MINOR_VERSION, &minor);
-    if (major < kGLMajorVersion || (major == kGLMajorVersion && minor < kGLMinorVersion))
-        fatal("OpenGL version %d.%d is required", kGLMajorVersion, kGLMinorVersion);
+    check(major > kGLMinMajorVersion || (major == kGLMinMajorVersion && minor >= kGLMinMinorVersion));
 
     /* Check for required extensions. */
     for (size_t i = 0; i < arraySize(g_requiredGLExtensions); i++) {
