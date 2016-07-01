@@ -19,9 +19,23 @@
  * @brief               Vulkan GPU manager.
  */
 
+#include "device.h"
+#include "surface.h"
+#include "swapchain.h"
 #include "vulkan.h"
 
-#define vkStub() fatal("Function %s not implemented", __PRETTY_FUNCTION__)
+#include "core/hash_table.h"
+
+#include "engine/engine.h"
+#include "engine/window.h"
+
+/** Global Vulkan GPU manager instance. */
+VulkanGPUManager *g_vulkan;
+
+/** List of required instance extensions. */
+static const char *kRequiredInstanceExtensions[] = {
+    VK_KHR_SURFACE_EXTENSION_NAME,
+};
 
 /** Create the GPU manager.
  * @param config        Engine configuration.
@@ -31,202 +45,175 @@ GPUManager *GPUManager::create(const EngineConfiguration &config, Window *&windo
     return new VulkanGPUManager(config, window);
 }
 
+/** Determine the instance layers/extensions to use.
+ * @param window        Window (needed to determine required surface extension).
+ * @param layers        Where to store array of layers to enable.
+ * @param extensions    Where to store array of extensions to enable.
+ * @param features      Features structure to fill in. */
+static void enableInstanceExtensions(
+    Window *window,
+    std::vector<const char *> &layers,
+    std::vector<const char *> &extensions,
+    VulkanFeatures &features)
+{
+    VkResult result;
+    uint32_t count;
+
+    /* Enumerate available layers. */
+    result = vkEnumerateInstanceLayerProperties(&count, nullptr);
+    if (result != VK_SUCCESS)
+        fatal("Failed to enumerate Vulkan instance layers (1): %d", result);
+
+    std::vector<VkLayerProperties> layerProps(count);
+    result = vkEnumerateInstanceLayerProperties(&count, &layerProps[0]);
+    if (result != VK_SUCCESS)
+        fatal("Failed to enumerate Vulkan instance layers (2): %d", result);
+
+    HashSet<std::string> availableLayers;
+    logInfo("  Instance layers:");
+    for (const auto &layer : layerProps) {
+        logInfo(
+            "    %s (spec version %u.%u.%u, revision %u)",
+            layer.layerName,
+            VK_VERSION_MAJOR(layer.specVersion),
+            VK_VERSION_MINOR(layer.specVersion),
+            VK_VERSION_PATCH(layer.specVersion),
+            layer.implementationVersion);
+        availableLayers.insert(layer.layerName);
+    }
+
+    /* Enumerate available extensions. */
+    result = vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr);
+    if (result != VK_SUCCESS)
+        fatal("Failed to enumerate Vulkan instance extensions (1): %d", result);
+
+    std::vector<VkExtensionProperties> extensionProps(count);
+    result = vkEnumerateInstanceExtensionProperties(nullptr, &count, &extensionProps[0]);
+    if (result != VK_SUCCESS)
+        fatal("Failed to enumerate Vulkan instance extensions (2): %d", result);
+
+    HashSet<std::string> availableExtensions;
+    logInfo("  Instance extensions:");
+    for (const auto &extension : extensionProps) {
+        logInfo("    %s (revision %u)", extension.extensionName, extension.specVersion);
+        availableExtensions.insert(extension.extensionName);
+    }
+
+    /* Check whether we have all required extensions, including the platform-
+     * specific surface extension. */
+    extensions.assign(
+        kRequiredInstanceExtensions,
+        &kRequiredInstanceExtensions[arraySize(kRequiredInstanceExtensions)]);
+    extensions.push_back(VulkanSurface::getPlatformExtensionName(window));
+    for (const char *extension : extensions) {
+        if (availableExtensions.find(extension) == availableExtensions.end())
+            fatal("Required Vulkan instance extension '%s' not available", extension);
+    }
+
+    /* Enable validation/debug extensions if requested and present. */
+    #if ORION_VULKAN_VALIDATION
+        auto validationLayer = availableLayers.find("VK_LAYER_LUNARG_standard_validation");
+        auto reportExtension = availableExtensions.find(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+
+        if (validationLayer != availableLayers.end() && reportExtension != availableExtensions.end()) {
+            layers.push_back("VK_LAYER_LUNARG_standard_validation");
+            extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+            features.validation = true;
+        }
+    #endif
+}
+
 /** Initialise the Vulkan GPU manager.
  * @param config        Engine configuration.
  * @param window        Where to store pointer to created window. */
-VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&window) {
-    vkStub();
+VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&window) :
+    m_features()
+{
+    VkResult result;
+
+    g_vulkan = this;
+
+    /* Create the main window. */
+    window = new Window(config, 0);
+
+    logInfo("Initialising Vulkan");
+
+    /* Determine the extensions to use. */
+    std::vector<const char *> enabledLayers;
+    std::vector<const char *> enabledExtensions;
+    enableInstanceExtensions(window, enabledLayers, enabledExtensions, m_features);
+
+    /* Create the instance. */
+    VkApplicationInfo applicationInfo = {};
+    applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    applicationInfo.pApplicationName = config.title.c_str();
+    applicationInfo.pEngineName = "Orion";
+    applicationInfo.apiVersion = VK_API_VERSION_1_0;
+
+    VkInstanceCreateInfo instanceCreateInfo = {};
+    instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    instanceCreateInfo.pApplicationInfo = &applicationInfo;
+    instanceCreateInfo.enabledLayerCount = enabledLayers.size();
+    instanceCreateInfo.ppEnabledLayerNames = &enabledLayers[0];
+    instanceCreateInfo.enabledExtensionCount = enabledExtensions.size();
+    instanceCreateInfo.ppEnabledExtensionNames = &enabledExtensions[0];
+
+    result = vkCreateInstance(&instanceCreateInfo, nullptr, &m_instance);
+    if (result != VK_SUCCESS)
+        fatal("Failed to create Vulkan instance: %d", result);
+
+    /* Create a surface for the main window. */
+    m_surface = new VulkanSurface(window);
+
+    /* Get a list of physical devices. */
+    uint32_t deviceCount = 0;
+    result = vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
+    if (result != VK_SUCCESS) {
+        fatal("Failed to enumerate Vulkan physical devices (1): %d", result);
+    } else if (deviceCount == 0) {
+        fatal("No Vulkan physical devices available");
+    }
+
+    std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
+    result = vkEnumeratePhysicalDevices(m_instance, &deviceCount, &physicalDevices[0]);
+    if (result != VK_SUCCESS)
+        fatal("Failed to enumerate Vulkan physical devices (2): %d", result);
+
+    /* From the devices which suit our needs, identify the best. */
+    std::vector<std::unique_ptr<VulkanDevice>> devices(deviceCount);
+    uint32_t bestDevice = UINT32_MAX;
+    for (uint32_t i = 0; i < physicalDevices.size(); i++) {
+        logInfo("  Device %u:", i);
+        std::unique_ptr<VulkanDevice> device = std::make_unique<VulkanDevice>(physicalDevices[i]);
+        if (device->identify(m_surface)) {
+            if (bestDevice == UINT32_MAX || device->isBetterThan(devices[i].get()))
+                bestDevice = i;
+
+            devices[i] = std::move(device);
+        }
+    }
+
+    if (bestDevice == UINT32_MAX)
+        fatal("No suitable Vulkan physical device found");
+
+    logInfo("  Using device %u", bestDevice);
+    m_device = devices[bestDevice].release();
+    devices.clear();
+
+    /* Create the logical device. */
+    m_device->init();
+
+    /* Create a swapchain. */
+    m_swapchain = new VulkanSwapchain(m_device, m_surface);
 }
 
 /** Shut down the Vulkan GPU manager. */
 VulkanGPUManager::~VulkanGPUManager() {
-    vkStub();
-}
+    vkDeviceWaitIdle(m_device->handle());
 
-/** Create a blend state object.
- * @param desc          Descriptor for blend state.
- * @return              Created blend state object. */
-GPUBlendStatePtr VulkanGPUManager::createBlendState(const GPUBlendStateDesc &desc) {
-    vkStub();
-}
+    delete m_swapchain;
+    delete m_device;
+    delete m_surface;
 
-/** Create a GPU buffer.
- * @see                 GPUBuffer::GPUBuffer().
- * @return              Pointer to created buffer. */
-GPUBufferPtr VulkanGPUManager::createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) {
-    vkStub();
-}
-
-/** Create a depth/stencil state object.
- * @param desc          Descriptor for depth/stencil state.
- * @return              Created depth/stencil state object. */
-GPUDepthStencilStatePtr VulkanGPUManager::createDepthStencilState(const GPUDepthStencilStateDesc &desc) {
-    vkStub();
-}
-
-/** Create an index data object.
- * @see                 GPUIndexData::GPUIndexData().
- * @return              Pointer to created index data object. */
-GPUIndexDataPtr VulkanGPUManager::createIndexData(
-    GPUBuffer *buffer,
-    GPUIndexData::Type type,
-    size_t count,
-    size_t offset)
-{
-    vkStub();
-}
-
-/** Create a pipeline object.
- * @see                 GPUPipeline::GPUPipeline().
- * @return              Pointer to created pipeline. */
-GPUPipelinePtr VulkanGPUManager::createPipeline(const GPUPipelineDesc &desc) {
-    vkStub();
-}
-
-/** Create a rasterizer state object.
- * @param desc          Descriptor for rasterizer state.
- * @return              Created rasterizer state object. */
-GPURasterizerStatePtr VulkanGPUManager::createRasterizerState(const GPURasterizerStateDesc &desc) {
-    vkStub();
-}
-
-/** Create a sampler state object.
- * @param desc          Descriptor for sampler state.
- * @return              Pointer to created sampler state object. */
-GPUSamplerStatePtr VulkanGPUManager::createSamplerState(const GPUSamplerStateDesc &desc) {
-    vkStub();
-}
-
-/** Create a texture.
- * @see                 GPUTexture::GPUTexture().
- * @param desc          Descriptor containing texture parameters.
- * @return              Pointer to created texture. */
-GPUTexturePtr VulkanGPUManager::createTexture(const GPUTextureDesc &desc) {
-    vkStub();
-}
-
-/** Create a texture view.
- * @param image         Image to create the view for.
- * @return              Pointer to created texture view. */
-GPUTexturePtr VulkanGPUManager::createTextureView(const GPUTextureImageRef &image) {
-    vkStub();
-}
-
-/** Create a vertex data object.
- * @see                 GPUVertexData::GPUVertexData().
- * @return              Pointer to created vertex data object. */
-GPUVertexDataPtr VulkanGPUManager::createVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers) {
-    vkStub();
-}
-
-/** Create a vertex format.
- * @see                 GPUVertexFormat::GPUVertexFormat(). */
-GPUVertexFormatPtr VulkanGPUManager::createVertexFormat(VertexBufferLayoutArray &buffers, VertexAttributeArray &attributes) {
-    vkStub();
-}
-
-/** Compile a GPU program from GLSL source.
- * @param stage         Stage that the program is for.
- * @param source        Shader source string.
- * @return              Pointer to created shader, null if compilation fails. */
-GPUProgramPtr VulkanGPUManager::compileProgram(unsigned stage, const std::string &source) {
-    vkStub();
-}
-
-/** Bind a pipeline for rendering.
- * @param pipeline      Pipeline to use. */
-void VulkanGPUManager::bindPipeline(GPUPipeline *pipeline) {
-    vkStub();
-}
-
-/** Bind a texture.
- * @param index         Texture unit index to bind to.
- * @param texture       Texture to bind.
- * @param sampler       Sampler state. */
-void VulkanGPUManager::bindTexture(unsigned index, GPUTexture *texture, GPUSamplerState *sampler) {
-    vkStub();
-}
-
-/** Bind a uniform buffer.
- * @param index         Uniform block index to bind to.
- * @param buffer        Buffer to bind. */
-void VulkanGPUManager::bindUniformBuffer(unsigned index, GPUBuffer *buffer) {
-    vkStub();
-}
-
-/** Set the blend state.
- * @param state         Blend state to set. */
-void VulkanGPUManager::setBlendState(GPUBlendState *state) {
-    vkStub();
-}
-
-/** Set the depth/stencil state.
- * @param state         Depth/stencil state to set. */
-void VulkanGPUManager::setDepthStencilState(GPUDepthStencilState *state) {
-    vkStub();
-}
-
-/** Set the rasterizer state.
- * @param state         Rasterizer state to set. */
-void VulkanGPUManager::setRasterizerState(GPURasterizerState *state) {
-    vkStub();
-}
-
-/** Set the render targets.
- * @param desc          Pointer to render target descriptor.
- * @param viewport      Optional viewport rectangle. */
-void VulkanGPUManager::setRenderTarget(const GPURenderTargetDesc *desc, const IntRect *viewport) {
-    vkStub();
-}
-
-/** Set the viewport.
- * @param viewport      Viewport rectangle in pixels. */
-void VulkanGPUManager::setViewport(const IntRect &viewport) {
-    vkStub();
-}
-
-/** Set the scissor test parameters.
- * @param enable        Whether to enable scissor testing.
- * @param scissor       Scissor rectangle. */
-void VulkanGPUManager::setScissor(bool enable, const IntRect &scissor) {
-    vkStub();
-}
-
-/** End a frame and present it on screen.
- * @param vsync         Whether to wait for vertical sync. */
-void VulkanGPUManager::endFrame(bool vsync) {
-    vkStub();
-}
-
-/** Copy pixels from one texture to another.
- * @param source        Source texture image reference.
- * @param dest          Destination texture image reference.
- * @param sourcePos     Position in source texture to copy from.
- * @param destPos       Position in destination texture to copy to.
- * @param size          Size of area to copy. */
-void VulkanGPUManager::blit(
-    const GPUTextureImageRef &source,
-    const GPUTextureImageRef &dest,
-    glm::ivec2 sourcePos,
-    glm::ivec2 destPos,
-    glm::ivec2 size)
-{
-    vkStub();
-}
-
-/** Clear rendering buffers.
- * @param buffers       Buffers to clear (bitmask of ClearBuffer values).
- * @param colour        Colour to clear to.
- * @param depth         Depth value to clear to.
- * @param stencil       Stencil value to clear to. */
-void VulkanGPUManager::clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil) {
-    vkStub();
-}
-
-/** Draw primitives.
- * @param type          Primitive type to render.
- * @param vertices      Vertex data to use.
- * @param indices       Index data to use (can be null). */
-void VulkanGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) {
-    vkStub();
+    vkDestroyInstance(m_instance, nullptr);
 }

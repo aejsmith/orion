@@ -116,7 +116,7 @@ public:
     void setViewport(const IntRect &viewport) override;
     void setScissor(bool enable, const IntRect &scissor) override;
 
-    void endFrame(bool vsync) override;
+    void endFrame() override;
 
     void blit(
         const GPUTextureImageRef &source,

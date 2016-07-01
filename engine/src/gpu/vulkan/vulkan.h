@@ -19,13 +19,46 @@
  * @brief               Vulkan GPU manager.
  */
 
+#pragma once
+
+#include <vulkan/vulkan.h>
+
+#include "core/hash_table.h"
+
 #include "gpu/gpu_manager.h"
+
+/** Whether to enable the Vulkan validation layers. */
+#define ORION_VULKAN_VALIDATION 1
+
+/** Macro to check the result of Vulkan API calls. */
+#ifdef ORION_BUILD_DEBUG
+    #define checkVk(call) \
+        { \
+            VkResult __result = call; \
+            checkMsg(__result == VK_SUCCESS, "Vulkan call failed: %d", __result); \
+        }
+#else
+    #define checkVk(call) call
+#endif
+
+class VulkanDevice;
+class VulkanSurface;
+class VulkanSwapchain;
+
+/** Details of Vulkan features. */
+struct VulkanFeatures {
+    bool validation;                    /**< Whether validation layers are enabled. */
+};
 
 /** Vulkan GPU manager implementation. */
 class VulkanGPUManager : public GPUManager {
 public:
     VulkanGPUManager(const EngineConfiguration &config, Window *&window);
     ~VulkanGPUManager();
+
+    /**
+     * GPUManager interface.
+     */
 
     GPUBlendStatePtr createBlendState(const GPUBlendStateDesc &desc) override;
     GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) override;
@@ -55,7 +88,8 @@ public:
     void setViewport(const IntRect &viewport) override;
     void setScissor(bool enable, const IntRect &scissor) override;
 
-    void endFrame(bool vsync) override;
+    void startFrame() override;
+    void endFrame() override;
 
     void blit(
         const GPUTextureImageRef &source,
@@ -65,4 +99,25 @@ public:
         glm::ivec2 size) override;
     void clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil) override;
     void draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) override;
+
+    /**
+     * Internal definitions.
+     */
+
+    /** @return             Feature details structure. */
+    const VulkanFeatures &features() const { return m_features; }
+    /** @return             Vulkan instance handle. */
+    VkInstance instance() const { return m_instance; }
+    /** @return             Surface for the main window. */
+    VulkanSurface *surface() const { return m_surface; }
+    /** @return             Main logical device. */
+    VulkanDevice *device() const { return m_device; }
+private:
+    VulkanFeatures m_features;          /**< Feature details. */
+    VkInstance m_instance;              /**< Vulkan instance handle. */
+    VulkanSurface *m_surface;           /**< Surface for the main window. */
+    VulkanDevice *m_device;             /**< Main logical device. */
+    VulkanSwapchain *m_swapchain;       /**< Swap chain. */
 };
+
+extern VulkanGPUManager *g_vulkan;

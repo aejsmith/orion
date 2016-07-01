@@ -134,6 +134,7 @@ void Engine::run() {
         if (!pollEvents())
             return;
 
+        g_gpuManager->startFrame();
         g_debugManager->startFrame();
 
         /* Display statistics from the previous frame. */
@@ -150,7 +151,7 @@ void Engine::run() {
         renderAllTargets();
 
         /* Present the final rendered frame. */
-        g_gpuManager->endFrame(m_config.displayVsync);
+        g_gpuManager->endFrame();
 
         /* Clear out debug primitives from this frame. */
         g_debugManager->endFrame();

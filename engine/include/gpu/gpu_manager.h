@@ -189,9 +189,11 @@ public:
      * Frame methods.
      */
 
-    /** End a frame and present it on screen.
-     * @param vsync         Whether to wait for vertical sync. */
-    virtual void endFrame(bool vsync) {}
+    /** Begin a new frame. */
+    virtual void startFrame() {}
+
+    /** End a frame and present it on screen. */
+    virtual void endFrame() = 0;
 
     /**
      * Rendering methods.

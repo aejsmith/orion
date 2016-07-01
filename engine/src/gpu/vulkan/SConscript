@@ -4,7 +4,15 @@ Import('env')
 
 env['LIBS'] += ['vulkan']
 
+if os.uname()[0] == 'Linux':
+    env.ParseConfig('pkg-config --cflags --libs x11-xcb')
+
 objects = map(env.Object, [
+    'device.cc',
+    'queue.cc',
+    'stubs.cc',
+    'surface.cc',
+    'swapchain.cc',
     'vulkan.cc',
 ])
 

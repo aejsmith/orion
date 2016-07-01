@@ -21,6 +21,7 @@
 
 #include "gl.h"
 
+#include "engine/engine.h"
 #include "engine/window.h"
 
 /** Global GL GPU interface. */
@@ -133,7 +134,7 @@ GLGPUManager::GLGPUManager(const EngineConfiguration &config, Window *&window) :
     if (!m_sdlContext)
         fatal("Failed to create GL context: %s", SDL_GetError());
 
-    SDL_GL_SetSwapInterval(0);
+    SDL_GL_SetSwapInterval(config.displayVsync);
 
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK)

@@ -33,7 +33,6 @@
  * entries here.
  */
 GLState::GLState() :
-    swapInterval(0),
     clearColour(0.0f, 0.0f, 0.0f, 0.0f),
     clearDepth(1.0f),
     clearStencil(0.0f),
@@ -66,15 +65,6 @@ GLState::~GLState() {
  * @param features      GL features description. */
 void GLState::initResources(GLFeatures &features) {
     this->textureUnits = new TextureUnit[features.maxTextureUnits];
-}
-
-/** Set the current swap interval.
- * @param interval      Interval to set (passed to SDL_GL_SetSwapInterval). */
-void GLState::setSwapInterval(int interval) {
-    if (interval != this->swapInterval) {
-        SDL_GL_SetSwapInterval(interval);
-        this->swapInterval = interval;
-    }
 }
 
 /** Set the viewport.

@@ -71,14 +71,12 @@ void GLGPUManager::setScissor(bool enable, const IntRect &scissor) {
         this->state.setScissor(scissor);
 }
 
-/** End a frame and present it on screen.
- * @param vsync         Whether to wait for vertical sync. */
-void GLGPUManager::endFrame(bool vsync) {
+/** End a frame and present it on screen. */
+void GLGPUManager::endFrame() {
     /* On OS X, CGLFlushDrawable will swap whichever framebuffer is currently
      * active. So, to flush the main window, we must bind it here. */
     this->state.bindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    this->state.setSwapInterval(vsync);
     SDL_GL_SwapWindow(g_mainWindow->sdlWindow());
 }
 

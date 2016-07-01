@@ -79,8 +79,6 @@ struct GLState {
         {}
     };
 public:
-    int swapInterval;               /**< Current swap interval. */
-
     /** Render target/viewport state. */
     IntRect viewport;               /**< Current viewport. */
     glm::ivec2 currentRTSize;       /**< Current render target size. */
@@ -124,7 +122,6 @@ public:
 
     void initResources(GLFeatures &features);
 
-    void setSwapInterval(int interval);
     void setViewport(const IntRect &viewport);
 
     void setClearColour(const glm::vec4 &colour);
