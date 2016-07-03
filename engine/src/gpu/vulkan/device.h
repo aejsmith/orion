@@ -23,6 +23,7 @@
 
 #include "vulkan.h"
 
+class VulkanCommandPool;
 class VulkanQueue;
 
 /** Class wrapping a logical device. */
@@ -39,11 +40,14 @@ public:
     VkDevice handle() const { return m_handle; }
     /** @return             Device's queue. */
     VulkanQueue *queue() const { return m_queue; }
+    /** @return             Device's command pool. */
+    VulkanCommandPool *commandPool() const { return m_commandPool; }
     /** @return             Physical device handle. */
     VkPhysicalDevice physicalHandle() const { return m_physicalHandle; }
 private:
     VkDevice m_handle;                  /**< Logical device handle. */
-    VulkanQueue *m_queue;               /**< Device queue. */
+    VulkanQueue *m_queue;               /**< Device's queue. */
+    VulkanCommandPool *m_commandPool;   /**< Device's command pool. */
     uint32_t m_queueFamily;             /**< Queue family to use. */
     VkPhysicalDevice m_physicalHandle;  /**< Physical device handle. */
 

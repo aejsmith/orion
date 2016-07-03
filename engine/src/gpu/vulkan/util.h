@@ -23,12 +23,56 @@
 
 #include "device.h"
 
+/** Class wrapping a Vulkan fence. */
+class VulkanFence {
+public:
+    /** Create a new fence.
+     * @param device        Device to create the semaphore on.
+     * @param signalled     Whether the fence should begin in the signalled
+     *                      state (defaults to false). */
+    explicit VulkanFence(VulkanDevice *device, bool signalled = false) :
+        m_device(device)
+    {
+        VkFenceCreateInfo createInfo = {};
+        createInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        if (signalled)
+            createInfo.flags |= VK_FENCE_CREATE_SIGNALED_BIT;
+        checkVk(vkCreateFence(m_device->handle(), &createInfo, nullptr, &m_handle));
+    }
+
+    /** Destroy the fence. */
+    ~VulkanFence() {
+        vkDestroyFence(m_device->handle(), m_handle, nullptr);
+    }
+
+    /** @return             Handle to the fence. */
+    VkFence handle() const { return m_handle; }
+
+    /** Get the fence status.
+     * @return              Whether the fence is signalled. */
+    bool getStatus() const {
+        VkResult result = vkGetFenceStatus(m_device->handle(), m_handle);
+        switch (result) {
+            case VK_SUCCESS:
+                return true;
+            case VK_NOT_READY:
+                return false;
+            default:
+                checkVk(result);
+                unreachable();
+        }
+    }
+private:
+    VulkanDevice *m_device;             /**< Device the fence belongs to. */
+    VkFence m_handle;                   /**< Handle to the fence. */
+};
+
 /** Class wrapping a Vulkan semaphore. */
 class VulkanSemaphore {
 public:
     /** Create a new semaphore.
      * @param device        Device to create the semaphore on. */
-    VulkanSemaphore(VulkanDevice *device) :
+    explicit VulkanSemaphore(VulkanDevice *device) :
         m_device(device)
     {
         VkSemaphoreCreateInfo createInfo = {};

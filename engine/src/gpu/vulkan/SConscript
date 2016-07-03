@@ -8,6 +8,7 @@ if os.uname()[0] == 'Linux':
     env.ParseConfig('pkg-config --cflags --libs x11-xcb')
 
 objects = map(env.Object, [
+    'command_buffer.cc',
     'device.cc',
     'loader.cc',
     'queue.cc',

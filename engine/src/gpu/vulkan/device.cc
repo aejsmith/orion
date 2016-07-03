@@ -19,6 +19,7 @@
  * @brief               Vulkan device class.
  */
 
+#include "command_buffer.h"
 #include "device.h"
 #include "queue.h"
 #include "surface.h"
@@ -37,6 +38,9 @@ VulkanDevice::VulkanDevice(VkPhysicalDevice physicalDevice) :
 
 /** Destroy the device. */
 VulkanDevice::~VulkanDevice() {
+    delete m_commandPool;
+    delete m_queue;
+
     if (m_handle != VK_NULL_HANDLE)
         vkDestroyDevice(m_handle, nullptr);
 }
@@ -176,4 +180,5 @@ void VulkanDevice::init() {
         fatal("Failed to create Vulkan device: %d", result);
 
     m_queue = new VulkanQueue(this, m_queueFamily, 0);
+    m_commandPool = new VulkanCommandPool(this, m_queueFamily);
 }

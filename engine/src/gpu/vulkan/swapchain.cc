@@ -275,13 +275,3 @@ void VulkanSwapchain::endFrame() {
 
     m_currentImage = UINT32_MAX;
 }
-
-/** Begin a new frame. */
-void VulkanGPUManager::startFrame() {
-    m_swapchain->startFrame();
-}
-
-/** End a frame and present it on screen. */
-void VulkanGPUManager::endFrame() {
-    m_swapchain->endFrame();
-}

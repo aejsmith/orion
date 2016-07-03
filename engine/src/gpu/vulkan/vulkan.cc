@@ -19,6 +19,7 @@
  * @brief               Vulkan GPU manager.
  */
 
+#include "command_buffer.h"
 #include "device.h"
 #include "surface.h"
 #include "swapchain.h"
@@ -280,4 +281,15 @@ VulkanGPUManager::~VulkanGPUManager() {
     delete m_surface;
 
     vkDestroyInstance(m_instance, nullptr);
+}
+
+/** Begin a new frame. */
+void VulkanGPUManager::startFrame() {
+    m_device->commandPool()->startFrame();
+    m_swapchain->startFrame();
+}
+
+/** End a frame and present it on screen. */
+void VulkanGPUManager::endFrame() {
+    m_swapchain->endFrame();
 }
