@@ -25,6 +25,7 @@
 #include "vulkan.h"
 
 #include "core/hash_table.h"
+#include "core/string.h"
 
 #include "engine/engine.h"
 #include "engine/window.h"
@@ -123,6 +124,52 @@ static void enableInstanceExtensions(
     #endif
 }
 
+#if ORION_VULKAN_VALIDATION
+
+/** Vulkan debug report callback. */
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugReportCallback(
+    VkDebugReportFlagsEXT flags,
+    VkDebugReportObjectTypeEXT objectType,
+    uint64_t object,
+    size_t location,
+    int32_t messageCode,
+    const char *pLayerPrefix,
+    const char *pMessage,
+    void *pUserData)
+{
+    LogLevel level = LogLevel::kDebug;
+    std::string flagsString;
+
+    if (flags & VK_DEBUG_REPORT_DEBUG_BIT_EXT)
+        flagsString += String::format("%sDEBUG", (!flagsString.empty()) ? " | " : "");
+    if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
+        flagsString += String::format("%sINFORMATION", (!flagsString.empty()) ? " | " : "");
+    if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT) {
+        flagsString += String::format("%sWARNING", (!flagsString.empty()) ? " | " : "");
+        level = LogLevel::kWarning;
+    }
+    if (flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT) {
+        flagsString += String::format("%sPERFORMANCE", (!flagsString.empty()) ? " | " : "");
+        level = LogLevel::kWarning;
+    }
+    if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT) {
+        flagsString += String::format("%sERROR", (!flagsString.empty()) ? " | " : "");
+        level = LogLevel::kError;
+    }
+
+    logWrite(level,
+        "Vulkan [layer = %s, flags = %s, object = 0x%" PRIx64 ", location = %zu, messageCode = %d]:",
+        pLayerPrefix, flagsString.c_str(), object, location, messageCode);
+    logWrite(level, "  %s", pMessage);
+
+    if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
+        fatal("Vulkan validation error (see log for details)");
+
+    return VK_FALSE;
+}
+
+#endif
+
 /** Initialise the Vulkan GPU manager.
  * @param config        Engine configuration.
  * @param window        Where to store pointer to created window. */
@@ -161,6 +208,23 @@ VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&w
     result = vkCreateInstance(&instanceCreateInfo, nullptr, &m_instance);
     if (result != VK_SUCCESS)
         fatal("Failed to create Vulkan instance: %d", result);
+
+    /* Get extension function pointers. */
+    m_functions.init(m_instance, m_features);
+
+    /* Register a debug report callback. */
+    #if ORION_VULKAN_VALIDATION
+        VkDebugReportCallbackCreateInfoEXT callbackCreateInfo = {};
+        callbackCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
+        callbackCreateInfo.flags =
+            VK_DEBUG_REPORT_ERROR_BIT_EXT |
+            VK_DEBUG_REPORT_WARNING_BIT_EXT |
+            VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+        callbackCreateInfo.pfnCallback = debugReportCallback;
+
+        VkDebugReportCallbackEXT callback;
+        m_functions.CreateDebugReportCallbackEXT(m_instance, &callbackCreateInfo, nullptr, &callback);
+    #endif
 
     /* Create a surface for the main window. */
     m_surface = new VulkanSurface(window);

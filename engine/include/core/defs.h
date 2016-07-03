@@ -27,6 +27,7 @@
 
 #include <glm.h>
 
+#include <cinttypes>
 #include <cmath>
 #include <cstdarg>
 #include <cstddef>

@@ -9,6 +9,7 @@ if os.uname()[0] == 'Linux':
 
 objects = map(env.Object, [
     'device.cc',
+    'loader.cc',
     'queue.cc',
     'stubs.cc',
     'surface.cc',

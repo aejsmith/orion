@@ -21,25 +21,22 @@
 
 #pragma once
 
-#include <vulkan/vulkan.h>
+/** Whether to enable the Vulkan validation layers. */
+#define ORION_VULKAN_VALIDATION 1
+
+#include "loader.h"
 
 #include "core/hash_table.h"
 
 #include "gpu/gpu_manager.h"
 
-/** Whether to enable the Vulkan validation layers. */
-#define ORION_VULKAN_VALIDATION 1
-
 /** Macro to check the result of Vulkan API calls. */
-#ifdef ORION_BUILD_DEBUG
-    #define checkVk(call) \
-        { \
-            VkResult __result = call; \
-            checkMsg(__result == VK_SUCCESS, "Vulkan call failed: %d", __result); \
-        }
-#else
-    #define checkVk(call) call
-#endif
+#define checkVk(call) \
+    { \
+        VkResult __result = call; \
+        if (unlikely(__result != VK_SUCCESS)) \
+            fatal("Vulkan call failed: %d", __result); \
+    }
 
 class VulkanDevice;
 class VulkanSurface;
@@ -108,16 +105,19 @@ public:
     const VulkanFeatures &features() const { return m_features; }
     /** @return             Vulkan instance handle. */
     VkInstance instance() const { return m_instance; }
+    /** @return             Instance extension function table. */
+    const VulkanInstanceFunctions &functions() const { return m_functions; }
     /** @return             Surface for the main window. */
     VulkanSurface *surface() const { return m_surface; }
     /** @return             Main logical device. */
     VulkanDevice *device() const { return m_device; }
 private:
-    VulkanFeatures m_features;          /**< Feature details. */
-    VkInstance m_instance;              /**< Vulkan instance handle. */
-    VulkanSurface *m_surface;           /**< Surface for the main window. */
-    VulkanDevice *m_device;             /**< Main logical device. */
-    VulkanSwapchain *m_swapchain;       /**< Swap chain. */
+    VulkanFeatures m_features;              /**< Feature details. */
+    VkInstance m_instance;                  /**< Vulkan instance handle. */
+    VulkanInstanceFunctions m_functions;    /**< Instance function pointer table. */
+    VulkanSurface *m_surface;               /**< Surface for the main window. */
+    VulkanDevice *m_device;                 /**< Main logical device. */
+    VulkanSwapchain *m_swapchain;           /**< Swap chain. */
 };
 
 extern VulkanGPUManager *g_vulkan;

@@ -154,10 +154,20 @@ void VulkanDevice::init() {
     queueCreateInfo.queueCount = 1;
     queueCreateInfo.pQueuePriorities = &queuePriority;
 
+    std::vector<const char *> layers;
+
+    /* Assume that if the instance layers are available, the device layers are. */
+    #if ORION_VULKAN_VALIDATION
+        if (g_vulkan->features().validation)
+            layers.push_back("VK_LAYER_LUNARG_standard_validation");
+    #endif
+
     VkDeviceCreateInfo deviceCreateInfo = {};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     deviceCreateInfo.queueCreateInfoCount = 1;
     deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
+    deviceCreateInfo.enabledLayerCount = layers.size();
+    deviceCreateInfo.ppEnabledLayerNames = &layers[0];
     deviceCreateInfo.enabledExtensionCount = m_extensions.size();
     deviceCreateInfo.ppEnabledExtensionNames = &m_extensions[0];
 
