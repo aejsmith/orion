@@ -74,10 +74,15 @@ class VulkanCommandBuffer {
 public:
     /** @return             Handle to the command buffer. */
     VkCommandBuffer handle() const { return m_handle; }
+
+    void begin(VkCommandBufferUsageFlagBits usage);
+    void end();
 private:
     /** State of the command buffer. */
     enum class State {
         kAllocated,                     /**< Allocated but not submitted. */
+        kRecording,                     /**< Between begin() and end(). */
+        kRecorded,                      /**< After end(). */
         kSubmitted,                     /**< Submitted. */
     };
 

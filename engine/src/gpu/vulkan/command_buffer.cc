@@ -17,6 +17,11 @@
 /**
  * @file
  * @brief               Vulkan command buffer management.
+ *
+ * TODO:
+ *  - Any benefit to keeping around command buffers for reuse by resetting them
+ *    rather than creating/freeing? Should at least be a finite number of them.
+ *  - Same goes for fences.
  */
 
 #include "command_buffer.h"
@@ -121,4 +126,25 @@ VulkanCommandBuffer::VulkanCommandBuffer(VulkanCommandPool *pool, bool transient
 VulkanCommandBuffer::~VulkanCommandBuffer() {
     check(m_state != State::kSubmitted);
     vkFreeCommandBuffers(m_pool->m_device->handle(), m_pool->m_transientPool, 1, &m_handle);
+}
+
+/** Begin recording a command buffer.
+ * @param usage         Usage flags. */
+void VulkanCommandBuffer::begin(VkCommandBufferUsageFlagBits usage) {
+    check(m_state == State::kAllocated);
+
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = usage;
+
+    checkVk(vkBeginCommandBuffer(m_handle, &beginInfo));
+    m_state = State::kRecording;
+}
+
+/** Finish recording a command buffer. */
+void VulkanCommandBuffer::end() {
+    check(m_state == State::kRecording);
+
+    checkVk(vkEndCommandBuffer(m_handle));
+    m_state = State::kRecorded;
 }

@@ -38,6 +38,7 @@
             fatal("Vulkan call failed: %d", __result); \
     }
 
+class VulkanCommandBuffer;
 class VulkanDevice;
 class VulkanSurface;
 class VulkanSwapchain;
@@ -111,6 +112,21 @@ public:
     VulkanSurface *surface() const { return m_surface; }
     /** @return             Main logical device. */
     VulkanDevice *device() const { return m_device; }
+
+    /**
+     * Get the primary command buffer for the current frame.
+     *
+     * At the start of each frame, a transient command buffer is allocated to
+     * act as the "primary" command buffer for the frame. This is where we
+     * record everything for the frame (potentially referencing secondary
+     * command buffers), and it is submitted in one go at the end of the frame.
+     *
+     * @return              Primary command buffer.
+     */
+    VulkanCommandBuffer *primaryCmdBuf() const {
+        check(m_primaryCmdBuf);
+        return m_primaryCmdBuf;
+    }
 private:
     VulkanFeatures m_features;              /**< Feature details. */
     VkInstance m_instance;                  /**< Vulkan instance handle. */
@@ -118,6 +134,9 @@ private:
     VulkanSurface *m_surface;               /**< Surface for the main window. */
     VulkanDevice *m_device;                 /**< Main logical device. */
     VulkanSwapchain *m_swapchain;           /**< Swap chain. */
+
+    /** Primary command buffer for the current frame. */
+    VulkanCommandBuffer *m_primaryCmdBuf;
 };
 
 extern VulkanGPUManager *g_vulkan;

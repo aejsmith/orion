@@ -175,7 +175,8 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugReportCallback(
  * @param config        Engine configuration.
  * @param window        Where to store pointer to created window. */
 VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&window) :
-    m_features()
+    m_features(),
+    m_primaryCmdBuf(nullptr)
 {
     VkResult result;
 
@@ -285,11 +286,22 @@ VulkanGPUManager::~VulkanGPUManager() {
 
 /** Begin a new frame. */
 void VulkanGPUManager::startFrame() {
+    /* Begin a new frame and allocate the primary command buffer. */
     m_device->commandPool()->startFrame();
+    m_primaryCmdBuf = m_device->commandPool()->allocateTransient();
+    m_primaryCmdBuf->begin();
+
+    /* Acquire a new image from the swap chain. */
     m_swapchain->startFrame();
+
+    // TODO: Need to wait for present complete semaphore, transition layout.
 }
 
 /** End a frame and present it on screen. */
 void VulkanGPUManager::endFrame() {
+    // TODO: Transition image layout to present.
+
+    m_primaryCmdBuf->end();
+
     m_swapchain->endFrame();
 }
