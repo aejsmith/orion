@@ -576,3 +576,9 @@ inline TargetPtr object_cast(Source *object) {
         ? static_cast<TargetPtr>(object)
         : nullptr;
 }
+
+/** Specialisation of object_cast for reference-counted pointers. */
+template <typename TargetPtr, typename Source>
+inline TargetPtr object_cast(const ReferencePtr<Source> &object) {
+    return object_cast<TargetPtr>(object.get());
+}

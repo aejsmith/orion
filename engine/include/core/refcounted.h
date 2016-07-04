@@ -210,15 +210,6 @@ public:
     ReferencePtr<U> staticCast() const {
         return ReferencePtr<U>(static_cast<U *>(m_object));
     }
-
-    /** Dynamic cast for ReferencePtr.
-     * @tparam T            Type to cast to.
-     * @param ptr           Pointer to cast.
-     * @return              Casted pointer. */
-    template <typename U>
-    ReferencePtr<U> dynamicCast() const {
-        return ReferencePtr<U>(dynamic_cast<U *>(m_object));
-    }
 private:
     ReferencedType *m_object;       /**< Referenced object. */
 };

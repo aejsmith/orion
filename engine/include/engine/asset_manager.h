@@ -93,7 +93,7 @@ inline TypedAssetPtr<AssetType> AssetManager::load(const Path &path) {
     if (!asset)
         fatal("Unable to load asset '%s'", path.c_str());
 
-    TypedAssetPtr<AssetType> ret = asset.dynamicCast<AssetType>();
+    TypedAssetPtr<AssetType> ret = object_cast<AssetType *>(asset);
 
     /* Haven't implemented error assets yet, for now die. */
     if (!ret)
