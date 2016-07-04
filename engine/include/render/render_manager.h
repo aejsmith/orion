@@ -23,8 +23,8 @@
 
 #include "core/hash_table.h"
 
+#include "gpu/state.h"
 #include "gpu/texture.h"
-#include "gpu/vertex_format.h"
 
 #include "render/defs.h"
 #include "render/geometry.h"
@@ -74,8 +74,8 @@ public:
      * Other rendering resources.
      */
 
-    /** @return             Vertex format for SimpleVertex. */
-    GPUVertexFormat *simpleVertexFormat() const { return m_simpleVertexFormat; }
+    /** @return             Vertex input state for SimpleVertex. */
+    GPUVertexInputState *simpleVertexInputState() const { return m_simpleVertexInputState; }
 
     /** @param geometry     Where to store quad geometry. */
     void quadGeometry(Geometry &geometry) const {
@@ -120,8 +120,8 @@ private:
     /** Pool of temporary render target textures. */
     MultiHashMap<GPUTextureDesc, TempRenderTarget> m_tempRenderTargets;
 
-    /** Vertex format for SimpleVertex. */
-    GPUVertexFormatPtr m_simpleVertexFormat;
+    /** Vertex input state for SimpleVertex. */
+    GPUVertexInputStatePtr m_simpleVertexInputState;
 
     /** Utility geometry. */
     GPUVertexDataPtr m_quadVertexData;      /**< Vertex data for a quad. */

@@ -95,13 +95,14 @@ GPUTexturePtr VulkanGPUManager::createTextureView(const GPUTextureImageRef &imag
 /** Create a vertex data object.
  * @see                 GPUVertexData::GPUVertexData().
  * @return              Pointer to created vertex data object. */
-GPUVertexDataPtr VulkanGPUManager::createVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers) {
+GPUVertexDataPtr VulkanGPUManager::createVertexData(size_t count, GPUVertexInputState *inputState, GPUBufferArray &&buffers) {
     vkStub();
 }
 
-/** Create a vertex format.
- * @see                 GPUVertexFormat::GPUVertexFormat(). */
-GPUVertexFormatPtr VulkanGPUManager::createVertexFormat(VertexBufferLayoutArray &buffers, VertexAttributeArray &attributes) {
+/** Create a vertex input state object.
+ * @param desc          Descriptor for vertex input state.
+ * @return              Pointer to created vertex input state object. */
+GPUVertexInputStatePtr VulkanGPUManager::createVertexInputState(GPUVertexInputStateDesc &&desc) {
     vkStub();
 }
 

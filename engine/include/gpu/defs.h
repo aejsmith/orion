@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -29,6 +29,9 @@
 
 /** Maximum number of colour render targets. */
 static const size_t kMaxColourRenderTargets = 8;
+
+/** Maximum number of vertex attributes. */
+static const size_t kMaxVertexAttributes = 16;
 
 /**
  * Miscellaneous definitions.
@@ -173,9 +176,9 @@ enum class SamplerFilterMode {
  *
  * All GPU resources derive from this class. It includes reference counting
  * functionality so that resources will only be freed once they have no more
- * users. GPU resources are also not copyable.
+ * users.
  */
-class GPUResource : public Refcounted, Noncopyable {
+class GPUResource : public Refcounted {
 protected:
     GPUResource() {}
 };

@@ -54,7 +54,7 @@ public:
     /** Create a blend state object.
      * @param desc          Descriptor for blend state.
      * @return              Created blend state object. */
-    virtual GPUBlendStatePtr createBlendState(const GPUBlendStateDesc &desc) = 0;
+    virtual GPUBlendStatePtr createBlendState(const GPUBlendStateDesc &desc);
 
     /** Create a GPU buffer.
      * @see                 GPUBuffer::GPUBuffer().
@@ -64,7 +64,7 @@ public:
     /** Create a depth/stencil state object.
      * @param desc          Descriptor for depth/stencil state.
      * @return              Created depth/stencil state object. */
-    virtual GPUDepthStencilStatePtr createDepthStencilState(const GPUDepthStencilStateDesc &desc) = 0;
+    virtual GPUDepthStencilStatePtr createDepthStencilState(const GPUDepthStencilStateDesc &desc);
 
     /** Create an index data object.
      * @see                 GPUIndexData::GPUIndexData().
@@ -83,12 +83,12 @@ public:
     /** Create a rasterizer state object.
      * @param desc          Descriptor for rasterizer state.
      * @return              Created rasterizer state object. */
-    virtual GPURasterizerStatePtr createRasterizerState(const GPURasterizerStateDesc &desc) = 0;
+    virtual GPURasterizerStatePtr createRasterizerState(const GPURasterizerStateDesc &desc);
 
     /** Create a sampler state object.
      * @param desc          Descriptor for sampler state.
      * @return              Pointer to created sampler state object. */
-    virtual GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) = 0;
+    virtual GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc);
 
     /** Create a texture.
      * @see                 GPUTexture::GPUTexture().
@@ -105,11 +105,12 @@ public:
     /** Create a vertex data object.
      * @see                 GPUVertexData::GPUVertexData().
      * @return              Pointer to created vertex data object. */
-    virtual GPUVertexDataPtr createVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers);
+    virtual GPUVertexDataPtr createVertexData(size_t count, GPUVertexInputState *inputState, GPUBufferArray &&buffers);
 
-    /** Create a vertex format.
-     * @see                 GPUVertexFormat::GPUVertexFormat(). */
-    virtual GPUVertexFormatPtr createVertexFormat(VertexBufferLayoutArray &buffers, VertexAttributeArray &attributes);
+    /** Create a vertex input state object.
+     * @param desc          Descriptor for vertex input state.
+     * @return              Pointer to created vertex input state object. */
+    virtual GPUVertexInputStatePtr createVertexInputState(GPUVertexInputStateDesc &&desc);
 
     /**
      * Shader methods.

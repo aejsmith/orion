@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "util.h"
+#include "utility.h"
 
 class VulkanSurface;
 

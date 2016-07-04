@@ -71,8 +71,8 @@ public:
     GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) override;
     GPUTexturePtr createTexture(const GPUTextureDesc &desc) override;
     GPUTexturePtr createTextureView(const GPUTextureImageRef &image) override;
-    GPUVertexDataPtr createVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers) override;
-    GPUVertexFormatPtr createVertexFormat(VertexBufferLayoutArray &buffers, VertexAttributeArray &attributes) override;
+    GPUVertexDataPtr createVertexData(size_t count, GPUVertexInputState *inputState, GPUBufferArray &&buffers) override;
+    GPUVertexInputStatePtr createVertexInputState(GPUVertexInputStateDesc &&desc) override;
 
     GPUProgramPtr compileProgram(unsigned stage, const std::string &source) override;
 

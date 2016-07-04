@@ -22,7 +22,7 @@
 #pragma once
 
 #include "device.h"
-#include "util.h"
+#include "utility.h"
 
 #include <list>
 

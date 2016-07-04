@@ -40,35 +40,34 @@ RenderManager::RenderManager() :
 
 /** Create rendering resources. */
 void RenderManager::init() {
-    /* Create the simple vertex format. */
-    VertexBufferLayoutArray buffers(1);
-    buffers[0].stride = sizeof(SimpleVertex);
-    VertexAttributeArray attributes(4);
-    attributes[0].semantic = VertexAttribute::kPositionSemantic;
-    attributes[0].index = 0;
-    attributes[0].type = VertexAttribute::kFloatType;
-    attributes[0].count = 3;
-    attributes[0].buffer = 0;
-    attributes[0].offset = offsetof(SimpleVertex, x);
-    attributes[1].semantic = VertexAttribute::kNormalSemantic;
-    attributes[1].index = 0;
-    attributes[1].type = VertexAttribute::kFloatType;
-    attributes[1].count = 3;
-    attributes[1].buffer = 0;
-    attributes[1].offset = offsetof(SimpleVertex, nx);
-    attributes[2].semantic = VertexAttribute::kTexcoordSemantic;
-    attributes[2].index = 0;
-    attributes[2].type = VertexAttribute::kFloatType;
-    attributes[2].count = 2;
-    attributes[2].buffer = 0;
-    attributes[2].offset = offsetof(SimpleVertex, u);
-    attributes[3].semantic = VertexAttribute::kDiffuseSemantic;
-    attributes[3].index = 0;
-    attributes[3].type = VertexAttribute::kFloatType;
-    attributes[3].count = 4;
-    attributes[3].buffer = 0;
-    attributes[3].offset = offsetof(SimpleVertex, r);
-    m_simpleVertexFormat = g_gpuManager->createVertexFormat(buffers, attributes);
+    /* Create the simple vertex input state. */
+    GPUVertexInputStateDesc vertexDesc(1, 4);
+    vertexDesc.bindings[0].stride = sizeof(SimpleVertex);
+    vertexDesc.attributes[0].semantic = VertexAttribute::kPositionSemantic;
+    vertexDesc.attributes[0].index = 0;
+    vertexDesc.attributes[0].type = VertexAttribute::kFloatType;
+    vertexDesc.attributes[0].components = 3;
+    vertexDesc.attributes[0].binding = 0;
+    vertexDesc.attributes[0].offset = offsetof(SimpleVertex, x);
+    vertexDesc.attributes[1].semantic = VertexAttribute::kNormalSemantic;
+    vertexDesc.attributes[1].index = 0;
+    vertexDesc.attributes[1].type = VertexAttribute::kFloatType;
+    vertexDesc.attributes[1].components = 3;
+    vertexDesc.attributes[1].binding = 0;
+    vertexDesc.attributes[1].offset = offsetof(SimpleVertex, nx);
+    vertexDesc.attributes[2].semantic = VertexAttribute::kTexcoordSemantic;
+    vertexDesc.attributes[2].index = 0;
+    vertexDesc.attributes[2].type = VertexAttribute::kFloatType;
+    vertexDesc.attributes[2].components = 2;
+    vertexDesc.attributes[2].binding = 0;
+    vertexDesc.attributes[2].offset = offsetof(SimpleVertex, u);
+    vertexDesc.attributes[3].semantic = VertexAttribute::kDiffuseSemantic;
+    vertexDesc.attributes[3].index = 0;
+    vertexDesc.attributes[3].type = VertexAttribute::kFloatType;
+    vertexDesc.attributes[3].components = 4;
+    vertexDesc.attributes[3].binding = 0;
+    vertexDesc.attributes[3].offset = offsetof(SimpleVertex, r);
+    m_simpleVertexInputState = g_gpuManager->createVertexInputState(std::move(vertexDesc));
 
     /* Create the utility geometry. */
     RenderUtil::makeQuad(m_quadVertexData);

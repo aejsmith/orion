@@ -24,6 +24,18 @@
 /** Global GPU manager instance. */
 GPUManager *g_gpuManager;
 
+/**
+ * Default object creation methods.
+ */
+
+GPUBlendStatePtr GPUManager::createBlendState(const GPUBlendStateDesc &desc) {
+    return new GPUBlendState(desc);
+}
+
+GPUDepthStencilStatePtr GPUManager::createDepthStencilState(const GPUDepthStencilStateDesc &desc) {
+    return new GPUDepthStencilState(desc);
+}
+
 GPUIndexDataPtr GPUManager::createIndexData(GPUBuffer *buffer, GPUIndexData::Type type, size_t count, size_t offset) {
     return new GPUIndexData(buffer, type, count, offset);
 }
@@ -32,10 +44,18 @@ GPUPipelinePtr GPUManager::createPipeline(const GPUPipelineDesc &desc) {
     return new GPUPipeline(desc);
 }
 
-GPUVertexDataPtr GPUManager::createVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers) {
-    return new GPUVertexData(count, format, buffers);
+GPURasterizerStatePtr GPUManager::createRasterizerState(const GPURasterizerStateDesc &desc) {
+    return new GPURasterizerState(desc);
 }
 
-GPUVertexFormatPtr GPUManager::createVertexFormat(VertexBufferLayoutArray &buffers, VertexAttributeArray &attributes) {
-    return new GPUVertexFormat(buffers, attributes);
+GPUSamplerStatePtr GPUManager::createSamplerState(const GPUSamplerStateDesc &desc) {
+    return new GPUSamplerState(desc);
+}
+
+GPUVertexDataPtr GPUManager::createVertexData(size_t count, GPUVertexInputState *inputState, GPUBufferArray &&buffers) {
+    return new GPUVertexData(count, inputState, std::move(buffers));
+}
+
+GPUVertexInputStatePtr GPUManager::createVertexInputState(GPUVertexInputStateDesc &&desc) {
+    return new GPUVertexInputState(std::move(desc));
 }

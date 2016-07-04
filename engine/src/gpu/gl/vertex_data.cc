@@ -40,16 +40,16 @@
 
 /** Initialize the vertex data object.
  * @param count         Total number of vertices.
- * @param format        Vertex format.
+ * @param inputState    Vertex input state.
  * @param buffers       Array of buffers. */
-GLVertexData::GLVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers) :
-    GPUVertexData(count, format, buffers),
+GLVertexData::GLVertexData(size_t count, GPUVertexInputState *inputState, GPUBufferArray &&buffers) :
+    GPUVertexData(count, inputState, std::move(buffers)),
     m_boundIndices(nullptr)
 {
     glGenVertexArrays(1, &m_array);
     g_opengl->state.bindVertexArray(m_array);
 
-    for (const VertexAttribute &attribute : m_format->attributes()) {
+    for (const VertexAttribute &attribute : m_inputState->desc().attributes) {
         GLuint index;
         if (!mapAttribute(attribute.semantic, attribute.index, &index))
             fatal("GL: Cannot map attribute (semantic: %d, index: %u)", attribute.semantic, attribute.index);
@@ -58,12 +58,12 @@ GLVertexData::GLVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray
         GLenum type = GLUtil::convertAttributeType(attribute.type);
         void *offset = reinterpret_cast<void *>(static_cast<uintptr_t>(attribute.offset));
 
-        const VertexBufferLayout &layout = m_format->buffers()[attribute.buffer];
-        const GLBuffer *buffer = static_cast<GLBuffer *>(m_buffers[attribute.buffer].get());
+        const VertexBinding &binding = m_inputState->desc().bindings[attribute.binding];
+        const GLBuffer *buffer = static_cast<GLBuffer *>(m_buffers[attribute.binding].get());
         buffer->bind();
 
         glEnableVertexAttribArray(index);
-        glVertexAttribPointer(index, attribute.count, type, attribute.normalised, layout.stride, offset);
+        glVertexAttribPointer(index, attribute.components, type, attribute.normalised, binding.stride, offset);
     }
 }
 
@@ -152,6 +152,6 @@ bool GLVertexData::mapAttribute(VertexAttribute::Semantic semantic, unsigned ind
 /** Create a vertex data object.
  * @see             GPUVertexData::GPUVertexData().
  * @return          Pointer to created vertex data object. */
-GPUVertexDataPtr GLGPUManager::createVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers) {
-    return new GLVertexData(count, format, buffers);
+GPUVertexDataPtr GLGPUManager::createVertexData(size_t count, GPUVertexInputState *inputState, GPUBufferArray &&buffers) {
+    return new GLVertexData(count, inputState, std::move(buffers));
 }

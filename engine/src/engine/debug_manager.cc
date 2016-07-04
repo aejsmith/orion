@@ -70,7 +70,9 @@ private:
     static const char *getClipboardText();
     static void setClipboardText(const char *text);
 private:
-    GPUVertexFormatPtr m_vertexFormat;  /**< Vertex format for GUI drawing. */
+    /** Vertex input state for GUI drawing. */
+    GPUVertexInputStatePtr m_vertexInputState;
+
     MaterialPtr m_material;             /**< Material for GUI drawing. */
     GPUTexturePtr m_fontTexture;        /**< Font texture for GUI. */
     GPUSamplerStatePtr m_sampler;       /**< Texture sampler for the GUI. */
@@ -158,30 +160,29 @@ void DebugOverlay::initResources() {
     io.KeyMap[ImGuiKey_Y] = static_cast<int>(InputCode::kY);
     io.KeyMap[ImGuiKey_Z] = static_cast<int>(InputCode::kZ);
 
-    /* Create the ImGUI vertex format. */
-    VertexBufferLayoutArray bufferLayouts(1);
-    bufferLayouts[0].stride = sizeof(ImDrawVert);
-    VertexAttributeArray attributes(3);
-    attributes[0].semantic = VertexAttribute::kPositionSemantic;
-    attributes[0].index = 0;
-    attributes[0].type = VertexAttribute::kFloatType;
-    attributes[0].count = 2;
-    attributes[0].buffer = 0;
-    attributes[0].offset = offsetof(ImDrawVert, pos);
-    attributes[1].semantic = VertexAttribute::kTexcoordSemantic;
-    attributes[1].index = 0;
-    attributes[1].type = VertexAttribute::kFloatType;
-    attributes[1].count = 2;
-    attributes[1].buffer = 0;
-    attributes[1].offset = offsetof(ImDrawVert, uv);
-    attributes[2].semantic = VertexAttribute::kDiffuseSemantic;
-    attributes[2].index = 0;
-    attributes[2].type = VertexAttribute::kUnsignedByteType;
-    attributes[2].normalised = true;
-    attributes[2].count = 4;
-    attributes[2].buffer = 0;
-    attributes[2].offset = offsetof(ImDrawVert, col);
-    m_vertexFormat = g_gpuManager->createVertexFormat(bufferLayouts, attributes);
+    /* Create the ImGUI vertex input state. */
+    GPUVertexInputStateDesc vertexDesc(1, 3);
+    vertexDesc.bindings[0].stride = sizeof(ImDrawVert);
+    vertexDesc.attributes[0].semantic = VertexAttribute::kPositionSemantic;
+    vertexDesc.attributes[0].index = 0;
+    vertexDesc.attributes[0].type = VertexAttribute::kFloatType;
+    vertexDesc.attributes[0].components = 2;
+    vertexDesc.attributes[0].binding = 0;
+    vertexDesc.attributes[0].offset = offsetof(ImDrawVert, pos);
+    vertexDesc.attributes[1].semantic = VertexAttribute::kTexcoordSemantic;
+    vertexDesc.attributes[1].index = 0;
+    vertexDesc.attributes[1].type = VertexAttribute::kFloatType;
+    vertexDesc.attributes[1].components = 2;
+    vertexDesc.attributes[1].binding = 0;
+    vertexDesc.attributes[1].offset = offsetof(ImDrawVert, uv);
+    vertexDesc.attributes[2].semantic = VertexAttribute::kDiffuseSemantic;
+    vertexDesc.attributes[2].index = 0;
+    vertexDesc.attributes[2].type = VertexAttribute::kUnsignedByteType;
+    vertexDesc.attributes[2].normalised = true;
+    vertexDesc.attributes[2].components = 4;
+    vertexDesc.attributes[2].binding = 0;
+    vertexDesc.attributes[2].offset = offsetof(ImDrawVert, col);
+    m_vertexInputState = g_gpuManager->createVertexInputState(std::move(vertexDesc));
 
     /* Load GUI shader. */
     ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/internal/debug_overlay");
@@ -343,8 +344,8 @@ void DebugOverlay::render() {
         vertexBuffers[0]->write(0, vertexBufferSize, &cmdList->VtxBuffer.front());
         GPUVertexDataPtr vertexData = g_gpuManager->createVertexData(
             cmdList->VtxBuffer.size(),
-            m_vertexFormat,
-            vertexBuffers);
+            m_vertexInputState,
+            std::move(vertexBuffers));
 
         /* Generate index buffer. */
         size_t indexBufferSize = cmdList->IdxBuffer.size() * sizeof(ImDrawIdx);

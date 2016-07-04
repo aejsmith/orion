@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -23,18 +23,19 @@
 
 /** Initialize the vertex data object.
  * @param count         Total number of vertices.
- * @param format        Vertex format.
- * @param buffers       Array of buffers, as required by the vertex format.
- *                      Array is invalidated. */
-GPUVertexData::GPUVertexData(size_t count, GPUVertexFormat *format, GPUBufferArray &buffers) :
+ * @param inputState    Vertex input state.
+ * @param buffers       Array of buffers for each binding in the input state. */
+GPUVertexData::GPUVertexData(size_t count, GPUVertexInputState *inputState, GPUBufferArray &&buffers) :
     m_count(count),
-    m_format(format),
+    m_inputState(inputState),
     m_buffers(std::move(buffers))
 {
     check(count);
+
+    size_t expectedSize = m_inputState->desc().bindings.size();
     checkMsg(
-        m_buffers.size() == format->buffers().size(),
-        "Buffer count mismatch (expected %u, got %u)", format->buffers().size(), m_buffers.size());
+        m_buffers.size() == expectedSize,
+        "Buffer count mismatch (expected %zu, got %zu)", expectedSize, m_buffers.size());
 
     for (size_t i = 0; i < m_buffers.size(); i++) {
         check(m_buffers[i]);

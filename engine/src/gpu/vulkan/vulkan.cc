@@ -289,7 +289,7 @@ void VulkanGPUManager::startFrame() {
     /* Begin a new frame and allocate the primary command buffer. */
     m_device->commandPool()->startFrame();
     m_primaryCmdBuf = m_device->commandPool()->allocateTransient();
-    m_primaryCmdBuf->begin();
+    m_primaryCmdBuf->begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
     /* Acquire a new image from the swap chain. */
     m_swapchain->startFrame();

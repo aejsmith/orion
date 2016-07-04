@@ -11,9 +11,9 @@ objects += map(env.Object, [
     'gpu_manager.cc',
     'index_data.cc',
     'pipeline.cc',
+    'state.cc',
     'texture.cc',
     'vertex_data.cc',
-    'vertex_format.cc',
 ])
 
 Return('objects')
