@@ -328,7 +328,7 @@ void SceneRenderer::setLightState(LightRenderState &state) {
         samplerDesc.filterMode = SamplerFilterMode::kNearest;
         samplerDesc.maxAnisotropy = 1;
         samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
-        GPUSamplerStatePtr sampler = g_gpuManager->createSamplerState(samplerDesc);
+        GPUSamplerStatePtr sampler = g_gpuManager->getSamplerState(samplerDesc);
 
         g_gpuManager->bindTexture(TextureSlots::kShadowMap, state.shadowMap, sampler);
     }

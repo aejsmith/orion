@@ -55,7 +55,7 @@ void PostEffect::blit(
         samplerDesc.filterMode = SamplerFilterMode::kNearest;
         samplerDesc.maxAnisotropy = 1;
         samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
-        defaultState = g_gpuManager->createSamplerState(samplerDesc);
+        defaultState = g_gpuManager->getSamplerState(samplerDesc);
         samplerState = defaultState;
     }
 
@@ -149,7 +149,7 @@ GPUTexture *PostEffectChain::render(GPUTexture *colour, GPUTexture *depth, const
     samplerDesc.filterMode = SamplerFilterMode::kNearest;
     samplerDesc.maxAnisotropy = 1;
     samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
-    GPUSamplerStatePtr sampler = g_gpuManager->createSamplerState(samplerDesc);
+    GPUSamplerStatePtr sampler = g_gpuManager->getSamplerState(samplerDesc);
     g_gpuManager->bindTexture(TextureSlots::kDepthBuffer, depth, sampler);
 
     /* We bounce between up to 2 temporary render targets. These are allocated

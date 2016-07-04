@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "core/hash_table.h"
+
 #include "gpu/buffer.h"
 #include "gpu/index_data.h"
 #include "gpu/pipeline.h"
@@ -45,30 +47,17 @@ class GPUManager : Noncopyable {
 public:
     static GPUManager *create(const EngineConfiguration &config, Window *&window);
 
-    virtual ~GPUManager() {}
+    virtual ~GPUManager();
 
     /**
      * Resource creation methods.
      */
-
-    /** Create a blend state object.
-     * @param desc          Descriptor for blend state.
-     * @return              Created blend state object. */
-    virtual GPUBlendStatePtr createBlendState(const GPUBlendStateDesc &desc);
 
     /** Create a GPU buffer.
      * @see                 GPUBuffer::GPUBuffer().
      * @return              Pointer to created buffer. */
     virtual GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) = 0;
 
-    /** Create a depth/stencil state object.
-     * @param desc          Descriptor for depth/stencil state.
-     * @return              Created depth/stencil state object. */
-    virtual GPUDepthStencilStatePtr createDepthStencilState(const GPUDepthStencilStateDesc &desc);
-
-    /** Create an index data object.
-     * @see                 GPUIndexData::GPUIndexData().
-     * @return              Pointer to created index data object. */
     virtual GPUIndexDataPtr createIndexData(
         GPUBuffer *buffer,
         GPUIndexData::Type type,
@@ -76,22 +65,11 @@ public:
         size_t offset = 0);
 
     /** Create a pipeline object.
-     * @see                 GPUPipeline::GPUPipeline().
+     * @param desc          Parameters for the pipeline.
      * @return              Pointer to created pipeline. */
-    virtual GPUPipelinePtr createPipeline(const GPUPipelineDesc &desc);
-
-    /** Create a rasterizer state object.
-     * @param desc          Descriptor for rasterizer state.
-     * @return              Created rasterizer state object. */
-    virtual GPURasterizerStatePtr createRasterizerState(const GPURasterizerStateDesc &desc);
-
-    /** Create a sampler state object.
-     * @param desc          Descriptor for sampler state.
-     * @return              Pointer to created sampler state object. */
-    virtual GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc);
+    virtual GPUPipelinePtr createPipeline(const GPUPipelineDesc &desc) = 0;
 
     /** Create a texture.
-     * @see                 GPUTexture::GPUTexture().
      * @param desc          Descriptor containing texture parameters.
      * @return              Pointer to created texture. */
     virtual GPUTexturePtr createTexture(const GPUTextureDesc &desc) = 0;
@@ -102,14 +80,20 @@ public:
     // TODO: GPUTextureImageRef doesn't expose all functionality but it works for now.
     virtual GPUTexturePtr createTextureView(const GPUTextureImageRef &image) = 0;
 
-    /** Create a vertex data object.
-     * @see                 GPUVertexData::GPUVertexData().
-     * @return              Pointer to created vertex data object. */
-    virtual GPUVertexDataPtr createVertexData(size_t count, GPUVertexInputState *inputState, GPUBufferArray &&buffers);
+    virtual GPUVertexDataPtr createVertexData(
+        size_t count,
+        GPUVertexInputState *inputState,
+        GPUBufferArray &&buffers);
 
-    /** Create a vertex input state object.
-     * @param desc          Descriptor for vertex input state.
-     * @return              Pointer to created vertex input state object. */
+    /**
+     * State object methods.
+     */
+
+    GPUBlendStatePtr getBlendState(const GPUBlendStateDesc &desc);
+    GPUDepthStencilStatePtr getDepthStencilState(const GPUDepthStencilStateDesc &desc);
+    GPURasterizerStatePtr getRasterizerState(const GPURasterizerStateDesc &desc);
+    GPUSamplerStatePtr getSamplerState(const GPUSamplerStateDesc &desc);
+
     virtual GPUVertexInputStatePtr createVertexInputState(GPUVertexInputStateDesc &&desc);
 
     /**
@@ -257,7 +241,33 @@ public:
         bool depthClamp = false>
     void setRasterizerState();
 protected:
-    GPUManager() {}
+    GPUManager();
+
+    /** Create a blend state object.
+     * @param desc          Descriptor for blend state.
+     * @return              Created blend state object. */
+    virtual GPUBlendStatePtr createBlendState(const GPUBlendStateDesc &desc);
+
+    /** Create a depth/stencil state object.
+     * @param desc          Descriptor for depth/stencil state.
+     * @return              Created depth/stencil state object. */
+    virtual GPUDepthStencilStatePtr createDepthStencilState(const GPUDepthStencilStateDesc &desc);
+
+    /** Create a rasterizer state object.
+     * @param desc          Descriptor for rasterizer state.
+     * @return              Created rasterizer state object. */
+    virtual GPURasterizerStatePtr createRasterizerState(const GPURasterizerStateDesc &desc);
+
+    /** Create a sampler state object.
+     * @param desc          Descriptor for sampler state.
+     * @return              Pointer to created sampler state object. */
+    virtual GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc);
+private:
+    /** Hash tables of created state objects. */
+    HashMap<GPUBlendStateDesc, GPUBlendStatePtr> m_blendStates;
+    HashMap<GPUDepthStencilStateDesc, GPUDepthStencilStatePtr> m_depthStencilStates;
+    HashMap<GPURasterizerStateDesc, GPURasterizerStatePtr> m_rasterizerStates;
+    HashMap<GPUSamplerStateDesc, GPUSamplerStatePtr> m_samplerStates;
 };
 
 extern GPUManager *g_gpuManager;

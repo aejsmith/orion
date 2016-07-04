@@ -385,10 +385,6 @@ void GLState::invalidateTexture(GLuint texture) {
  * @param desc          Descriptor for blend state.
  * @return              Created blend state object. */
 GPUBlendStatePtr GLGPUManager::createBlendState(const GPUBlendStateDesc &desc) {
-    auto exist = m_blendStates.find(desc);
-    if (exist != m_blendStates.end())
-        return exist->second;
-
     GLBlendState *state = new GLBlendState(desc);
 
     state->enable =
@@ -399,8 +395,7 @@ GPUBlendStatePtr GLGPUManager::createBlendState(const GPUBlendStateDesc &desc) {
     state->sourceFactor = GLUtil::convertBlendFactor(desc.sourceFactor);
     state->destFactor = GLUtil::convertBlendFactor(desc.destFactor);
 
-    auto ret = m_blendStates.insert(std::make_pair(desc, GPUBlendStatePtr(state)));
-    return ret.first->second;
+    return state;
 }
 
 /** Set the blend state.
@@ -417,10 +412,6 @@ void GLGPUManager::setBlendState(GPUBlendState *state) {
  * @param desc          Descriptor for depth/stencil state.
  * @return              Created depth/stencil state object. */
 GPUDepthStencilStatePtr GLGPUManager::createDepthStencilState(const GPUDepthStencilStateDesc &desc) {
-    auto exist = m_depthStencilStates.find(desc);
-    if (exist != m_depthStencilStates.end())
-        return exist->second;
-
     GLDepthStencilState *state = new GLDepthStencilState(desc);
 
     /* Documentation for glDepthFunc: "Even if the depth buffer exists and the
@@ -429,8 +420,7 @@ GPUDepthStencilStatePtr GLGPUManager::createDepthStencilState(const GPUDepthSten
     state->depthEnable = desc.depthFunc != ComparisonFunc::kAlways || desc.depthWrite;
     state->depthFunc = GLUtil::convertComparisonFunc(desc.depthFunc);
 
-    auto ret = m_depthStencilStates.insert(std::make_pair(desc, GPUDepthStencilStatePtr(state)));
-    return ret.first->second;
+    return state;
 }
 
 /** Set the depth/stencil state.
@@ -448,16 +438,11 @@ void GLGPUManager::setDepthStencilState(GPUDepthStencilState *state) {
  * @param desc          Descriptor for rasterizer state.
  * @return              Created rasterizer state object. */
 GPURasterizerStatePtr GLGPUManager::createRasterizerState(const GPURasterizerStateDesc &desc) {
-    auto exist = m_rasterizerStates.find(desc);
-    if (exist != m_rasterizerStates.end())
-        return exist->second;
-
     GLRasterizerState *state = new GLRasterizerState(desc);
 
     state->cullMode = GLUtil::convertCullMode(desc.cullMode);
 
-    auto ret = m_rasterizerStates.insert(std::make_pair(desc, GPURasterizerStatePtr(state)));
-    return ret.first->second;
+    return state;
 }
 
 /** Set the rasterizer state.
@@ -540,11 +525,5 @@ void GLSamplerState::bind(unsigned index) {
  * @param desc          Descriptor for sampler state.
  * @return              Pointer to created sampler state object. */
 GPUSamplerStatePtr GLGPUManager::createSamplerState(const GPUSamplerStateDesc &desc) {
-    auto ret = m_samplerStates.find(desc);
-    if (ret != m_samplerStates.end())
-        return ret->second;
-
-    GPUSamplerStatePtr state = new GLSamplerState(desc);
-    m_samplerStates.insert(std::make_pair(desc, state));
-    return state;
+    return new GLSamplerState(desc);
 }

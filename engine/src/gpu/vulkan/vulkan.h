@@ -58,20 +58,24 @@ public:
      * GPUManager interface.
      */
 
-    GPUBlendStatePtr createBlendState(const GPUBlendStateDesc &desc) override;
     GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) override;
-    GPUDepthStencilStatePtr createDepthStencilState(const GPUDepthStencilStateDesc &desc) override;
     GPUIndexDataPtr createIndexData(
         GPUBuffer *buffer,
         GPUIndexData::Type type,
         size_t count,
         size_t offset) override;
     GPUPipelinePtr createPipeline(const GPUPipelineDesc &desc) override;
-    GPURasterizerStatePtr createRasterizerState(const GPURasterizerStateDesc &desc) override;
-    GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) override;
     GPUTexturePtr createTexture(const GPUTextureDesc &desc) override;
     GPUTexturePtr createTextureView(const GPUTextureImageRef &image) override;
-    GPUVertexDataPtr createVertexData(size_t count, GPUVertexInputState *inputState, GPUBufferArray &&buffers) override;
+    GPUVertexDataPtr createVertexData(
+        size_t count,
+        GPUVertexInputState *inputState,
+        GPUBufferArray &&buffers) override;
+
+    GPUBlendStatePtr createBlendState(const GPUBlendStateDesc &desc) override;
+    GPUDepthStencilStatePtr createDepthStencilState(const GPUDepthStencilStateDesc &desc) override;
+    GPURasterizerStatePtr createRasterizerState(const GPURasterizerStateDesc &desc) override;
+    GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) override;
     GPUVertexInputStatePtr createVertexInputState(GPUVertexInputStateDesc &&desc) override;
 
     GPUProgramPtr compileProgram(unsigned stage, const std::string &source) override;

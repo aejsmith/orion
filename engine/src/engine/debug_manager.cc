@@ -216,7 +216,7 @@ void DebugOverlay::initResources() {
     samplerDesc.filterMode = SamplerFilterMode::kBilinear;
     samplerDesc.maxAnisotropy = 1;
     samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
-    m_sampler = g_gpuManager->createSamplerState(samplerDesc);
+    m_sampler = g_gpuManager->getSamplerState(samplerDesc);
 
     /* Add the overlay to the main window. */
     setRenderTarget(g_mainWindow);

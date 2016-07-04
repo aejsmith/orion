@@ -171,7 +171,7 @@ void RenderManager::allocRenderTargets(RenderPath path, glm::ivec2 size) {
         samplerDesc.filterMode = SamplerFilterMode::kNearest;
         samplerDesc.maxAnisotropy = 1;
         samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
-        GPUSamplerStatePtr sampler = g_gpuManager->createSamplerState(samplerDesc);
+        GPUSamplerStatePtr sampler = g_gpuManager->getSamplerState(samplerDesc);
 
         /* Update deferred buffer texture bindings. */
         g_gpuManager->bindTexture(TextureSlots::kDeferredBufferA, rt.deferredBufferA, sampler);

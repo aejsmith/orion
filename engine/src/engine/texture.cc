@@ -102,7 +102,7 @@ void TextureBase::updateSamplerState() {
     desc.filterMode = m_filterMode;
     desc.maxAnisotropy = m_anisotropy;
     desc.addressU = desc.addressV = desc.addressW = m_addressMode;
-    m_sampler = g_gpuManager->createSamplerState(desc);
+    m_sampler = g_gpuManager->getSamplerState(desc);
 }
 
 /** Display details of the asset in the debug explorer. */

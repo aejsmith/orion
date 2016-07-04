@@ -39,7 +39,7 @@ bool FXAAEffect::render(GPUTexture *source, GPUTexture *dest) {
     samplerDesc.filterMode = SamplerFilterMode::kBilinear;
     samplerDesc.maxAnisotropy = 1;
     samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
-    GPUSamplerStatePtr samplerState = g_gpuManager->createSamplerState(samplerDesc);
+    GPUSamplerStatePtr samplerState = g_gpuManager->getSamplerState(samplerDesc);
 
     blit(source, dest, m_material, 0, samplerState);
     return true;

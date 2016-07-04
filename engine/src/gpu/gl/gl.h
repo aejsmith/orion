@@ -94,15 +94,19 @@ public:
      * GPU interface methods.
      */
 
-    GPUBlendStatePtr createBlendState(const GPUBlendStateDesc &desc) override;
     GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) override;
-    GPUDepthStencilStatePtr createDepthStencilState(const GPUDepthStencilStateDesc &desc) override;
     GPUPipelinePtr createPipeline(const GPUPipelineDesc &desc) override;
-    GPURasterizerStatePtr createRasterizerState(const GPURasterizerStateDesc &desc) override;
-    GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) override;
     GPUTexturePtr createTexture(const GPUTextureDesc &desc) override;
     GPUTexturePtr createTextureView(const GPUTextureImageRef &image) override;
-    GPUVertexDataPtr createVertexData(size_t count, GPUVertexInputState *inputState, GPUBufferArray &&buffers) override;
+    GPUVertexDataPtr createVertexData(
+        size_t count,
+        GPUVertexInputState *inputState,
+        GPUBufferArray &&buffers) override;
+
+    GPUBlendStatePtr createBlendState(const GPUBlendStateDesc &desc) override;
+    GPUDepthStencilStatePtr createDepthStencilState(const GPUDepthStencilStateDesc &desc) override;
+    GPURasterizerStatePtr createRasterizerState(const GPURasterizerStateDesc &desc) override;
+    GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) override;
 
     GPUProgramPtr compileProgram(unsigned stage, const std::string &source) override;
 
@@ -152,12 +156,6 @@ private:
         const GLvoid *param);
 private:
     SDL_GLContext m_sdlContext;         /**< SDL GL context. */
-
-    /** Hash tables of created state objects. */
-    HashMap<GPUBlendStateDesc, GPUBlendStatePtr> m_blendStates;
-    HashMap<GPUDepthStencilStateDesc, GPUDepthStencilStatePtr> m_depthStencilStates;
-    HashMap<GPURasterizerStateDesc, GPURasterizerStatePtr> m_rasterizerStates;
-    HashMap<GPUSamplerStateDesc, GPUSamplerStatePtr> m_samplerStates;
 
     /** Hash table of cached FBOs. */
     HashMap<GPURenderTargetDesc, GLuint> m_fbos;

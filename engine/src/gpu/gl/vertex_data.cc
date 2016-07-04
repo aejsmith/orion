@@ -41,7 +41,7 @@
 /** Initialize the vertex data object.
  * @param count         Total number of vertices.
  * @param inputState    Vertex input state.
- * @param buffers       Array of buffers. */
+ * @param buffers       Array of buffers for each binding in the input state. */
 GLVertexData::GLVertexData(size_t count, GPUVertexInputState *inputState, GPUBufferArray &&buffers) :
     GPUVertexData(count, inputState, std::move(buffers)),
     m_boundIndices(nullptr)

@@ -39,7 +39,7 @@ template <typename State, typename Derived>
 class GPUConstState {
 public:
     /** @return             State object. */
-    FORCEINLINE static State *get() {
+    static FORCEINLINE State *get() {
         /* By implementing this like this rather than just having a static
          * GPUResourcePtr variable with the initializer here, we make this
          * function much shorter and therefore inlineable. Guard variable stuff
@@ -62,13 +62,13 @@ class GPUConstBlendState :
     public GPUConstState<GPUBlendState, GPUConstBlendState<func, sourceFactor, destFactor>> {
 public:
     /** @return             Created blend state object. */
-    static GPUBlendState *create() {
+    static NOINLINE GPUBlendState *create() {
         GPUBlendStateDesc desc;
         desc.func = func;
         desc.sourceFactor = sourceFactor;
         desc.destFactor = destFactor;
 
-        static GPUBlendStatePtr instance = g_gpuManager->createBlendState(desc);
+        static GPUBlendStatePtr instance = g_gpuManager->getBlendState(desc);
         return instance;
     }
 };
@@ -79,12 +79,12 @@ class GPUConstDepthStencilState :
     public GPUConstState<GPUDepthStencilState, GPUConstDepthStencilState<depthFunc, depthWrite>> {
 public:
     /** @return             Created depth/stencil state object. */
-    static GPUDepthStencilState *create() {
+    static NOINLINE GPUDepthStencilState *create() {
         GPUDepthStencilStateDesc desc;
         desc.depthFunc = depthFunc;
         desc.depthWrite = depthWrite;
 
-        static GPUDepthStencilStatePtr instance = g_gpuManager->createDepthStencilState(desc);
+        static GPUDepthStencilStatePtr instance = g_gpuManager->getDepthStencilState(desc);
         return instance;
     }
 };
@@ -95,12 +95,12 @@ class GPUConstRasterizerState :
     public GPUConstState<GPURasterizerState, GPUConstRasterizerState<cullMode, depthClamp>> {
 public:
     /** @return             Created rasterizer state object. */
-    static GPURasterizerState *create() {
+    static NOINLINE GPURasterizerState *create() {
         GPURasterizerStateDesc desc;
         desc.cullMode = cullMode;
         desc.depthClamp = depthClamp;
 
-        static GPURasterizerStatePtr instance = g_gpuManager->createRasterizerState(desc);
+        static GPURasterizerStatePtr instance = g_gpuManager->getRasterizerState(desc);
         return instance;
     }
 };
