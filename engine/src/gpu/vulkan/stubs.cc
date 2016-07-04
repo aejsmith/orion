@@ -23,24 +23,10 @@
 
 #define vkStub() fatal("Vulkan function '%s' not implemented", __func__)
 
-/** Create a blend state object.
- * @param desc          Descriptor for blend state.
- * @return              Created blend state object. */
-GPUBlendStatePtr VulkanGPUManager::createBlendState(const GPUBlendStateDesc &desc) {
-    vkStub();
-}
-
 /** Create a GPU buffer.
  * @see                 GPUBuffer::GPUBuffer().
  * @return              Pointer to created buffer. */
 GPUBufferPtr VulkanGPUManager::createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) {
-    vkStub();
-}
-
-/** Create a depth/stencil state object.
- * @param desc          Descriptor for depth/stencil state.
- * @return              Created depth/stencil state object. */
-GPUDepthStencilStatePtr VulkanGPUManager::createDepthStencilState(const GPUDepthStencilStateDesc &desc) {
     vkStub();
 }
 
@@ -60,13 +46,6 @@ GPUIndexDataPtr VulkanGPUManager::createIndexData(
  * @see                 GPUPipeline::GPUPipeline().
  * @return              Pointer to created pipeline. */
 GPUPipelinePtr VulkanGPUManager::createPipeline(const GPUPipelineDesc &desc) {
-    vkStub();
-}
-
-/** Create a rasterizer state object.
- * @param desc          Descriptor for rasterizer state.
- * @return              Created rasterizer state object. */
-GPURasterizerStatePtr VulkanGPUManager::createRasterizerState(const GPURasterizerStateDesc &desc) {
     vkStub();
 }
 
@@ -95,14 +74,11 @@ GPUTexturePtr VulkanGPUManager::createTextureView(const GPUTextureImageRef &imag
 /** Create a vertex data object.
  * @see                 GPUVertexData::GPUVertexData().
  * @return              Pointer to created vertex data object. */
-GPUVertexDataPtr VulkanGPUManager::createVertexData(size_t count, GPUVertexInputState *inputState, GPUBufferArray &&buffers) {
-    vkStub();
-}
-
-/** Create a vertex input state object.
- * @param desc          Descriptor for vertex input state.
- * @return              Pointer to created vertex input state object. */
-GPUVertexInputStatePtr VulkanGPUManager::createVertexInputState(GPUVertexInputStateDesc &&desc) {
+GPUVertexDataPtr VulkanGPUManager::createVertexData(
+    size_t count,
+    GPUVertexInputState *inputState,
+    GPUBufferArray &&buffers)
+{
     vkStub();
 }
 

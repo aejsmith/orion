@@ -72,11 +72,7 @@ public:
         GPUVertexInputState *inputState,
         GPUBufferArray &&buffers) override;
 
-    GPUBlendStatePtr createBlendState(const GPUBlendStateDesc &desc) override;
-    GPUDepthStencilStatePtr createDepthStencilState(const GPUDepthStencilStateDesc &desc) override;
-    GPURasterizerStatePtr createRasterizerState(const GPURasterizerStateDesc &desc) override;
     GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) override;
-    GPUVertexInputStatePtr createVertexInputState(GPUVertexInputStateDesc &&desc) override;
 
     GPUProgramPtr compileProgram(unsigned stage, const std::string &source) override;
 
