@@ -59,18 +59,9 @@ public:
      */
 
     GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) override;
-    GPUIndexDataPtr createIndexData(
-        GPUBuffer *buffer,
-        GPUIndexData::Type type,
-        size_t count,
-        size_t offset) override;
     GPUPipelinePtr createPipeline(const GPUPipelineDesc &desc) override;
     GPUTexturePtr createTexture(const GPUTextureDesc &desc) override;
     GPUTexturePtr createTextureView(const GPUTextureImageRef &image) override;
-    GPUVertexDataPtr createVertexData(
-        size_t count,
-        GPUVertexInputState *inputState,
-        GPUBufferArray &&buffers) override;
 
     GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) override;
 

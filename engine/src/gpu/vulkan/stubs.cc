@@ -23,25 +23,6 @@
 
 #define vkStub() fatal("Vulkan function '%s' not implemented", __func__)
 
-/** Create a GPU buffer.
- * @see                 GPUBuffer::GPUBuffer().
- * @return              Pointer to created buffer. */
-GPUBufferPtr VulkanGPUManager::createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) {
-    vkStub();
-}
-
-/** Create an index data object.
- * @see                 GPUIndexData::GPUIndexData().
- * @return              Pointer to created index data object. */
-GPUIndexDataPtr VulkanGPUManager::createIndexData(
-    GPUBuffer *buffer,
-    GPUIndexData::Type type,
-    size_t count,
-    size_t offset)
-{
-    vkStub();
-}
-
 /** Create a pipeline object.
  * @see                 GPUPipeline::GPUPipeline().
  * @return              Pointer to created pipeline. */
@@ -68,17 +49,6 @@ GPUTexturePtr VulkanGPUManager::createTexture(const GPUTextureDesc &desc) {
  * @param image         Image to create the view for.
  * @return              Pointer to created texture view. */
 GPUTexturePtr VulkanGPUManager::createTextureView(const GPUTextureImageRef &image) {
-    vkStub();
-}
-
-/** Create a vertex data object.
- * @see                 GPUVertexData::GPUVertexData().
- * @return              Pointer to created vertex data object. */
-GPUVertexDataPtr VulkanGPUManager::createVertexData(
-    size_t count,
-    GPUVertexInputState *inputState,
-    GPUBufferArray &&buffers)
-{
     vkStub();
 }
 

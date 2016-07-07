@@ -30,8 +30,8 @@ namespace Math {
      * @return              Rounded value. */
     template <typename T, typename U>
     inline constexpr T roundUp(const T &val, const U &nearest) {
-        /* When nearest is a power of 2, this is optimised to be equivalent to the
-         * following:
+        /* When nearest is a power of 2, this is optimised to be equivalent to
+         * the following:
          *  if (val & (nearest - 1)) {
          *      val += nearest;
          *      val &= ~(nearest - 1);

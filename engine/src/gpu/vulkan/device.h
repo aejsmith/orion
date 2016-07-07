@@ -24,6 +24,7 @@
 #include "vulkan.h"
 
 class VulkanCommandPool;
+class VulkanMemoryManager;
 class VulkanQueue;
 
 /** Class wrapping a logical device. */
@@ -42,17 +43,26 @@ public:
     VulkanQueue *queue() const { return m_queue; }
     /** @return             Device's command pool. */
     VulkanCommandPool *commandPool() const { return m_commandPool; }
+    /** @return             Device's memory manager. */
+    VulkanMemoryManager *memoryManager() const { return m_memoryManager; }
     /** @return             Physical device handle. */
     VkPhysicalDevice physicalHandle() const { return m_physicalHandle; }
+
+    /** @return             Device properties. */
+    const VkPhysicalDeviceProperties &properties() const { return m_properties; }
+    /** @return             Device limits. */
+    const VkPhysicalDeviceLimits &limits() const { return m_limits; }
 private:
-    VkDevice m_handle;                  /**< Logical device handle. */
-    VulkanQueue *m_queue;               /**< Device's queue. */
-    VulkanCommandPool *m_commandPool;   /**< Device's command pool. */
-    uint32_t m_queueFamily;             /**< Queue family to use. */
-    VkPhysicalDevice m_physicalHandle;  /**< Physical device handle. */
+    VkDevice m_handle;                      /**< Logical device handle. */
+    VulkanQueue *m_queue;                   /**< Device's queue. */
+    VulkanCommandPool *m_commandPool;       /**< Device's command pool. */
+    VulkanMemoryManager *m_memoryManager;   /**< Device's memory manager. */
+    uint32_t m_queueFamily;                 /**< Queue family to use. */
+    VkPhysicalDevice m_physicalHandle;      /**< Physical device handle. */
 
     /** Physical device properties. */
     VkPhysicalDeviceProperties m_properties;
+    VkPhysicalDeviceLimits m_limits;
 
     /** Enabled device extensions. */
     std::vector<const char *> m_extensions;

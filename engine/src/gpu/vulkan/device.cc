@@ -21,6 +21,7 @@
 
 #include "command_buffer.h"
 #include "device.h"
+#include "memory_manager.h"
 #include "queue.h"
 #include "surface.h"
 
@@ -181,4 +182,5 @@ void VulkanDevice::init() {
 
     m_queue = new VulkanQueue(this, m_queueFamily, 0);
     m_commandPool = new VulkanCommandPool(this, m_queueFamily);
+    m_memoryManager = new VulkanMemoryManager(this);
 }
