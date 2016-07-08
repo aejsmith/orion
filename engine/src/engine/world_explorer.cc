@@ -19,6 +19,9 @@
  * @brief               World explorer debug window.
  */
 
+#include "core/filesystem.h"
+#include "core/json_serialiser.h"
+
 #include "engine/asset_manager.h"
 #include "engine/component.h"
 #include "engine/engine.h"
@@ -101,6 +104,55 @@ void WorldExplorerWindow::displayOptions() {
         }
 
         ImGui::EndChild();
+        ImGui::EndPopup();
+    }
+
+    ImGui::SameLine();
+
+    static std::string path(128, 0);
+    bool hadError = false;
+
+    if (ImGui::Button("Save"))
+        ImGui::OpenPopup("Save World");
+    if (ImGui::BeginPopupModal("Save World", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("Please enter a file name:");
+
+        ImGui::PushItemWidth(-1);
+        ImGui::InputText("", &path[0], 128);
+        ImGui::PopItemWidth();
+
+        ImGui::Spacing();
+
+        if (ImGui::Button("OK", ImVec2(120, 0))) {
+            ImGui::CloseCurrentPopup();
+
+            JSONSerialiser serialiser;
+            std::vector<uint8_t> data = serialiser.serialise(g_engine->world());
+            std::unique_ptr<File> file(g_filesystem->openFile(
+                path,
+                File::kWrite | File::kCreate | File::kTruncate));
+            if (file) {
+                file->write(&data[0], data.size());
+            } else {
+                hadError = true;
+            }
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Cancel", ImVec2(120, 0)))
+            ImGui::CloseCurrentPopup();
+
+        ImGui::EndPopup();
+    }
+
+    if (hadError)
+        ImGui::OpenPopup("Save Error");
+    if (ImGui::BeginPopupModal("Save Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("Unable to create '%s'", path.c_str());
+        ImGui::Spacing();
+        if (ImGui::Button("OK", ImVec2(120, 0)))
+            ImGui::CloseCurrentPopup();
         ImGui::EndPopup();
     }
 }

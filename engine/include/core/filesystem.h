@@ -54,6 +54,10 @@ public:
         kRead = (1 << 0),
         /** Open for writing. */
         kWrite = (1 << 1),
+        /** Create the file if it doesn't exist (use with kWrite). */
+        kCreate = (1 << 2),
+        /** Truncate the file if it already exists. */
+        kTruncate = (1 << 3),
     };
 protected:
     File() {}

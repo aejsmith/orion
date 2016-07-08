@@ -211,8 +211,14 @@ File *POSIXFilesystem::openFile(const Path &path, unsigned mode) {
         flags |= O_RDONLY;
     if (mode & File::kWrite)
         flags |= O_WRONLY;
+    if (mode & File::kCreate) {
+        check(mode & File::kWrite);
+        flags |= O_CREAT;
+    }
+    if (mode & File::kTruncate)
+        flags |= O_TRUNC;
 
-    int fd = open(path.c_str(), flags);
+    int fd = open(path.c_str(), flags, 0644);
     if (fd < 0)
         return nullptr;
 
