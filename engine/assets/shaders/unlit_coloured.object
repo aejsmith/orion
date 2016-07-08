@@ -1,0 +1,33 @@
+[
+    {
+        "objectClass": "Shader",
+        "objectID": 0,
+        "objectProperties": {},
+        "parameters": [
+            {
+                "name": "diffuseColour",
+                "type": "kVec3"
+            }
+        ],
+        "passes": [
+            {
+                "type": "kBasic",
+                "vertex": {
+                    "source": "engine/shaders/unlit_vtx.glsl"
+                },
+                "fragment": {
+                    "source": "engine/shaders/unlit_frag.glsl"
+                }
+            },
+            {
+                "type": "kShadowCaster",
+                "vertex": {
+                    "source": "engine/shaders/shadow_vtx.glsl"
+                },
+                "fragment": {
+                    "source": "engine/shaders/shadow_frag.glsl"
+                }
+            }
+        ]
+    }
+]

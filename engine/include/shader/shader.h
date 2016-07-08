@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -65,7 +65,7 @@ public:
      * @param type          Type to get.
      * @return              Number of passes of the specified type. */
     size_t numPasses(Pass::Type type) const {
-        return m_passes[type].size();
+        return m_passes[static_cast<size_t>(type)].size();
     }
 
     /** Get a pass.
@@ -75,16 +75,19 @@ public:
      * @param index         Index of the pass.
      * @return              Pointer to pass. */
     const Pass *pass(Pass::Type type, unsigned index) const {
-        return m_passes[type][index];
+        return m_passes[static_cast<size_t>(type)][index];
     }
 
     void setDrawState(Material *material) const;
 protected:
     ~Shader();
+
+    void serialise(Serialiser &serialiser) const override;
+    void deserialise(Serialiser &serialiser) override;
 private:
     Shader();
 
-    void addParameter(const std::string &name, ShaderParameter::Type type, unsigned textureSlot = -1);
+    void addParameter(const std::string &name, ShaderParameter::Type type, unsigned textureSlot = -1u);
     void addPass(Pass *pass);
 
     UniformStruct *m_uniformStruct;     /**< Uniform structure used by the shader. */

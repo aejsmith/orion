@@ -1,0 +1,56 @@
+[
+    {
+        "objectClass": "Shader",
+        "objectID": 0,
+        "objectProperties": {},
+        "parameters": [
+            {
+                "name": "shininess",
+                "type": "kFloat"
+            },
+            {
+                "name": "specularColour",
+                "type": "kVec3"
+            },
+            {
+                "name": "diffuseColour",
+                "type": "kVec3"
+            }
+        ],
+        "passes": [
+            {
+                "type": "kDeferred",
+                "vertex": {
+                    "source": "engine/shaders/lit_vtx.glsl"
+                },
+                "fragment": {
+                    "source": "engine/shaders/lit_deferred_frag.glsl",
+                    "keywords": [
+                        "SPECULAR"
+                    ]
+                }
+            },
+            {
+                "type": "kForward",
+                "vertex": {
+                    "source": "engine/shaders/lit_vtx.glsl"
+                },
+                "fragment": {
+                    "source": "engine/shaders/lit_frag.glsl",
+                    "keywords": [
+                        "SPECULAR"
+                    ]
+                }
+            },
+            {
+                "type": "kShadowCaster",
+                "vertex": {
+                    "source": "engine/shaders/shadow_vtx.glsl"
+                },
+                "fragment": {
+                    "source": "engine/shaders/shadow_frag.glsl"
+                }
+            }
+        ]
+    }
+]

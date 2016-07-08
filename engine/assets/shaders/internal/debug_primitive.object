@@ -1,0 +1,19 @@
+[
+    {
+        "objectClass": "Shader",
+        "objectID": 0,
+        "objectProperties": {},
+        "parameters": [],
+        "passes": [
+            {
+                "type": "kBasic",
+                "vertex": {
+                    "source": "engine/shaders/debug_primitive_vtx.glsl"
+                },
+                "fragment": {
+                    "source": "engine/shaders/debug_primitive_frag.glsl"
+                }
+            }
+        ]
+    }
+]

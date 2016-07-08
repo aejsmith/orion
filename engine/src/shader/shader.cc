@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,6 +18,8 @@
  * @file
  * @brief               Shader class.
  */
+
+#include "core/serialiser.h"
 
 #include "shader/material.h"
 #include "shader/pass.h"
@@ -38,6 +40,90 @@ Shader::~Shader() {
     }
 
     delete m_uniformStruct;
+}
+
+/** Serialise the shader.
+ * @param serialiser    Serialiser to write to. */
+void Shader::serialise(Serialiser &serialiser) const {
+    fatal("Shader::serialise: TODO");
+}
+
+/** Deserialise the shader.
+ * @param serialiser    Serialiser to read from. */
+void Shader::deserialise(Serialiser &serialiser) {
+    if (serialiser.beginArray("parameters")) {
+        while (serialiser.beginGroup()) {
+            std::string name;
+            serialiser.read("name", name);
+            check(!name.empty());
+
+            ShaderParameter::Type type;
+            bool hasType = serialiser.read("type", type);
+            check(hasType);
+
+            unsigned slot = -1u;
+            serialiser.read("slot", slot);
+
+            if (type == ShaderParameter::Type::kTexture) {
+                check(slot > TextureSlots::kMaterialTexturesEnd);
+                check(numTextures() <= TextureSlots::kMaterialTexturesEnd);
+            }
+
+            addParameter(name, type, slot);
+
+            serialiser.endGroup();
+        }
+
+        serialiser.endArray();
+    }
+
+    if (serialiser.beginArray("passes")) {
+        while (serialiser.beginGroup()) {
+            Pass::Type type;
+            bool hasType = serialiser.read("type", type);
+            check(hasType);
+
+            if (type == Pass::Type::kDeferred)
+                check(numPasses(Pass::Type::kDeferred) == 0);
+
+            std::unique_ptr<Pass> pass(new Pass(this, type));
+
+            auto deserialiseStage =
+                [&] (const char *name, unsigned stage) {
+                    if (!serialiser.beginGroup(name))
+                        return false;
+
+                    std::string path;
+                    serialiser.read("source", path);
+                    check(!path.empty());
+
+                    Pass::KeywordSet keywords;
+
+                    if (serialiser.beginArray("keywords")) {
+                        std::string keyword;
+                        while (serialiser.pop(keyword))
+                            keywords.insert(keyword);
+
+                        serialiser.endArray();
+                    }
+
+                    bool ret = pass->loadStage(stage, path, keywords);
+                    serialiser.endGroup();
+                    return ret;
+                };
+
+            bool hasVertex = deserialiseStage("vertex", ShaderStage::kVertex);
+            check(hasVertex);
+            bool hasFragment = deserialiseStage("fragment", ShaderStage::kFragment);
+            check(hasFragment);
+
+            addPass(pass.release());
+
+            serialiser.endGroup();
+        }
+
+        serialiser.endArray();
+    }
 }
 
 /** Set shader-wide draw state for a material.
@@ -72,7 +158,7 @@ void Shader::addParameter(const std::string &name, ShaderParameter::Type type, u
     ShaderParameter &param = ret.first->second;
     param.type = type;
 
-    if (type == ShaderParameter::kTextureType) {
+    if (type == ShaderParameter::Type::kTexture) {
         if (textureSlot != -1u) {
             check(textureSlot > TextureSlots::kMaterialTexturesEnd);
             param.textureSlot = textureSlot;
@@ -109,10 +195,12 @@ const ShaderParameter *Shader::lookupParameter(const std::string &name) const {
  * @param pass          Pass to add. Becomes owned by the shader, will be
  *                      deleted when the shader is destroyed. */
 void Shader::addPass(Pass *pass) {
+    size_t index = static_cast<size_t>(pass->type());
+
     switch (pass->type()) {
-        case Pass::kDeferredPass:
+        case Pass::Type::kDeferred:
             checkMsg(
-                m_passes[pass->type()].size() == 0,
+                m_passes[index].size() == 0,
                 "Only one deferred pass is allowed per shader");
             break;
         default:
@@ -122,5 +210,5 @@ void Shader::addPass(Pass *pass) {
     /* Finalize the pipeline. */
     pass->finalize();
 
-    m_passes[pass->type()].push_back(pass);
+    m_passes[index].push_back(pass);
 }

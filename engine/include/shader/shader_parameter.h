@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "core/refcounted.h"
+#include "core/object.h"
 
 class TextureBase;
 
@@ -30,23 +30,23 @@ struct UniformStructMember;
 /** Details of a shader parameter. */
 struct ShaderParameter {
     /** Enumeration of parameter types. */
-    enum Type {
+    enum class ENUM() Type {
         /** Basic types. */
-        kIntType,                   /**< Signed 32-bit integer. */
-        kUnsignedIntType,           /**< Unsigned 32-bit integer. */
-        kFloatType,                 /**< Single-precision floating point. */
-        kVec2Type,                  /**< 2 component floating point vector. */
-        kVec3Type,                  /**< 3 component floating point vector. */
-        kVec4Type,                  /**< 4 component floating point vector. */
-        kMat2Type,                  /**< 2x2 floating point matrix. */
-        kMat3Type,                  /**< 3x3 floating point matrix. */
-        kMat4Type,                  /**< 4x4 floating point matrix. */
-        kIntVec2Type,               /**< 2 component integer vector. */
-        kIntVec3Type,               /**< 3 component integer vector. */
-        kIntVec4Type,               /**< 4 component integer vector. */
+        kInt,                       /**< Signed 32-bit integer. */
+        kUnsignedInt,               /**< Unsigned 32-bit integer. */
+        kFloat,                     /**< Single-precision floating point. */
+        kVec2,                      /**< 2 component floating point vector. */
+        kVec3,                      /**< 3 component floating point vector. */
+        kVec4,                      /**< 4 component floating point vector. */
+        kMat2,                      /**< 2x2 floating point matrix. */
+        kMat3,                      /**< 3x3 floating point matrix. */
+        kMat4,                      /**< 4x4 floating point matrix. */
+        kIntVec2,                   /**< 2 component integer vector. */
+        kIntVec3,                   /**< 3 component integer vector. */
+        kIntVec4,                   /**< 4 component integer vector. */
 
         /** Special types (cannot be used in uniform structures). */
-        kTextureType,               /**< Texture. */
+        kTexture,                   /**< Texture. */
     };
 
     Type type;                      /**< Parameter type. */
@@ -57,7 +57,7 @@ struct ShaderParameter {
         /** For texture parameters, the texture slot to bind to. */
         unsigned textureSlot;
     };
-public:
+
     /** @return             Storage size of the parameter. */
     size_t size() const { return size(this->type); }
     /** @return             Alignment for this parameter type. */
@@ -84,73 +84,73 @@ struct ShaderParameterTypeTraits;
 
 template <>
 struct ShaderParameterTypeTraits<int32_t> {
-    static constexpr ShaderParameter::Type kType = ShaderParameter::kIntType;
+    static constexpr ShaderParameter::Type kType = ShaderParameter::Type::kInt;
     static constexpr size_t kAlignment = 4;
 };
 
 template <>
 struct ShaderParameterTypeTraits<uint32_t> {
-    static constexpr ShaderParameter::Type kType = ShaderParameter::kUnsignedIntType;
+    static constexpr ShaderParameter::Type kType = ShaderParameter::Type::kUnsignedInt;
     static constexpr size_t kAlignment = 4;
 };
 
 template <>
 struct ShaderParameterTypeTraits<float> {
-    static constexpr ShaderParameter::Type kType = ShaderParameter::kFloatType;
+    static constexpr ShaderParameter::Type kType = ShaderParameter::Type::kFloat;
     static constexpr size_t kAlignment = 4;
 };
 
 template <>
 struct ShaderParameterTypeTraits<glm::vec2> {
-    static constexpr ShaderParameter::Type kType = ShaderParameter::kVec2Type;
+    static constexpr ShaderParameter::Type kType = ShaderParameter::Type::kVec2;
     static constexpr size_t kAlignment = 8;
 };
 
 template <>
 struct ShaderParameterTypeTraits<glm::vec3> {
-    static constexpr ShaderParameter::Type kType = ShaderParameter::kVec3Type;
+    static constexpr ShaderParameter::Type kType = ShaderParameter::Type::kVec3;
     static constexpr size_t kAlignment = 16;
 };
 
 template <>
 struct ShaderParameterTypeTraits<glm::vec4> {
-    static constexpr ShaderParameter::Type kType = ShaderParameter::kVec4Type;
+    static constexpr ShaderParameter::Type kType = ShaderParameter::Type::kVec4;
     static constexpr size_t kAlignment = 16;
 };
 
 template <>
 struct ShaderParameterTypeTraits<glm::mat2> {
-    static constexpr ShaderParameter::Type kType = ShaderParameter::kMat2Type;
+    static constexpr ShaderParameter::Type kType = ShaderParameter::Type::kMat2;
     static constexpr size_t kAlignment = 8;
 };
 
 template <>
 struct ShaderParameterTypeTraits<glm::mat3> {
-    static constexpr ShaderParameter::Type kType = ShaderParameter::kMat3Type;
+    static constexpr ShaderParameter::Type kType = ShaderParameter::Type::kMat3;
     static constexpr size_t kAlignment = 16;
 };
 
 template <>
 struct ShaderParameterTypeTraits<glm::mat4> {
-    static constexpr ShaderParameter::Type kType = ShaderParameter::kMat4Type;
+    static constexpr ShaderParameter::Type kType = ShaderParameter::Type::kMat4;
     static constexpr size_t kAlignment = 16;
 };
 
 template <>
 struct ShaderParameterTypeTraits<glm::ivec2> {
-    static constexpr ShaderParameter::Type kType = ShaderParameter::kIntVec2Type;
+    static constexpr ShaderParameter::Type kType = ShaderParameter::Type::kIntVec2;
     static constexpr size_t kAlignment = 8;
 };
 
 template <>
 struct ShaderParameterTypeTraits<glm::ivec3> {
-    static constexpr ShaderParameter::Type kType = ShaderParameter::kIntVec3Type;
+    static constexpr ShaderParameter::Type kType = ShaderParameter::Type::kIntVec3;
     static constexpr size_t kAlignment = 16;
 };
 
 template <>
 struct ShaderParameterTypeTraits<glm::ivec4> {
-    static constexpr ShaderParameter::Type kType = ShaderParameter::kIntVec4Type;
+    static constexpr ShaderParameter::Type kType = ShaderParameter::Type::kIntVec4;
     static constexpr size_t kAlignment = 16;
 };
 
@@ -161,5 +161,5 @@ struct ShaderParameterTypeTraits<glm::ivec4> {
  */
 template <>
 struct ShaderParameterTypeTraits<ReferencePtr<TextureBase>> {
-    static constexpr ShaderParameter::Type kType = ShaderParameter::kTextureType;
+    static constexpr ShaderParameter::Type kType = ShaderParameter::Type::kTexture;
 };

@@ -1,0 +1,24 @@
+[
+    {
+        "objectClass": "Shader",
+        "objectID": 0,
+        "objectProperties": {},
+        "parameters": [
+            {
+                "name": "projectionMatrix",
+                "type": "kMat4"
+            }
+        ],
+        "passes": [
+            {
+                "type": "kBasic",
+                "vertex": {
+                    "source": "engine/shaders/debug_overlay_vtx.glsl"
+                },
+                "fragment": {
+                    "source": "engine/shaders/debug_overlay_frag.glsl"
+                }
+            }
+        ]
+    }
+]

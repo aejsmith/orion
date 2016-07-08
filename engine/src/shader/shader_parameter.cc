@@ -26,29 +26,29 @@
  * @return              Size of the type. */
 size_t ShaderParameter::size(Type type) {
     switch (type) {
-        case kIntType:
+        case Type::kInt:
             return sizeof(int32_t);
-        case kUnsignedIntType:
+        case Type::kUnsignedInt:
             return sizeof(uint32_t);
-        case kFloatType:
+        case Type::kFloat:
             return sizeof(float);
-        case kVec2Type:
+        case Type::kVec2:
             return sizeof(glm::vec2);
-        case kVec3Type:
+        case Type::kVec3:
             return sizeof(glm::vec3);
-        case kVec4Type:
+        case Type::kVec4:
             return sizeof(glm::vec4);
-        case kMat2Type:
+        case Type::kMat2:
             return sizeof(glm::mat2);
-        case kMat3Type:
+        case Type::kMat3:
             return sizeof(glm::mat3);
-        case kMat4Type:
+        case Type::kMat4:
             return sizeof(glm::mat4);
-        case kIntVec2Type:
+        case Type::kIntVec2:
             return sizeof(glm::ivec2);
-        case kIntVec3Type:
+        case Type::kIntVec3:
             return sizeof(glm::ivec3);
-        case kIntVec4Type:
+        case Type::kIntVec4:
             return sizeof(glm::ivec4);
         default:
             unreachable();
@@ -60,29 +60,29 @@ size_t ShaderParameter::size(Type type) {
  * @return              Alignment of the type. */
 size_t ShaderParameter::alignment(Type type) {
     switch (type) {
-        case kIntType:
+        case Type::kInt:
             return ShaderParameterTypeTraits<int32_t>::kAlignment;
-        case kUnsignedIntType:
+        case Type::kUnsignedInt:
             return ShaderParameterTypeTraits<uint32_t>::kAlignment;
-        case kFloatType:
+        case Type::kFloat:
             return ShaderParameterTypeTraits<float>::kAlignment;
-        case kVec2Type:
+        case Type::kVec2:
             return ShaderParameterTypeTraits<glm::vec2>::kAlignment;
-        case kVec3Type:
+        case Type::kVec3:
             return ShaderParameterTypeTraits<glm::vec3>::kAlignment;
-        case kVec4Type:
+        case Type::kVec4:
             return ShaderParameterTypeTraits<glm::vec4>::kAlignment;
-        case kMat2Type:
+        case Type::kMat2:
             return ShaderParameterTypeTraits<glm::mat2>::kAlignment;
-        case kMat3Type:
+        case Type::kMat3:
             return ShaderParameterTypeTraits<glm::mat3>::kAlignment;
-        case kMat4Type:
+        case Type::kMat4:
             return ShaderParameterTypeTraits<glm::mat4>::kAlignment;
-        case kIntVec2Type:
+        case Type::kIntVec2:
             return ShaderParameterTypeTraits<glm::ivec2>::kAlignment;
-        case kIntVec3Type:
+        case Type::kIntVec3:
             return ShaderParameterTypeTraits<glm::ivec3>::kAlignment;
-        case kIntVec4Type:
+        case Type::kIntVec4:
             return ShaderParameterTypeTraits<glm::ivec4>::kAlignment;
         default:
             unreachable();
@@ -94,29 +94,29 @@ size_t ShaderParameter::alignment(Type type) {
  * @return              GLSL type string corresponding to the type. */
 const char *ShaderParameter::glslType(Type type) {
     switch (type) {
-        case kIntType:
+        case Type::kInt:
             return "int";
-        case kUnsignedIntType:
+        case Type::kUnsignedInt:
             return "uint";
-        case kFloatType:
+        case Type::kFloat:
             return "float";
-        case kVec2Type:
+        case Type::kVec2:
             return "vec2";
-        case kVec3Type:
+        case Type::kVec3:
             return "vec3";
-        case kVec4Type:
+        case Type::kVec4:
             return "vec4";
-        case kMat2Type:
+        case Type::kMat2:
             return "mat2";
-        case kMat3Type:
+        case Type::kMat3:
             return "mat3";
-        case kMat4Type:
+        case Type::kMat4:
             return "mat4";
-        case kIntVec2Type:
+        case Type::kIntVec2:
             return "ivec2";
-        case kIntVec3Type:
+        case Type::kIntVec3:
             return "ivec3";
-        case kIntVec4Type:
+        case Type::kIntVec4:
             return "ivec4";
         default:
             unreachable();

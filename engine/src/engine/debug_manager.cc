@@ -382,7 +382,7 @@ void DebugOverlay::render() {
             geometry.indices = indexData;
             geometry.primitiveType = PrimitiveType::kTriangleList;
             DrawList drawList;
-            drawList.addDrawCalls(geometry, m_material, nullptr, Pass::kBasicPass);
+            drawList.addDrawCalls(geometry, m_material, nullptr, Pass::Type::kBasic);
             drawList.draw();
 
             indexBufferOffset += cmd->ElemCount * sizeof(ImDrawIdx);

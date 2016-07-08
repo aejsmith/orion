@@ -102,7 +102,7 @@ void PrimitiveRenderer::draw(SceneView *view) {
             geometry.vertices = data.gpu;
             geometry.indices = nullptr;
             geometry.primitiveType = key.type;
-            m_drawList.addDrawCalls(geometry, key.material, nullptr, Pass::kBasicPass);
+            m_drawList.addDrawCalls(geometry, key.material, nullptr, Pass::Type::kBasic);
         }
     }
 

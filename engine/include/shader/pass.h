@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "core/object.h"
 #include "core/path.h"
 
 #include "gpu/pipeline.h"
@@ -35,33 +36,33 @@ class Shader;
 class Pass : Noncopyable {
 public:
     /** Pass types. */
-    enum Type {
+    enum class ENUM() Type {
         /**
          * Always rendered, no lighting is applied. Also used for post-process
          * and internal shaders. Every pass of this type will be executed in
          * order once per entity.
          */
-        kBasicPass,
+        kBasic,
 
         /**
          * Forward shading pass. Every pass of this type will be executed in
          * order for each light affecting the entity.
          */
-        kForwardPass,
+        kForward,
 
         /**
          * Deferred shading pass. Outputs material colours and properties to the
          * G-Buffer, which will be used to compute lighting. Only one pass of
          * this type should be specified.
          */
-        kDeferredPass,
+        kDeferred,
 
         /** Shadow caster pass. Used when rendering shadow maps. */
-        kShadowCasterPass,
-
-        /** Number of Pass types. */
-        kNumTypes,
+        kShadowCaster,
     };
+
+    /** Number of Pass types. */
+    static const size_t kNumTypes = static_cast<size_t>(Type::kShadowCaster) + 1;
 
     /** Set of shader variation keywords. */
     using KeywordSet = std::set<std::string>;

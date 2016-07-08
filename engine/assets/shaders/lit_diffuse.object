@@ -1,0 +1,48 @@
+[
+    {
+        "objectClass": "Shader",
+        "objectID": 0,
+        "objectProperties": {},
+        "parameters": [
+            {
+                "name": "diffuseTexture",
+                "type": "kTexture"
+            }
+        ],
+        "passes": [
+            {
+                "type": "kDeferred",
+                "vertex": {
+                    "source": "engine/shaders/lit_vtx.glsl"
+                },
+                "fragment": {
+                    "source": "engine/shaders/lit_deferred_frag.glsl",
+                    "keywords": [
+                        "TEXTURED"
+                    ]
+                }
+            },
+            {
+                "type": "kForward",
+                "vertex": {
+                    "source": "engine/shaders/lit_vtx.glsl"
+                },
+                "fragment": {
+                    "source": "engine/shaders/lit_frag.glsl",
+                    "keywords": [
+                        "TEXTURED"
+                    ]
+                }
+            },
+            {
+                "type": "kShadowCaster",
+                "vertex": {
+                    "source": "engine/shaders/shadow_vtx.glsl"
+                },
+                "fragment": {
+                    "source": "engine/shaders/shadow_frag.glsl"
+                }
+            }
+        ]
+    }
+]

@@ -77,7 +77,7 @@ bool MaterialLoader::setParameter(const char *name, const rapidjson::Value &valu
     }
 
     switch (shaderParam->type) {
-        case ShaderParameter::kIntType:
+        case ShaderParameter::Type::kInt:
             /* RapidJSON flags a value as being signed as long as
              * it is within the range of a signed int. */
             if (!value.IsInt()) {
@@ -87,7 +87,7 @@ bool MaterialLoader::setParameter(const char *name, const rapidjson::Value &valu
 
             m_material->setValue(name, value.GetInt());
             break;
-        case ShaderParameter::kUnsignedIntType:
+        case ShaderParameter::Type::kUnsignedInt:
             /* Similar to the above. */
             if (!value.IsUint()) {
                 logError("%s: Expected uint for '%s'", m_path, name);
@@ -96,7 +96,7 @@ bool MaterialLoader::setParameter(const char *name, const rapidjson::Value &valu
 
             m_material->setValue(name, value.GetUint());
             break;
-        case ShaderParameter::kFloatType:
+        case ShaderParameter::Type::kFloat:
             if (!value.IsNumber()) {
                 logError("%s: Expected float for '%s'", m_path, name);
                 return false;
@@ -104,7 +104,7 @@ bool MaterialLoader::setParameter(const char *name, const rapidjson::Value &valu
 
             m_material->setValue(name, static_cast<float>(value.GetDouble()));
             break;
-        case ShaderParameter::kVec2Type:
+        case ShaderParameter::Type::kVec2:
             if (!value.IsArray() || value.Size() != 2 ||
                 !value[0u].IsNumber() ||
                 !value[1u].IsNumber())
@@ -117,7 +117,7 @@ bool MaterialLoader::setParameter(const char *name, const rapidjson::Value &valu
                 value[0u].GetDouble(),
                 value[1u].GetDouble()));
             break;
-        case ShaderParameter::kVec3Type:
+        case ShaderParameter::Type::kVec3:
             if (!value.IsArray() || value.Size() != 3 ||
                 !value[0u].IsNumber() ||
                 !value[1u].IsNumber() ||
@@ -132,7 +132,7 @@ bool MaterialLoader::setParameter(const char *name, const rapidjson::Value &valu
                 value[1u].GetDouble(),
                 value[2u].GetDouble()));
             break;
-        case ShaderParameter::kVec4Type:
+        case ShaderParameter::Type::kVec4:
             if (!value.IsArray() || value.Size() != 4 ||
                 !value[0u].IsNumber() ||
                 !value[1u].IsNumber() ||
@@ -149,7 +149,7 @@ bool MaterialLoader::setParameter(const char *name, const rapidjson::Value &valu
                 value[2u].GetDouble(),
                 value[3u].GetDouble()));
             break;
-        case ShaderParameter::kTextureType:
+        case ShaderParameter::Type::kTexture:
             if (!value.IsString()) {
                 logError("%s: Expected texture for '%s'", m_path, name);
                 return false;

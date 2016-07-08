@@ -78,12 +78,12 @@ void PostEffect::blit(
     Geometry geometry;
     g_renderManager->quadGeometry(geometry);
     if (pass >= 0) {
-        check(static_cast<size_t>(pass) < material->shader()->numPasses(Pass::kBasicPass));
+        check(static_cast<size_t>(pass) < material->shader()->numPasses(Pass::Type::kBasic));
 
-        const Pass *shaderPass = material->shader()->pass(Pass::kBasicPass, pass);
+        const Pass *shaderPass = material->shader()->pass(Pass::Type::kBasic, pass);
         drawList.addDrawCall(geometry, material, nullptr, shaderPass);
     } else {
-        drawList.addDrawCalls(geometry, material, nullptr, Pass::kBasicPass);
+        drawList.addDrawCalls(geometry, material, nullptr, Pass::Type::kBasic);
     }
 
     /* Draw it. */

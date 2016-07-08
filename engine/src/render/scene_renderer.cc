@@ -118,7 +118,7 @@ void SceneRenderer::addLight(SceneLight *light) {
                 if (entity->castShadow()) {
                     state.shadowMapDrawLists[i].addDrawCalls(
                         entity,
-                        Pass::kShadowCasterPass);
+                        Pass::Type::kShadowCaster);
                 }
             });
         }
@@ -131,11 +131,11 @@ void SceneRenderer::addEntity(SceneEntity *entity) {
     Shader *shader = entity->material()->shader();
 
     /* Determine whether this is a lit or unlit entity. */
-    if (m_path == RenderPath::kDeferred && shader->numPasses(Pass::kDeferredPass) > 0) {
+    if (m_path == RenderPath::kDeferred && shader->numPasses(Pass::Type::kDeferred) > 0) {
         /* This entity is affected by lights and will be rendered via the
          * deferred path. Add it to the deferred draw list. */
-        m_deferredDrawList.addDrawCalls(entity, Pass::kDeferredPass);
-    } else if (shader->numPasses(Pass::kForwardPass) > 0) {
+        m_deferredDrawList.addDrawCalls(entity, Pass::Type::kDeferred);
+    } else if (shader->numPasses(Pass::Type::kForward) > 0) {
         /* This entity is affected by lights and will be rendered via the
          * forward path. Add the entity to the draw list for all lights which
          * affect it. */
@@ -144,10 +144,10 @@ void SceneRenderer::addEntity(SceneEntity *entity) {
              * may not be correct. We blend and turn off depth writes after the
              * first light, but if an entity is not affected by that light it
              * would be rendered incorrectly. */
-            lightState.drawList.addDrawCalls(entity, Pass::kForwardPass);
+            lightState.drawList.addDrawCalls(entity, Pass::Type::kForward);
         }
-    } else if (shader->numPasses(Pass::kBasicPass) > 0) {
-        m_basicDrawList.addDrawCalls(entity, Pass::kBasicPass);
+    } else if (shader->numPasses(Pass::Type::kBasic) > 0) {
+        m_basicDrawList.addDrawCalls(entity, Pass::Type::kBasic);
     }
 }
 
@@ -254,7 +254,7 @@ void SceneRenderer::renderDeferred() {
         Geometry geometry;
         lightState.light->volumeGeometry(geometry);
         DrawList list;
-        list.addDrawCalls(geometry, g_renderManager->deferredLightMaterial(), nullptr, Pass::kForwardPass);
+        list.addDrawCalls(geometry, g_renderManager->deferredLightMaterial(), nullptr, Pass::Type::kForward);
         list.draw(lightState.light);
     }
 }

@@ -1,0 +1,22 @@
+[
+    {
+        "objectClass": "Shader",
+        "objectID": 0,
+        "objectProperties": {},
+        "parameters": [],
+        "passes": [
+            {
+                "type": "kForward",
+                "vertex": {
+                    "source": "engine/shaders/deferred_light_vtx.glsl"
+                },
+                "fragment": {
+                    "source": "engine/shaders/deferred_light_frag.glsl",
+                    "keywords": [
+                        "SPECULAR"
+                    ]
+                }
+            }
+        ]
+    }
+]

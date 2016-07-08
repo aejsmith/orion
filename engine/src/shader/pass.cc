@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -69,7 +69,7 @@ static const char *const shadowVariation = "SHADOW";
 Pass::Pass(Shader *parent, Type type) :
     m_parent(parent),
     m_type(type),
-    m_variations((type == kForwardPass) ? SceneLight::kNumTypes * 2 : 1)
+    m_variations((type == Type::kForward) ? SceneLight::kNumTypes * 2 : 1)
 {}
 
 /** Destroy the pass. */
@@ -89,7 +89,7 @@ Pass::~Pass() {}
 void Pass::setDrawState(SceneLight *light) const {
     /* Find the variation to use. */
     size_t index;
-    if (m_type == kForwardPass) {
+    if (m_type == Type::kForward) {
         index = light->type() * 2;
         if (light->castShadows())
             index++;
@@ -207,7 +207,7 @@ static GPUProgramPtr compileVariation(const std::string &source, unsigned stage,
         unsigned slot;
         if (!g_shaderManager->lookupGlobalTexture(sampler.name, slot)) {
             const ShaderParameter *param = parent->lookupParameter(sampler.name);
-            if (!param || param->type != ShaderParameter::kTextureType) {
+            if (!param || param->type != ShaderParameter::Type::kTexture) {
                 logError("Shader '%s' refers to unknown texture '%s'", path.c_str(), sampler.name.c_str());
                 return nullptr;
             }
@@ -236,7 +236,7 @@ bool Pass::loadStage(unsigned stage, const Path &path, const KeywordSet &keyword
     std::string source;
 
     /* Add pass type definition and user-specified keywords. */
-    defineKeyword(source, passShaderVariations[m_type]);
+    defineKeyword(source, passShaderVariations[static_cast<size_t>(m_type)]);
     for (const std::string &keyword : keywords)
         defineKeyword(source, keyword.c_str());
 
@@ -254,7 +254,7 @@ bool Pass::loadStage(unsigned stage, const Path &path, const KeywordSet &keyword
     if (!loadSource(path, source))
         return false;
 
-    if (m_type == kForwardPass) {
+    if (m_type == Type::kForward) {
         /* Build each of the light type variations. */
         for (unsigned i = 0; i < SceneLight::kNumTypes; i++) {
             for (unsigned j = 0; j < 2; j++) {
