@@ -1,0 +1,17 @@
+[
+    {
+        "objectClass": "Material",
+        "objectID": 0,
+        "objectProperties": {},
+        "shader": {
+            "asset": "engine/shaders/unlit_coloured"
+        },
+        "parameters": {
+            "diffuseColour": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        }
+    }
+]

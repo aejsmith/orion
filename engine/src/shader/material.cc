@@ -19,7 +19,14 @@
  * @brief               Material class.
  */
 
+#include "core/serialiser.h"
+
 #include "shader/material.h"
+
+/** Private default constructor for deserialisation. */
+Material::Material() :
+    m_uniforms(nullptr)
+{}
 
 /** Create a new material.
  * @param shader        Shader to use for the material. */
@@ -27,16 +34,108 @@ Material::Material(Shader *shader) :
     m_shader(shader),
     m_uniforms(nullptr)
 {
-    if (shader->uniformStruct()) {
-        /* Material parameters should be changed infrequently, therefore set
-         * the uniform buffer usage as static. */
-        m_uniforms = new UniformBufferBase(*shader->uniformStruct(), GPUBuffer::kStaticDrawUsage);
-    }
+    check(shader);
+    createUniforms();
 }
 
 /** Destroy the material. */
 Material::~Material() {
     delete m_uniforms;
+}
+
+/** Create the uniform buffer. */
+void Material::createUniforms() {
+    if (m_shader->uniformStruct()) {
+        /* Material parameters should be changed infrequently, therefore set
+         * the uniform buffer usage as static. */
+        m_uniforms = new UniformBufferBase(*m_shader->uniformStruct(), GPUBuffer::kStaticDrawUsage);
+    }
+}
+
+/** Serialise the material.
+ * @param serialiser    Serialiser to write to. */
+void Material::serialise(Serialiser &serialiser) const {
+    fatal("Material::serialise: TODO");
+}
+
+/** Deserialise the material.
+ * @param serialiser    Serialiser to read from. */
+void Material::deserialise(Serialiser &serialiser) {
+    serialiser.read("shader", m_shader);
+    check(m_shader);
+
+    createUniforms();
+
+    if (serialiser.beginGroup("parameters")) {
+        for (const auto &it : m_shader->parameters()) {
+            const char *name = it.first.c_str();
+            const ShaderParameter &parameter = it.second;
+
+            // TODO: A Variant type would be great here.
+            switch (parameter.type) {
+                case ShaderParameter::Type::kInt:
+                {
+                    int value;
+                    if (serialiser.read(name, value))
+                        setValue(name, value);
+
+                    break;
+                }
+                case ShaderParameter::Type::kUnsignedInt:
+                {
+                    unsigned value;
+                    if (serialiser.read(name, value))
+                        setValue(name, value);
+
+                    break;
+                }
+                case ShaderParameter::Type::kFloat:
+                {
+                    float value;
+                    if (serialiser.read(name, value))
+                        setValue(name, value);
+
+                    break;
+                }
+                case ShaderParameter::Type::kVec2:
+                {
+                    glm::vec2 value;
+                    if (serialiser.read(name, value))
+                        setValue(name, value);
+
+                    break;
+                }
+                case ShaderParameter::Type::kVec3:
+                {
+                    glm::vec3 value;
+                    if (serialiser.read(name, value))
+                        setValue(name, value);
+
+                    break;
+                }
+                case ShaderParameter::Type::kVec4:
+                {
+                    glm::vec4 value;
+                    if (serialiser.read(name, value))
+                        setValue(name, value);
+
+                    break;
+                }
+                case ShaderParameter::Type::kTexture:
+                {
+                    TextureBasePtr value;
+                    if (serialiser.read(name, value))
+                        setValue(name, value);
+
+                    break;
+                }
+                default:
+                    check(false);
+            }
+        }
+
+        serialiser.endGroup();
+    }
 }
 
 /** Get a parameter value.

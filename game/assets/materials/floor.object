@@ -1,0 +1,21 @@
+[
+    {
+        "objectClass": "Material",
+        "objectID": 0,
+        "objectProperties": {},
+        "shader": {
+            "asset": "engine/shaders/lit_specular"
+        },
+        "parameters": {
+            "shininess": 32.0,
+            "specularColour": [
+                0.5,
+                0.5,
+                0.5
+            ],
+            "diffuseTexture": {
+                "asset": "game/textures/floor"
+            }
+        }
+    }
+]

@@ -70,7 +70,13 @@ public:
         setValue(name, ShaderParameterTypeTraits<T>::kType, std::addressof(value));
     }
 protected:
+    Material();
     ~Material();
+
+    void serialise(Serialiser &serialiser) const override;
+    void deserialise(Serialiser &serialiser) override;
+
+    void createUniforms();
 private:
     /** Type of the texture array, indexed by slot. */
     using TextureArray = std::array<TextureBasePtr, TextureSlots::kMaterialTexturesEnd + 1>;

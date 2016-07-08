@@ -1,0 +1,17 @@
+[
+    {
+        "objectClass": "Material",
+        "objectID": 0,
+        "objectProperties": {},
+        "shader": {
+            "asset": "engine/shaders/lit_diffuse_coloured"
+        },
+        "parameters": {
+            "diffuseColour": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        }
+    }
+]

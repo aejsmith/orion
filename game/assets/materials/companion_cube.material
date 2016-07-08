@@ -1,8 +1,0 @@
-{
-    "shader": "engine/shaders/lit_specular",
-    "parameters": {
-        "shininess": 8.0,
-        "specularColour": [0.5, 0.5, 0.5],
-        "diffuseTexture": "game/textures/companion_cube"
-    }
-}
