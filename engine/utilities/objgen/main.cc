@@ -150,6 +150,7 @@ public:
 
     static void create(CXCursor cursor, ParsedDecl *parent);
 protected:
+    bool handleAnnotation(const std::string &type, const rapidjson::Document &attributes) override;
     void handleChild(CXCursor cursor, CXCursorKind kind) override;
 private:
     /** Type of a pair describing an enum constant. */
@@ -802,6 +803,18 @@ void ParsedEnum::create(CXCursor cursor, ParsedDecl *parent) {
 
     visitChildren(cursor, parsedEnum.get());
     parent->getTranslationUnit()->enums.insert(std::make_pair(parsedEnum->name, std::move(parsedEnum)));
+}
+
+/** Called when an annotation is observed on this declaration.
+ * @param type          Type of the annotation.
+ * @param attributes    Attributes specified for the annotation.
+ * @return              Whether the annotation was consumed. */
+bool ParsedEnum::handleAnnotation(const std::string &type, const rapidjson::Document &attributes) {
+    if (type.compare("enum") != 0)
+        return false;
+
+    this->shouldGenerate = true;
+    return true;
 }
 
 /** Called when a child is reached on this declaration.

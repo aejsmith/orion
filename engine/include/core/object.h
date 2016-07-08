@@ -145,6 +145,27 @@ class Serialiser;
     static META_ATTRIBUTE("property", __VA_ARGS__) type vprop_##name
 
 /**
+ * Annotation for enums.
+ *
+ * This macro explicitly marks an enum to have code generated for it so that
+ * strings for its constants are available at runtime. It is not necessary to
+ * do this for an enum which is used as a the type of a class property, such
+ * enums automatically have code generated. This macro should be used on enums
+ * which are not used for properties but need to be manually (de)serialised.
+ *
+ * Example:
+ *
+ *   enum ENUM() Foo {
+ *       kBar,
+ *       ...
+ *   };
+ *
+ * @param ...           Attributes of the property, parsed by objgen.
+ */
+#define ENUM(...) \
+    META_ATTRIBUTE("enum", __VA_ARGS__)
+
+/**
  * Metadata classes.
  */
 

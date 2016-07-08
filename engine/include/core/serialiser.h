@@ -190,7 +190,7 @@ public:
      *                      during deserialisation). If this returns false,
      *                      endGroup() should not be called.
      */
-    virtual bool beginGroup(const char *name) = 0;
+    virtual bool beginGroup(const char *name = nullptr) = 0;
 
     /** End a value group. */
     virtual void endGroup() = 0;
@@ -208,13 +208,13 @@ public:
      * items will be deserialised in the order they were serialised. pop()
      * returns false to indicate that the end of the array has been reached.
      *
-     * @param name          Name of the group.
+     * @param name          Name of the array.
      *
      * @return              Whether an array was found (can only return false
      *                      during deserialisation). If this returns false,
      *                      endArray() should not be called.
      */
-    virtual bool beginArray(const char *name) = 0;
+    virtual bool beginArray(const char *name = nullptr) = 0;
 
     /** End a value group. */
     virtual void endArray() = 0;
@@ -235,6 +235,15 @@ public:
     void write(const char *name, const glm::vec3 &value);
     void write(const char *name, const glm::vec4 &value);
     void write(const char *name, const glm::quat &value);
+
+    /** Write an enum.
+     * @tparam T            Type of the enum.
+     * @param name          Name for the value.
+     * @param value         Value to write. */
+    template <typename T, typename std::enable_if<std::is_enum<T>::value>::type * = nullptr>
+    void write(const char *name, const T &value) {
+        write(name, MetaType::lookup<T>(), &value);
+    }
 
     /**
      * Write an object reference.
@@ -316,6 +325,15 @@ public:
     bool read(const char *name, glm::vec3 &value);
     bool read(const char *name, glm::vec4 &value);
     bool read(const char *name, glm::quat &value);
+
+    /** Read an enum.
+     * @tparam T            Type of the enum.
+     * @param name          Name for the value.
+     * @param value         Value to write. */
+    template <typename T, typename std::enable_if<std::is_enum<T>::value>::type * = nullptr>
+    bool read(const char *name, T &value) {
+        return read(name, MetaType::lookup<T>(), &value);
+    }
 
     /**
      * Read an object reference.
