@@ -2,7 +2,7 @@
     {
         "objectClass": "World",
         "objectID": 0,
-        "properties": {},
+        "objectProperties": {},
         "root": {
             "objectID": 1
         }
@@ -14,7 +14,7 @@
             "objectID": 0
         },
         "parent": {},
-        "properties": {
+        "objectProperties": {
             "name": "root",
             "active": true,
             "position": [
@@ -75,7 +75,7 @@
         "entity": {
             "objectID": 1
         },
-        "properties": {
+        "objectProperties": {
             "active": true,
             "castShadow": true,
             "texture": {
@@ -89,7 +89,7 @@
         "entity": {
             "objectID": 1
         },
-        "properties": {
+        "objectProperties": {
             "active": true,
             "colour": [
                 1.0,
@@ -109,7 +109,7 @@
         "parent": {
             "objectID": 1
         },
-        "properties": {
+        "objectProperties": {
             "name": "floor",
             "active": true,
             "position": [
@@ -148,7 +148,7 @@
         "entity": {
             "objectID": 4
         },
-        "properties": {
+        "objectProperties": {
             "active": true,
             "castShadow": false,
             "mesh": {
@@ -167,7 +167,7 @@
         "entity": {
             "objectID": 4
         },
-        "properties": {
+        "objectProperties": {
             "active": true,
             "halfExtents": [
                 0.5,
@@ -182,7 +182,7 @@
         "entity": {
             "objectID": 4
         },
-        "properties": {
+        "objectProperties": {
             "active": true,
             "mass": 0.0,
             "linearDamping": 0.0,
@@ -201,7 +201,7 @@
         "parent": {
             "objectID": 1
         },
-        "properties": {
+        "objectProperties": {
             "name": "cube_0",
             "active": true,
             "position": [
@@ -240,7 +240,7 @@
         "entity": {
             "objectID": 8
         },
-        "properties": {
+        "objectProperties": {
             "active": true,
             "castShadow": true,
             "mesh": {
@@ -259,7 +259,7 @@
         "entity": {
             "objectID": 8
         },
-        "properties": {
+        "objectProperties": {
             "active": true,
             "halfExtents": [
                 2.9000000953674318,
@@ -274,7 +274,7 @@
         "entity": {
             "objectID": 8
         },
-        "properties": {
+        "objectProperties": {
             "active": true,
             "mass": 10.0,
             "linearDamping": 0.0,
@@ -293,7 +293,7 @@
         "parent": {
             "objectID": 1
         },
-        "properties": {
+        "objectProperties": {
             "name": "cube_1",
             "active": true,
             "position": [
@@ -332,7 +332,7 @@
         "entity": {
             "objectID": 12
         },
-        "properties": {
+        "objectProperties": {
             "active": true,
             "castShadow": true,
             "mesh": {
@@ -351,7 +351,7 @@
         "entity": {
             "objectID": 12
         },
-        "properties": {
+        "objectProperties": {
             "active": true,
             "halfExtents": [
                 2.9000000953674318,
@@ -366,7 +366,7 @@
         "entity": {
             "objectID": 12
         },
-        "properties": {
+        "objectProperties": {
             "active": true,
             "mass": 10.0,
             "linearDamping": 0.0,
@@ -385,7 +385,7 @@
         "parent": {
             "objectID": 1
         },
-        "properties": {
+        "objectProperties": {
             "name": "player",
             "active": true,
             "position": [
@@ -422,7 +422,7 @@
         "entity": {
             "objectID": 16
         },
-        "properties": {
+        "objectProperties": {
             "active": true,
             "camera": {
                 "objectID": 18
@@ -435,7 +435,7 @@
         "entity": {
             "objectID": 19
         },
-        "properties": {
+        "objectProperties": {
             "active": true,
             "renderPath": "kDeferred",
             "projectionMode": "kPerspective",
@@ -460,7 +460,7 @@
         "parent": {
             "objectID": 16
         },
-        "properties": {
+        "objectProperties": {
             "name": "camera",
             "active": true,
             "position": [
@@ -490,7 +490,7 @@
     {
         "objectClass": "FXAAEffect",
         "objectID": 20,
-        "properties": {}
+        "objectProperties": {}
     },
     {
         "objectClass": "Entity",
@@ -501,7 +501,7 @@
         "parent": {
             "objectID": 1
         },
-        "properties": {
+        "objectProperties": {
             "name": "light_0",
             "active": true,
             "position": [
@@ -534,7 +534,7 @@
         "entity": {
             "objectID": 21
         },
-        "properties": {
+        "objectProperties": {
             "active": true,
             "colour": [
                 1.0,
@@ -561,7 +561,7 @@
         "parent": {
             "objectID": 1
         },
-        "properties": {
+        "objectProperties": {
             "name": "light_1",
             "active": true,
             "position": [
@@ -593,7 +593,7 @@
         "entity": {
             "objectID": 23
         },
-        "properties": {
+        "objectProperties": {
             "active": true,
             "colour": [
                 0.0,
@@ -619,7 +619,7 @@
         "parent": {
             "objectID": 1
         },
-        "properties": {
+        "objectProperties": {
             "name": "light_2",
             "active": true,
             "position": [
@@ -652,7 +652,7 @@
         "entity": {
             "objectID": 25
         },
-        "properties": {
+        "objectProperties": {
             "active": true,
             "colour": [
                 0.0,
@@ -678,7 +678,7 @@
         "parent": {
             "objectID": 1
         },
-        "properties": {
+        "objectProperties": {
             "name": "light_3",
             "active": true,
             "position": [
@@ -711,7 +711,7 @@
         "entity": {
             "objectID": 27
         },
-        "properties": {
+        "objectProperties": {
             "active": true,
             "colour": [
                 1.0,

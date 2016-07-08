@@ -323,7 +323,7 @@ struct SerialisationBuffer {
  */
 void Object::serialise(Serialiser &serialiser) const {
     /* Serialise properties into a separate group. */
-    serialiser.beginGroup("properties");
+    serialiser.beginGroup("objectProperties");
 
     /* We should serialise base class properties first. It may be that, for
      * example, the set method of a derived class property depends on the value
@@ -361,7 +361,7 @@ void Object::serialise(Serialiser &serialiser) const {
  * @param serialiser    Serialiser to deserialise from.
  */
 void Object::deserialise(Serialiser &serialiser) {
-    if (serialiser.beginGroup("properties")) {
+    if (serialiser.beginGroup("objectProperties")) {
         std::function<void (const MetaClass *)> deserialiseProperties =
             [&] (const MetaClass *metaClass) {
                 if (metaClass->parent())

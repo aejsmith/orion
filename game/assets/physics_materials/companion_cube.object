@@ -2,7 +2,7 @@
     {
         "objectClass": "PhysicsMaterial",
         "objectID": 0,
-        "properties": {
+        "objectProperties": {
             "restitution": 0.25,
             "friction": 0.95
         }
