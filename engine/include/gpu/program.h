@@ -27,7 +27,7 @@
 #include <list>
 
 /** GPU program class. */
-class GPUProgram : public GPUResource {
+class GPUProgram : public GPUObject {
 public:
     /** Structure describing a resource. */
     struct Resource {
@@ -89,7 +89,7 @@ private:
 };
 
 /** Type of a GPU program pointer. */
-using GPUProgramPtr = GPUResourcePtr<GPUProgram>;
+using GPUProgramPtr = GPUObjectPtr<GPUProgram>;
 
 /** Type of an array of GPU programs, indexed by stage. */
 using GPUProgramArray = std::array<GPUProgramPtr, ShaderStage::kNumStages>;

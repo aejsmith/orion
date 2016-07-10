@@ -37,7 +37,7 @@ struct GPUTextureImageRef;
  * class has an API-specific implementation, instances must be created with
  * GPUManager::createTexture().
  */
-class GPUTexture : public GPUResource {
+class GPUTexture : public GPUObject {
 public:
     /** Texture types. */
     enum Type {
@@ -107,7 +107,7 @@ protected:
 };
 
 /** Type of a pointer to a texture. */
-using GPUTexturePtr = GPUResourcePtr<GPUTexture>;
+using GPUTexturePtr = GPUObjectPtr<GPUTexture>;
 
 /** Texture descriptor. */
 struct GPUTextureDesc {

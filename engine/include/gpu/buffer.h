@@ -33,7 +33,7 @@
  * implementation of the class is API-specific, therefore instances must be
  * created with GPUManager::createBuffer().
  */
-class GPUBuffer : public GPUResource {
+class GPUBuffer : public GPUObject {
 public:
     /** Enum of possible buffer types. */
     enum Type {
@@ -122,7 +122,7 @@ protected:
 };
 
 /** Type of a pointer to a GPU buffer. */
-using GPUBufferPtr = GPUResourcePtr<GPUBuffer>;
+using GPUBufferPtr = GPUObjectPtr<GPUBuffer>;
 
 /** Type of a GPU buffer array. */
 using GPUBufferArray = std::vector<GPUBufferPtr>;

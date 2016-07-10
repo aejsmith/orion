@@ -16,6 +16,7 @@ objects = map(env.Object, [
     'gl.cc',
     'pipeline.cc',
     'program.cc',
+    'resource.cc',
     'state.cc',
     'texture.cc',
     'vertex_data.cc',

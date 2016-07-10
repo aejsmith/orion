@@ -27,6 +27,7 @@
 #include "gpu/index_data.h"
 #include "gpu/pipeline.h"
 #include "gpu/program.h"
+#include "gpu/resource.h"
 #include "gpu/state.h"
 #include "gpu/texture.h"
 #include "gpu/vertex_data.h"
@@ -99,6 +100,9 @@ public:
     /**
      * Shader methods.
      */
+
+    virtual GPUResourceSetLayoutPtr createResourceSetLayout(GPUResourceSetLayoutDesc &&desc);
+    virtual GPUResourceSetPtr createResourceSet(GPUResourceSetLayout *layout);
 
     /** Compile a GPU program from GLSL source.
      * @note                In future I expect that this will exist only for

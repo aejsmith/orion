@@ -172,16 +172,16 @@ enum class SamplerFilterMode {
  */
 
 /**
- * Base class for GPU resources.
+ * Base class for GPU objects.
  *
- * All GPU resources derive from this class. It includes reference counting
- * functionality so that resources will only be freed once they have no more
+ * All GPU objects derive from this class. It includes reference counting
+ * functionality so that objects will only be freed once they have no more
  * users.
  */
-class GPUResource : public Refcounted {
+class GPUObject : public Refcounted {
 protected:
-    GPUResource() {}
+    GPUObject() {}
 };
 
-/** Type of a GPU resource pointer. */
-template <typename T> using GPUResourcePtr = ReferencePtr<T>;
+/** Type of a GPU object pointer. */
+template <typename T> using GPUObjectPtr = ReferencePtr<T>;

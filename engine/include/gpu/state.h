@@ -30,7 +30,7 @@
 /** Base GPU state object class.
  * @tparam Desc         Type of the state descriptor structure. */
 template <typename Desc>
-class GPUState : public GPUResource {
+class GPUState : public GPUObject {
 public:
     /** @return             Descriptor used to create the state object. */
     const Desc &desc() const { return m_desc; }
@@ -69,7 +69,7 @@ public:
 using GPUBlendState = GPUState<GPUBlendStateDesc>;
 
 /** Type of a pointer to a GPU blend state object. */
-using GPUBlendStatePtr = GPUResourcePtr<GPUBlendState>;
+using GPUBlendStatePtr = GPUObjectPtr<GPUBlendState>;
 
 /** Depth/stencil state descriptor. */
 struct GPUDepthStencilStateDesc {
@@ -93,7 +93,7 @@ public:
 using GPUDepthStencilState = GPUState<GPUDepthStencilStateDesc>;
 
 /** Type of a pointer to a GPU depth/stencil state object. */
-using GPUDepthStencilStatePtr = GPUResourcePtr<GPUDepthStencilState>;
+using GPUDepthStencilStatePtr = GPUObjectPtr<GPUDepthStencilState>;
 
 /** Rasterizer state descriptor. */
 struct GPURasterizerStateDesc {
@@ -117,7 +117,7 @@ public:
 using GPURasterizerState = GPUState<GPURasterizerStateDesc>;
 
 /** Type of a pointer to a GPU rasterizer state object. */
-using GPURasterizerStatePtr = GPUResourcePtr<GPURasterizerState>;
+using GPURasterizerStatePtr = GPUObjectPtr<GPURasterizerState>;
 
 /** Texture sampler state descriptor. */
 struct GPUSamplerStateDesc {
@@ -151,7 +151,7 @@ public:
 using GPUSamplerState = GPUState<GPUSamplerStateDesc>;
 
 /** Type of a pointer to a GPU sampler state object. */
-using GPUSamplerStatePtr = GPUResourcePtr<GPUSamplerState>;
+using GPUSamplerStatePtr = GPUObjectPtr<GPUSamplerState>;
 
 /**
  * Structure describing a vertex buffer binding.
@@ -259,7 +259,7 @@ public:
  * buffers.
  */
 class GPUVertexInputState : public GPUState<GPUVertexInputStateDesc> {
-public:
+protected:
     GPUVertexInputState(GPUVertexInputStateDesc &&desc);
 
     /* For default creation method in GPUManager. */
@@ -267,4 +267,4 @@ public:
 };
 
 /** Type of a pointer to a GPU vertex input state object. */
-using GPUVertexInputStatePtr = GPUResourcePtr<GPUVertexInputState>;
+using GPUVertexInputStatePtr = GPUObjectPtr<GPUVertexInputState>;

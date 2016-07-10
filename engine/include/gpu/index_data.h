@@ -31,7 +31,7 @@
  * used for rendering. Since this class may have an API-specific implementation,
  * instances must be created with GPUManager::createIndexData().
  */
-class GPUIndexData : public GPUResource {
+class GPUIndexData : public GPUObject {
 public:
     /** Type of index elements. */
     enum Type {
@@ -80,4 +80,4 @@ protected:
 };
 
 /** Type of a reference to GPUIndexData */
-using GPUIndexDataPtr = GPUResourcePtr<GPUIndexData>;
+using GPUIndexDataPtr = GPUObjectPtr<GPUIndexData>;

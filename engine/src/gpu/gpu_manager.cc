@@ -148,3 +148,17 @@ GPUSamplerStatePtr GPUManager::createSamplerState(const GPUSamplerStateDesc &des
 GPUVertexInputStatePtr GPUManager::createVertexInputState(GPUVertexInputStateDesc &&desc) {
     return new GPUVertexInputState(std::move(desc));
 }
+
+/** Create a resource set layout.
+ * @param desc          Descriptor for the layout.
+ * @return              Pointer to created resource set layout. */
+GPUResourceSetLayoutPtr GPUManager::createResourceSetLayout(GPUResourceSetLayoutDesc &&desc) {
+    return new GPUResourceSetLayout(std::move(desc));
+}
+
+/** Create a resource set.
+ * @param layout        Layout for the resource set.
+ * @return              Pointer to created resource set. */
+GPUResourceSetPtr GPUManager::createResourceSet(GPUResourceSetLayout *layout) {
+    return new GPUResourceSet(layout);
+}

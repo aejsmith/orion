@@ -44,7 +44,7 @@ struct GPUPipelineDesc {
  * that do not need this. However, APIs that do can fairly easily cache created
  * state objects for different formats in their implementation of this class.
  */
-class GPUPipeline : public GPUResource {
+class GPUPipeline : public GPUObject {
 public:
     /** @return             Array of programs used by the pipeline. */
     const GPUProgramArray &programs() const { return m_programs; }
@@ -59,4 +59,4 @@ protected:
 };
 
 /** Type of a reference to GPUPipeline. */
-using GPUPipelinePtr = GPUResourcePtr<GPUPipeline>;
+using GPUPipelinePtr = GPUObjectPtr<GPUPipeline>;

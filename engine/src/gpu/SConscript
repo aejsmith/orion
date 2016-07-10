@@ -11,6 +11,7 @@ objects += map(env.Object, [
     'gpu_manager.cc',
     'index_data.cc',
     'pipeline.cc',
+    'resource.cc',
     'state.cc',
     'texture.cc',
     'vertex_data.cc',

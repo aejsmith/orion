@@ -36,7 +36,7 @@
  * vertex data object must be created. Creation is performed through
  * GPUManager::createVertexData().
  */
-class GPUVertexData : public GPUResource {
+class GPUVertexData : public GPUObject {
 public:
     /** @return             Total number of vertices. */
     size_t count() const { return m_count; }
@@ -57,4 +57,4 @@ protected:
 };
 
 /** Type of a reference to GPUVertexData. */
-using GPUVertexDataPtr = GPUResourcePtr<GPUVertexData>;
+using GPUVertexDataPtr = GPUObjectPtr<GPUVertexData>;
