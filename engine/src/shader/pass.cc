@@ -235,6 +235,25 @@ bool Pass::loadStage(unsigned stage, const Path &path, const KeywordSet &keyword
 
     std::string source;
 
+    if (stage == ShaderStage::kVertex) {
+        /* Insert attribute semantic definitions. */
+        source += String::format(
+            "#define kPositionSemantic %u\n",
+            VertexAttribute::glslIndex(VertexAttribute::kPositionSemantic, 0));
+        source += String::format(
+            "#define kNormalSemantic %u\n",
+            VertexAttribute::glslIndex(VertexAttribute::kNormalSemantic, 0));
+        source += String::format(
+            "#define kTexcoordSemantic %u\n",
+            VertexAttribute::glslIndex(VertexAttribute::kTexcoordSemantic, 0));
+        source += String::format(
+            "#define kDiffuseSemantic %u\n",
+            VertexAttribute::glslIndex(VertexAttribute::kDiffuseSemantic, 0));
+        source += String::format(
+            "#define kSpecularSemantic %u\n\n",
+            VertexAttribute::glslIndex(VertexAttribute::kSpecularSemantic, 0));
+    }
+
     /* Add pass type definition and user-specified keywords. */
     defineKeyword(source, passShaderVariations[static_cast<size_t>(m_type)]);
     for (const std::string &keyword : keywords)

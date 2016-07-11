@@ -101,6 +101,11 @@ struct VertexAttribute {
                 return 0;
         }
     }
+
+    /** @return             GLSL attribute index for this attribute. */
+    unsigned glslIndex() const { return glslIndex(this->semantic, this->index); }
+
+    static unsigned glslIndex(Semantic semantic, unsigned index);
 };
 
 /** Vertex data layout descriptor. */

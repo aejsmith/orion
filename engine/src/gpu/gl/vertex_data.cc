@@ -30,9 +30,7 @@
  * So that we don't tie a VAO to a specific shader, we bind shader attributes
  * to attribute indices statically based on the semantic and index of the
  * attribute, rather than letting the linker assign attribute indices. This
- * allows us to use a single VAO with any shader. GL implementations must
- * support a minimum of 16 attribute indices, so we divide up this space
- * between the various attribute semantics.
+ * allows us to use a single VAO with any shader.
  */
 
 #include "gl.h"
@@ -50,9 +48,7 @@ GLVertexData::GLVertexData(size_t count, GPUVertexDataLayout *layout, GPUBufferA
     g_opengl->state.bindVertexArray(m_array);
 
     for (const VertexAttribute &attribute : m_layout->desc().attributes) {
-        GLuint index;
-        if (!mapAttribute(attribute.semantic, attribute.index, &index))
-            fatal("GL: Cannot map attribute (semantic: %d, index: %u)", attribute.semantic, attribute.index);
+        GLuint index = attribute.glslIndex();
 
         /* FIXME: Check if type is supported. */
         GLenum type = GLUtil::convertAttributeType(attribute.type);
@@ -99,54 +95,6 @@ void GLVertexData::bind(GPUBuffer *indices) {
 
         m_boundIndices = indices;
     }
-}
-
-/** Map an attribute semantic/index to a GL attribute index.
- * @param semantic      Attribute semantic.
- * @param index         Attribute index.
- * @param gl            Where to store GL attribute index.
- * @return              Whether mapped successfully. */
-bool GLVertexData::mapAttribute(VertexAttribute::Semantic semantic, unsigned index, GLuint *gl) {
-    /* TODO: Make use of all supported hardware attributes rather than the
-     * minimum of 16. Also, this is a somewhat arbitrary division for now,
-     * may need tweaking based on future requirements (e.g. probably don't
-     * need multiple positions). */
-
-    /* If changing this, make sure to update defines in shader.cc. */
-    switch (semantic) {
-        case VertexAttribute::kPositionSemantic:
-            if (index >= 2)
-                return false;
-
-            *gl = 0 + index;
-            return true;
-        case VertexAttribute::kNormalSemantic:
-            if (index >= 2)
-                return false;
-
-            *gl = 2 + index;
-            return true;
-        case VertexAttribute::kTexcoordSemantic:
-            if (index >= 10)
-                return false;
-
-            *gl = 4 + index;
-            return true;
-        case VertexAttribute::kDiffuseSemantic:
-            if (index >= 1)
-                return false;
-
-            *gl = 14;
-            return true;
-        case VertexAttribute::kSpecularSemantic:
-            if (index >= 1)
-                return false;
-
-            *gl = 15;
-            return true;
-    }
-
-    return false;
 }
 
 /** Create a vertex data object.

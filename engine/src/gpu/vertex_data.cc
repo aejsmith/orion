@@ -21,6 +21,49 @@
 
 #include "gpu/vertex_data.h"
 
+/**
+ * Map a vertex semantic and index to a GLSL attribute index.
+ *
+ * We use semantics and an index, similar to D3D/HLSL, to identify vertex
+ * attributes and bind shader variables to them. However, our shading language
+ * is GLSL which has no concept of semantics, rather it just has a linear space
+ * of vertex attribute indices. To support semantics in GLSL, we map them onto
+ * the linear attribute space and provide definitions in shaders so that shaders
+ * can write (for example) the following:
+ *
+ *   layout(location = kTexcoordSemantic + 1) in vec2 texcoord0;
+ *
+ * which maps to semantic kTexcoordSemantic, index 1. This function implements
+ * this mapping.
+ *
+ * @param semantic      Vertex attribute semantic.
+ * @param index         Attribute index.
+ */
+unsigned VertexAttribute::glslIndex(Semantic semantic, unsigned index) {
+    /* GL and Vulkan require support for at least 16 vertex attributes,
+     * therefore we divide these up between the semantics. This is somewhat
+     * an arbitrary division for now, could be tweaked in future. */
+    switch (semantic) {
+        case kPositionSemantic:
+            checkMsg(index < 2, "Exceeded maximum number of position attributes");
+            return 0 + index;
+        case kNormalSemantic:
+            checkMsg(index < 2, "Exceeded maximum number of normal attributes");
+            return 2 + index;
+        case kTexcoordSemantic:
+            checkMsg(index < 8, "Exceeded maximum number of texture coordinate attributes");
+            return 4 + index;
+        case kDiffuseSemantic:
+            checkMsg(index < 2, "Exceeded maximum number of diffuse colour attributes");
+            return 12 + index;
+        case kSpecularSemantic:
+            checkMsg(index < 2, "Exceeded maximum number of specular colour attributes");
+            return 14 + index;
+        default:
+            check(false);
+    }
+}
+
 /** Initialize a vertex data layout object.
  * @param desc          Layout descriptor. */
 GPUVertexDataLayout::GPUVertexDataLayout(GPUVertexDataLayoutDesc &&desc) :
@@ -36,6 +79,9 @@ GPUVertexDataLayout::GPUVertexDataLayout(GPUVertexDataLayoutDesc &&desc) :
 
     for (size_t i = 0; i < m_desc.attributes.size(); i++) {
         const VertexAttribute &attribute = m_desc.attributes[i];
+
+        /* Use the assertions in glslIndex() to validate the semantic/index. */
+        attribute.glslIndex();
 
         checkMsg(
             attribute.components,

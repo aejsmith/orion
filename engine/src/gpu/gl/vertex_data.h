@@ -34,8 +34,6 @@ public:
     /** Get the VAO ID.
      * @return              VAO ID. */
     GLuint array() const { return m_array; }
-
-    static bool mapAttribute(VertexAttribute::Semantic semantic, unsigned index, GLuint *gl);
 private:
     GLuint m_array;                 /**< Vertex array object. */
     GPUBufferPtr m_boundIndices;    /**< Currently bound index buffer. */

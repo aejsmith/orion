@@ -139,14 +139,6 @@ GPUProgramPtr GLGPUManager::compileProgram(unsigned stage, const std::string &so
         /* For some absurd reason SSO requires the gl_PerVertex block to be
          * redeclared. Do so here so we don't have to do it in every shader. */
         preamble += "out gl_PerVertex { vec4 gl_Position; };\n";
-
-        /* Insert attribute semantic definitions. TODO: Share this information
-         * with GLVertexData::mapAttribute(). */
-        preamble += "#define kPositionSemantic 0\n";
-        preamble += "#define kNormalSemantic 2\n";
-        preamble += "#define kTexcoordSemantic 4\n";
-        preamble += "#define kDiffuseSemantic 14\n";
-        preamble += "#define kSpecularSemantic 15\n";
     }
 
     /* Compile the shader. */
