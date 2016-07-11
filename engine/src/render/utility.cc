@@ -45,7 +45,7 @@ void RenderUtil::makeQuad(GPUVertexDataPtr &vertices) {
     buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
     vertices = g_gpuManager->createVertexData(
         vb.size(),
-        g_renderManager->simpleVertexInputState(),
+        g_renderManager->simpleVertexDataLayout(),
         std::move(buffers));
 }
 
@@ -83,7 +83,7 @@ void RenderUtil::makeSphere(unsigned rings, unsigned sides, GPUVertexDataPtr &ve
     buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
     vertices = g_gpuManager->createVertexData(
         vb.size(),
-        g_renderManager->simpleVertexInputState(),
+        g_renderManager->simpleVertexDataLayout(),
         std::move(buffers));
 
     std::vector<uint16_t> ib;
@@ -136,7 +136,7 @@ void RenderUtil::makeCone(unsigned baseVertices, GPUVertexDataPtr &vertices, GPU
     buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
     vertices = g_gpuManager->createVertexData(
         vb.size(),
-        g_renderManager->simpleVertexInputState(),
+        g_renderManager->simpleVertexDataLayout(),
         std::move(buffers));
 
     std::vector<uint16_t> ib;

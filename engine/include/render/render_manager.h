@@ -74,8 +74,8 @@ public:
      * Other rendering resources.
      */
 
-    /** @return             Vertex input state for SimpleVertex. */
-    GPUVertexInputState *simpleVertexInputState() const { return m_simpleVertexInputState; }
+    /** @return             Vertex data layout for SimpleVertex. */
+    GPUVertexDataLayout *simpleVertexDataLayout() const { return m_simpleVertexDataLayout; }
 
     /** @param geometry     Where to store quad geometry. */
     void quadGeometry(Geometry &geometry) const {
@@ -120,8 +120,8 @@ private:
     /** Pool of temporary render target textures. */
     MultiHashMap<GPUTextureDesc, TempRenderTarget> m_tempRenderTargets;
 
-    /** Vertex input state for SimpleVertex. */
-    GPUVertexInputStatePtr m_simpleVertexInputState;
+    /** Vertex data layout for SimpleVertex. */
+    GPUVertexDataLayoutPtr m_simpleVertexDataLayout;
 
     /** Utility geometry. */
     GPUVertexDataPtr m_quadVertexData;      /**< Vertex data for a quad. */

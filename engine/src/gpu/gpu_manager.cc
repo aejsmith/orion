@@ -101,17 +101,24 @@ GPUIndexDataPtr GPUManager::createIndexData(
     return new GPUIndexData(buffer, type, count, offset);
 }
 
+/** Create a vertex data layout object.
+ * @param desc          Descriptor for vertex data layout.
+ * @return              Pointer to created vertex data layout object. */
+GPUVertexDataLayoutPtr GPUManager::createVertexDataLayout(GPUVertexDataLayoutDesc &&desc) {
+    return new GPUVertexDataLayout(std::move(desc));
+}
+
 /** Create a vertex data object.
  * @param count         Total number of vertices.
- * @param inputState    Vertex input state.
- * @param buffers       Array of buffers for each binding in the input state.
+ * @param layout        Vertex data layout.
+ * @param buffers       Array of buffers for each binding in the layout.
  * @return              Pointer to created vertex data object. */
 GPUVertexDataPtr GPUManager::createVertexData(
     size_t count,
-    GPUVertexInputState *inputState,
+    GPUVertexDataLayout *layout,
     GPUBufferArray &&buffers)
 {
-    return new GPUVertexData(count, inputState, std::move(buffers));
+    return new GPUVertexData(count, layout, std::move(buffers));
 }
 
 /** Create a blend state object.
@@ -140,13 +147,6 @@ GPURasterizerStatePtr GPUManager::createRasterizerState(const GPURasterizerState
  * @return              Pointer to created sampler state object. */
 GPUSamplerStatePtr GPUManager::createSamplerState(const GPUSamplerStateDesc &desc) {
     return new GPUSamplerState(desc);
-}
-
-/** Create a vertex input state object.
- * @param desc          Descriptor for vertex input state.
- * @return              Pointer to created vertex input state object. */
-GPUVertexInputStatePtr GPUManager::createVertexInputState(GPUVertexInputStateDesc &&desc) {
-    return new GPUVertexInputState(std::move(desc));
 }
 
 /** Create a resource set layout.

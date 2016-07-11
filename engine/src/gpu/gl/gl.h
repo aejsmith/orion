@@ -100,7 +100,7 @@ public:
     GPUTexturePtr createTextureView(const GPUTextureImageRef &image) override;
     GPUVertexDataPtr createVertexData(
         size_t count,
-        GPUVertexInputState *inputState,
+        GPUVertexDataLayout *layout,
         GPUBufferArray &&buffers) override;
 
     GPUBlendStatePtr createBlendState(const GPUBlendStateDesc &desc) override;

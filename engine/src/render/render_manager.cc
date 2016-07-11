@@ -40,8 +40,8 @@ RenderManager::RenderManager() :
 
 /** Create rendering resources. */
 void RenderManager::init() {
-    /* Create the simple vertex input state. */
-    GPUVertexInputStateDesc vertexDesc(1, 4);
+    /* Create the simple vertex data layout. */
+    GPUVertexDataLayoutDesc vertexDesc(1, 4);
     vertexDesc.bindings[0].stride = sizeof(SimpleVertex);
     vertexDesc.attributes[0].semantic = VertexAttribute::kPositionSemantic;
     vertexDesc.attributes[0].index = 0;
@@ -67,7 +67,7 @@ void RenderManager::init() {
     vertexDesc.attributes[3].components = 4;
     vertexDesc.attributes[3].binding = 0;
     vertexDesc.attributes[3].offset = offsetof(SimpleVertex, r);
-    m_simpleVertexInputState = g_gpuManager->createVertexInputState(std::move(vertexDesc));
+    m_simpleVertexDataLayout = g_gpuManager->createVertexDataLayout(std::move(vertexDesc));
 
     /* Create the utility geometry. */
     RenderUtil::makeQuad(m_quadVertexData);

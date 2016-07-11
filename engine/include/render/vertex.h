@@ -27,8 +27,8 @@
  * Simple vertex structure.
  *
  * Simple vertex structure providing a position, normal, and a single set of
- * texture coordinates. The GPU vertex input state matching this structure is
- * available from RenderManager::simpleVertexInputState().
+ * texture coordinates. The GPU vertex data layout matching this structure is
+ * available from RenderManager::simpleVertexDataLayout().
  */
 struct SimpleVertex {
     float x, y, z, _pad1;

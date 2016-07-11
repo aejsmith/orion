@@ -91,7 +91,7 @@ void PrimitiveRenderer::draw(SceneView *view) {
 
             data.gpu = g_gpuManager->createVertexData(
                 data.vertices.size(),
-                g_renderManager->simpleVertexInputState(),
+                g_renderManager->simpleVertexDataLayout(),
                 std::move(buffers));
 
             /* No longer require CPU-side data. */

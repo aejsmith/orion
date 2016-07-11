@@ -12,7 +12,6 @@ objects += map(env.Object, [
     'index_data.cc',
     'pipeline.cc',
     'resource.cc',
-    'state.cc',
     'texture.cc',
     'vertex_data.cc',
 ])

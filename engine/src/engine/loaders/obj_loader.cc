@@ -172,7 +172,7 @@ AssetPtr OBJLoader::load() {
     buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, m_vertices);
     mesh->sharedVertices = g_gpuManager->createVertexData(
         m_vertices.size(),
-        g_renderManager->simpleVertexInputState(),
+        g_renderManager->simpleVertexDataLayout(),
         std::move(buffers));
 
     /* Register all submeshes. */

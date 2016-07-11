@@ -26,7 +26,7 @@
 /** OpenGL vertex data implementation. */
 class GLVertexData : public GPUVertexData {
 public:
-    GLVertexData(size_t count, GPUVertexInputState *inputState, GPUBufferArray &&buffers);
+    GLVertexData(size_t count, GPUVertexDataLayout *layout, GPUBufferArray &&buffers);
     ~GLVertexData();
 
     void bind(GPUBuffer *indices);

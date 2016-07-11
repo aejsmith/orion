@@ -70,8 +70,8 @@ private:
     static const char *getClipboardText();
     static void setClipboardText(const char *text);
 private:
-    /** Vertex input state for GUI drawing. */
-    GPUVertexInputStatePtr m_vertexInputState;
+    /** Vertex data layout for GUI drawing. */
+    GPUVertexDataLayoutPtr m_vertexDataLayout;
 
     MaterialPtr m_material;             /**< Material for GUI drawing. */
     GPUTexturePtr m_fontTexture;        /**< Font texture for GUI. */
@@ -160,8 +160,8 @@ void DebugOverlay::initResources() {
     io.KeyMap[ImGuiKey_Y] = static_cast<int>(InputCode::kY);
     io.KeyMap[ImGuiKey_Z] = static_cast<int>(InputCode::kZ);
 
-    /* Create the ImGUI vertex input state. */
-    GPUVertexInputStateDesc vertexDesc(1, 3);
+    /* Create the ImGUI vertex data layout. */
+    GPUVertexDataLayoutDesc vertexDesc(1, 3);
     vertexDesc.bindings[0].stride = sizeof(ImDrawVert);
     vertexDesc.attributes[0].semantic = VertexAttribute::kPositionSemantic;
     vertexDesc.attributes[0].index = 0;
@@ -182,7 +182,7 @@ void DebugOverlay::initResources() {
     vertexDesc.attributes[2].components = 4;
     vertexDesc.attributes[2].binding = 0;
     vertexDesc.attributes[2].offset = offsetof(ImDrawVert, col);
-    m_vertexInputState = g_gpuManager->createVertexInputState(std::move(vertexDesc));
+    m_vertexDataLayout = g_gpuManager->createVertexDataLayout(std::move(vertexDesc));
 
     /* Load GUI shader. */
     ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/internal/debug_overlay");
@@ -344,7 +344,7 @@ void DebugOverlay::render() {
         vertexBuffers[0]->write(0, vertexBufferSize, &cmdList->VtxBuffer.front());
         GPUVertexDataPtr vertexData = g_gpuManager->createVertexData(
             cmdList->VtxBuffer.size(),
-            m_vertexInputState,
+            m_vertexDataLayout,
             std::move(vertexBuffers));
 
         /* Generate index buffer. */

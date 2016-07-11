@@ -81,9 +81,10 @@ public:
     // TODO: GPUTextureImageRef doesn't expose all functionality but it works for now.
     virtual GPUTexturePtr createTextureView(const GPUTextureImageRef &image) = 0;
 
+    virtual GPUVertexDataLayoutPtr createVertexDataLayout(GPUVertexDataLayoutDesc &&desc);
     virtual GPUVertexDataPtr createVertexData(
         size_t count,
-        GPUVertexInputState *inputState,
+        GPUVertexDataLayout *layout,
         GPUBufferArray &&buffers);
 
     /**
@@ -94,8 +95,6 @@ public:
     GPUDepthStencilStatePtr getDepthStencilState(const GPUDepthStencilStateDesc &desc);
     GPURasterizerStatePtr getRasterizerState(const GPURasterizerStateDesc &desc);
     GPUSamplerStatePtr getSamplerState(const GPUSamplerStateDesc &desc);
-
-    virtual GPUVertexInputStatePtr createVertexInputState(GPUVertexInputStateDesc &&desc);
 
     /**
      * Shader methods.
