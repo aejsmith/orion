@@ -26,7 +26,8 @@
 
 #include "gpu/pipeline.h"
 
-#include <set>
+#include "shader/defs.h"
+
 #include <vector>
 
 class SceneLight;
@@ -64,9 +65,6 @@ public:
     /** Number of Pass types. */
     static const size_t kNumTypes = static_cast<size_t>(Type::kShadowCaster) + 1;
 
-    /** Set of shader variation keywords. */
-    using KeywordSet = std::set<std::string>;
-
     Pass(Shader *parent, Type type);
     ~Pass();
 
@@ -75,7 +73,7 @@ public:
     /** @return             Type of the pass. */
     Type type() const { return m_type; }
 
-    bool loadStage(unsigned stage, const Path &path, const KeywordSet &keywords);
+    bool loadStage(unsigned stage, const Path &path, const ShaderKeywordSet &keywords);
 
     void setDrawState(SceneLight *light) const;
 private:

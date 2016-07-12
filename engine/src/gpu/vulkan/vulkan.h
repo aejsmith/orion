@@ -65,7 +65,7 @@ public:
 
     GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) override;
 
-    GPUProgramPtr compileProgram(unsigned stage, const std::string &source) override;
+    GPUProgramPtr createProgram(unsigned stage, const std::vector<uint32_t> &spirv) override;
 
     void bindPipeline(GPUPipeline *pipeline) override;
     void bindTexture(unsigned index, GPUTexture *texture, GPUSamplerState *sampler) override;

@@ -69,10 +69,12 @@ if env['DEBUG']:
 # Platform dependencies #
 #########################
 
-if os.uname()[0] == 'Darwin':
+if sys.platform.startswith('darwin'):
     env['CXXFLAGS'] += ['-stdlib=libc++']
     env['LINKFLAGS'] += ['-stdlib=libc++']
     env['CPPPATH'] += ['/opt/local/include']
+elif sys.platform.startswith('linux'):
+    env['LINKFLAGS'] += ['-pthread']
 
 ##############
 # Main build #

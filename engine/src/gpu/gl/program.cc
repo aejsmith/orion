@@ -25,13 +25,12 @@
  * attached.
  */
 
+#include <spirv_glsl.hpp>
+
 #include "gl.h"
 #include "program.h"
 
 #include "core/string.h"
-
-/** Target GLSL version. */
-static const char *kTargetGLSLVersion = "330 core";
 
 /** Initialize the program.
  * @param stage         Stage that the program is for.
@@ -126,20 +125,31 @@ void GLProgram::bindSampler(unsigned index, unsigned slot) {
     glProgramUniform1i(m_program, index, slot);
 }
 
-/** Compile a GPU program.
+/** Create a GPU program from a SPIR-V binary.
  * @param stage         Stage that the program is for.
- * @param source        Shader source string.
- * @return              Pointer to created shader. */
-GPUProgramPtr GLGPUManager::compileProgram(unsigned stage, const std::string &source) {
-    /* Add a version string at the start, and enable SSO. */
-    std::string preamble = String::format("#version %s\n", kTargetGLSLVersion);
-    preamble += "#extension GL_ARB_separate_shader_objects : enable\n";
+ * @param spirv         SPIR-V binary for the shader.
+ * @return              Pointer to created shader on success, null on error. */
+GPUProgramPtr GLGPUManager::createProgram(unsigned stage, const std::vector<uint32_t> &spirv) {
+    spirv_cross::CompilerGLSL compiler(spirv);
+
+    GLFeatures &features = g_opengl->features;
+
+    spirv_cross::CompilerGLSL::Options options;
+    options.version = (features.versionMajor * 100) + (features.versionMinor * 10);
+    options.es = false;
+    options.vulkan_semantics = false;
+    options.vertex.fixup_clipspace = false;
+    compiler.set_options(options);
+
+    compiler.add_header_line("#extension GL_ARB_separate_shader_objects : enable");
 
     if (stage == ShaderStage::kVertex) {
         /* For some absurd reason SSO requires the gl_PerVertex block to be
          * redeclared. Do so here so we don't have to do it in every shader. */
-        preamble += "out gl_PerVertex { vec4 gl_Position; };\n";
+        compiler.add_header_line("out gl_PerVertex { vec4 gl_Position; };\n");
     }
+
+    std::string source = compiler.compile();
 
     /* Compile the shader. */
     GLuint shader = glCreateShader(GLUtil::convertShaderStage(stage));
@@ -148,8 +158,8 @@ GPUProgramPtr GLGPUManager::compileProgram(unsigned stage, const std::string &so
         return nullptr;
     }
 
-    const GLchar *strings[] = { preamble.c_str(), source.c_str() };
-    glShaderSource(shader, arraySize(strings), strings, NULL);
+    const GLchar *string = source.c_str();
+    glShaderSource(shader, 1, &string, nullptr);
     glCompileShader(shader);
 
     /* Check whether the compilation succeeded. */

@@ -4,6 +4,7 @@ objects = map(env.Object, [
     'material.cc',
     'pass.cc',
     'shader.cc',
+    'shader_compiler.cc',
     'shader_manager.cc',
     'shader_parameter.cc',
     'uniform_buffer.cc',

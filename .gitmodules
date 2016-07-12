@@ -10,3 +10,9 @@
 [submodule "engine/3rdparty/mustache/mustache"]
 	path = engine/3rdparty/mustache/repo
 	url = https://github.com/kainjow/Mustache.git
+[submodule "engine/3rdparty/glslang/repo"]
+	path = engine/3rdparty/glslang/repo
+	url = https://github.com/KhronosGroup/glslang.git
+[submodule "engine/3rdparty/spirv-cross/repo"]
+	path = engine/3rdparty/spirv-cross/repo
+	url = https://github.com/KhronosGroup/SPIRV-Cross

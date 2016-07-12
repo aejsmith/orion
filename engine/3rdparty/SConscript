@@ -8,9 +8,11 @@ env.ParseConfig('pkg-config --cflags --libs bullet')
 # Build local libraries.
 objects = SConscript(dirs = [
     'glm',
+    'glslang',
     'imgui',
     'mustache',
     'rapidjson',
+    'spirv-cross',
 ])
 
 Return('objects')

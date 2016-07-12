@@ -1,0 +1,71 @@
+import sys
+
+Import('env')
+
+env['CPPPATH'] += [Dir('include')]
+
+localEnv = env.Clone()
+
+localEnv['CCFLAGS'] += [
+    '-Wno-reorder', '-Wno-logical-op-parentheses', '-Wno-unused-variable',
+    '-Wno-tautological-constant-out-of-range-compare',
+]
+
+objects = []
+
+if sys.platform.startswith('win32'):
+    objects += map(localEnv.Object, [
+        'repo/glslang/OSDependent/Windows/ossource.cpp',
+    ])
+else:
+    objects += map(localEnv.Object, [
+        'repo/glslang/OSDependent/Unix/ossource.cpp',
+    ])
+
+objects += map(localEnv.Object, [
+    'repo/glslang/MachineIndependent/glslang_tab.cpp',
+    'repo/glslang/MachineIndependent/Constant.cpp',
+    'repo/glslang/MachineIndependent/InfoSink.cpp',
+    'repo/glslang/MachineIndependent/Initialize.cpp',
+    'repo/glslang/MachineIndependent/IntermTraverse.cpp',
+    'repo/glslang/MachineIndependent/Intermediate.cpp',
+    'repo/glslang/MachineIndependent/ParseHelper.cpp',
+    'repo/glslang/MachineIndependent/PoolAlloc.cpp',
+    'repo/glslang/MachineIndependent/RemoveTree.cpp',
+    'repo/glslang/MachineIndependent/Scan.cpp',
+    'repo/glslang/MachineIndependent/ShaderLang.cpp',
+    'repo/glslang/MachineIndependent/SymbolTable.cpp',
+    'repo/glslang/MachineIndependent/Versions.cpp',
+    'repo/glslang/MachineIndependent/intermOut.cpp',
+    'repo/glslang/MachineIndependent/limits.cpp',
+    'repo/glslang/MachineIndependent/linkValidate.cpp',
+    'repo/glslang/MachineIndependent/parseConst.cpp',
+    'repo/glslang/MachineIndependent/reflection.cpp',
+    'repo/glslang/MachineIndependent/preprocessor/Pp.cpp',
+    'repo/glslang/MachineIndependent/preprocessor/PpAtom.cpp',
+    'repo/glslang/MachineIndependent/preprocessor/PpContext.cpp',
+    'repo/glslang/MachineIndependent/preprocessor/PpMemory.cpp',
+    'repo/glslang/MachineIndependent/preprocessor/PpScanner.cpp',
+    'repo/glslang/MachineIndependent/preprocessor/PpSymbols.cpp',
+    'repo/glslang/MachineIndependent/preprocessor/PpTokens.cpp',
+    'repo/glslang/MachineIndependent/propagateNoContraction.cpp',
+    'repo/glslang/GenericCodeGen/CodeGen.cpp',
+    'repo/glslang/GenericCodeGen/Link.cpp',
+    'repo/OGLCompilersDLL/InitializeDll.cpp',
+    'repo/SPIRV/GlslangToSpv.cpp',
+    'repo/SPIRV/InReadableOrder.cpp',
+    'repo/SPIRV/Logger.cpp',
+    'repo/SPIRV/SpvBuilder.cpp',
+    'repo/SPIRV/SPVRemapper.cpp',
+    'repo/SPIRV/doc.cpp',
+    'repo/SPIRV/disassemble.cpp',
+    'repo/hlsl/hlslParseHelper.cpp',
+    'repo/hlsl/hlslScanContext.cpp',
+    'repo/hlsl/hlslOpMap.cpp',
+    'repo/hlsl/hlslTokenStream.cpp',
+    'repo/hlsl/hlslGrammar.cpp',
+    'repo/hlsl/hlslParseables.cpp',
+    'repo/StandAlone/ResourceLimits.cpp',
+])
+
+Return('objects')

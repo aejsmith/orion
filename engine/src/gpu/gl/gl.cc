@@ -203,11 +203,6 @@ void GLGPUManager::initFeatures() {
     for (const std::string &extension : features.extensions)
         logDebug("  %s", extension.c_str());
 
-    GLint major = 0, minor = 0;
-    glGetIntegerv(GL_MAJOR_VERSION, &major);
-    glGetIntegerv(GL_MINOR_VERSION, &minor);
-    check(major > kGLMinMajorVersion || (major == kGLMinMajorVersion && minor >= kGLMinMinorVersion));
-
     /* Check for required extensions. */
     for (size_t i = 0; i < arraySize(g_requiredGLExtensions); i++) {
         if (!this->features[g_requiredGLExtensions[i]])
@@ -215,6 +210,8 @@ void GLGPUManager::initFeatures() {
     }
 
     /* Cache some GL information. */
+    glGetIntegerv(GL_MAJOR_VERSION, &features.versionMajor);
+    glGetIntegerv(GL_MINOR_VERSION, &features.versionMinor);
     glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &features.maxAnisotropy);
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &features.maxTextureUnits);
 }

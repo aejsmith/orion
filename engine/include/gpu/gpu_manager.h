@@ -103,19 +103,11 @@ public:
     virtual GPUResourceSetLayoutPtr createResourceSetLayout(GPUResourceSetLayoutDesc &&desc);
     virtual GPUResourceSetPtr createResourceSet(GPUResourceSetLayout *layout);
 
-    /** Compile a GPU program from GLSL source.
-     * @note                In future I expect that this will exist only for
-     *                      non-cooked builds (it may possibly even be moved
-     *                      out of GPUManager). It would return a blob that
-     *                      can be passed to a different method. For GL this
-     *                      would be just the GLSL source with some pre-
-     *                      processing done, but for D3D and other APIs we can
-     *                      return a compiled blob. This would then be stored in
-     *                      the cooked Shader asset.
+    /** Create a GPU program from a SPIR-V binary.
      * @param stage         Stage that the program is for.
-     * @param source        Shader source string.
-     * @return              Pointer to created shader, null if compilation fails. */
-    virtual GPUProgramPtr compileProgram(unsigned stage, const std::string &source) = 0;
+     * @param spirv         SPIR-V binary for the shader.
+     * @return              Pointer to created shader on success, null on error. */
+    virtual GPUProgramPtr createProgram(unsigned stage, const std::vector<uint32_t> &spirv) = 0;
 
     /**
      * State methods.

@@ -52,11 +52,11 @@ GPUTexturePtr VulkanGPUManager::createTextureView(const GPUTextureImageRef &imag
     vkStub();
 }
 
-/** Compile a GPU program from GLSL source.
+/** Create a GPU program from a SPIR-V binary.
  * @param stage         Stage that the program is for.
- * @param source        Shader source string.
- * @return              Pointer to created shader, null if compilation fails. */
-GPUProgramPtr VulkanGPUManager::compileProgram(unsigned stage, const std::string &source) {
+ * @param spirv         SPIR-V binary for the shader.
+ * @return              Pointer to created shader on success, null on error. */
+GPUProgramPtr VulkanGPUManager::createProgram(unsigned stage, const std::vector<uint32_t> &spirv) {
     vkStub();
 }
 

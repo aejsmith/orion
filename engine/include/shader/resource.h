@@ -29,56 +29,49 @@
  * We group resources for shaders into sets, organised primarily by update
  * frequency. This maps well to APIs such as Vulkan and D3D12, and can be
  * emulated on other APIs as well. We define a standard set of resource set
- * numbers, listed below.
+ * numbers, listed below, and a standard set of slots within each set defined
+ * in ResourceSlots.
  */
 namespace ResourceSets {
     enum ENUM() Value {
         /** Resources for the entity currently being rendered. */
-        kEntityResources,
+        kEntityResources = 0,
         /** Resources for the view the scene is being rendered from. */
-        kViewResources,
+        kViewResources = 1,
         /** Resources for the light for the current pass. */
-        kLightResources,
+        kLightResources = 2,
         /** Resources for the current material (contents defined by shader). */
-        kMaterialResources,
+        kMaterialResources = 3,
     };
 }
 
-/** Resource slots for per-entity resources. */
-namespace EntityResources {
+/** Standard resource slot numbers. */
+namespace ResourceSlots {
     enum ENUM() Value {
-        /** Uniforms for the entity. */
-        kUniforms,
-    };
-}
+        /** Uniform buffer (this is slot 0 for all sets with uniforms). */
+        kUniforms = 0,
 
-/** Resource slots for per-view resources. */
-namespace ViewResources {
-    enum ENUM() Value {
-        /** Uniforms for the view. */
-        kUniforms,
+        /**
+         * Per-view resources (kViewResources).
+         */
 
         /** Deferred G-Buffer textures. */
-        kDeferredBufferA,
-        kDeferredBufferB,
-        kDeferredBufferC,
-        kDeferredBufferD,
+        kDeferredBufferA = 1,
+        kDeferredBufferB = 2,
+        kDeferredBufferC = 3,
+        kDeferredBufferD = 4,
 
         /** Depth buffer (should only be used by post-processing effects). */
-        kDepthBuffer,
+        kDepthBuffer = 5,
 
         /** Source texture for post-processing effects. */
-        kSourceTexture,
-    };
-}
+        kSourceTexture = 6,
 
-/** Resource slots for per-light resources. */
-namespace LightResources {
-    enum ENUM() Value {
-        /** Uniforms for the light. */
-        kUniforms,
+        /**
+         * Per-light resources (kLightResources).
+         */
 
         /** Shadow map. */
-        kShadowMap,
+        kShadowMap = 1,
     };
 }

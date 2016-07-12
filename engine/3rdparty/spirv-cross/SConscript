@@ -1,0 +1,12 @@
+import sys
+
+Import('env')
+
+env['CPPPATH'] += [Dir('include')]
+
+objects = map(env.Object, [
+    'repo/spirv_cross.cpp',
+    'repo/spirv_glsl.cpp',
+])
+
+Return('objects')

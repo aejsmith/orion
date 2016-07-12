@@ -32,15 +32,13 @@
  *  - Don't need to compile shadow variation for ambient.
  */
 
-#include "core/filesystem.h"
-#include "core/string.h"
-
 #include "gpu/gpu_manager.h"
 
 #include "render/scene_light.h"
 
 #include "shader/pass.h"
 #include "shader/shader.h"
+#include "shader/shader_compiler.h"
 #include "shader/shader_manager.h"
 #include "shader/uniform_buffer.h"
 
@@ -103,87 +101,18 @@ void Pass::setDrawState(SceneLight *light) const {
     g_gpuManager->bindPipeline(variation.pipeline);
 }
 
-/** Add a keyword definition.
- * @param source        Source string to add to.
- * @param keyword       Keyword to define. */
-static void defineKeyword(std::string &source, const char *keyword) {
-    source += String::format("#define %s 1\n", keyword);
-}
-
-/** Add a uniform block declaration to a source string.
- * @param source        Source string to add to.
- * @param uniformStruct Uniform structure to add. */
-static void declareUniformBlock(std::string &source, const UniformStruct *uniformStruct) {
-    source += String::format("layout(std140) uniform %s {\n", uniformStruct->name);
-
-    for (const UniformStructMember &member : uniformStruct->members) {
-        source += String::format("\t%s %s;\n",
-            ShaderParameter::glslType(member.type),
-            member.name);
-    }
-
-    if (uniformStruct->instanceName && strlen(uniformStruct->instanceName)) {
-        source += String::format("} %s;\n\n", uniformStruct->instanceName);
-    } else {
-        source += "};\n\n";
-    }
-}
-
-/** Load and pre-process a shader source file.
- * @param path          Path to file to open.
- * @param source        String to return shader source in.
- * @param depth         Recursion count.
- * @return              Whether the source was successfully loaded. */
-static bool loadSource(const Path &path, std::string &source, unsigned depth = 0) {
-    std::unique_ptr<File> file(g_filesystem->openFile(path));
-    if (!file) {
-        logError("Cannot find shader source file '%s'", path.c_str());
-        return false;
-    }
-
-    std::string line;
-    while (file->readLine(line)) {
-        if (line.substr(0, 9) == "#include ") {
-            if (depth == 16) {
-                logError("Too many nested includes in '%s'", path.c_str());
-                return false;
-            }
-
-            size_t pos = 9;
-
-            while (isspace(line[pos]))
-                pos++;
-            if (line[pos++] != '"') {
-                logError("Expected path string after #include in '%s'", path.c_str());
-                return false;
-            }
-
-            size_t end = line.find_first_of('"', pos);
-
-            /* Path is relative to the directory containing the current file. */
-            Path includePath = path.directoryName() / line.substr(pos, end - pos);
-
-            /* Load the source for this file. */
-            if (!loadSource(includePath, source, depth + 1))
-                return false;
-        } else {
-            source += line;
-            source += "\n";
-        }
-    }
-
-    return true;
-}
-
 /** Compile a single variation.
- * @param source        Source string to compile.
- * @param stage         Shader stage.
+ * @param options       Shader compiler options.
  * @param parent        Parent shader.
- * @param path          Path to source, used for error messages.
- * @return              Pointer to compiled shader, null on failure. */
-static GPUProgramPtr compileVariation(const std::string &source, unsigned stage, Shader *parent, const Path &path) {
-    /* Compile the program. */
-    GPUProgramPtr program = g_gpuManager->compileProgram(stage, source);
+ * @return              Pointer to compiled program, null on failure. */
+static GPUProgramPtr compileVariation(const ShaderCompiler::Options &options, Shader *parent) {
+    /* Compile the shader. */
+    std::vector<uint32_t> spirv;
+    if (!ShaderCompiler::compile(options, spirv))
+        return nullptr;
+
+    /* Create a GPU program. */
+    GPUProgramPtr program = g_gpuManager->createProgram(options.stage, spirv);
     if (!program)
         return nullptr;
 
@@ -193,7 +122,9 @@ static GPUProgramPtr compileVariation(const std::string &source, unsigned stage,
     for (const GPUProgram::Resource &uniformBlock : uniformBlocks) {
         unsigned slot;
         if (!g_shaderManager->lookupGlobalUniformBlock(uniformBlock.name, slot)) {
-            logError("Shader '%s' refers to unknown uniform block '%s'", path.c_str(), uniformBlock.name.c_str());
+            logError(
+                "Shader '%s' refers to unknown uniform block '%s'",
+                options.path.c_str(), uniformBlock.name.c_str());
             return nullptr;
         }
 
@@ -208,7 +139,9 @@ static GPUProgramPtr compileVariation(const std::string &source, unsigned stage,
         if (!g_shaderManager->lookupGlobalTexture(sampler.name, slot)) {
             const ShaderParameter *param = parent->lookupParameter(sampler.name);
             if (!param || param->type != ShaderParameter::Type::kTexture) {
-                logError("Shader '%s' refers to unknown texture '%s'", path.c_str(), sampler.name.c_str());
+                logError(
+                    "Shader '%s' refers to unknown texture '%s'",
+                    options.path.c_str(), sampler.name.c_str());
                 return nullptr;
             }
 
@@ -226,77 +159,34 @@ static GPUProgramPtr compileVariation(const std::string &source, unsigned stage,
  * @param path          Filesystem path to shader source.
  * @param keywords      Set of shader variation keywords.
  * @return              Whether the stage was loaded successfully. */
-bool Pass::loadStage(unsigned stage, const Path &path, const KeywordSet &keywords) {
-    std::unique_ptr<File> file(g_filesystem->openFile(path));
-    if (!file) {
-        logError("Cannot find shader source file '%s'", path.c_str());
-        return false;
-    }
+bool Pass::loadStage(unsigned stage, const Path &path, const ShaderKeywordSet &keywords) {
+    ShaderCompiler::Options options;
+    options.path = path;
+    options.stage = stage;
+    options.keywords = keywords;
+    options.uniforms = m_parent->uniformStruct();
 
-    std::string source;
-
-    if (stage == ShaderStage::kVertex) {
-        /* Insert attribute semantic definitions. */
-        source += String::format(
-            "#define kPositionSemantic %u\n",
-            VertexAttribute::glslIndex(VertexAttribute::kPositionSemantic, 0));
-        source += String::format(
-            "#define kNormalSemantic %u\n",
-            VertexAttribute::glslIndex(VertexAttribute::kNormalSemantic, 0));
-        source += String::format(
-            "#define kTexcoordSemantic %u\n",
-            VertexAttribute::glslIndex(VertexAttribute::kTexcoordSemantic, 0));
-        source += String::format(
-            "#define kDiffuseSemantic %u\n",
-            VertexAttribute::glslIndex(VertexAttribute::kDiffuseSemantic, 0));
-        source += String::format(
-            "#define kSpecularSemantic %u\n\n",
-            VertexAttribute::glslIndex(VertexAttribute::kSpecularSemantic, 0));
-    }
-
-    /* Add pass type definition and user-specified keywords. */
-    defineKeyword(source, passShaderVariations[static_cast<size_t>(m_type)]);
-    for (const std::string &keyword : keywords)
-        defineKeyword(source, keyword.c_str());
-
-    source += "\n";
-
-    /* Insert declarations for standard uniform blocks into the source. */
-    for (const UniformStruct *uniformStruct : UniformStruct::structList())
-        declareUniformBlock(source, uniformStruct);
-
-    /* If there is a shader-specific uniform structure, add it. */
-    if (m_parent->uniformStruct())
-        declareUniformBlock(source, m_parent->uniformStruct());
-
-    /* Read in the main shader source. */
-    if (!loadSource(path, source))
-        return false;
+    options.keywords.insert(passShaderVariations[static_cast<size_t>(m_type)]);
 
     if (m_type == Type::kForward) {
         /* Build each of the light type variations. */
         for (unsigned i = 0; i < SceneLight::kNumTypes; i++) {
             for (unsigned j = 0; j < 2; j++) {
-                /* Build a source string with this variation defined. */
-                std::string variationSource;
-                defineKeyword(variationSource, lightShaderVariations[i]);
+                ShaderCompiler::Options variationOptions = options;
+                variationOptions.keywords.insert(lightShaderVariations[i]);
                 if (j)
-                    defineKeyword(variationSource, shadowVariation);
-                variationSource += source;
+                    variationOptions.keywords.insert(shadowVariation);
 
-                m_variations[(i * 2) + j].desc.programs[stage] = compileVariation(
-                    variationSource,
-                    stage,
-                    m_parent,
-                    path);
-                if (!m_variations[(i * 2) + j].desc.programs[stage])
+                GPUProgramPtr &program = m_variations[(i * 2) + j].desc.programs[stage];
+                program = compileVariation(variationOptions, m_parent);
+                if (!program)
                     return false;
             }
         }
     } else {
-        /* Single variation. */
-        m_variations[0].desc.programs[stage] = compileVariation(source, stage, m_parent, path);
-        if (!m_variations[0].desc.programs[stage])
+        GPUProgramPtr &program = m_variations[0].desc.programs[stage];
+        program = compileVariation(options, m_parent);
+        if (!program)
             return false;
     }
 

@@ -97,7 +97,7 @@ void Shader::deserialise(Serialiser &serialiser) {
                     serialiser.read("source", path);
                     check(!path.empty());
 
-                    Pass::KeywordSet keywords;
+                    ShaderKeywordSet keywords;
 
                     if (serialiser.beginArray("keywords")) {
                         std::string keyword;
