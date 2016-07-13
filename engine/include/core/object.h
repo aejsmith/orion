@@ -527,7 +527,7 @@ public:
      * @return              Whether the property could be found. */
     template <typename T>
     bool getProperty(const char *name, T &value) const {
-        return getProperty(name, MetaType::lookup<T>(), &value);
+        return getProperty(name, MetaType::lookup<T>(), std::addressof(value));
     }
 
     bool getProperty(const char *name, const MetaType &type, void *value) const;
@@ -539,7 +539,7 @@ public:
      * @return              Whether the property could be found. */
     template <typename T>
     bool setProperty(const char *name, const T &value) {
-        return setProperty(name, MetaType::lookup<T>(), &value);
+        return setProperty(name, MetaType::lookup<T>(), std::addressof(value));
     }
 
     bool setProperty(const char *name, const MetaType &type, const void *value);

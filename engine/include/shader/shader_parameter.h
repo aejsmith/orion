@@ -23,7 +23,8 @@
 
 #include "core/object.h"
 
-class TextureBase;
+class Texture2D;
+class TextureCube;
 
 struct UniformStructMember;
 
@@ -46,7 +47,8 @@ struct ShaderParameter {
         kIntVec4,                   /**< 4 component integer vector. */
 
         /** Special types (cannot be used in uniform structures). */
-        kTexture,                   /**< Texture. */
+        kTexture2D,                 /**< 2D texture. */
+        kTextureCube,               /**< Cube texture. */
     };
 
     Type type;                      /**< Parameter type. */
@@ -64,10 +66,25 @@ struct ShaderParameter {
     size_t alignment() const { return alignment(this->type); }
     /** @return             GLSL type for this parameter type. */
     const char *glslType() const { return glslType(this->type); }
+    /** @return             Whether the type of the parameter is a texture type. */
+    bool isTexture() const { return isTexture(this->type); }
 
     static size_t size(Type type);
     static size_t alignment(Type type);
     static const char *glslType(Type type);
+
+    /** Check whether a type is a texture type.
+     * @param type          Type to check.
+     * @return              Whether a type is a texture type. */
+    static bool isTexture(Type type) {
+        switch (type) {
+            case Type::kTexture2D:
+            case Type::kTextureCube:
+                return true;
+            default:
+                return false;
+        }
+    }
 };
 
 /**
@@ -154,12 +171,12 @@ struct ShaderParameterTypeTraits<glm::ivec4> {
     static constexpr size_t kAlignment = 16;
 };
 
-/**
- * Texture2D is specifically left unimplemented here because at the moment we
- * don't type parameters to a specific texture type, just generic types.
- * Implementing Texture2D here makes Material::value() unsafe.
- */
 template <>
-struct ShaderParameterTypeTraits<ReferencePtr<TextureBase>> {
-    static constexpr ShaderParameter::Type kType = ShaderParameter::Type::kTexture;
+struct ShaderParameterTypeTraits<ReferencePtr<Texture2D>> {
+    static constexpr ShaderParameter::Type kType = ShaderParameter::Type::kTexture2D;
+};
+
+template <>
+struct ShaderParameterTypeTraits<ReferencePtr<TextureCube>> {
+    static constexpr ShaderParameter::Type kType = ShaderParameter::Type::kTextureCube;
 };

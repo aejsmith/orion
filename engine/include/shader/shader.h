@@ -87,7 +87,7 @@ protected:
 private:
     Shader();
 
-    void addParameter(const std::string &name, ShaderParameter::Type type, unsigned textureSlot = -1u);
+    void addParameter(const std::string &name, ShaderParameter::Type type);
     void addPass(Pass *pass);
 
     UniformStruct *m_uniformStruct;     /**< Uniform structure used by the shader. */
@@ -101,8 +101,6 @@ private:
      * within that for all passes of that type.
      */
     std::array<std::vector<Pass *>, Pass::kNumTypes> m_passes;
-
-    friend class ShaderLoader;
 };
 
 /** Type of a shader pointer. */

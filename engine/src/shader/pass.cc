@@ -138,7 +138,7 @@ static GPUProgramPtr compileVariation(const ShaderCompiler::Options &options, Sh
         unsigned slot;
         if (!g_shaderManager->lookupGlobalTexture(sampler.name, slot)) {
             const ShaderParameter *param = parent->lookupParameter(sampler.name);
-            if (!param || param->type != ShaderParameter::Type::kTexture) {
+            if (!param || !param->isTexture()) {
                 logError(
                     "Shader '%s' refers to unknown texture '%s'",
                     options.path.c_str(), sampler.name.c_str());

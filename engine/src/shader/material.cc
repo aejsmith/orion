@@ -121,9 +121,17 @@ void Material::deserialise(Serialiser &serialiser) {
 
                     break;
                 }
-                case ShaderParameter::Type::kTexture:
+                case ShaderParameter::Type::kTexture2D:
                 {
-                    TextureBasePtr value;
+                    Texture2DPtr value;
+                    if (serialiser.read(name, value))
+                        setValue(name, value);
+
+                    break;
+                }
+                case ShaderParameter::Type::kTextureCube:
+                {
+                    TextureCubePtr value;
                     if (serialiser.read(name, value))
                         setValue(name, value);
 
@@ -142,14 +150,22 @@ void Material::deserialise(Serialiser &serialiser) {
  * @param name          Name of the parameter to get.
  * @param type          Type of the parameter.
  * @param buf           Where to store parameter value. */
-void Material::value(const char *name, ShaderParameter::Type type, void *buf) const {
+void Material::getValue(const char *name, ShaderParameter::Type type, void *buf) const {
     const ShaderParameter *param = m_shader->lookupParameter(name);
     checkMsg(param, "Parameter '%s' in '%s' not found", name, m_shader->path().c_str());
     checkMsg(param->type == type, "Incorrect type for parameter '%s' in '%s'", name, m_shader->path().c_str());
 
-    if (param->type == ShaderParameter::Type::kTexture) {
-        check(param->textureSlot <= TextureSlots::kMaterialTexturesEnd);
-        new(buf) TextureBasePtr(m_textures[param->textureSlot]);
+    if (param->isTexture()) {
+        switch (param->type) {
+            case ShaderParameter::Type::kTexture2D:
+                new(buf) Texture2DPtr(static_cast<Texture2D *>(m_textures[param->textureSlot].get()));
+                break;
+            case ShaderParameter::Type::kTextureCube:
+                new(buf) TextureCubePtr(static_cast<TextureCube *>(m_textures[param->textureSlot].get()));
+                break;
+            default:
+                unreachable();
+        }
     } else {
         m_uniforms->readMember(param->uniformMember, buf);
     }
@@ -164,9 +180,17 @@ void Material::setValue(const char *name, ShaderParameter::Type type, const void
     checkMsg(param, "Parameter '%s' in '%s' not found", name, m_shader->path().c_str());
     checkMsg(param->type == type, "Incorrect type for parameter '%s' in '%s'", name, m_shader->path().c_str());
 
-    if (param->type == ShaderParameter::Type::kTexture) {
-        check(param->textureSlot <= TextureSlots::kMaterialTexturesEnd);
-        m_textures[param->textureSlot] = *reinterpret_cast<const TextureBasePtr *>(buf);
+    if (param->isTexture()) {
+        switch (param->type) {
+            case ShaderParameter::Type::kTexture2D:
+                m_textures[param->textureSlot] = *reinterpret_cast<const Texture2DPtr *>(buf);
+                break;
+            case ShaderParameter::Type::kTextureCube:
+                m_textures[param->textureSlot] = *reinterpret_cast<const TextureCubePtr *>(buf);
+                break;
+            default:
+                unreachable();
+        }
     } else {
         m_uniforms->writeMember(param->uniformMember, buf);
     }

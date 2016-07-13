@@ -61,15 +61,7 @@ void Shader::deserialise(Serialiser &serialiser) {
             bool hasType = serialiser.read("type", type);
             check(hasType);
 
-            unsigned slot = -1u;
-            serialiser.read("slot", slot);
-
-            if (type == ShaderParameter::Type::kTexture) {
-                check(slot > TextureSlots::kMaterialTexturesEnd);
-                check(numTextures() <= TextureSlots::kMaterialTexturesEnd);
-            }
-
-            addParameter(name, type, slot);
+            addParameter(name, type);
 
             serialiser.endGroup();
         }
@@ -146,30 +138,21 @@ void Shader::setDrawState(Material *material) const {
 
 /** Add a parameter to the shader.
  * @param name          Name of the parameter to add.
- * @param type          Type of the parameter.
- * @param textureSlot   For textures, a specific slot to bind to. If -1, will be
- *                      assigned a material texture slot. Otherwise, should be
- *                      a special texture slot, in which case the parameter will
- *                      not be settable in materials. */
-void Shader::addParameter(const std::string &name, ShaderParameter::Type type, unsigned textureSlot) {
+ * @param type          Type of the parameter. */
+void Shader::addParameter(const std::string &name, ShaderParameter::Type type) {
     auto ret = m_parameters.emplace(std::make_pair(name, ShaderParameter()));
     checkMsg(ret.second, "Adding duplicate shader parameter '%s'", name.c_str());
 
     ShaderParameter &param = ret.first->second;
     param.type = type;
 
-    if (type == ShaderParameter::Type::kTexture) {
-        if (textureSlot != -1u) {
-            check(textureSlot > TextureSlots::kMaterialTexturesEnd);
-            param.textureSlot = textureSlot;
-        } else {
-            /* Assign a texture slot. */
-            checkMsg(
-                m_nextTextureSlot <= TextureSlots::kMaterialTexturesEnd,
-                "Parameter '%s' exceeds maximum number of textures", name.c_str());
+    if (ShaderParameter::isTexture(type)) {
+        /* Assign a texture slot. */
+        checkMsg(
+            m_nextTextureSlot <= TextureSlots::kMaterialTexturesEnd,
+            "Parameter '%s' exceeds maximum number of textures", name.c_str());
 
-            param.textureSlot = m_nextTextureSlot++;
-        }
+        param.textureSlot = m_nextTextureSlot++;
     } else {
         /* Add a uniform struct member for it. Create struct if we don't already
          * have one. */

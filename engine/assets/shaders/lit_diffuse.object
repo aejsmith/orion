@@ -6,7 +6,7 @@
         "parameters": [
             {
                 "name": "diffuseTexture",
-                "type": "kTexture"
+                "type": "kTexture2D"
             }
         ],
         "passes": [

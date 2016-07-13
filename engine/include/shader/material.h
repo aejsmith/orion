@@ -49,24 +49,24 @@ public:
      * Parameter value access.
      */
 
-    void value(const char *name, ShaderParameter::Type type, void *buf) const;
+    void getValue(const char *name, ShaderParameter::Type type, void *buf) const;
     void setValue(const char *name, ShaderParameter::Type type, const void *buf);
 
     /** Get a parameter value.
      * @tparam T            Type of the parameter.
      * @param name          Name of the parameter to get.
-     * @return              Parameter value. */
-    template <typename T> T value(const char *name) {
-        T ret;
-        value(name, ShaderParameterTypeTraits<T>::kType, std::addressof(ret));
-        return ret;
+     * @param value         Where to store parameter value. */
+    template <typename T>
+    void getValue(const char *name, T &value) const {
+        getValue(name, ShaderParameterTypeTraits<T>::kType, std::addressof(value));
     }
 
     /** Set a parameter value.
      * @tparam T            Type of the parameter.
      * @param name          Name of the parameter to set.
      * @param value         Value to set to. */
-    template <typename T> void setValue(const char *name, const T &value) {
+    template <typename T>
+    void setValue(const char *name, const T &value) {
         setValue(name, ShaderParameterTypeTraits<T>::kType, std::addressof(value));
     }
 protected:

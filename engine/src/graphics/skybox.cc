@@ -73,10 +73,7 @@ Skybox::Skybox() {
  * @param texture       Texture to set. */
 void Skybox::setTexture(TextureCube *texture) {
     m_texture = texture;
-
-    // FIXME: Need to make setValue work for different texture types.
-    TextureBasePtr baseTexture = texture;
-    m_material->setValue("skybox", baseTexture);
+    m_material->setValue("skybox", m_texture);
 }
 
 /** Create scene entities.
