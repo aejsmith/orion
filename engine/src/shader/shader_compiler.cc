@@ -137,6 +137,15 @@ static std::string generateSource(const ShaderCompiler::Options &options) {
     if (options.uniforms)
         generateUniformBlock(source, options.uniforms);
 
+    /* Define other parameters (e.g. textures). */
+    for (const ShaderCompiler::ParameterDefinition &parameter : options.parameters) {
+        source += String::format(
+            "uniform %s %s;\n",
+            parameter.second.glslType(), parameter.first.c_str());
+    }
+    if (!options.parameters.empty())
+        source += "\n";
+
     /* Include the source file. This will be pulled in by the include logic. */
     source += String::format("#include \"%s\"", options.path.c_str());
     return source;

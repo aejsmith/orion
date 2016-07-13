@@ -90,7 +90,7 @@ size_t ShaderParameter::alignment(Type type) {
 }
 
 /** Get the GLSL type string for a shader parameter type.
- * @param type          Type to get string for. Only valid for basic types.
+ * @param type          Type to get string for.
  * @return              GLSL type string corresponding to the type. */
 const char *ShaderParameter::glslType(Type type) {
     switch (type) {
@@ -118,6 +118,10 @@ const char *ShaderParameter::glslType(Type type) {
             return "ivec3";
         case Type::kIntVec4:
             return "ivec4";
+        case Type::kTexture2D:
+            return "sampler2D";
+        case Type::kTextureCube:
+            return "samplerCube";
         default:
             unreachable();
     }

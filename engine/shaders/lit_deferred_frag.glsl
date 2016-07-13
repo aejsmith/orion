@@ -27,10 +27,6 @@ layout(location = 0) out vec4 deferredBufferA;
 layout(location = 1) out vec4 deferredBufferB;
 layout(location = 2) out vec4 deferredBufferC;
 
-#ifdef TEXTURED
-uniform sampler2D diffuseTexture;
-#endif
-
 void main() {
     #ifdef TEXTURED
         vec4 diffuse = texture(diffuseTexture, vtxTexcoord);

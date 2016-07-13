@@ -166,6 +166,13 @@ bool Pass::loadStage(unsigned stage, const Path &path, const ShaderKeywordSet &k
     options.keywords = keywords;
     options.uniforms = m_parent->uniformStruct();
 
+    /* Define texture parameters. */
+    for (const auto &parameter : m_parent->parameters()) {
+        if (parameter.second.isTexture())
+            options.parameters.emplace_back(parameter.first, parameter.second);
+    }
+
+    /* Set pass type keyword. */
     options.keywords.insert(passShaderVariations[static_cast<size_t>(m_type)]);
 
     if (m_type == Type::kForward) {

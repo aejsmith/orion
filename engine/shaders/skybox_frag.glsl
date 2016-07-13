@@ -23,8 +23,6 @@ layout(location = 0) in vec3 viewDirection;
 
 layout(location = 0) out vec4 fragColour;
 
-uniform samplerCube skybox;
-
 void main() {
     fragColour = texture(skybox, viewDirection);
 }

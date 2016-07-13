@@ -25,12 +25,18 @@
 #include "shader/uniform_buffer.h"
 
 namespace ShaderCompiler {
+    /** Details of a parameter definition to add to a shader. */
+    using ParameterDefinition = std::pair<const std::string &, const ShaderParameter &>;
+
     /** Structure containing shader compilation options. */
     struct Options {
         Path path;                      /**< Path to shader to compile. */
         unsigned stage;                 /**< Stage that the shader is being compiled for. */
         ShaderKeywordSet keywords;      /**< Compilation keywords. */
         const UniformStruct *uniforms;  /**< Optional uniform structure to define in the file. */
+
+        /** Additional parameters to define in the source. */
+        std::vector<ParameterDefinition> parameters;
     };
 
     extern bool compile(const Options &options, std::vector<uint32_t> &spirv);

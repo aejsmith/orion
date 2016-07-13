@@ -27,10 +27,6 @@ layout(location = 2) in vec2 vtxTexcoord;
 
 layout(location = 0) out vec4 fragColour;
 
-#ifdef TEXTURED
-uniform sampler2D diffuseTexture;
-#endif
-
 void main() {
     /* Fill in lighting data. */
     LightingData data;
