@@ -119,15 +119,39 @@ static std::string generateSource(spirv_cross::CompilerGLSL &compiler, unsigned 
     options.vertex.fixup_clipspace = false;
     compiler.set_options(options);
 
-    compiler.add_header_line("#extension GL_ARB_separate_shader_objects : enable");
+    compiler.require_extension("GL_ARB_separate_shader_objects");
+
+    std::string source = compiler.compile();
+
+    /* SPIRV-Cross' add_header_line() is not useful for anything other than
+     * preprocessor directives, as it adds the contents before any #extension
+     * directives. All #extension directives must be first in the source, and
+     * Mesa's compiler enforces this. Roll our own version that adds after any
+     * extensions. */
+    size_t insertionPos = 0;
+    while (source[insertionPos] == '#' || source[insertionPos] == '\n') {
+        insertionPos = source.find('\n', insertionPos);
+        if (insertionPos == std::string::npos) {
+            insertionPos = source.size();
+            break;
+        } else {
+            insertionPos++;
+        }
+    }
+
+    auto addHeader =
+        [&] (const std::string &str) {
+            source.insert(insertionPos, str);
+            insertionPos += str.length();
+        };
 
     if (stage == ShaderStage::kVertex) {
         /* For some absurd reason SSO requires the gl_PerVertex block to be
          * redeclared. Do so here so we don't have to do it in every shader. */
-        compiler.add_header_line("out gl_PerVertex { vec4 gl_Position; };\n");
+        addHeader("out gl_PerVertex { vec4 gl_Position; };\n\n");
     }
 
-    return compiler.compile();
+    return source;
 }
 
 /** Create a GPU program from a SPIR-V binary.
