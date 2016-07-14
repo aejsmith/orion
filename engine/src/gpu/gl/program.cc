@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,26 +18,29 @@
  * @file
  * @brief               OpenGL GPU program implementation.
  *
- * We use the GL separable shaders extension, as this design is more in line
- * with other APIs. Our GPUProgram implementation holds a separable program
- * object with a single shader stage attached. Our GPUPipeline implementation
- * holds a program pipeline object to which the separable programs are
- * attached.
+ * We use the GL separable shaders extension to allow us to easily mix shaders
+ * without being subject to the usual rules for linking between stages. Our
+ * GPUProgram implementation holds a separable program object with a single
+ * shader stage attached. Our GPUPipeline implementation holds a program
+ * pipeline object to which the separable programs are attached.
  */
 
 #include <spirv_glsl.hpp>
 
 #include "gl.h"
 #include "program.h"
+#include "resource.h"
 
 #include "core/string.h"
 
 /** Initialize the program.
  * @param stage         Stage that the program is for.
- * @param program       Linked program object. */
-GLProgram::GLProgram(unsigned stage, GLuint program) :
+ * @param program       Linked program object.
+ * @param resources     Resource binding information. */
+GLProgram::GLProgram(unsigned stage, GLuint program, ResourceList &&resources) :
     GPUProgram(stage),
-    m_program(program)
+    m_program(program),
+    m_resources(std::move(resources))
 {}
 
 /** Destroy the program. */
@@ -45,93 +48,68 @@ GLProgram::~GLProgram() {
     glDeleteProgram(m_program);
 }
 
-/** Query active uniform blocks in the program.
- * @param list          Resource list to fill in. */
-void GLProgram::queryUniformBlocks(ResourceList &list) {
-    GLint numBlocks = 0;
-    glGetProgramiv(m_program, GL_ACTIVE_UNIFORM_BLOCKS, &numBlocks);
+/** Update resource bindings in the program.
+ * @param layouts       Layout set that the program is being used with. */
+void GLProgram::setResourceLayout(const GPUResourceSetLayoutArray &layouts) {
+    /* We've already validated the layout compatiblity with the shader when we
+     * created the pipeline. No need to check again here. */
+    for (Resource &resource : m_resources) {
+        GLResourceSetLayout *layout = static_cast<GLResourceSetLayout *>(layouts[resource.set].get());
+        unsigned binding = layout->mapSlot(resource.set, resource.slot);
 
-    for (GLint i = 0; i < numBlocks; i++) {
-        GLint nameLen = 0;
-        glGetActiveUniformBlockiv(m_program, i, GL_UNIFORM_BLOCK_NAME_LENGTH, &nameLen);
+        if (binding != resource.current) {
+            switch (resource.type) {
+                case GPUResourceType::kUniformBuffer:
+                    glUniformBlockBinding(m_program, resource.location, binding);
+                    break;
+                case GPUResourceType::kTexture:
+                    glProgramUniform1i(m_program, resource.location, binding);
+                    break;
+                default:
+                    check(false);
+            }
 
-        char name[nameLen + 1];
-        glGetActiveUniformBlockName(m_program, i, nameLen, &nameLen, &name[0]);
-        name[nameLen] = 0;
-
-        list.push_back({ std::string(name), static_cast<unsigned>(i) });
-    }
-}
-
-/** Query active texture samplers in the program.
- * @param list          Resource list to fill in. */
-void GLProgram::querySamplers(ResourceList &list) {
-    GLint numUniforms = 0;
-    glGetProgramiv(m_program, GL_ACTIVE_UNIFORMS, &numUniforms);
-
-    for (GLuint i = 0; i < static_cast<GLuint>(numUniforms); i++) {
-        /* This range includes uniforms in a uniform block. Skip them, samplers
-         * cannot be specified in uniform blocks. */
-        GLint blockIndex = 0;
-        glGetActiveUniformsiv(m_program, 1, &i, GL_UNIFORM_BLOCK_INDEX, &blockIndex);
-        if (blockIndex >= 0)
-            continue;
-
-        /* Query the type to check if it's a sampler. */
-        GLint type = 0;
-        glGetActiveUniformsiv(m_program, 1, &i, GL_UNIFORM_TYPE, &type);
-        switch (type) {
-            case GL_SAMPLER_1D:
-            case GL_SAMPLER_2D:
-            case GL_SAMPLER_3D:
-            case GL_SAMPLER_CUBE:
-            case GL_SAMPLER_1D_SHADOW:
-            case GL_SAMPLER_2D_SHADOW:
-            case GL_SAMPLER_1D_ARRAY:
-            case GL_SAMPLER_2D_ARRAY:
-            case GL_SAMPLER_1D_ARRAY_SHADOW:
-            case GL_SAMPLER_2D_ARRAY_SHADOW:
-            case GL_SAMPLER_2D_MULTISAMPLE:
-            case GL_SAMPLER_2D_MULTISAMPLE_ARRAY:
-            case GL_SAMPLER_CUBE_SHADOW:
-                break;
-            default:
-                /* TODO: other sampler types? */
-                continue;
+            resource.current = binding;
         }
-
-        GLint nameLen;
-        glGetActiveUniformsiv(m_program, 1, &i, GL_UNIFORM_NAME_LENGTH, &nameLen);
-
-        char name[nameLen + 1];
-        glGetActiveUniformName(m_program, i, nameLen, &nameLen, &name[0]);
-        name[nameLen] = 0;
-
-        list.push_back({ std::string(name), static_cast<unsigned>(i) });
     }
 }
 
-/** Bind a uniform block in the program.
- * @param index         Index of uniform block.
- * @param slot          Uniform buffer slot. */
-void GLProgram::bindUniformBlock(unsigned index, unsigned slot) {
-    glUniformBlockBinding(m_program, index, slot);
+/** Get and fix up resources from a SPIR-V shader.
+ * @param compiler      Cross compiler.
+ * @return              Generated resource list. */
+static GLProgram::ResourceList getResources(spirv_cross::CompilerGLSL &compiler) {
+    GLProgram::ResourceList resources;
+
+    spirv_cross::ShaderResources spvResources = compiler.get_shader_resources();
+
+    auto getResource =
+        [&] (const spirv_cross::Resource &spvResource, GPUResourceType type) {
+            resources.emplace_back();
+            GLProgram::Resource &resource = resources.back();
+            resource.name = spvResource.name;
+            resource.type = type;
+            resource.set  = compiler.get_decoration(spvResource.id, spv::DecorationDescriptorSet);
+            resource.slot = compiler.get_decoration(spvResource.id, spv::DecorationBinding);
+            resource.current = -1u;
+
+            compiler.unset_decoration(spvResource.id, spv::DecorationDescriptorSet);
+            compiler.unset_decoration(spvResource.id, spv::DecorationBinding);
+        };
+
+    for (const auto &spvResource : spvResources.uniform_buffers)
+        getResource(spvResource, GPUResourceType::kUniformBuffer);
+
+    for (const auto &spvResource : spvResources.sampled_images)
+        getResource(spvResource, GPUResourceType::kTexture);
+
+    return resources;
 }
 
-/** Bind a texture sampler in the program.
- * @param index         Index of sampler.
- * @param slot          Texture slot. */
-void GLProgram::bindSampler(unsigned index, unsigned slot) {
-    glProgramUniform1i(m_program, index, slot);
-}
-
-/** Create a GPU program from a SPIR-V binary.
+/** Generate GLSL source from the SPIR-V.
+ * @param compiler      Cross compiler.
  * @param stage         Stage that the program is for.
- * @param spirv         SPIR-V binary for the shader.
- * @return              Pointer to created shader on success, null on error. */
-GPUProgramPtr GLGPUManager::createProgram(unsigned stage, const std::vector<uint32_t> &spirv) {
-    spirv_cross::CompilerGLSL compiler(spirv);
-
+ * @return              Generated source string. */
+static std::string generateSource(spirv_cross::CompilerGLSL &compiler, unsigned stage) {
     GLFeatures &features = g_opengl->features;
 
     spirv_cross::CompilerGLSL::Options options;
@@ -149,7 +127,25 @@ GPUProgramPtr GLGPUManager::createProgram(unsigned stage, const std::vector<uint
         compiler.add_header_line("out gl_PerVertex { vec4 gl_Position; };\n");
     }
 
-    std::string source = compiler.compile();
+    return compiler.compile();
+}
+
+/** Create a GPU program from a SPIR-V binary.
+ * @param stage         Stage that the program is for.
+ * @param spirv         SPIR-V binary for the shader.
+ * @return              Pointer to created shader on success, null on error. */
+GPUProgramPtr GLGPUManager::createProgram(unsigned stage, const std::vector<uint32_t> &spirv) {
+    spirv_cross::CompilerGLSL compiler(spirv);
+
+    /* See resource.cc for a description of how we handle resource bindings.
+     * Here we record the resource set binding information in the SPIR-V shader
+     * and remove it before translating back to GLSL. */
+    GLProgram::ResourceList resources = getResources(compiler);
+
+    /* Translate the SPIR-V back to GLSL. Hopefully future GL versions will
+     * gain support for consuming SPIR-V directly. We would still need to do
+     * the resource remapping, though. */
+    std::string source = generateSource(compiler, stage);
 
     /* Compile the shader. */
     GLuint shader = glCreateShader(GLUtil::convertShaderStage(stage));
@@ -208,5 +204,41 @@ GPUProgramPtr GLGPUManager::createProgram(unsigned stage, const std::vector<uint
         return nullptr;
     }
 
-    return new GLProgram(stage, program);
+    /* Get uniform locations for the resources from the linked program. These
+     * may not be active if they are not used, so remove missing resources from
+     * the list. */
+    for (auto resource = resources.begin(); resource != resources.end(); ) {
+        switch (resource->type) {
+            case GPUResourceType::kUniformBuffer:
+            {
+                GLuint ret = glGetUniformBlockIndex(program, resource->name.c_str());
+                if (ret == GL_INVALID_INDEX) {
+                    resources.erase(resource++);
+                    continue;
+                }
+
+                resource->location = ret;
+                break;
+            }
+
+            case GPUResourceType::kTexture:
+            {
+                GLint ret = glGetUniformLocation(program, resource->name.c_str());
+                if (ret < 0) {
+                    resources.erase(resource++);
+                    continue;
+                }
+
+                resource->location = ret;
+                break;
+            }
+
+            default:
+                check(false);
+        }
+
+        ++resource;
+    }
+
+    return new GLProgram(stage, program, std::move(resources));
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -35,7 +35,7 @@ Material::Material(Shader *shader) :
     m_uniforms(nullptr)
 {
     check(shader);
-    createUniforms();
+    createResources();
 }
 
 /** Destroy the material. */
@@ -44,11 +44,14 @@ Material::~Material() {
 }
 
 /** Create the uniform buffer. */
-void Material::createUniforms() {
+void Material::createResources() {
+    m_resources = g_gpuManager->createResourceSet(m_shader->m_resourceSetLayout);
+
     if (m_shader->uniformStruct()) {
         /* Material parameters should be changed infrequently, therefore set
          * the uniform buffer usage as static. */
         m_uniforms = new UniformBufferBase(*m_shader->uniformStruct(), GPUBuffer::kStaticDrawUsage);
+        m_resources->bindUniformBuffer(ResourceSlots::kUniforms, m_uniforms->gpu());
     }
 }
 
@@ -64,7 +67,7 @@ void Material::deserialise(Serialiser &serialiser) {
     serialiser.read("shader", m_shader);
     check(m_shader);
 
-    createUniforms();
+    createResources();
 
     if (serialiser.beginGroup("parameters")) {
         for (const auto &it : m_shader->parameters()) {
@@ -146,6 +149,14 @@ void Material::deserialise(Serialiser &serialiser) {
     }
 }
 
+/** Set shader-wide draw state for the material. */
+void Material::setDrawState() const {
+    if (m_uniforms)
+        m_uniforms->flush();
+
+    g_gpuManager->bindResourceSet(ResourceSets::kMaterialResources, m_resources);
+}
+
 /** Get a parameter value.
  * @param name          Name of the parameter to get.
  * @param type          Type of the parameter.
@@ -156,12 +167,16 @@ void Material::getValue(const char *name, ShaderParameter::Type type, void *buf)
     checkMsg(param->type == type, "Incorrect type for parameter '%s' in '%s'", name, m_shader->path().c_str());
 
     if (param->isTexture()) {
+        Asset *asset = (m_resourceAssets.size() > param->resourceSlot)
+            ? m_resourceAssets[param->resourceSlot].get()
+            : nullptr;
+
         switch (param->type) {
             case ShaderParameter::Type::kTexture2D:
-                new(buf) Texture2DPtr(static_cast<Texture2D *>(m_textures[param->textureSlot].get()));
+                new(buf) Texture2DPtr(static_cast<Texture2D *>(asset));
                 break;
             case ShaderParameter::Type::kTextureCube:
-                new(buf) TextureCubePtr(static_cast<TextureCube *>(m_textures[param->textureSlot].get()));
+                new(buf) TextureCubePtr(static_cast<TextureCube *>(asset));
                 break;
             default:
                 unreachable();
@@ -176,22 +191,72 @@ void Material::getValue(const char *name, ShaderParameter::Type type, void *buf)
  * @param type          Type of the parameter.
  * @param buf           Buffer containing new parameter value. */
 void Material::setValue(const char *name, ShaderParameter::Type type, const void *buf) {
-    const ShaderParameter *param = m_shader->lookupParameter(name);
-    checkMsg(param, "Parameter '%s' in '%s' not found", name, m_shader->path().c_str());
-    checkMsg(param->type == type, "Incorrect type for parameter '%s' in '%s'", name, m_shader->path().c_str());
+    const ShaderParameter *parameter = m_shader->lookupParameter(name);
+    checkMsg(parameter, "Parameter '%s' in '%s' not found", name, m_shader->path().c_str());
+    checkMsg(parameter->type == type, "Incorrect type for parameter '%s' in '%s'", name, m_shader->path().c_str());
 
-    if (param->isTexture()) {
-        switch (param->type) {
+    if (parameter->isTexture()) {
+        TextureBasePtr texture;
+
+        switch (parameter->type) {
             case ShaderParameter::Type::kTexture2D:
-                m_textures[param->textureSlot] = *reinterpret_cast<const Texture2DPtr *>(buf);
+                texture = *reinterpret_cast<const Texture2DPtr *>(buf);
                 break;
             case ShaderParameter::Type::kTextureCube:
-                m_textures[param->textureSlot] = *reinterpret_cast<const TextureCubePtr *>(buf);
+                texture = *reinterpret_cast<const TextureCubePtr *>(buf);
                 break;
             default:
                 unreachable();
         }
+
+        m_resources->bindTexture(parameter->resourceSlot, texture->gpu(), texture->sampler());
+
+        if (m_resourceAssets.size() <= parameter->resourceSlot)
+            m_resourceAssets.resize(parameter->resourceSlot + 1);
+
+        m_resourceAssets[parameter->resourceSlot] = std::move(texture);
     } else {
-        m_uniforms->writeMember(param->uniformMember, buf);
+        m_uniforms->writeMember(parameter->uniformMember, buf);
     }
+}
+
+/**
+ * Set a texture parameter to a GPU texture.
+ *
+ * This function allows a low-level GPU texture and sampler state to be passed
+ * through a material to a shader. This binds the given objects directly in the
+ * Material's resource set and invalidates the current parameter value, meaning
+ * getValue() will return a null pointer. Any call to setValue() will invalidate
+ * this binding.
+ *
+ * @param name          Name of the parameter to set (must be a texture).
+ * @param texture       Texture to bind.
+ * @param sampler       Sampler state to use.
+ */
+void Material::setGPUTexture(const char *name, GPUTexture *texture, GPUSamplerState *sampler) {
+    const ShaderParameter *parameter = m_shader->lookupParameter(name);
+    checkMsg(parameter, "Parameter '%s' in '%s' not found", name, m_shader->path().c_str());
+
+    ShaderParameter::Type expected;
+
+    switch (texture->type()) {
+        case GPUTexture::kTexture2D:
+            expected = ShaderParameter::Type::kTexture2D;
+            break;
+        case GPUTexture::kTextureCube:
+            expected = ShaderParameter::Type::kTextureCube;
+            break;
+        default:
+            check(false);
+            return;
+    }
+
+    checkMsg(
+        parameter->type == expected,
+        "Incorrect type for parameter '%s' in '%s'", name, m_shader->path().c_str());
+
+    if (m_resourceAssets.size() > parameter->resourceSlot)
+        m_resourceAssets[parameter->resourceSlot] = nullptr;
+
+    m_resources->bindTexture(parameter->resourceSlot, texture, sampler);
 }

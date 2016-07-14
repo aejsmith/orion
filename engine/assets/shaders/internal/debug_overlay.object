@@ -7,6 +7,10 @@
             {
                 "name": "projectionMatrix",
                 "type": "kMat4"
+            },
+            {
+                "name": "debugTexture",
+                "type": "kTexture2D"
             }
         ],
         "passes": [

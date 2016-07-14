@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,46 +16,53 @@
 
 /**
  * @file
- * @brief               Rendering pipeline object.
+ * @brief               Shader pipeline object.
  */
 
 #pragma once
 
 #include "gpu/program.h"
+#include "gpu/resource.h"
 
-/** Pipeline descriptor. */
+/** Shader pipeline descriptor. */
 struct GPUPipelineDesc {
     /** Array of GPU programs, indexed by stage. */
     GPUProgramArray programs;
+
+    /** Array of resource set layouts, indexed by set number. */
+    GPUResourceSetLayoutArray resourceLayout;
 };
 
 /**
- * Rendering pipeline.
+ * Shader pipeline.
  *
- * This class groups together a set of GPU programs to use for each pipeline
- * stage. Once created, a pipeline is immutable. Creation is performed through
- * GPUManager::createPipeline().
+ * This class groups together a set of GPU shader programs to use for each
+ * pipeline stage, and a description of the resource set layouts that will be
+ * used with the programs. Once created, a pipeline is immutable. Creation is
+ * performed through GPUManager::createPipeline().
  *
- * Modern APIs (DX12, Metal, Mantle) have the concept of pipeline state objects
- * that bundle up shaders along with some bits of state like blend mode, output
- * buffer format and vertex format, the goal being to avoid draw-time shader
- * recompilation for different states. Storing output buffer/vertex formats here
- * would be quite awkward to manage and would add unnecessary overhead for APIs
- * that do not need this. However, APIs that do can fairly easily cache created
- * state objects for different formats in their implementation of this class.
+ * Modern APIs (Vulkan, DX12, Metal) have the concept of pipeline state objects
+ * that bundle up shaders along with a large amount of other state (e.g. depth/
+ * stencil state, blending, vertex data layout, etc.), the goal being to avoid
+ * draw-time state validation or shader recompilation for different combinations
+ * of states. Storing all this state here in addition to the shaders would be
+ * awkward to use for the higher level engine. Therefore, for these APIs we
+ * instead create their monolithic pipeline objects dynamically based on the
+ * other states set at the time of a draw call using a pipeline. These are
+ * cached internally within the API-specific implementations of this class.
+ * In most cases, after rendering for a short time we will have built up a cache
+ * of all the pipelines we need. Furthermore, some of these APIs allow us to
+ * cache the created pipelines to disk to further speed up creation.
  */
 class GPUPipeline : public GPUObject {
-public:
-    /** @return             Array of programs used by the pipeline. */
-    const GPUProgramArray &programs() const { return m_programs; }
 protected:
-    explicit GPUPipeline(const GPUPipelineDesc &desc);
+    explicit GPUPipeline(GPUPipelineDesc &&desc);
     ~GPUPipeline() {}
 
     GPUProgramArray m_programs;         /**< Array of programs for each stage. */
 
-    /* For the default implementation of createPipeline(). */
-    friend class GPUManager;
+    /** Array of resource set layouts. */
+    GPUResourceSetLayoutArray m_resourceLayout;
 };
 
 /** Type of a reference to GPUPipeline. */

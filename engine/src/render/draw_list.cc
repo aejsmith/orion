@@ -26,28 +26,28 @@
 /** Add a draw call to the list.
  * @param geometry      Geometry to draw.
  * @param material      Material to draw with.
- * @param uniforms      Entity uniforms.
+ * @param resources     Entity resources.
  * @param pass          Pass to draw with. */
-void DrawList::addDrawCall(const Geometry &geometry, Material *material, GPUBuffer *uniforms, const Pass *pass) {
+void DrawList::addDrawCall(const Geometry &geometry, Material *material, GPUResourceSet *resources, const Pass *pass) {
     m_drawCalls.emplace_back();
 
     DrawCall &drawCall = m_drawCalls.back();
     drawCall.geometry = geometry;
     drawCall.material = material;
-    drawCall.uniforms = uniforms;
+    drawCall.resources = resources;
     drawCall.pass = pass;
 }
 
 /** Add draw calls for all passes to the list.
  * @param geometry      Geometry to draw.
  * @param material      Material to draw with.
- * @param uniforms      Entity uniforms.
+ * @param resources     Entity resources.
  * @param passType      Pass type to use. */
-void DrawList::addDrawCalls(const Geometry &geometry, Material *material, GPUBuffer *uniforms, Pass::Type passType) {
+void DrawList::addDrawCalls(const Geometry &geometry, Material *material, GPUResourceSet *resources, Pass::Type passType) {
     Shader *shader = material->shader();
     for (size_t i = 0; i < shader->numPasses(passType); i++) {
         const Pass *pass = shader->pass(passType, i);
-        addDrawCall(geometry, material, uniforms, pass);
+        addDrawCall(geometry, material, resources, pass);
     }
 }
 
@@ -58,7 +58,7 @@ void DrawList::addDrawCalls(SceneEntity *entity, Pass::Type passType) {
     Geometry geometry;
     entity->geometry(geometry);
 
-    addDrawCalls(geometry, entity->material(), entity->uniforms(), passType);
+    addDrawCalls(geometry, entity->material(), entity->resourcesForDraw(), passType);
 }
 
 /** Perform all draw calls in the list.
@@ -66,12 +66,12 @@ void DrawList::addDrawCalls(SceneEntity *entity, Pass::Type passType) {
 void DrawList::draw(SceneLight *light) const {
     /* TODO: Track current pass/material/etc, minimize the state changes. */
     for (const DrawCall &drawCall : m_drawCalls) {
-        drawCall.material->shader()->setDrawState(drawCall.material);
+        drawCall.material->setDrawState();
         drawCall.pass->setDrawState(light);
 
         /* Bind the entity uniforms. */
-        if (drawCall.uniforms)
-            g_gpuManager->bindUniformBuffer(UniformSlots::kEntityUniforms, drawCall.uniforms);
+        if (drawCall.resources)
+            g_gpuManager->bindResourceSet(ResourceSets::kEntityResources, drawCall.resources);
 
         g_gpuManager->draw(
             drawCall.geometry.primitiveType,

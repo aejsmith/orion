@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -24,60 +24,12 @@
 #include "gpu/defs.h"
 
 #include <array>
-#include <list>
 
 /** GPU program class. */
 class GPUProgram : public GPUObject {
 public:
-    /** Structure describing a resource. */
-    struct Resource {
-        std::string name;           /**< Name of the resource. */
-        unsigned index;             /**< Index of the resource for use with bind functions. */
-    };
-
-    /**
-     * Type of a resource list.
-     *
-     * This is given as a list of pairs of name and index rather than using a
-     * vector to allow for sparse indices.
-     */
-    using ResourceList = std::list<Resource>;
-
     /** @return             Stage that the program is for. */
     unsigned stage() const { return m_stage; }
-
-    /** Query active uniform blocks in the program.
-     * @param list          Resource list to fill in. */
-    virtual void queryUniformBlocks(ResourceList &list) = 0;
-
-    /** Query active texture samplers in the program.
-     * @param list          Resource list to fill in. */
-    virtual void querySamplers(ResourceList &list) = 0;
-
-    /**
-     * Bind a uniform block in the program.
-     *
-     * Specifies that the uniform block at the specified index (as returned
-     * from queryUniformBlocks()) should refer to the uniform buffer which is
-     * bound in the specified slot at the time of a draw call involving the
-     * program.
-     *
-     * @param index         Index of uniform block.
-     * @param slot          Uniform buffer slot.
-     */
-    virtual void bindUniformBlock(unsigned index, unsigned slot) = 0;
-
-    /**
-     * Bind a texture sampler in the program.
-     *
-     * Specifies that the texture sampler at the specified index (as returned
-     * from querySamplers()) should refer to the texture which is bound in the
-     * specified slot at the time of a draw call involving the program.
-     *
-     * @param index         Index of sampler.
-     * @param slot          Texture slot.
-     */
-    virtual void bindSampler(unsigned index, unsigned slot) = 0;
 protected:
     /** Initialize the program.
      * @param stage         Stage that the program is for. */
@@ -91,5 +43,5 @@ private:
 /** Type of a GPU program pointer. */
 using GPUProgramPtr = GPUObjectPtr<GPUProgram>;
 
-/** Type of an array of GPU programs, indexed by stage. */
+/** Type of an array of GPU program references, indexed by stage. */
 using GPUProgramArray = std::array<GPUProgramPtr, ShaderStage::kNumStages>;

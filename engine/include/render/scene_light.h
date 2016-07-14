@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "gpu/defs.h"
+#include "gpu/resource.h"
 
 #include "render/scene_view.h"
 
@@ -94,8 +94,12 @@ public:
     /** @return             Whether the light casts shadows. */
     bool castShadows() const { return m_castShadows; }
 
-    /** @return             GPU buffer containing light uniforms. */
-    GPUBuffer *uniforms() const { return m_uniforms.gpu(); }
+    /** Flush pending updates and get resources for a draw call.
+     * @return              Resource set containing per-light resources. */
+    GPUResourceSet *resourcesForDraw() {
+        m_uniforms.flush();
+        return m_resources;
+    }
 
     void volumeGeometry(Geometry &geometry) const;
 
@@ -141,6 +145,9 @@ private:
 
     /** Uniform buffer containing lighting parameters. */
     UniformBuffer<LightUniforms> m_uniforms;
+
+    /** Resource set containing per-light resource bindings. */
+    GPUResourceSetPtr m_resources;
 
     /** Views for shadow map rendering. */
     SceneView m_shadowViews[kMaxShadowViews];

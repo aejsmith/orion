@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -23,6 +23,7 @@
 
 #include "core/hash_table.h"
 
+#include "gpu/resource.h"
 #include "gpu/state.h"
 #include "gpu/texture.h"
 
@@ -53,7 +54,50 @@ public:
             deferredBufferSize(0, 0)
         {}
     };
-public:
+
+    /** Structure containing global rendering resources. */
+    struct Resources {
+        /** Vertex data layout for SimpleVertex. */
+        GPUVertexDataLayoutPtr simpleVertexDataLayout;
+
+        /** Standard resource set layouts. */
+        GPUResourceSetLayoutPtr entityResourceSetLayout;
+        GPUResourceSetLayoutPtr viewResourceSetLayout;
+        GPUResourceSetLayoutPtr lightResourceSetLayout;
+        GPUResourceSetLayoutPtr postEffectResourceSetLayout;
+
+        /** Basic geometry. */
+        GPUVertexDataPtr quadVertexData;
+        GPUVertexDataPtr sphereVertexData;
+        GPUIndexDataPtr sphereIndexData;
+        GPUVertexDataPtr coneVertexData;
+        GPUIndexDataPtr coneIndexData;
+
+        /** Deferred light material. */
+        MaterialPtr deferredLightMaterial;
+
+        /** @param geometry     Where to store quad geometry. */
+        void quadGeometry(Geometry &geometry) const {
+            geometry.vertices = this->quadVertexData;
+            geometry.indices = nullptr;
+            geometry.primitiveType = PrimitiveType::kTriangleList;
+        }
+
+        /** @param geometry     Where to store sphere geometry. */
+        void sphereGeometry(Geometry &geometry) const {
+            geometry.vertices = this->sphereVertexData;
+            geometry.indices = this->sphereIndexData;
+            geometry.primitiveType = PrimitiveType::kTriangleList;
+        }
+
+        /** @param geometry     Where to store cone geometry. */
+        void coneGeometry(Geometry &geometry) const {
+            geometry.vertices = this->coneVertexData;
+            geometry.indices = this->coneIndexData;
+            geometry.primitiveType = PrimitiveType::kTriangleList;
+        }
+    };
+
     RenderManager();
 
     void init();
@@ -71,35 +115,11 @@ public:
     GPUTexture *allocTempRenderTarget(const GPUTextureDesc &desc);
 
     /**
-     * Other rendering resources.
+     * Rendering resources.
      */
 
-    /** @return             Vertex data layout for SimpleVertex. */
-    GPUVertexDataLayout *simpleVertexDataLayout() const { return m_simpleVertexDataLayout; }
-
-    /** @param geometry     Where to store quad geometry. */
-    void quadGeometry(Geometry &geometry) const {
-        geometry.vertices = m_quadVertexData;
-        geometry.indices = nullptr;
-        geometry.primitiveType = PrimitiveType::kTriangleList;
-    }
-
-    /** @param geometry     Where to store sphere geometry. */
-    void sphereGeometry(Geometry &geometry) const {
-        geometry.vertices = m_sphereVertexData;
-        geometry.indices = m_sphereIndexData;
-        geometry.primitiveType = PrimitiveType::kTriangleList;
-    }
-
-    /** @param geometry     Where to store cone geometry. */
-    void coneGeometry(Geometry &geometry) const {
-        geometry.vertices = m_coneVertexData;
-        geometry.indices = m_coneIndexData;
-        geometry.primitiveType = PrimitiveType::kTriangleList;
-    }
-
-    /** @return             Deferred light material. */
-    Material *deferredLightMaterial() const { return m_deferredLightMaterial; }
+    /** @return             Global rendering resources. */
+    const Resources &resources() const { return m_resources; }
 
     /**
      * Rendering parameters.
@@ -113,25 +133,15 @@ private:
         GPUTexturePtr texture;              /**< Texture. */
         bool allocated;                     /**< Whether the texture is in use. */
     };
-private:
+
     /** Primary render targets. */
     RenderTargets m_renderTargets;
 
     /** Pool of temporary render target textures. */
     MultiHashMap<GPUTextureDesc, TempRenderTarget> m_tempRenderTargets;
 
-    /** Vertex data layout for SimpleVertex. */
-    GPUVertexDataLayoutPtr m_simpleVertexDataLayout;
-
-    /** Utility geometry. */
-    GPUVertexDataPtr m_quadVertexData;      /**< Vertex data for a quad. */
-    GPUVertexDataPtr m_sphereVertexData;    /**< Vertex data for a sphere. */
-    GPUIndexDataPtr m_sphereIndexData;      /**< Index data for a sphere. */
-    GPUVertexDataPtr m_coneVertexData;      /**< Vertex data for a cone. */
-    GPUIndexDataPtr m_coneIndexData;        /**< Index data for a cone. */
-
-    /** Special materials. */
-    MaterialPtr m_deferredLightMaterial;    /**< Deferred light material. */
+    /** Rendering resources. */
+    Resources m_resources;
 
     /** Rendering parameters. */
     uint16_t m_shadowMapResolution;         /**< Shadow map resolution. */

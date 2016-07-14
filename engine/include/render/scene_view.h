@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -20,6 +20,8 @@
  */
 
 #pragma once
+
+#include "gpu/resource.h"
 
 #include "shader/uniform_buffer.h"
 
@@ -80,7 +82,7 @@ public:
     const glm::mat4 &inverseViewProjection();
     const Frustum &frustum();
 
-    GPUBuffer *uniforms();
+    GPUResourceSet *resourcesForDraw();
 private:
     void updateMatrices();
 private:
@@ -110,6 +112,9 @@ private:
 
     /** Uniform buffer containing per-view parameters. */
     UniformBuffer<ViewUniforms> m_uniforms;
+
+    /** Resource set containing per-view resource bindings. */
+    GPUResourceSetPtr m_resources;
 };
 
 /** Get the world-to-view matrix.

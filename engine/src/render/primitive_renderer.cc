@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -26,8 +26,6 @@
 #include "render/render_manager.h"
 #include "render/scene_view.h"
 #include "render/utility.h"
-
-#include "shader/slots.h"
 
 /** Initialise the renderer. */
 PrimitiveRenderer::PrimitiveRenderer() :
@@ -91,7 +89,7 @@ void PrimitiveRenderer::draw(SceneView *view) {
 
             data.gpu = g_gpuManager->createVertexData(
                 data.vertices.size(),
-                g_renderManager->simpleVertexDataLayout(),
+                g_renderManager->resources().simpleVertexDataLayout,
                 std::move(buffers));
 
             /* No longer require CPU-side data. */
@@ -107,7 +105,7 @@ void PrimitiveRenderer::draw(SceneView *view) {
     }
 
     if (view)
-        g_gpuManager->bindUniformBuffer(UniformSlots::kViewUniforms, view->uniforms());
+        g_gpuManager->bindResourceSet(ResourceSets::kViewResources, view->resourcesForDraw());
 
     /* Render all batches. */
     m_drawList.draw();

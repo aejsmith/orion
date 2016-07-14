@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -25,7 +25,9 @@
 #include "render/render_manager.h"
 #include "render/scene_light.h"
 
-IMPLEMENT_UNIFORM_STRUCT(LightUniforms, "light", UniformSlots::kLightUniforms);
+#include "shader/resource.h"
+
+IMPLEMENT_UNIFORM_STRUCT(LightUniforms, "light", ResourceSets::kLightResources);
 
 /**
  * Construct the light.
@@ -37,7 +39,11 @@ IMPLEMENT_UNIFORM_STRUCT(LightUniforms, "light", UniformSlots::kLightUniforms);
  */
 SceneLight::SceneLight(Type type) :
     m_type(type)
-{}
+{
+    m_resources = g_gpuManager->createResourceSet(
+        g_renderManager->resources().lightResourceSetLayout);
+    m_resources->bindUniformBuffer(ResourceSlots::kUniforms, m_uniforms.gpu());
+}
 
 /** Destroy the light. */
 SceneLight::~SceneLight() {}
@@ -130,13 +136,13 @@ void SceneLight::setPosition(const glm::vec3 &position) {
 void SceneLight::volumeGeometry(Geometry &geometry) const {
     switch (m_type) {
         case kPointLight:
-            g_renderManager->sphereGeometry(geometry);
+            g_renderManager->resources().sphereGeometry(geometry);
             break;
         case kSpotLight:
-            g_renderManager->coneGeometry(geometry);
+            g_renderManager->resources().coneGeometry(geometry);
             break;
         default:
-            g_renderManager->quadGeometry(geometry);
+            g_renderManager->resources().quadGeometry(geometry);
             break;
     }
 }

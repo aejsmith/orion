@@ -98,7 +98,7 @@ public:
      */
 
     GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) override;
-    GPUPipelinePtr createPipeline(const GPUPipelineDesc &desc) override;
+    GPUPipelinePtr createPipeline(GPUPipelineDesc &&desc) override;
     GPUTexturePtr createTexture(const GPUTextureDesc &desc) override;
     GPUTexturePtr createTextureView(const GPUTextureImageRef &image) override;
     GPUVertexDataPtr createVertexData(
@@ -111,11 +111,11 @@ public:
     GPURasterizerStatePtr createRasterizerState(const GPURasterizerStateDesc &desc) override;
     GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) override;
 
+    GPUResourceSetLayoutPtr createResourceSetLayout(GPUResourceSetLayoutDesc &&desc) override;
     GPUProgramPtr createProgram(unsigned stage, const std::vector<uint32_t> &spirv) override;
 
     void bindPipeline(GPUPipeline *pipeline) override;
-    void bindTexture(unsigned index, GPUTexture *texture, GPUSamplerState *sampler) override;
-    void bindUniformBuffer(unsigned index, GPUBuffer *buffer) override;
+    void bindResourceSet(unsigned index, GPUResourceSet *resources) override;
     void setBlendState(GPUBlendState *state) override;
     void setDepthStencilState(GPUDepthStencilState *state) override;
     void setRasterizerState(GPURasterizerState *state) override;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,15 +16,16 @@
 
 /**
  * @file
- * @brief               Rendering pipeline object.
+ * @brief               Shader pipeline object.
  */
 
 #include "gpu/pipeline.h"
 
 /** Initialize the pipeline.
  * @param desc          Parameters for the pipeline. */
-GPUPipeline::GPUPipeline(const GPUPipelineDesc &desc) :
-    m_programs(desc.programs)
+GPUPipeline::GPUPipeline(GPUPipelineDesc &&desc) :
+    m_programs(std::move(desc.programs)),
+    m_resourceLayout(std::move(desc.resourceLayout))
 {
     checkMsg(
         m_programs[ShaderStage::kVertex] && m_programs[ShaderStage::kFragment],

@@ -23,7 +23,10 @@
 
 #include "engine/asset.h"
 
+#include "gpu/resource.h"
+
 #include "shader/pass.h"
+#include "shader/resource.h"
 #include "shader/uniform_buffer.h"
 
 #include <array>
@@ -40,10 +43,11 @@ class Material;
  * effect. A pass defines the actual GPU shaders that will be used and other
  * bits of GPU state. Parameter values are supplied to shaders via Materials.
  *
- * A shader can have uniform parameters, which are automatically filled into
- * a uniform buffer and made available to GPU shaders in the kMaterialUniforms
- * uniform buffer slot, and texture parameters, which are made available to GPU
- * shaders in the specified texture slot.
+ * A shader's parameters are either of basic types, or are resources. Basic
+ * types are automatically filled into a uniform buffer and defined in shader
+ * source code as global variables with matching names. Resources are
+ * automatically assigned resource slots and defined in shader code bound to
+ * the assigned slot.
  */
 class Shader : public Asset {
 public:
@@ -56,8 +60,6 @@ public:
     const UniformStruct *uniformStruct() const { return m_uniformStruct; }
     /** @return             Parameter map for the shader. */
     const ParameterMap &parameters() const { return m_parameters; }
-    /** @return             Number of texture parameters. */
-    unsigned numTextures() const { return m_nextTextureSlot; }
 
     const ShaderParameter *lookupParameter(const std::string &name) const;
 
@@ -77,8 +79,6 @@ public:
     const Pass *pass(Pass::Type type, unsigned index) const {
         return m_passes[static_cast<size_t>(type)][index];
     }
-
-    void setDrawState(Material *material) const;
 protected:
     ~Shader();
 
@@ -90,9 +90,14 @@ private:
     void addParameter(const std::string &name, ShaderParameter::Type type);
     void addPass(Pass *pass);
 
-    UniformStruct *m_uniformStruct;     /**< Uniform structure used by the shader. */
-    ParameterMap m_parameters;          /**< Map of registered parameters. */
-    unsigned m_nextTextureSlot;         /**< Next available texture slot. */
+    void finaliseParameters();
+
+    /** Map of registered parameters. */
+    ParameterMap m_parameters;
+    /** Uniform structure for the shader, generated from parameters. */
+    UniformStruct *m_uniformStruct;
+    /** Resource set layout for the shader, generated from parameters. */
+    GPUResourceSetLayoutPtr m_resourceSetLayout;
 
     /**
      * Array of passes.
@@ -101,6 +106,9 @@ private:
      * within that for all passes of that type.
      */
     std::array<std::vector<Pass *>, Pass::kNumTypes> m_passes;
+
+    friend class Material;
+    friend class Pass;
 };
 
 /** Type of a shader pointer. */

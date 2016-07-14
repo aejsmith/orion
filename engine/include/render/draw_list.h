@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "gpu/resource.h"
+
 #include "render/geometry.h"
 #include "render/scene_entity.h"
 
@@ -37,16 +39,16 @@
 struct DrawCall {
     Geometry geometry;                  /**< Geometry to draw. */
     Material *material;                 /**< Material to draw with. */
-    GPUBuffer *uniforms;                /**< Entity uniforms. */
+    GPUResourceSet *resources;          /**< Entity resources. */
     const Pass *pass;                   /**< Pass to draw with. */
 };
 
 /** Class storing a list of draw calls. */
 class DrawList {
 public:
-    void addDrawCall(const Geometry &geometry, Material *material, GPUBuffer *uniforms, const Pass *pass);
+    void addDrawCall(const Geometry &geometry, Material *material, GPUResourceSet *resources, const Pass *pass);
 
-    void addDrawCalls(const Geometry &geometry, Material *material, GPUBuffer *uniforms, Pass::Type passType);
+    void addDrawCalls(const Geometry &geometry, Material *material, GPUResourceSet *resources, Pass::Type passType);
     void addDrawCalls(SceneEntity *entity, Pass::Type passType);
 
     void draw(SceneLight *light = nullptr) const;

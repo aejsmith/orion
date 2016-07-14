@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,12 +21,13 @@
 
 #include "gpu/gpu_manager.h"
 
+#include "render/render_manager.h"
 #include "render/scene.h"
 #include "render/scene_view.h"
 
-#include "shader/slots.h"
+#include "shader/resource.h"
 
-IMPLEMENT_UNIFORM_STRUCT(ViewUniforms, "view", UniformSlots::kViewUniforms);
+IMPLEMENT_UNIFORM_STRUCT(ViewUniforms, "view", ResourceSets::kViewResources);
 
 /**
  * Initialize the scene view.
@@ -41,7 +42,11 @@ SceneView::SceneView(const PostEffectChain *effectChain) :
     m_projectionOutdated(true),
     m_aspect(1.0f),
     m_postEffectChain(effectChain)
-{}
+{
+    m_resources = g_gpuManager->createResourceSet(
+        g_renderManager->resources().viewResourceSetLayout);
+    m_resources->bindUniformBuffer(ResourceSlots::kUniforms, m_uniforms.gpu());
+}
 
 /** Destroy the scene view. */
 SceneView::~SceneView() {}
@@ -88,12 +93,13 @@ void SceneView::setViewport(const IntRect &viewport) {
     }
 }
 
-/** Get the uniform buffer containing view parameters.
- * @return              Pointer to buffer containing view parameters. */
-GPUBuffer *SceneView::uniforms() {
+/** Flush pending updates and get resources for a draw call.
+ * @return              Resource set containing per-view resources. */
+GPUResourceSet *SceneView::resourcesForDraw() {
     /* Ensure view and projection are up to date. */
     updateMatrices();
-    return m_uniforms.gpu();
+    m_uniforms.flush();
+    return m_resources;
 }
 
 /** Update the view/projection matrices. */

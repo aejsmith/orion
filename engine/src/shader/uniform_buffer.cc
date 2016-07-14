@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -26,13 +26,8 @@
 
 #include "shader/uniform_buffer.h"
 
-/**
- * UniformStruct implementation.
- */
-
 /** @return             List of globally declared uniform structures. */
 static UniformStruct::StructList &uniformStructList() {
-    /* Lazily initialized to avoid global constructor order problems. */
     static UniformStruct::StructList uniformStructs;
     return uniformStructs;
 }
@@ -40,20 +35,20 @@ static UniformStruct::StructList &uniformStructList() {
 /** Constructor for a statically declared uniform structure.
  * @param inName        Name of the structure.
  * @param inInstance    Instance name to use when declaring in shaders.
- * @param inSlot        Uniform slot to bind to when used in shaders.
- * @param inSize        Size of the structure.
+ * @param inSet         Resource set to bind to in shaders.
+ * @param size          Size of the structure.
  * @param init          Function to populate the member list. */
 UniformStruct::UniformStruct(
     const char *inName,
     const char *inInstance,
-    unsigned inSlot,
-    size_t inSize,
+    unsigned inSet,
+    size_t size,
     InitFunc init)
     :
     name(inName),
     instanceName(inInstance),
-    slot(inSlot),
-    size(inSize)
+    set(inSet),
+    m_size(size)
 {
     init(this);
 
@@ -65,7 +60,7 @@ UniformStruct::UniformStruct(
  * @param name          Name of the member to find.
  * @return              Pointer to member if found, null if not. */
 const UniformStructMember *UniformStruct::lookupMember(const char *name) const {
-    for (const UniformStructMember &member : this->members) {
+    for (const UniformStructMember &member : m_members) {
         if (strcmp(member.name, name) == 0)
             return &member;
     }
@@ -78,14 +73,14 @@ const UniformStructMember *UniformStruct::lookupMember(const char *name) const {
  * @param type          Type of the member.
  * @return              Pointer to added member. */
 const UniformStructMember *UniformStruct::addMember(const char *name, ShaderParameter::Type type) {
-    this->members.emplace_back();
+    m_members.emplace_back();
 
-    UniformStructMember *member = &this->members.back();
+    UniformStructMember *member = &m_members.back();
     member->name = name;
     member->type = type;
-    member->offset = Math::roundUp(this->size, ShaderParameter::alignment(type));
+    member->offset = Math::roundUp(m_size, ShaderParameter::alignment(type));
 
-    this->size = member->offset + ShaderParameter::size(type);
+    m_size = member->offset + ShaderParameter::size(type);
     return member;
 }
 
@@ -95,9 +90,11 @@ const UniformStructMember *UniformStruct::addMember(const char *name, ShaderPara
  * @param offset        Offset of the member.
  * @return              Pointer to added member. */
 const UniformStructMember *UniformStruct::addMember(const char *name, ShaderParameter::Type type, size_t offset) {
-    this->members.emplace_back();
+    check(!ShaderParameter::isTexture(type));
 
-    UniformStructMember *member = &this->members.back();
+    m_members.emplace_back();
+
+    UniformStructMember *member = &m_members.back();
     member->name = name;
     member->type = type;
     member->offset = offset;
@@ -107,6 +104,7 @@ const UniformStructMember *UniformStruct::addMember(const char *name, ShaderPara
 /** Get a list of globally declared uniform structures.
  * @return              List of globally declared uniform structures. */
 const UniformStruct::StructList &UniformStruct::structList() {
+    /* This is for public consumption, return a const reference. */
     return uniformStructList();
 }
 
@@ -124,10 +122,6 @@ const UniformStruct *UniformStruct::lookup(const std::string &name) {
     return nullptr;
 }
 
-/**
- * UniformBuffer implementation.
- */
-
 /** Create the buffer, with zeroed content.
  * @param ustruct       Uniform structure type.
  * @param usage         GPU usage hint for the buffer. */
@@ -135,9 +129,13 @@ UniformBufferBase::UniformBufferBase(const UniformStruct &ustruct, GPUBuffer::Us
     m_uniformStruct(ustruct),
     m_dirty(true)
 {
-    m_gpuBuffer = g_gpuManager->createBuffer(GPUBuffer::kUniformBuffer, usage, m_uniformStruct.size);
-    m_shadowBuffer = new char[m_uniformStruct.size];
-    memset(m_shadowBuffer, 0, m_uniformStruct.size);
+    m_gpu = g_gpuManager->createBuffer(
+        GPUBuffer::kUniformBuffer,
+        usage,
+        m_uniformStruct.size());
+
+    m_shadowBuffer = new char[m_uniformStruct.size()];
+    memset(m_shadowBuffer, 0, m_uniformStruct.size());
 }
 
 /** Destroy the buffer. */
@@ -146,21 +144,18 @@ UniformBufferBase::~UniformBufferBase() {
 }
 
 /**
- * Retrieve the GPU buffer.
+ * Flush pending updates to the GPU buffer.
  *
- * Retrieve the GPU buffer. Any modifications made to the buffer content on the
- * CPU side since the last call to this function will be uploaded to the GPU
- * buffer.
+ * Upload any modifications made to the buffer content on the CPU side since the
+ * last call to this function to the GPU buffer.
  *
  * @return              Pointer to GPU buffer.
  */
-GPUBuffer *UniformBufferBase::gpu() const {
+void UniformBufferBase::flush() const {
     if (m_dirty) {
-        m_gpuBuffer->write(0, m_uniformStruct.size, m_shadowBuffer);
+        m_gpu->write(0, m_uniformStruct.size(), m_shadowBuffer);
         m_dirty = false;
     }
-
-    return m_gpuBuffer;
 }
 
 /** Get the value of a member.

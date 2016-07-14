@@ -22,8 +22,8 @@
 #ifndef __POST_EFFECT_H
 #define __POST_EFFECT_H
 
-uniform sampler2D sourceTexture;
-uniform sampler2D depthBuffer;
+layout(set = kPostEffectResources, binding = kSourceTexture) uniform sampler2D sourceTexture;
+layout(set = kPostEffectResources, binding = kDepthBuffer) uniform sampler2D depthBuffer;
 
 /** Calculate the source texture coordinate for the pixel position.
  * @return              Texture coordinate. */

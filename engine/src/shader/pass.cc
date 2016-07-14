@@ -34,12 +34,13 @@
 
 #include "gpu/gpu_manager.h"
 
+#include "render/render_manager.h"
 #include "render/scene_light.h"
 
 #include "shader/pass.h"
+#include "shader/resource.h"
 #include "shader/shader.h"
 #include "shader/shader_compiler.h"
-#include "shader/shader_manager.h"
 #include "shader/uniform_buffer.h"
 
 /** Array of pass variation strings, indexed by pass type. */
@@ -112,46 +113,7 @@ static GPUProgramPtr compileVariation(const ShaderCompiler::Options &options, Sh
         return nullptr;
 
     /* Create a GPU program. */
-    GPUProgramPtr program = g_gpuManager->createProgram(options.stage, spirv);
-    if (!program)
-        return nullptr;
-
-    /* Bind the uniform blocks. */
-    GPUProgram::ResourceList uniformBlocks;
-    program->queryUniformBlocks(uniformBlocks);
-    for (const GPUProgram::Resource &uniformBlock : uniformBlocks) {
-        unsigned slot;
-        if (!g_shaderManager->lookupGlobalUniformBlock(uniformBlock.name, slot)) {
-            logError(
-                "Shader '%s' refers to unknown uniform block '%s'",
-                options.path.c_str(), uniformBlock.name.c_str());
-            return nullptr;
-        }
-
-        program->bindUniformBlock(uniformBlock.index, slot);
-    }
-
-    /* Bind texture samplers. */
-    GPUProgram::ResourceList samplers;
-    program->querySamplers(samplers);
-    for (const GPUProgram::Resource &sampler : samplers) {
-        unsigned slot;
-        if (!g_shaderManager->lookupGlobalTexture(sampler.name, slot)) {
-            const ShaderParameter *param = parent->lookupParameter(sampler.name);
-            if (!param || !param->isTexture()) {
-                logError(
-                    "Shader '%s' refers to unknown texture '%s'",
-                    options.path.c_str(), sampler.name.c_str());
-                return nullptr;
-            }
-
-            slot = param->textureSlot;
-        }
-
-        program->bindSampler(sampler.index, slot);
-    }
-
-    return program;
+    return g_gpuManager->createProgram(options.stage, spirv);
 }
 
 /** Add a GPU shader to the pass.
@@ -184,14 +146,14 @@ bool Pass::loadStage(unsigned stage, const Path &path, const ShaderKeywordSet &k
                 if (j)
                     variationOptions.keywords.insert(shadowVariation);
 
-                GPUProgramPtr &program = m_variations[(i * 2) + j].desc.programs[stage];
+                GPUProgramPtr &program = m_variations[(i * 2) + j].programs[stage];
                 program = compileVariation(variationOptions, m_parent);
                 if (!program)
                     return false;
             }
         }
     } else {
-        GPUProgramPtr &program = m_variations[0].desc.programs[stage];
+        GPUProgramPtr &program = m_variations[0].programs[stage];
         program = compileVariation(options, m_parent);
         if (!program)
             return false;
@@ -200,8 +162,25 @@ bool Pass::loadStage(unsigned stage, const Path &path, const ShaderKeywordSet &k
     return true;
 }
 
-/** Finalize the pass (called from Shader::addPass). */
-void Pass::finalize() {
-    for (size_t i = 0; i < m_variations.size(); i++)
-        m_variations[i].pipeline = g_gpuManager->createPipeline(m_variations[i].desc);
+/** Finalise the pass (called from Shader::addPass). */
+void Pass::finalise() {
+    for (Variation &variation : m_variations) {
+        GPUPipelineDesc pipelineDesc;
+
+        pipelineDesc.programs = std::move(variation.programs);
+
+        /* Bind standard resource sets. */
+        const RenderManager::Resources &resources = g_renderManager->resources();
+        pipelineDesc.resourceLayout.resize(ResourceSets::kNumResourceSets);
+        pipelineDesc.resourceLayout[ResourceSets::kEntityResources] = resources.entityResourceSetLayout;
+        pipelineDesc.resourceLayout[ResourceSets::kViewResources] = resources.viewResourceSetLayout;
+        pipelineDesc.resourceLayout[ResourceSets::kLightResources] = resources.lightResourceSetLayout;
+        pipelineDesc.resourceLayout[ResourceSets::kPostEffectResources] = resources.postEffectResourceSetLayout;
+
+        /* Bind material resources. */
+        pipelineDesc.resourceLayout[ResourceSets::kMaterialResources] = m_parent->m_resourceSetLayout;
+
+        /* Create a pipeline. */
+        variation.pipeline = g_gpuManager->createPipeline(std::move(pipelineDesc));
+    }
 }

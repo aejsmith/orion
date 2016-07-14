@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -67,16 +67,41 @@ void RenderManager::init() {
     vertexDesc.attributes[3].components = 4;
     vertexDesc.attributes[3].binding = 0;
     vertexDesc.attributes[3].offset = offsetof(SimpleVertex, r);
-    m_simpleVertexDataLayout = g_gpuManager->createVertexDataLayout(std::move(vertexDesc));
+    m_resources.simpleVertexDataLayout = g_gpuManager->createVertexDataLayout(std::move(vertexDesc));
+
+    /* Create the standard resource set layouts. */
+    GPUResourceSetLayoutDesc desc;
+
+    desc.slots.resize(ResourceSlots::kNumEntityResources);
+    desc.slots[ResourceSlots::kUniforms].type = GPUResourceType::kUniformBuffer;
+    m_resources.entityResourceSetLayout = g_gpuManager->createResourceSetLayout(std::move(desc));
+
+    desc.slots.resize(ResourceSlots::kNumViewResources);
+    desc.slots[ResourceSlots::kUniforms].type = GPUResourceType::kUniformBuffer;
+    desc.slots[ResourceSlots::kDeferredBufferA].type = GPUResourceType::kTexture;
+    desc.slots[ResourceSlots::kDeferredBufferB].type = GPUResourceType::kTexture;
+    desc.slots[ResourceSlots::kDeferredBufferC].type = GPUResourceType::kTexture;
+    desc.slots[ResourceSlots::kDeferredBufferD].type = GPUResourceType::kTexture;
+    m_resources.viewResourceSetLayout = g_gpuManager->createResourceSetLayout(std::move(desc));
+
+    desc.slots.resize(ResourceSlots::kNumLightResources);
+    desc.slots[ResourceSlots::kUniforms].type = GPUResourceType::kUniformBuffer;
+    desc.slots[ResourceSlots::kShadowMap].type = GPUResourceType::kTexture;
+    m_resources.lightResourceSetLayout = g_gpuManager->createResourceSetLayout(std::move(desc));
+
+    desc.slots.resize(ResourceSlots::kNumPostEffectResources);
+    desc.slots[ResourceSlots::kDepthBuffer].type = GPUResourceType::kTexture;
+    desc.slots[ResourceSlots::kSourceTexture].type = GPUResourceType::kTexture;
+    m_resources.postEffectResourceSetLayout = g_gpuManager->createResourceSetLayout(std::move(desc));
 
     /* Create the utility geometry. */
-    RenderUtil::makeQuad(m_quadVertexData);
-    RenderUtil::makeSphere(24, 24, m_sphereVertexData, m_sphereIndexData);
-    RenderUtil::makeCone(20, m_coneVertexData, m_coneIndexData);
+    RenderUtil::makeQuad(m_resources.quadVertexData);
+    RenderUtil::makeSphere(24, 24, m_resources.sphereVertexData, m_resources.sphereIndexData);
+    RenderUtil::makeCone(20, m_resources.coneVertexData, m_resources.coneIndexData);
 
     /* Load the deferred light material. */
     ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/internal/deferred_light");
-    m_deferredLightMaterial = new Material(shader);
+    m_resources.deferredLightMaterial = new Material(shader);
 }
 
 /**
@@ -121,6 +146,7 @@ void RenderManager::allocRenderTargets(RenderPath path, glm::ivec2 size) {
 
     /* Re-allocate G-Buffer textures if necessary. */
     if (path == RenderPath::kDeferred && (rt.deferredBufferSize.x < size.x || rt.deferredBufferSize.y < size.y)) {
+        /* Free old buffers. */
         rt.deferredBufferA = nullptr;
         rt.deferredBufferB = nullptr;
         rt.deferredBufferC = nullptr;
@@ -165,19 +191,6 @@ void RenderManager::allocRenderTargets(RenderPath path, glm::ivec2 size) {
         rt.deferredBufferC = g_gpuManager->createTexture(desc);
         desc.format = PixelFormat::kDepth24Stencil8;
         rt.deferredBufferD = g_gpuManager->createTexture(desc);
-
-        // FIXME: separate bindTexture/Sampler, and do this only once.
-        GPUSamplerStateDesc samplerDesc;
-        samplerDesc.filterMode = SamplerFilterMode::kNearest;
-        samplerDesc.maxAnisotropy = 1;
-        samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
-        GPUSamplerStatePtr sampler = g_gpuManager->getSamplerState(samplerDesc);
-
-        /* Update deferred buffer texture bindings. */
-        g_gpuManager->bindTexture(TextureSlots::kDeferredBufferA, rt.deferredBufferA, sampler);
-        g_gpuManager->bindTexture(TextureSlots::kDeferredBufferB, rt.deferredBufferB, sampler);
-        g_gpuManager->bindTexture(TextureSlots::kDeferredBufferC, rt.deferredBufferC, sampler);
-        g_gpuManager->bindTexture(TextureSlots::kDeferredBufferD, rt.deferredBufferD, sampler);
     }
 
     /* Mark all temporary render targets as free. TODO: Free up targets that

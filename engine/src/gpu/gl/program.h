@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,22 +21,36 @@
 
 #pragma once
 
+#include <list>
+
 #include "gl.h"
 
 /** OpenGL GPU shader implementation. */
 class GLProgram : public GPUProgram {
 public:
-    GLProgram(unsigned stage, GLuint program);
+    /** Details of a resource used by the shader. */
+    struct Resource {
+        std::string name;           /**< Uniform name. */
+        GPUResourceType type;       /**< Type of the resource. */
+        unsigned set;               /**< Set that this resource is bound to. */
+        unsigned slot;              /**< Slot that this resource is bound to. */
+        GLint location;             /**< Uniform location. */
+        unsigned current;           /**< Current (mapped) binding, -1u for none. */
+    };
+
+    /** List of resources used by the shader. */
+    using ResourceList = std::list<Resource>;
+
+    GLProgram(unsigned stage, GLuint program, ResourceList &&resources);
     ~GLProgram();
 
-    void queryUniformBlocks(ResourceList &list) override;
-    void querySamplers(ResourceList &list) override;
-    void bindUniformBlock(unsigned index, unsigned slot) override;
-    void bindSampler(unsigned index, unsigned slot) override;
-
-    /** Get the GL program object.
-     * @return              GL program object ID. */
+    /** @return             GL program object ID. */
     GLuint program() const { return m_program; }
+    /** @return             Resource binding information. */
+    const ResourceList &resources() const { return m_resources; }
+
+    void setResourceLayout(const GPUResourceSetLayoutArray &layouts);
 private:
     GLuint m_program;               /**< Program object ID. */
+    ResourceList m_resources;       /**< Resource binding information. */
 };

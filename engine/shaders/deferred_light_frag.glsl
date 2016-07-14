@@ -23,10 +23,10 @@
 
 layout(location = 0) out vec4 fragColour;
 
-uniform sampler2D deferredBufferA;
-uniform sampler2D deferredBufferB;
-uniform sampler2D deferredBufferC;
-uniform sampler2D deferredBufferD;
+layout(set = kViewResources, binding = kDeferredBufferA) uniform sampler2D deferredBufferA;
+layout(set = kViewResources, binding = kDeferredBufferB) uniform sampler2D deferredBufferB;
+layout(set = kViewResources, binding = kDeferredBufferC) uniform sampler2D deferredBufferC;
+layout(set = kViewResources, binding = kDeferredBufferD) uniform sampler2D deferredBufferD;
 
 /** Decode the G-Buffer data.
  * @param data          Lighting data structure to fill in. */

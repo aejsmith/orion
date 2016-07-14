@@ -28,7 +28,7 @@
  *
  * Simple vertex structure providing a position, normal, and a single set of
  * texture coordinates. The GPU vertex data layout matching this structure is
- * available from RenderManager::simpleVertexDataLayout().
+ * available from RenderManager::Resources::simpleVertexDataLayout.
  */
 struct SimpleVertex {
     float x, y, z, _pad1;

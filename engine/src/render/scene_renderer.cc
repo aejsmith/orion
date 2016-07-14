@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -61,8 +61,8 @@ void SceneRenderer::render() {
     /* Find all visible entities and add them to all appropriate draw lists. */
     m_scene->visitVisibleEntities(m_view, [this] (SceneEntity *e) { addEntity(e); });
 
-    /* Set view uniforms once per frame. */
-    g_gpuManager->bindUniformBuffer(UniformSlots::kViewUniforms, m_view->uniforms());
+    /* Set view resources once per frame. */
+    setViewResources(m_view, m_path);
 
     /* Set the primary render target and clear it. FIXME: Better place for clear
      * and clear settings. */
@@ -79,7 +79,7 @@ void SceneRenderer::render() {
      * returns the output buffer it gives should be the current render target. */
     const PostEffectChain *effectChain = m_view->postEffectChain();
     GPUTexture *finalTexture = (effectChain)
-        ? effectChain->render(targets.colourBuffer, targets.depthBuffer, m_view->viewport().size())
+        ? effectChain->render(m_view->viewport().size())
         : targets.colourBuffer.get();
 
     /* Draw debug primitives onto the view. */
@@ -105,9 +105,20 @@ void SceneRenderer::addLight(SceneLight *light) {
     LightRenderState &state = m_lights.back();
     state.light = light;
 
+    /* Flush pending resource changes, save resource set for later. */
+    state.resources = light->resourcesForDraw();
+
     if (light->castShadows()) {
         /* Allocate a shadow map. */
         state.shadowMap = light->allocShadowMap();
+
+        /* Update the shadow map resource binding. */
+        GPUSamplerStateDesc samplerDesc;
+        samplerDesc.filterMode = SamplerFilterMode::kNearest;
+        samplerDesc.maxAnisotropy = 1;
+        samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
+        GPUSamplerStatePtr sampler = g_gpuManager->getSamplerState(samplerDesc);
+        state.resources->bindTexture(ResourceSlots::kShadowMap, state.shadowMap, sampler);
 
         /* Now find all shadow casting entities which are affected by this light. */
         unsigned numShadowViews = light->numShadowViews();
@@ -162,16 +173,16 @@ void SceneRenderer::renderShadowMaps() {
         if (!state.shadowMap)
             continue;
 
-        /* Bind light uniforms. */
-        g_gpuManager->bindUniformBuffer(UniformSlots::kLightUniforms, state.light->uniforms());
+        /* Bind light resources. */
+        g_gpuManager->bindResourceSet(ResourceSets::kLightResources, state.resources);
 
         /* Need to do a rendering pass for each view. */
         unsigned numShadowViews = state.light->numShadowViews();
         for (unsigned i = 0; i < numShadowViews; i++) {
             SceneView *shadowView = state.light->shadowView(i);
 
-            /* Set view uniforms. */
-            g_gpuManager->bindUniformBuffer(UniformSlots::kViewUniforms, shadowView->uniforms());
+            /* Set view resources. */
+            setViewResources(shadowView, RenderPath::kForward);
 
             /* Set the render target. */
             GPURenderTargetDesc desc;
@@ -246,7 +257,8 @@ void SceneRenderer::renderDeferred() {
                 break;
         }
 
-        setLightState(lightState);
+        /* Set light rendering state. */
+        g_gpuManager->bindResourceSet(ResourceSets::kLightResources, lightState.resources);
 
         /* Draw the light volume. The light volume pass is defined as a forward
          * pass as this is needed for per-light type shader variations to be
@@ -254,7 +266,11 @@ void SceneRenderer::renderDeferred() {
         Geometry geometry;
         lightState.light->volumeGeometry(geometry);
         DrawList list;
-        list.addDrawCalls(geometry, g_renderManager->deferredLightMaterial(), nullptr, Pass::Type::kForward);
+        list.addDrawCalls(
+            geometry,
+            g_renderManager->resources().deferredLightMaterial,
+            nullptr,
+            Pass::Type::kForward);
         list.draw(lightState.light);
     }
 }
@@ -275,7 +291,8 @@ void SceneRenderer::renderForward() {
         if (lightState.drawList.empty())
             continue;
 
-        setLightState(lightState);
+        /* Set light rendering state. */
+        g_gpuManager->bindResourceSet(ResourceSets::kLightResources, lightState.resources);
 
         /* Draw all entities. */
         lightState.drawList.draw(lightState.light);
@@ -288,6 +305,30 @@ void SceneRenderer::renderForward() {
 
     /* Render all entities with basic materials. */
     m_basicDrawList.draw();
+}
+
+/** Update and set the view resources. */
+void SceneRenderer::setViewResources(SceneView *view, RenderPath path) {
+    /* Flush uniform changes and get the resources. */
+    GPUResourceSet *resources = view->resourcesForDraw();
+
+    /* Update the deferred buffer bindings if we need them. */
+    if (path == RenderPath::kDeferred) {
+        const RenderManager::RenderTargets &targets = g_renderManager->renderTargets();
+
+        GPUSamplerStateDesc samplerDesc;
+        samplerDesc.filterMode = SamplerFilterMode::kNearest;
+        samplerDesc.maxAnisotropy = 1;
+        samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
+        GPUSamplerStatePtr sampler = g_gpuManager->getSamplerState(samplerDesc);
+
+        resources->bindTexture(ResourceSlots::kDeferredBufferA, targets.deferredBufferA, sampler);
+        resources->bindTexture(ResourceSlots::kDeferredBufferB, targets.deferredBufferB, sampler);
+        resources->bindTexture(ResourceSlots::kDeferredBufferC, targets.deferredBufferC, sampler);
+        resources->bindTexture(ResourceSlots::kDeferredBufferD, targets.deferredBufferD, sampler);
+    }
+
+    g_gpuManager->bindResourceSet(ResourceSets::kViewResources, resources);
 }
 
 /** Set the off-screen output buffers as the render target. */
@@ -316,20 +357,4 @@ void SceneRenderer::setDeferredRenderTarget() {
     desc.depthStencil.texture = targets.depthBuffer;
 
     g_gpuManager->setRenderTarget(&desc, &m_view->viewport());
-}
-
-/** Set up rendering state for a light common to both forward/deferred paths.
- * @param state         Light to set state for. */
-void SceneRenderer::setLightState(LightRenderState &state) {
-    g_gpuManager->bindUniformBuffer(UniformSlots::kLightUniforms, state.light->uniforms());
-
-    if (state.shadowMap) {
-        GPUSamplerStateDesc samplerDesc;
-        samplerDesc.filterMode = SamplerFilterMode::kNearest;
-        samplerDesc.maxAnisotropy = 1;
-        samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
-        GPUSamplerStatePtr sampler = g_gpuManager->getSamplerState(samplerDesc);
-
-        g_gpuManager->bindTexture(TextureSlots::kShadowMap, state.shadowMap, sampler);
-    }
 }

@@ -79,14 +79,14 @@ public:
 private:
     /** Structure holding a shader variation. */
     struct Variation {
-        /** Descriptor for the pipeline. */
-        GPUPipelineDesc desc;
-
         /** Pipeline created for the stage. */
         GPUPipelinePtr pipeline;
+
+        /** Set of programs for the pipeline (only valid before finalise()). */
+        GPUProgramArray programs;
     };
 
-    void finalize();
+    void finalise();
 
     Shader *m_parent;               /**< Parent shader. */
     Type m_type;                    /**< Type of the pass. */

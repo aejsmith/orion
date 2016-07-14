@@ -22,6 +22,7 @@
 #include "buffer.h"
 #include "gl.h"
 #include "pipeline.h"
+#include "resource.h"
 #include "texture.h"
 #include "vertex_data.h"
 
@@ -35,25 +36,40 @@ void GLGPUManager::bindPipeline(GPUPipeline *pipeline) {
     glPipeline->bind();
 }
 
-/** Bind a texture.
- * @param index         Texture unit index to bind to.
- * @param texture       Texture to bind.
- * @param sampler       Sampler state to bind with. */
-void GLGPUManager::bindTexture(unsigned index, GPUTexture *texture, GPUSamplerState *sampler) {
-    GLTexture *glTexture = static_cast<GLTexture *>(texture);
-    glTexture->bind(index);
-    GLSamplerState *glSampler = static_cast<GLSamplerState *>(sampler);
-    glSampler->bind(index);
-}
+/** Bind a resource set.
+ * @param index         Resource set index to bind to.
+ * @param resources     Resource set to bind. */
+void GLGPUManager::bindResourceSet(unsigned index, GPUResourceSet *resources) {
+    for (unsigned slotIndex = 0; slotIndex < resources->slots().size(); slotIndex++) {
+        const GPUResourceSet::Slot &slot = resources->slots()[slotIndex];
 
-/** Bind a uniform buffer.
- * @param index         Uniform block index to bind to.
- * @param buffer        Buffer to bind. */
-void GLGPUManager::bindUniformBuffer(unsigned index, GPUBuffer *buffer) {
-    check(buffer->type() == GPUBuffer::kUniformBuffer);
+        if (!slot.object)
+            continue;
 
-    GLBuffer *glBuffer = static_cast<GLBuffer *>(buffer);
-    glBuffer->bindIndexed(index);
+        GLResourceSetLayout *layout = static_cast<GLResourceSetLayout *>(resources->layout());
+        unsigned binding = layout->mapSlot(index, slotIndex);
+
+        switch (slot.desc.type) {
+            case GPUResourceType::kUniformBuffer:
+            {
+                GLBuffer *buffer = static_cast<GLBuffer *>(slot.object.get());
+                buffer->bindIndexed(binding);
+                break;
+            }
+
+            case GPUResourceType::kTexture:
+            {
+                GLTexture *texture = static_cast<GLTexture *>(slot.object.get());
+                texture->bind(binding);
+                GLSamplerState *sampler = static_cast<GLSamplerState *>(slot.sampler.get());
+                sampler->bind(binding);
+                break;
+            }
+
+            default:
+                break;
+        }
+    }
 }
 
 /** Set the viewport.

@@ -24,9 +24,9 @@
 
 #ifdef SHADOW
     #if defined(SPOT_LIGHT)
-        uniform sampler2D shadowMap;
+        layout(set = kLightResources, binding = kShadowMap) uniform sampler2D shadowMap;
     #elif defined(POINT_LIGHT)
-        uniform samplerCube shadowMap;
+        layout(set = kLightResources, binding = kShadowMap) uniform samplerCube shadowMap;
     #endif
 #endif
 

@@ -358,7 +358,7 @@ void DebugOverlay::render() {
         size_t indexBufferOffset = 0;
         for (const ImDrawCmd *cmd = cmdList->CmdBuffer.begin(); cmd != cmdList->CmdBuffer.end(); cmd++) {
             GPUTexture *texture = reinterpret_cast<GPUTexture *>(cmd->TextureId);
-            g_gpuManager->bindTexture(TextureSlots::kDebugTexture, texture, m_sampler);
+            m_material->setGPUTexture("debugTexture", texture, m_sampler);
 
             /* Create index data. */
             GPUIndexDataPtr indexData = g_gpuManager->createIndexData(

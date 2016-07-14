@@ -42,6 +42,10 @@ namespace ResourceSets {
         kLightResources = 2,
         /** Resources for the current material (contents defined by shader). */
         kMaterialResources = 3,
+        /** Resources for the current post-processing pass. */
+        kPostEffectResources = 4,
+
+        kNumResourceSets,
     };
 }
 
@@ -50,6 +54,12 @@ namespace ResourceSlots {
     enum ENUM() Value {
         /** Uniform buffer (this is slot 0 for all sets with uniforms). */
         kUniforms = 0,
+
+        /**
+         * Per-entity resources (kEntityResources).
+         */
+
+        kNumEntityResources = 1,
 
         /**
          * Per-view resources (kViewResources).
@@ -61,11 +71,7 @@ namespace ResourceSlots {
         kDeferredBufferC = 3,
         kDeferredBufferD = 4,
 
-        /** Depth buffer (should only be used by post-processing effects). */
-        kDepthBuffer = 5,
-
-        /** Source texture for post-processing effects. */
-        kSourceTexture = 6,
+        kNumViewResources = 5,
 
         /**
          * Per-light resources (kLightResources).
@@ -73,5 +79,19 @@ namespace ResourceSlots {
 
         /** Shadow map. */
         kShadowMap = 1,
+
+        kNumLightResources = 2,
+
+        /**
+         * Post-processing resources (kPostEffectResources).
+         */
+
+        /** Depth buffer. */
+        kDepthBuffer = 0,
+
+        /** Source texture. */
+        kSourceTexture = 1,
+
+        kNumPostEffectResources = 2,
     };
 }

@@ -68,7 +68,7 @@ public:
     /** Create a pipeline object.
      * @param desc          Parameters for the pipeline.
      * @return              Pointer to created pipeline. */
-    virtual GPUPipelinePtr createPipeline(const GPUPipelineDesc &desc) = 0;
+    virtual GPUPipelinePtr createPipeline(GPUPipelineDesc &&desc) = 0;
 
     /** Create a texture.
      * @param desc          Descriptor containing texture parameters.
@@ -117,16 +117,17 @@ public:
      * @param pipeline      Pipeline to use. */
     virtual void bindPipeline(GPUPipeline *pipeline) = 0;
 
-    /** Bind a texture.
-     * @param index         Texture unit index to bind to.
-     * @param texture       Texture to bind.
-     * @param sampler       Sampler state. */
-    virtual void bindTexture(unsigned index, GPUTexture *texture, GPUSamplerState *sampler) = 0;
-
-    /** Bind a uniform buffer.
-     * @param index         Uniform block index to bind to.
-     * @param buffer        Buffer to bind. */
-    virtual void bindUniformBuffer(unsigned index, GPUBuffer *buffer) = 0;
+    /**
+     * Bind a resource set.
+     *
+     * Binds the specified resource set to a set index for upcoming draws. Note
+     * that after binding a resource set with this function, it must not be
+     * changed for the remainder of the frame.
+     *
+     * @param index         Resource set index to bind to.
+     * @param resources     Resource set to bind.
+     */
+    virtual void bindResourceSet(unsigned index, GPUResourceSet *resources) = 0;
 
     /** Set the blend state.
      * @param state         Blend state to set. */

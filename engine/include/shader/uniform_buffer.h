@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -31,7 +31,10 @@
  * Uniform structure metadata.
  */
 
-/** Information about a uniform structure member. */
+/** Information about a uniform structure member.
+ * @note                Declared globally rather than as a nested class within
+ *                      UniformStruct to avoid a cyclic dependency between
+ *                      this header and shader_parameter.h. */
 struct UniformStructMember {
     const char *name;                   /**< Name of the member. */
     ShaderParameter::Type type;         /**< Member type. */
@@ -39,7 +42,8 @@ struct UniformStructMember {
 };
 
 /** Information about a uniform structure. */
-struct UniformStruct {
+class UniformStruct {
+public:
     /** Type of the global uniform structure list. */
     using StructList = std::list<UniformStruct *>;
 
@@ -49,29 +53,39 @@ struct UniformStruct {
     /** Type of the member initialization function. */
     using InitFunc = void (*)(UniformStruct *);
 
-    const char *name;                   /**< Name of the structure. */
-    const char *instanceName;           /**< Instance name to use when declaring in shaders. */
-    unsigned slot;                      /**< Uniform slot to bind to when used in shaders. */
-    size_t size;                        /**< Size of the structure. */
-    MemberList members;                 /**< Members of the structure. */
-public:
-    /** Constructor for a dynamically built uniform structure. */
-    UniformStruct(const char *inName, const char *inInstance, unsigned inSlot) :
+    /** Constructor for a dynamically-built uniform structure.
+     * @param inName        Name of the structure.
+     * @param inInstance    Instance name to use when declaring in shaders.
+     * @param inSet         Resource set to bind to in shaders. The slot used is
+     *                      the standard ResourceSlots::kUniforms. */
+    UniformStruct(const char *inName, const char *inInstance, unsigned inSet) :
         name(inName),
         instanceName(inInstance),
-        slot(inSlot),
-        size(0)
+        set(inSet),
+        m_size(0)
     {}
 
-    UniformStruct(const char *inName, const char *inInstance, unsigned inSlot, size_t inSize, InitFunc init);
+    UniformStruct(const char *inName, const char *inInstance, unsigned inSet, size_t size, InitFunc init);
+
+    const char *name;                   /**< Name of the structure. */
+    const char *instanceName;           /**< Instance name to use when declaring in shaders. */
+    unsigned set;                       /**< Resource set to bind to in shaders. */
 
     const UniformStructMember *lookupMember(const char *name) const;
 
     const UniformStructMember *addMember(const char *name, ShaderParameter::Type type);
     const UniformStructMember *addMember(const char *name, ShaderParameter::Type type, size_t offset);
 
+    /** @return             Size of the structure. */
+    size_t size() const { return m_size; }
+    /** @return             List of members. */
+    const MemberList &members() const { return m_members; }
+
     static const StructList &structList();
     static const UniformStruct *lookup(const std::string &name);
+private:
+    size_t m_size;                      /**< Size of the structure. */
+    MemberList m_members;               /**< Members of the structure. */
 };
 
 /**
@@ -114,12 +128,13 @@ public:
 /** Define uniform structure metadata.
  * @param structName    Name of the structure.
  * @param instanceName  Instance name to use when declaring in shaders.
- * @param slot          Uniform slot to bind to when used in shaders. */
-#define IMPLEMENT_UNIFORM_STRUCT(structName, instanceName, slot) \
+ * @param set           Resource set to bind to in shaders. The slot used is
+ *                      the standard ResourceSlots::kUniforms. */
+#define IMPLEMENT_UNIFORM_STRUCT(structName, instanceName, set) \
     const UniformStruct structName::kUniformStruct( \
         #structName, \
         instanceName, \
-        slot, \
+        set, \
         sizeof(structName), \
         structName::_initMembers);
 
@@ -142,8 +157,10 @@ public:
 
     /** @return             Uniform structure for this buffer. */
     const UniformStruct &uniformStruct() const { return m_uniformStruct; }
+    /** @return             Backing GPU buffer. */
+    GPUBuffer *gpu() const { return m_gpu; }
 
-    GPUBuffer *gpu() const;
+    void flush() const;
 
     /**
      * Member access.
@@ -173,7 +190,7 @@ public:
     }
 protected:
     const UniformStruct &m_uniformStruct;   /**< Uniform structure for the buffer. */
-    GPUBufferPtr m_gpuBuffer;               /**< GPU buffer. */
+    GPUBufferPtr m_gpu;                     /**< GPU buffer. */
     char *m_shadowBuffer;                   /**< CPU shadow buffer. */
     mutable bool m_dirty;                   /**< Whether the buffer is dirty. */
 };
@@ -205,20 +222,12 @@ public:
     /**
      * Access the buffer for writing.
      *
-     * Accesses the buffer contents for writing. This accesses the CPU
-     * shadow buffer, and sets a flag to indicate that the buffer content
-     * is dirty. Pending modifications will be flushed next time the GPU
-     * buffer is requested. Note that since the dirty flag is set only when
-     * this function is called, you should not save the returned pointer
-     * across a call to gpu() as writes may not be flushed. For example:
-     *
-     *  MyUniforms *uniforms = m_uniforms.write();
-     *  uniforms->foo = 42;
-     *  g_gpuManager->bindUniformBuffer(m_uniforms.gpu());
-     *  uniforms->bar = 1234;
-     *
-     * After the above sequence, the final write may not be flushed by the
-     * next call to gpu() unless something else calls write() inbetween.
+     * Accesses the buffer contents for writing. This accesses the CPU shadow
+     * buffer, and sets a flag to indicate that the buffer content is dirty.
+     * Pending modifications will be flushed next time flush() is called. Note
+     * that since the dirty flag is set only when this function is called, you
+     * should not save the returned pointer across across a call to flush() as
+     * writes may not be flushed.
      *
      * @return              Pointer to the buffer for writing.
      */

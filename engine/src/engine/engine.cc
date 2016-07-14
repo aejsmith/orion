@@ -38,8 +38,6 @@
 
 #include "render/render_manager.h"
 
-#include "shader/shader_manager.h"
-
 #include <SDL.h>
 
 /** Global instance of the engine. */
@@ -89,7 +87,6 @@ Engine::Engine() :
 
     /* Initialize other global systems. */
     g_inputManager = new InputManager;
-    g_shaderManager = new ShaderManager;
     g_assetManager = new AssetManager;
     g_renderManager = new RenderManager;
     g_renderManager->init();
@@ -113,7 +110,6 @@ Engine::~Engine() {
     /* Shut down global systems. */
     delete g_physicsManager;
     delete g_renderManager;
-    delete g_shaderManager;
     delete g_debugManager;
     delete g_assetManager;
     delete g_inputManager;

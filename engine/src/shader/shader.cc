@@ -27,8 +27,7 @@
 
 /** Initialize the shader. */
 Shader::Shader() :
-    m_uniformStruct(nullptr),
-    m_nextTextureSlot(0)
+    m_uniformStruct(nullptr)
 {}
 
 /** Destroy the shader. */
@@ -68,6 +67,8 @@ void Shader::deserialise(Serialiser &serialiser) {
 
         serialiser.endArray();
     }
+
+    finaliseParameters();
 
     if (serialiser.beginArray("passes")) {
         while (serialiser.beginGroup()) {
@@ -118,22 +119,43 @@ void Shader::deserialise(Serialiser &serialiser) {
     }
 }
 
-/** Set shader-wide draw state for a material.
- * @param material      Material being rendered with. */
-void Shader::setDrawState(Material *material) const {
-    /* Set the uniform buffer if we have one. */
-    if (m_uniformStruct) {
-        UniformBufferBase *buffer = material->m_uniforms;
-        check(buffer);
-        g_gpuManager->bindUniformBuffer(UniformSlots::kMaterialUniforms, buffer->gpu());
+/** Create a resource set layout after adding all parameters. */
+void Shader::finaliseParameters() {
+    // TODO: This is fine for now, but if in future we want dynamic modification
+    // of shader parameters (e.g. in an editor) we will need to recreate this
+    // as needed, and then recreate all material resource sets from it.
+
+    GPUResourceSetLayoutDesc desc(1);
+    unsigned nextSlot = 1;
+
+    for (auto &it : m_parameters) {
+        const std::string &name = it.first;
+        ShaderParameter &parameter = it.second;
+
+        if (parameter.isTexture()) {
+            /* Assign a resource slot. */
+            parameter.resourceSlot = nextSlot++;
+            desc.slots.resize(nextSlot);
+            desc.slots[parameter.resourceSlot].type = GPUResourceType::kTexture;
+        } else {
+            /* Add a uniform struct member for it. Create struct if we don't
+             * already have one. */
+            if (!m_uniformStruct) {
+                m_uniformStruct = new UniformStruct(
+                    "MaterialUniforms",
+                    nullptr,
+                    ResourceSets::kMaterialResources);
+                desc.slots[ResourceSlots::kUniforms].type = GPUResourceType::kUniformBuffer;
+            }
+
+            /* A bit nasty, UniformStructMember has a const char * for name, not
+             * a std::string, so we point to the name string in the map key.
+             * This avoids storing multiple copies of the name string. */
+            parameter.uniformMember = m_uniformStruct->addMember(name.c_str(), parameter.type);
+        }
     }
 
-    /* Bind textures. */
-    const Material::TextureArray &textures = material->m_textures;
-    for (size_t i = 0; i < m_nextTextureSlot; i++) {
-        if (textures[i])
-            g_gpuManager->bindTexture(i, textures[i]->gpu(), textures[i]->sampler());
-    }
+    m_resourceSetLayout = g_gpuManager->createResourceSetLayout(std::move(desc));
 }
 
 /** Add a parameter to the shader.
@@ -143,27 +165,8 @@ void Shader::addParameter(const std::string &name, ShaderParameter::Type type) {
     auto ret = m_parameters.emplace(std::make_pair(name, ShaderParameter()));
     checkMsg(ret.second, "Adding duplicate shader parameter '%s'", name.c_str());
 
-    ShaderParameter &param = ret.first->second;
-    param.type = type;
-
-    if (ShaderParameter::isTexture(type)) {
-        /* Assign a texture slot. */
-        checkMsg(
-            m_nextTextureSlot <= TextureSlots::kMaterialTexturesEnd,
-            "Parameter '%s' exceeds maximum number of textures", name.c_str());
-
-        param.textureSlot = m_nextTextureSlot++;
-    } else {
-        /* Add a uniform struct member for it. Create struct if we don't already
-         * have one. */
-        if (!m_uniformStruct)
-            m_uniformStruct = new UniformStruct("MaterialUniforms", nullptr, UniformSlots::kMaterialUniforms);
-
-        /* A bit nasty, UniformStructMember has a char * for name, not a
-         * std::string, so we point to the name string in the map key. This
-         * avoids storing multiple copies of the name string. */
-        param.uniformMember = m_uniformStruct->addMember(ret.first->first.c_str(), type);
-    }
+    ShaderParameter &parameter = ret.first->second;
+    parameter.type = type;
 }
 
 /** Look up a parameter by name.
@@ -190,8 +193,8 @@ void Shader::addPass(Pass *pass) {
             break;
     }
 
-    /* Finalize the pipeline. */
-    pass->finalize();
+    /* Finalise the pipeline. */
+    pass->finalise();
 
     m_passes[index].push_back(pass);
 }

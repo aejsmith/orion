@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,9 +21,12 @@
 
 #pragma once
 
+#include "gpu/resource.h"
+
 #include "shader/uniform_buffer.h"
 
 struct Geometry;
+
 class Material;
 class Scene;
 
@@ -58,12 +61,17 @@ public:
     const BoundingBox &worldBoundingBox() const { return m_worldBoundingBox; }
     /** @return             Whether the rendered object casts a shadow. */
     bool castShadow() const { return m_castShadow; }
-    /** @return             GPU buffer containing entity uniforms. */
-    GPUBuffer *uniforms() const { return m_uniforms.gpu(); }
 
     void setTransform(const Transform &transform);
     void setBoundingBox(const BoundingBox &boundingBox);
     void setCastShadow(bool castShadow);
+
+    /** Flush pending updates and get resources for a draw call.
+     * @return              Resource set containing per-entity resources. */
+    GPUResourceSet *resourcesForDraw() {
+        m_uniforms.flush();
+        return m_resources;
+    }
 
     /** Get the geometry for the entity.
      * @param geometry      Geometry structure to fill in. */
@@ -87,6 +95,9 @@ private:
 
     /** Uniform buffer containing per-entity parameters. */
     UniformBuffer<EntityUniforms> m_uniforms;
+
+    /** Resource set containing per-entity resources. */
+    GPUResourceSetPtr m_resources;
 
     friend class Scene;
 };

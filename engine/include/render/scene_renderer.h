@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -30,17 +30,6 @@ class Scene;
 class SceneLight;
 class SceneView;
 
-/** Structure containing light rendering state. */
-struct LightRenderState {
-    SceneLight *light;              /**< Light being rendered. */
-    DrawList drawList;              /**< List of all (forward) draw calls affected by this light. */
-
-    GPUTexture *shadowMap;          /**< Shadow map texture. */
-
-    /** Draw calls for shadow casters visible to this light. */
-    DrawList shadowMapDrawLists[SceneLight::kMaxShadowViews];
-};
-
 /**
  * Class which renders a scene.
  *
@@ -60,6 +49,18 @@ public:
 
     void render();
 private:
+    /** Structure containing light rendering state. */
+    struct LightRenderState {
+        SceneLight *light;              /**< Light being rendered. */
+        GPUResourceSet *resources;      /**< Flushed resource set from SceneLight::resourcesForDraw(). */
+        DrawList drawList;              /**< List of all (forward) draw calls affected by this light. */
+
+        GPUTexture *shadowMap;          /**< Shadow map texture. */
+
+        /** Draw calls for shadow casters visible to this light. */
+        DrawList shadowMapDrawLists[SceneLight::kMaxShadowViews];
+    };
+
     void addLight(SceneLight *light);
     void addEntity(SceneEntity *entity);
 
@@ -67,9 +68,9 @@ private:
     void renderDeferred();
     void renderForward();
 
+    void setViewResources(SceneView *view, RenderPath path);
     void setOutputRenderTarget();
     void setDeferredRenderTarget();
-    void setLightState(LightRenderState &state);
 private:
     Scene *m_scene;                 /**< Scene being rendered. */
     SceneView *m_view;              /**< View into the scene to render from. */

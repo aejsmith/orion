@@ -56,8 +56,8 @@ struct ShaderParameter {
     union {
         /** For uniform parameters, the struct member for the parameter. */
         const UniformStructMember *uniformMember;
-        /** For texture parameters, the texture slot to bind to. */
-        unsigned textureSlot;
+        /** For other parameters, the resource slot to bind to. */
+        unsigned resourceSlot;
     };
 
     /** @return             Storage size of the parameter. */

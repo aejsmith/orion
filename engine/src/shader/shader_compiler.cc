@@ -76,9 +76,11 @@ static void generateEnumDefinitions(std::string &source) {
  * @param source        Source string to modify.
  * @param uniforms      Uniform structure to generate. */
 static void generateUniformBlock(std::string &source, const UniformStruct *uniforms) {
-    source += String::format("layout(std140) uniform %s {\n", uniforms->name);
+    source += String::format(
+        "layout(std140, set = %u, binding = %u) uniform %s {\n",
+        uniforms->set, ResourceSlots::kUniforms, uniforms->name);
 
-    for (const UniformStructMember &member : uniforms->members) {
+    for (const UniformStructMember &member : uniforms->members()) {
         source += String::format("    %s %s;\n",
             ShaderParameter::glslType(member.type),
             member.name);
@@ -140,14 +142,15 @@ static std::string generateSource(const ShaderCompiler::Options &options) {
     /* Define other parameters (e.g. textures). */
     for (const ShaderCompiler::ParameterDefinition &parameter : options.parameters) {
         source += String::format(
-            "uniform %s %s;\n",
+            "layout(set = %u, binding = %u) uniform %s %s;\n",
+            ResourceSets::kMaterialResources, parameter.second.resourceSlot,
             parameter.second.glslType(), parameter.first.c_str());
     }
     if (!options.parameters.empty())
         source += "\n";
 
     /* Include the source file. This will be pulled in by the include logic. */
-    source += String::format("#include \"%s\"", options.path.c_str());
+    source += String::format("#include \"%s\"\n", options.path.c_str());
     return source;
 }
 

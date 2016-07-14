@@ -53,7 +53,7 @@ SkyboxSceneEntity::SkyboxSceneEntity(Skybox *parent) :
 void SkyboxSceneEntity::geometry(Geometry &geometry) const {
     /* Skybox is rendered as a quad. The transformation is ignored by the
      * shader. */
-    g_renderManager->quadGeometry(geometry);
+    g_renderManager->resources().quadGeometry(geometry);
 }
 
 /** Get the material for the entity.

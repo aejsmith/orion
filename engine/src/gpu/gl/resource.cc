@@ -40,9 +40,10 @@
  *
  * Since shaders have fixed set/binding numbers hardcoded into them, when we
  * receive shader source we record the set/binding number for each name and
- * then strip them out before handing the source to the driver. At pipeline
- * creation time, we bind the uniforms in the shader to the correct binding
- * points based on the supplied layouts.
+ * then strip them out before handing the source to the driver. When binding a
+ * pipeline, we bind the uniforms in its shaders to the correct binding points
+ * based on the resource set layouts of the new pipeline (if they are not
+ * already matching).
  *
  * TODO:
  *  - Could improve over a fixed division of the binding spaces based on set
@@ -102,12 +103,14 @@ GLResourceSetLayout::GLResourceSetLayout(GPUResourceSetLayoutDesc &&desc) :
  *
  * @param set           Set number where this layout is being used.
  * @param slot          Slot number to map.
+ *
+ * @return              Mapped binding point index.
  */
-size_t GLResourceSetLayout::mapSlot(size_t set, size_t slot) const {
+unsigned GLResourceSetLayout::mapSlot(unsigned set, unsigned slot) const {
     check(set < kGLMaxResourceSets);
     check(slot < m_desc.slots.size());
 
-    size_t multiplier = 0;
+    unsigned multiplier = 0;
     switch (m_desc.slots[slot].type) {
         case GPUResourceType::kUniformBuffer:
             multiplier = kGLMaxUniformBuffersPerSet;
@@ -121,4 +124,11 @@ size_t GLResourceSetLayout::mapSlot(size_t set, size_t slot) const {
     }
 
     return (set * multiplier) + m_mapping[slot];
+}
+
+/** Create a resource set layout.
+ * @param desc          Descriptor for the layout.
+ * @return              Pointer to created resource set layout. */
+GPUResourceSetLayoutPtr GLGPUManager::createResourceSetLayout(GPUResourceSetLayoutDesc &&desc) {
+    return new GLResourceSetLayout(std::move(desc));
 }

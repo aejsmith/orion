@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -19,12 +19,15 @@
  * @brief               Scene entity base class.
  */
 
+#include "gpu/gpu_manager.h"
+
+#include "render/render_manager.h"
 #include "render/scene.h"
 #include "render/scene_entity.h"
 
-#include "shader/slots.h"
+#include "shader/resource.h"
 
-IMPLEMENT_UNIFORM_STRUCT(EntityUniforms, "entity", UniformSlots::kEntityUniforms);
+IMPLEMENT_UNIFORM_STRUCT(EntityUniforms, "entity", ResourceSets::kEntityResources);
 
 /**
  * Initialize the entity.
@@ -34,7 +37,11 @@ IMPLEMENT_UNIFORM_STRUCT(EntityUniforms, "entity", UniformSlots::kEntityUniforms
  */
 SceneEntity::SceneEntity() :
     m_updatePending(false)
-{}
+{
+    m_resources = g_gpuManager->createResourceSet(
+        g_renderManager->resources().entityResourceSetLayout);
+    m_resources->bindUniformBuffer(ResourceSlots::kUniforms, m_uniforms.gpu());
+}
 
 /** Destroy the entity. */
 SceneEntity::~SceneEntity() {}

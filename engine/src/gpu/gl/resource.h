@@ -31,7 +31,7 @@ class GLResourceSetLayout : public GPUResourceSetLayout {
 public:
     GLResourceSetLayout(GPUResourceSetLayoutDesc &&desc);
 
-    size_t mapSlot(size_t set, size_t slot) const;
+    unsigned mapSlot(unsigned set, unsigned slot) const;
 private:
     /**
      * Mapping of slot index GL binding points.

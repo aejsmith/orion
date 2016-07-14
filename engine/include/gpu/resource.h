@@ -69,6 +69,9 @@ using GPUResourceSetLayout = GPUState<GPUResourceSetLayoutDesc>;
 /** Type of a pointer to a GPU resource set layout. */
 using GPUResourceSetLayoutPtr = GPUObjectPtr<GPUResourceSetLayout>;
 
+/** Array of resource set layouts for a pipeline. */
+using GPUResourceSetLayoutArray = std::vector<GPUResourceSetLayoutPtr>;
+
 /**
  * A set of resources for a shader.
  *
@@ -82,9 +85,6 @@ using GPUResourceSetLayoutPtr = GPUObjectPtr<GPUResourceSetLayout>;
  */
 class GPUResourceSet : public GPUObject {
 public:
-    void bindUniformBuffer(size_t index, GPUBuffer *buffer);
-    void bindTexture(size_t index, GPUTexture *texture, GPUSamplerState *sampler);
-protected:
     /** Structure containing bindings for a slot. */
     struct Slot {
         const GPUResourceSetLayoutDesc::Slot &desc;
@@ -100,6 +100,14 @@ protected:
         {}
     };
 
+    void bindUniformBuffer(size_t index, GPUBuffer *buffer);
+    void bindTexture(size_t index, GPUTexture *texture, GPUSamplerState *sampler);
+
+    /** @return             Layout of the resource set. */
+    GPUResourceSetLayout *layout() const { return m_layout; }
+    /** @return             Array of bindings for each slot. */
+    const std::vector<Slot> &slots() const { return m_slots; }
+protected:
     GPUResourceSet(GPUResourceSetLayout *layout);
     ~GPUResourceSet();
 

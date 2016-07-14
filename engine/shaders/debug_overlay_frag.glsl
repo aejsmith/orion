@@ -24,8 +24,6 @@ layout(location = 1) in vec4 vtxColour;
 
 layout(location = 0) out vec4 fragColour;
 
-uniform sampler2D debugTexture;
-
 void main() {
     fragColour = vtxColour * texture(debugTexture, vtxTexcoord);
 }

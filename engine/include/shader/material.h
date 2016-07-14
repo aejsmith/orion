@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -23,10 +23,9 @@
 
 #include "engine/texture.h"
 
-#include "shader/shader.h"
-#include "shader/slots.h"
+#include "gpu/resource.h"
 
-#include <array>
+#include "shader/shader.h"
 
 class UniformBufferBase;
 
@@ -44,6 +43,8 @@ public:
 
     /** @return             Shader for the material. */
     Shader *shader() const { return m_shader; }
+
+    void setDrawState() const;
 
     /**
      * Parameter value access.
@@ -69,6 +70,8 @@ public:
     void setValue(const char *name, const T &value) {
         setValue(name, ShaderParameterTypeTraits<T>::kType, std::addressof(value));
     }
+
+    void setGPUTexture(const char *name, GPUTexture *texture, GPUSamplerState *sampler);
 protected:
     Material();
     ~Material();
@@ -76,14 +79,24 @@ protected:
     void serialise(Serialiser &serialiser) const override;
     void deserialise(Serialiser &serialiser) override;
 
-    void createUniforms();
+    void createResources();
 private:
-    /** Type of the texture array, indexed by slot. */
-    using TextureArray = std::array<TextureBasePtr, TextureSlots::kMaterialTexturesEnd + 1>;
-
     ShaderPtr m_shader;             /**< Shader being used by the material. */
     UniformBufferBase *m_uniforms;  /**< Uniform buffer containing material parameters. */
-    TextureArray m_textures;        /**< Array of textures, indexed by slot. */
+
+    /** Resource bindings for the material. */
+    GPUResourceSetPtr m_resources;
+
+    /**
+     * Array of resource assets.
+     *
+     * Although GPUResourceSet maintains references to the underlying GPU
+     * resources, if these are owned by a high level asset (e.g. Texture*) we
+     * additionally need to hold a reference to that, both to keep it alive and
+     * so that we can return it from getValue(). These are stored here, indexed
+     * by slot number. We know their real type from the parameter type.
+     */
+    std::vector<AssetPtr> m_resourceAssets;
 
     friend class Shader;
 };
