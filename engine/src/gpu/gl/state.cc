@@ -325,13 +325,13 @@ void GLState::bindSampler(unsigned unit, GLuint sampler) {
  * @param texture       Texture object to bind.
  */
 void GLState::bindTexture(unsigned unit, GLenum target, GLuint texture) {
-    if (this->activeTexture != unit) {
-        glActiveTexture(GL_TEXTURE0 + unit);
-        this->activeTexture = unit;
-    }
-
     TextureUnit &unitState = this->textureUnits[unit];
     if (unitState.target != target || unitState.texture != texture) {
+        if (this->activeTexture != unit) {
+            glActiveTexture(GL_TEXTURE0 + unit);
+            this->activeTexture = unit;
+        }
+
         if (unitState.target != GL_NONE && unitState.target != target) {
             /* Unbind the texture currently bound so that we don't have multiple
              * textures bound to different targets. */
