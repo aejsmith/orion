@@ -132,6 +132,23 @@ void GLGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexDat
     /* Bind the VAO and the index buffer (if any). */
     glVertices->bind((indices) ? indices->buffer() : nullptr);
 
+    check(this->state.boundPipeline);
+
+    #if ORION_GL_VALIDATE_PROGRAMS
+        GLint result = GL_FALSE;
+        glValidateProgramPipeline(this->state.boundPipeline);
+        glGetProgramPipelineiv(this->state.boundPipeline, GL_VALIDATE_STATUS, &result);
+        if (result != GL_TRUE) {
+            glGetProgramiv(this->state.boundPipeline, GL_INFO_LOG_LENGTH, &result);
+            std::unique_ptr<char[]> log(new char[result]);
+            glGetProgramPipelineInfoLog(this->state.boundPipeline, result, &result, log.get());
+
+            logError("GL: Pipeline validation failed");
+            logInfo("GL: Info log:\n%s", log.get());
+            fatal("GL pipeline validation error (see log)");
+        }
+    #endif
+
     GLenum mode = GLUtil::convertPrimitiveType(type);
     if (indices) {
         /* FIXME: Check whether index type is supported (in generic code?) */

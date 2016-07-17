@@ -41,6 +41,9 @@
 /** Define to 1 to keep shader objects around, to allow examination in OpenGL Profiler. */
 #define ORION_GL_KEEP_SHADER_OBJECTS    0
 
+/** Define to 1 to validate programs on every draw. */
+#define ORION_GL_VALIDATE_PROGRAMS      0
+
 #include "state.h"
 
 class GLTexture;
