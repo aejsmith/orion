@@ -36,7 +36,7 @@ GLTexture::GLTexture(const GPUTextureDesc &desc) :
     bindForModification();
 
     /* Specify maximum mipmap level. */
-    glTexParameteri(m_glTarget, GL_TEXTURE_MAX_LEVEL, m_mips);
+    glTexParameteri(m_glTarget, GL_TEXTURE_MAX_LEVEL, m_mips - 1);
 
     /* Specify storage for all levels. */
     switch (desc.type) {
@@ -80,7 +80,7 @@ GLTexture::GLTexture(const GPUTextureImageRef &image) :
         1);
 
     bindForModification();
-    glTexParameteri(m_glTarget, GL_TEXTURE_MAX_LEVEL, m_mips);
+    glTexParameteri(m_glTarget, GL_TEXTURE_MAX_LEVEL, m_mips - 1);
 }
 
 /** Destroy the texture. */
