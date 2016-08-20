@@ -172,20 +172,19 @@ void POSIXDirectory::reset() {
  * @return              True if entry read, false if the end of the directory
  *                      has been reached or an error occurred. */
 bool POSIXDirectory::next(Entry &entry) {
-    struct dirent dent;
-    struct dirent *result;
+    struct dirent *dent;
 
     while (true) {
-        int ret = readdir_r(m_dir, &dent, &result);
-        if (ret != 0 || !result)
+        dent = readdir(m_dir);
+        if (!dent)
             return false;
 
-        if (strcmp(dent.d_name, ".") && strcmp(dent.d_name, ".."))
+        if (strcmp(dent->d_name, ".") && strcmp(dent->d_name, ".."))
             break;
     }
 
-    entry.name = dent.d_name;
-    switch (dent.d_type) {
+    entry.name = dent->d_name;
+    switch (dent->d_type) {
         case DT_REG:
             entry.type = FileType::kFile;
             break;
