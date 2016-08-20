@@ -34,7 +34,12 @@ void Serialiser::serialiseObject(const Object *object) {
  * @param object        Where to store pointer to object. Set after construction
  *                      but before Object::deserialise() is called.
  * @return              Whether the object was successfully deserialised. */
-bool Serialiser::deserialiseObject(const char *className, const MetaClass &metaClass, ObjectPtr<Object> &object) {
+bool Serialiser::deserialiseObject(
+    const char *className,
+    const MetaClass &metaClass,
+    bool isPrimary,
+    ObjectPtr<Object> &object)
+{
     const MetaClass *givenMetaClass = MetaClass::lookup(className);
     if (!givenMetaClass) {
         logError("Serialised data contains unknown class '%s'", className);
@@ -50,6 +55,10 @@ bool Serialiser::deserialiseObject(const char *className, const MetaClass &metaC
 
     /* We allow deserialisation of classes that do not have a public constructor. */
     object = givenMetaClass->constructPrivate();
+
+    if (isPrimary && this->postConstructFunction)
+        this->postConstructFunction(object);
+
     object->deserialise(*this);
     return true;
 }

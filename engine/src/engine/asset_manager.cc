@@ -32,6 +32,7 @@
  */
 
 #include "core/filesystem.h"
+#include "core/json_serialiser.h"
 
 #include "engine/asset_loader.h"
 #include "engine/asset_manager.h"
@@ -147,21 +148,55 @@ AssetPtr AssetManager::load(const Path &path) {
         return nullptr;
     }
 
-    /* Look for a loader for the asset. */
-    std::unique_ptr<AssetLoader> loader(AssetLoaderFactory::create(type));
-    if (!loader) {
-        logError("%s: Unknown file type '%s'", path.c_str(), type.c_str());
-        return nullptr;
+    AssetPtr asset;
+
+    /* Helper function used on both paths below to mark the asset as managed
+     * and cache it. */
+    auto addAsset =
+        [&] (Object *object) {
+            Asset *asset = static_cast<Asset *>(object);
+            asset->m_path = path.str();
+            m_assets.insert(std::make_pair(path.str(), asset));
+        };
+
+    if (type == "object") {
+        /* This is a serialised object. */
+        std::vector<uint8_t> serialisedData(data->size());
+        if (!data->read(&serialisedData[0], data->size())) {
+            logError("%s: Failed to read asset data", path.c_str());
+            return nullptr;
+        }
+
+        JSONSerialiser serialiser;
+
+        /* We make the asset managed prior to calling its deserialise() method.
+         * This is done for 2 reasons. Firstly, it makes the path available to
+         * the deserialise() method. Secondly, it means that any references
+         * back to the asset by itself or child objects will correctly be
+         * resolved to it, rather than causing a recursive attempt to load the
+         * asset. */
+        serialiser.postConstructFunction = addAsset;
+
+        asset = serialiser.deserialise<Asset>(serialisedData);
+        if (!asset) {
+            logError("%s: Error during deserialisation", path.c_str());
+            return nullptr;
+        }
+    } else {
+        /* Look for a loader for the asset. */
+        std::unique_ptr<AssetLoader> loader(AssetLoaderFactory::create(type));
+        if (!loader) {
+            logError("%s: Unknown file type '%s'", path.c_str(), type.c_str());
+            return nullptr;
+        }
+
+        /* Create the asset. The loader should log an error if it fails. */
+        asset = loader->load(data.get(), metadata.get(), path.c_str());
+        if (!asset)
+            return nullptr;
+
+        addAsset(asset);
     }
-
-    /* Create the asset. The loader should log an error if it fails. */
-    AssetPtr asset = loader->load(data.get(), metadata.get(), path.c_str());
-    if (!asset)
-        return nullptr;
-
-    /* Mark the asset as managed and cache it. */
-    asset->m_path = path.str();
-    m_assets.insert(std::make_pair(path.str(), asset.get()));
 
     logDebug("Loaded asset '%s' with file type '%s'", path.c_str(), type.c_str());
     return asset;

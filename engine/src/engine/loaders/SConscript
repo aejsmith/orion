@@ -2,7 +2,6 @@ Import('env')
 
 objects = map(env.Object, [
     'obj_loader.cc',
-    'object_loader.cc',
     'texture_loader.cc',
     'tga_loader.cc',
     'ttf_loader.cc',

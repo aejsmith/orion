@@ -114,6 +114,9 @@ class Serialiser {
 public:
     virtual ~Serialiser() {}
 
+    /** Type of a function to be called between construction and deserialisation. */
+    using PostConstructFunction = std::function<void (Object *)>;
+
     /**
      * Serialise an object.
      *
@@ -157,6 +160,16 @@ public:
         ObjectPtr<Object> object = deserialise(data, T::staticMetaClass);
         return object.staticCast<T>();
     }
+
+    /**
+     * Post-construction function.
+     *
+     * A function that will be called after construction of the object being
+     * deserialised but before its deserialise() method is called. This only
+     * applies to the primary object in the serialised data, not any child
+     * objects.
+     */
+    PostConstructFunction postConstructFunction;
 
     /**
      * Interface used by (de)serialisation methods.
@@ -426,7 +439,11 @@ protected:
     virtual bool read(const char *name, const MetaType &type, void *value) = 0;
 
     void serialiseObject(const Object *object);
-    bool deserialiseObject(const char *className, const MetaClass &metaClass, ObjectPtr<Object> &object);
+    bool deserialiseObject(
+        const char *className,
+        const MetaClass &metaClass,
+        bool isPrimary,
+        ObjectPtr<Object> &object);
 private:
     friend class Object;
 };

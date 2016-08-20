@@ -263,7 +263,7 @@ ObjectPtr<Object> JSONSerialiser::findObject(uint32_t id, const MetaClass &metaC
     check(inserted.second);
 
     m_state->scopes.emplace_back(State::Scope::kObject, value);
-    bool success = deserialiseObject(className, metaClass, inserted.first->second);
+    bool success = deserialiseObject(className, metaClass, id == 0, inserted.first->second);
     m_state->scopes.pop_back();
 
     if (success) {
