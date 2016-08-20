@@ -152,7 +152,9 @@ GLGPUManager::GLGPUManager(const EngineConfiguration &config, Window *&window) :
         if (this->features["GL_ARB_debug_output"]) {
             glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
             glDebugMessageCallback((GLDEBUGPROC)debugCallback, nullptr);
-            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE,
+            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, 0, true);
+            glDebugMessageControl(
+                GL_DONT_CARE, GL_DONT_CARE,
                 GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr,
                 ORION_GL_DEBUG_NOTIFICATIONS);
         }
@@ -247,6 +249,13 @@ void GLGPUManager::initPixelFormats() {
 
 #if ORION_GL_DEBUG
 
+/** Filters on debug messages. */
+static const char *kDebugMessageFilters[] = {
+    /* This appears to be spurious on NVIDIA. Appears as "Texture 0 is..."
+     * despite texture 0 not being bound nor used by the bound shader. */
+    "is base level inconsistent. Check texture size.",
+};
+
 /** GL debug output callback.
  * @param source        Message source.
  * @param type          Message type.
@@ -264,6 +273,11 @@ GLEWAPIENTRY void GLGPUManager::debugCallback(
     const GLchar *message,
     const GLvoid *param)
 {
+    for (const char *filter : kDebugMessageFilters) {
+        if (std::strstr(message, filter))
+            return;
+    }
+
     const char *sourceString = "OTHER";
     switch (source) {
         case GL_DEBUG_SOURCE_API:
