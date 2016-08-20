@@ -112,8 +112,20 @@ static GPUProgramPtr compileVariation(const ShaderCompiler::Options &options, Sh
     if (!ShaderCompiler::compile(options, spirv))
         return nullptr;
 
+    /* Create a name string. */
+    std::string name = parent->path();
+    name += " (";
+    bool first = true;
+    for (const std::string &keyword : options.keywords) {
+        if (!first)
+            name += ", ";
+        first = false;
+        name += keyword;
+    }
+    name += ")";
+
     /* Create a GPU program. */
-    return g_gpuManager->createProgram(options.stage, spirv);
+    return g_gpuManager->createProgram(options.stage, spirv, name);
 }
 
 /** Add a GPU shader to the pass.

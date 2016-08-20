@@ -106,8 +106,12 @@ public:
     /** Create a GPU program from a SPIR-V binary.
      * @param stage         Stage that the program is for.
      * @param spirv         SPIR-V binary for the shader.
+     * @param name          Name of the shader for debugging purposes.
      * @return              Pointer to created shader on success, null on error. */
-    virtual GPUProgramPtr createProgram(unsigned stage, const std::vector<uint32_t> &spirv) = 0;
+    virtual GPUProgramPtr createProgram(
+        unsigned stage,
+        const std::vector<uint32_t> &spirv,
+        const std::string &name) = 0;
 
     /**
      * State methods.

@@ -108,8 +108,9 @@ static GLProgram::ResourceList getResources(spirv_cross::CompilerGLSL &compiler)
 /** Generate GLSL source from the SPIR-V.
  * @param compiler      Cross compiler.
  * @param stage         Stage that the program is for.
+ * @param name          Name of the shader.
  * @return              Generated source string. */
-static std::string generateSource(spirv_cross::CompilerGLSL &compiler, unsigned stage) {
+static std::string generateSource(spirv_cross::CompilerGLSL &compiler, unsigned stage, const std::string &name) {
     GLFeatures &features = g_opengl->features;
 
     spirv_cross::CompilerGLSL::Options options;
@@ -145,6 +146,9 @@ static std::string generateSource(spirv_cross::CompilerGLSL &compiler, unsigned 
             insertionPos += str.length();
         };
 
+    /* Add a comment giving the shader name so it is visible in apitrace etc. */
+    addHeader("/* " + name + " */\n\n");
+
     if (stage == ShaderStage::kVertex) {
         /* For some absurd reason SSO requires the gl_PerVertex block to be
          * redeclared. Do so here so we don't have to do it in every shader. */
@@ -157,8 +161,13 @@ static std::string generateSource(spirv_cross::CompilerGLSL &compiler, unsigned 
 /** Create a GPU program from a SPIR-V binary.
  * @param stage         Stage that the program is for.
  * @param spirv         SPIR-V binary for the shader.
+ * @param name          Name of the program for debugging purposes.
  * @return              Pointer to created shader on success, null on error. */
-GPUProgramPtr GLGPUManager::createProgram(unsigned stage, const std::vector<uint32_t> &spirv) {
+GPUProgramPtr GLGPUManager::createProgram(
+    unsigned stage,
+    const std::vector<uint32_t> &spirv,
+    const std::string &name)
+{
     spirv_cross::CompilerGLSL compiler(spirv);
 
     /* See resource.cc for a description of how we handle resource bindings.
@@ -169,7 +178,7 @@ GPUProgramPtr GLGPUManager::createProgram(unsigned stage, const std::vector<uint
     /* Translate the SPIR-V back to GLSL. Hopefully future GL versions will
      * gain support for consuming SPIR-V directly. We would still need to do
      * the resource remapping, though. */
-    std::string source = generateSource(compiler, stage);
+    std::string source = generateSource(compiler, stage, name);
 
     /* Compile the shader. */
     GLuint shader = glCreateShader(GLUtil::convertShaderStage(stage));
