@@ -67,6 +67,17 @@ public:
         return (point.x >= x && point.y >= y && point.x < (x + width) && point.y < (y + height));
     }
 
+    /** Check whether the rectangle contains another rectangle.
+     * @param other         Rectangle to check.
+     * @return              Whether the rectangle is completely within in this one. */
+    bool contains(const RectImpl &other) const {
+        return
+            other.x >= x &&
+            other.y >= y &&
+            (other.x + other.width) <= (x + width) &&
+            (other.y + other.height) <= (y + height);
+    }
+
     /** Compare for equality with another rectangle.
      * @param other         Rectangle to compare with.
      * @return              Whether they are equal. */

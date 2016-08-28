@@ -438,34 +438,25 @@ void TextureCube::update(unsigned face, unsigned mip, const IntRect &area, const
  * @param texture       Texture that this render texture belongs to.
  * @param layer         Layer that is being targeted. */
 RenderTexture::RenderTexture(TextureBase *texture, unsigned layer) :
-    RenderTarget(kTextureMediumPriority),
+    RenderTarget(
+        texture->gpu()->width(),
+        texture->gpu()->height(),
+        texture->format(),
+        kTextureMediumPriority),
     m_texture(texture),
     m_layer(layer)
 {}
 
-/** @return             Width of the render target. */
-uint32_t RenderTexture::width() const {
-    return m_texture->gpu()->width();
-}
-
-/** @return             Height of the render target. */
-uint32_t RenderTexture::height() const {
-    return m_texture->gpu()->height();
-}
-
-/** Set the render target as the current.
- * @param viewport      Optional viewport rectangle. */
-void RenderTexture::set(const IntRect *viewport) {
-    GPURenderTargetDesc desc;
-    desc.numColours = 1;
+/** Get the target GPU render target descriptor.
+ * @param ref           Image reference structure to fill in. */
+void RenderTexture::getRenderTargetDesc(GPURenderTargetDesc &desc) const {
+    desc = GPURenderTargetDesc(1);
     desc.colour[0].texture = m_texture->gpu();
     desc.colour[0].layer = m_layer;
-    g_gpuManager->setRenderTarget(&desc, viewport);
 }
 
 /** Get the target GPU texture image reference.
  * @param ref           Image reference structure to fill in. */
-void RenderTexture::gpu(GPUTextureImageRef &ref) {
-    ref.texture = m_texture->gpu();
-    ref.layer = m_layer;
+void RenderTexture::getTextureImageRef(GPUTextureImageRef &ref) const {
+    ref = GPUTextureImageRef(m_texture->gpu(), m_layer);
 }

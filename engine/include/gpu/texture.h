@@ -174,8 +174,10 @@ public:
         mip(inMip)
     {}
 
-    /** @return             Whether this is a null image reference. */
-    bool operator !() const { return !texture; }
+    /** @return             Whether this is a valid image reference. */
+    explicit operator bool() const {
+        return texture;
+    }
 
     /** Compare this reference with another. */
     bool operator ==(const GPUTextureImageRef &other) const {
@@ -192,47 +194,6 @@ public:
         size_t hash = hashValue(ref.texture);
         hash = hashCombine(hash, ref.layer);
         hash = hashCombine(hash, ref.mip);
-        return hash;
-    }
-};
-
-/** Render target descriptor structure. */
-struct GPURenderTargetDesc {
-    /**
-     * Array of colour render target descriptors. All array entries up to
-     * numColours must be non-null.
-     */
-    GPUTextureImageRef colour[kMaxColourRenderTargets];
-
-    /** Number of colour targets. */
-    size_t numColours;
-
-    /** Depth/stencil target. */
-    GPUTextureImageRef depthStencil;
-public:
-    GPURenderTargetDesc() : numColours(0) {}
-
-    /** Compare this descriptor with another. */
-    bool operator ==(const GPURenderTargetDesc &other) const {
-        if (numColours != other.numColours || depthStencil != other.depthStencil)
-            return false;
-
-        for (size_t i = 0; i < numColours; i++) {
-            if (colour[i] != other.colour[i])
-                return false;
-        }
-
-        return true;
-    }
-
-    /** Get a hash from a render target descriptor. */
-    friend size_t hashValue(const GPURenderTargetDesc &desc) {
-        size_t hash = hashValue(desc.numColours);
-        hash = hashCombine(hash, desc.depthStencil);
-
-        for (size_t i = 0; i < desc.numColours; i++)
-            hash = hashCombine(hash, desc.colour[i]);
-
         return hash;
     }
 };

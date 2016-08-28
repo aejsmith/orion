@@ -79,14 +79,8 @@ struct GLState {
         {}
     };
 public:
-    /** Render target/viewport state. */
+    /** Viewport state. */
     IntRect viewport;               /**< Current viewport. */
-    glm::ivec2 currentRTSize;       /**< Current render target size. */
-
-    /** Clear state. */
-    glm::vec4 clearColour;
-    float clearDepth;
-    uint32_t clearStencil;
 
     /** Blending state. */
     bool blendEnabled;
@@ -123,10 +117,6 @@ public:
     void initResources(GLFeatures &features);
 
     void setViewport(const IntRect &viewport);
-
-    void setClearColour(const glm::vec4 &colour);
-    void setClearDepth(float depth);
-    void setClearStencil(uint32_t stencil);
 
     void enableBlend(bool enable);
     void setBlendEquation(GLenum equation);

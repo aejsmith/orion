@@ -41,67 +41,138 @@ RenderManager::RenderManager() :
 /** Create rendering resources. */
 void RenderManager::init() {
     /* Create the simple vertex data layout. */
-    GPUVertexDataLayoutDesc vertexDesc(1, 4);
-    vertexDesc.bindings[0].stride = sizeof(SimpleVertex);
-    vertexDesc.attributes[0].semantic = VertexAttribute::kPositionSemantic;
-    vertexDesc.attributes[0].index = 0;
-    vertexDesc.attributes[0].type = VertexAttribute::kFloatType;
-    vertexDesc.attributes[0].components = 3;
-    vertexDesc.attributes[0].binding = 0;
-    vertexDesc.attributes[0].offset = offsetof(SimpleVertex, x);
-    vertexDesc.attributes[1].semantic = VertexAttribute::kNormalSemantic;
-    vertexDesc.attributes[1].index = 0;
-    vertexDesc.attributes[1].type = VertexAttribute::kFloatType;
-    vertexDesc.attributes[1].components = 3;
-    vertexDesc.attributes[1].binding = 0;
-    vertexDesc.attributes[1].offset = offsetof(SimpleVertex, nx);
-    vertexDesc.attributes[2].semantic = VertexAttribute::kTexcoordSemantic;
-    vertexDesc.attributes[2].index = 0;
-    vertexDesc.attributes[2].type = VertexAttribute::kFloatType;
-    vertexDesc.attributes[2].components = 2;
-    vertexDesc.attributes[2].binding = 0;
-    vertexDesc.attributes[2].offset = offsetof(SimpleVertex, u);
-    vertexDesc.attributes[3].semantic = VertexAttribute::kDiffuseSemantic;
-    vertexDesc.attributes[3].index = 0;
-    vertexDesc.attributes[3].type = VertexAttribute::kFloatType;
-    vertexDesc.attributes[3].components = 4;
-    vertexDesc.attributes[3].binding = 0;
-    vertexDesc.attributes[3].offset = offsetof(SimpleVertex, r);
-    m_resources.simpleVertexDataLayout = g_gpuManager->createVertexDataLayout(std::move(vertexDesc));
+    {
+        GPUVertexDataLayoutDesc desc(1, 4);
+        desc.bindings[0].stride = sizeof(SimpleVertex);
+        desc.attributes[0].semantic = VertexAttribute::kPositionSemantic;
+        desc.attributes[0].index = 0;
+        desc.attributes[0].type = VertexAttribute::kFloatType;
+        desc.attributes[0].components = 3;
+        desc.attributes[0].binding = 0;
+        desc.attributes[0].offset = offsetof(SimpleVertex, x);
+        desc.attributes[1].semantic = VertexAttribute::kNormalSemantic;
+        desc.attributes[1].index = 0;
+        desc.attributes[1].type = VertexAttribute::kFloatType;
+        desc.attributes[1].components = 3;
+        desc.attributes[1].binding = 0;
+        desc.attributes[1].offset = offsetof(SimpleVertex, nx);
+        desc.attributes[2].semantic = VertexAttribute::kTexcoordSemantic;
+        desc.attributes[2].index = 0;
+        desc.attributes[2].type = VertexAttribute::kFloatType;
+        desc.attributes[2].components = 2;
+        desc.attributes[2].binding = 0;
+        desc.attributes[2].offset = offsetof(SimpleVertex, u);
+        desc.attributes[3].semantic = VertexAttribute::kDiffuseSemantic;
+        desc.attributes[3].index = 0;
+        desc.attributes[3].type = VertexAttribute::kFloatType;
+        desc.attributes[3].components = 4;
+        desc.attributes[3].binding = 0;
+        desc.attributes[3].offset = offsetof(SimpleVertex, r);
+        m_resources.simpleVertexDataLayout = g_gpuManager->createVertexDataLayout(std::move(desc));
+    }
 
     /* Create the standard resource set layouts. */
-    GPUResourceSetLayoutDesc desc;
+    {
+        GPUResourceSetLayoutDesc desc;
 
-    desc.slots.resize(ResourceSlots::kNumEntityResources);
-    desc.slots[ResourceSlots::kUniforms].type = GPUResourceType::kUniformBuffer;
-    m_resources.entityResourceSetLayout = g_gpuManager->createResourceSetLayout(std::move(desc));
+        /* Entity resources. */
+        desc.slots.resize(ResourceSlots::kNumEntityResources);
+        desc.slots[ResourceSlots::kUniforms].type = GPUResourceType::kUniformBuffer;
+        m_resources.entityResourceSetLayout = g_gpuManager->createResourceSetLayout(std::move(desc));
 
-    desc.slots.resize(ResourceSlots::kNumViewResources);
-    desc.slots[ResourceSlots::kUniforms].type = GPUResourceType::kUniformBuffer;
-    desc.slots[ResourceSlots::kDeferredBufferA].type = GPUResourceType::kTexture;
-    desc.slots[ResourceSlots::kDeferredBufferB].type = GPUResourceType::kTexture;
-    desc.slots[ResourceSlots::kDeferredBufferC].type = GPUResourceType::kTexture;
-    desc.slots[ResourceSlots::kDeferredBufferD].type = GPUResourceType::kTexture;
-    m_resources.viewResourceSetLayout = g_gpuManager->createResourceSetLayout(std::move(desc));
+        /* View resources. */
+        desc.slots.resize(ResourceSlots::kNumViewResources);
+        desc.slots[ResourceSlots::kUniforms].type = GPUResourceType::kUniformBuffer;
+        desc.slots[ResourceSlots::kDeferredBufferA].type = GPUResourceType::kTexture;
+        desc.slots[ResourceSlots::kDeferredBufferB].type = GPUResourceType::kTexture;
+        desc.slots[ResourceSlots::kDeferredBufferC].type = GPUResourceType::kTexture;
+        desc.slots[ResourceSlots::kDeferredBufferD].type = GPUResourceType::kTexture;
+        m_resources.viewResourceSetLayout = g_gpuManager->createResourceSetLayout(std::move(desc));
 
-    desc.slots.resize(ResourceSlots::kNumLightResources);
-    desc.slots[ResourceSlots::kUniforms].type = GPUResourceType::kUniformBuffer;
-    desc.slots[ResourceSlots::kShadowMap].type = GPUResourceType::kTexture;
-    m_resources.lightResourceSetLayout = g_gpuManager->createResourceSetLayout(std::move(desc));
+        /* Light resources. */
+        desc.slots.resize(ResourceSlots::kNumLightResources);
+        desc.slots[ResourceSlots::kUniforms].type = GPUResourceType::kUniformBuffer;
+        desc.slots[ResourceSlots::kShadowMap].type = GPUResourceType::kTexture;
+        m_resources.lightResourceSetLayout = g_gpuManager->createResourceSetLayout(std::move(desc));
 
-    desc.slots.resize(ResourceSlots::kNumPostEffectResources);
-    desc.slots[ResourceSlots::kDepthBuffer].type = GPUResourceType::kTexture;
-    desc.slots[ResourceSlots::kSourceTexture].type = GPUResourceType::kTexture;
-    m_resources.postEffectResourceSetLayout = g_gpuManager->createResourceSetLayout(std::move(desc));
+        /* Post effect resources. */
+        desc.slots.resize(ResourceSlots::kNumPostEffectResources);
+        desc.slots[ResourceSlots::kDepthBuffer].type = GPUResourceType::kTexture;
+        desc.slots[ResourceSlots::kSourceTexture].type = GPUResourceType::kTexture;
+        m_resources.postEffectResourceSetLayout = g_gpuManager->createResourceSetLayout(std::move(desc));
+    }
+
+    /* Create the standard render passes. */
+    {
+        GPURenderPassDesc desc;
+
+        /* Shadow map pass. */
+        desc.depthStencilAttachment.format = kShadowMapFormat;
+        desc.depthStencilAttachment.loadOp = GPURenderLoadOp::kClear;
+        desc.depthStencilAttachment.stencilLoadOp = GPURenderLoadOp::kDontCare;
+        m_resources.sceneShadowMapPass = g_gpuManager->createRenderPass(std::move(desc));
+
+        /* Deferred G-Buffer pass. */
+        desc.colourAttachments.resize(3);
+        desc.colourAttachments[0].format = kDeferredBufferAFormat;
+        desc.colourAttachments[0].loadOp = GPURenderLoadOp::kClear;
+        desc.colourAttachments[1].format = kDeferredBufferBFormat;
+        desc.colourAttachments[1].loadOp = GPURenderLoadOp::kClear;
+        desc.colourAttachments[2].format = kDeferredBufferCFormat;
+        desc.colourAttachments[2].loadOp = GPURenderLoadOp::kClear;
+        desc.depthStencilAttachment = GPURenderAttachmentDesc();
+        desc.depthStencilAttachment.format = kScreenDepthBufferFormat;
+        desc.depthStencilAttachment.loadOp = GPURenderLoadOp::kClear;
+        desc.depthStencilAttachment.stencilLoadOp = GPURenderLoadOp::kClear;
+        m_resources.sceneGBufferPass = g_gpuManager->createRenderPass(std::move(desc));
+
+        /* Deferred lighting pass. */
+        desc.colourAttachments.resize(1);
+        desc.colourAttachments[0].format = kScreenColourBufferFormat;
+        desc.colourAttachments[0].loadOp = GPURenderLoadOp::kClear;
+        desc.depthStencilAttachment.format = kScreenDepthBufferFormat;
+        desc.depthStencilAttachment.loadOp = GPURenderLoadOp::kLoad;
+        desc.depthStencilAttachment.stencilLoadOp = GPURenderLoadOp::kLoad;
+        m_resources.sceneLightPass = g_gpuManager->createRenderPass(std::move(desc));
+
+        /* Forward pass (after deferred rendering, no clear). */
+        desc.colourAttachments.resize(1);
+        desc.colourAttachments[0].format = kScreenColourBufferFormat;
+        desc.colourAttachments[0].loadOp = GPURenderLoadOp::kLoad;
+        desc.depthStencilAttachment.format = kScreenDepthBufferFormat;
+        desc.depthStencilAttachment.loadOp = GPURenderLoadOp::kLoad;
+        desc.depthStencilAttachment.stencilLoadOp = GPURenderLoadOp::kLoad;
+        m_resources.sceneForwardPass = g_gpuManager->createRenderPass(std::move(desc));
+
+        /* Forward pass (no deferred rendering done, must clear). */
+        desc.colourAttachments.resize(1);
+        desc.colourAttachments[0].format = kScreenColourBufferFormat;
+        desc.colourAttachments[0].loadOp = GPURenderLoadOp::kClear;
+        desc.depthStencilAttachment.format = kScreenDepthBufferFormat;
+        desc.depthStencilAttachment.loadOp = GPURenderLoadOp::kClear;
+        desc.depthStencilAttachment.stencilLoadOp = GPURenderLoadOp::kClear;
+        m_resources.sceneForwardClearPass = g_gpuManager->createRenderPass(std::move(desc));
+
+        /* Post effect blit pass. */
+        desc.colourAttachments.resize(1);
+        desc.colourAttachments[0].format = kScreenColourBufferFormat;
+        desc.colourAttachments[0].loadOp = GPURenderLoadOp::kDontCare;
+        desc.depthStencilAttachment = GPURenderAttachmentDesc();
+        m_resources.postEffectBlitPass = g_gpuManager->createRenderPass(std::move(desc));
+    }
 
     /* Create the utility geometry. */
-    RenderUtil::makeQuad(m_resources.quadVertexData);
-    RenderUtil::makeSphere(24, 24, m_resources.sphereVertexData, m_resources.sphereIndexData);
-    RenderUtil::makeCone(20, m_resources.coneVertexData, m_resources.coneIndexData);
+    {
+        RenderUtil::makeQuad(m_resources.quadVertexData);
+        RenderUtil::makeSphere(24, 24, m_resources.sphereVertexData, m_resources.sphereIndexData);
+        RenderUtil::makeCone(20, m_resources.coneVertexData, m_resources.coneIndexData);
+    }
 
     /* Load the deferred light material. */
-    ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/internal/deferred_light");
-    m_resources.deferredLightMaterial = new Material(shader);
+    {
+        ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/internal/deferred_light");
+        m_resources.deferredLightMaterial = new Material(shader);
+    }
 }
 
 /**
@@ -138,9 +209,9 @@ void RenderManager::allocRenderTargets(RenderPath path, glm::ivec2 size) {
         desc.height = rt.screenBufferSize.y;
         desc.mips = 1;
         desc.flags = GPUTexture::kRenderTarget;
-        desc.format = PixelFormat::kR8G8B8A8;
+        desc.format = kScreenColourBufferFormat;
         rt.colourBuffer = g_gpuManager->createTexture(desc);
-        desc.format = PixelFormat::kDepth24Stencil8;
+        desc.format = kScreenDepthBufferFormat;
         rt.depthBuffer = g_gpuManager->createTexture(desc);
     }
 
@@ -161,35 +232,20 @@ void RenderManager::allocRenderTargets(RenderPath path, glm::ivec2 size) {
             "Resizing deferred buffers to %dx%d (for %dx%d)",
             rt.deferredBufferSize.x, rt.deferredBufferSize.y, size.x, size.y);
 
-        /*
-         * Allocate the buffers. The buffer layout is as follows:
-         *
-         *     | Format      | R          | G          | B          | A
-         *  ---|-------------|------------|------------|------------|------------
-         *   A | R10G10B10A2 | Normal.x   | Normal.y   | Normal.z   | -
-         *  ---|-------------|------------|------------|------------|------------
-         *   B | R8G8B8A8    | Diffuse.r  | Diffuse.g  | Diffuse.b  | -
-         *  ---|-------------|------------|------------|------------|------------
-         *   C | R8G8B8A8    | Specular.r | Specular.g | Specular.b | 1/Shininess
-         *  ---|-------------|------------|------------|------------|------------
-         *   D | D24S8       | Depth      | -          | -          | -
-         *
-         * These are all unsigned normalized textures, therefore the normals are
-         * scaled to fit into the [0, 1] range, and the shininess is stored as
-         * its reciprocal. Position is reconstructed from the depth buffer.
-         */
+        /* Allocate the buffers. See render/defs.h for layout information. */
         GPUTextureDesc desc;
         desc.type = GPUTexture::kTexture2D;
         desc.width = rt.deferredBufferSize.x;
         desc.height = rt.deferredBufferSize.y;
         desc.mips = 1;
         desc.flags = GPUTexture::kRenderTarget;
-        desc.format = PixelFormat::kR10G10B10A2;
+        desc.format = kDeferredBufferAFormat;
         rt.deferredBufferA = g_gpuManager->createTexture(desc);
-        desc.format = PixelFormat::kR8G8B8A8;
+        desc.format = kDeferredBufferBFormat;
         rt.deferredBufferB = g_gpuManager->createTexture(desc);
+        desc.format = kDeferredBufferCFormat;
         rt.deferredBufferC = g_gpuManager->createTexture(desc);
-        desc.format = PixelFormat::kDepth24Stencil8;
+        desc.format = kDeferredBufferDFormat;
         rt.deferredBufferD = g_gpuManager->createTexture(desc);
     }
 

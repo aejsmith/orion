@@ -50,6 +50,11 @@ RenderLayer::~RenderLayer() {
 /** Set the render target.
  * @param target        New render target. */
 void RenderLayer::setRenderTarget(RenderTarget *target) {
+    /* Free any render pass we have. We will recreate it for the new target the
+     * first time beginRenderPass() is called. */
+    if (m_renderPass)
+        m_renderPass.reset();
+
     if (m_registered)
         m_renderTarget->removeLayer(this);
 
@@ -126,9 +131,46 @@ void RenderLayer::unregisterRenderLayer() {
     m_registered = false;
 }
 
+/**
+ * Begin a render pass instance for the layer.
+ *
+ * This function begins a new render pass to render to the render target for
+ * this layer. The render pass will only have a colour target, no depth/stencil
+ * target, therefore this pass should be used with depth/stencil testing and
+ * writes disabled. GPUManager::endRenderPass() should be called at the end of
+ * the pass.
+ *
+ * @param loadOp        Load operation for the colour target.
+ * @param clearColour   If loadOp is GPURenderLoadOp::kClear, the colour to
+ *                      clear to.
+ */
+void RenderLayer::beginLayerRenderPass(GPURenderLoadOp loadOp, const glm::vec4 &clearColour) {
+    if (!m_renderPass) {
+        /* Need to create a new render pass. */
+        GPURenderPassDesc passDesc(1);
+        passDesc.colourAttachments[0].format = m_renderTarget->format();
+        passDesc.colourAttachments[0].loadOp = loadOp;
+        m_renderPass = g_gpuManager->createRenderPass(std::move(passDesc));
+    }
+
+    check(m_renderPass->desc().colourAttachments[0].loadOp == loadOp);
+
+    GPURenderPassInstanceDesc instanceDesc(m_renderPass);
+    m_renderTarget->getRenderTargetDesc(instanceDesc.targets);
+    instanceDesc.clearColours[0] = clearColour;
+    instanceDesc.renderArea = m_pixelViewport;
+    g_gpuManager->beginRenderPass(instanceDesc);
+}
+
 /** Initialize the render target.
+ * @param width         Width of the render target.
+ * @param height        Height of the render target.
+ * @param format        Pixel format of the render target.
  * @param priority      Rendering priority. */
-RenderTarget::RenderTarget(unsigned priority) :
+RenderTarget::RenderTarget(uint32_t width, uint32_t height, PixelFormat format, unsigned priority) :
+    m_width(width),
+    m_height(height),
+    m_format(format),
     m_priority(priority)
 {}
 
@@ -170,8 +212,6 @@ void RenderTarget::removeLayer(RenderLayer *layer) {
 /** Render the render target. */
 void RenderTarget::render() {
     /* Render all our layers. */
-    for (RenderLayer *layer : m_layers) {
-        g_gpuManager->setViewport(layer->pixelViewport());
+    for (RenderLayer *layer : m_layers)
         layer->render();
-    }
 }

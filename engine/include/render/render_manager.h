@@ -23,6 +23,7 @@
 
 #include "core/hash_table.h"
 
+#include "gpu/render_pass.h"
 #include "gpu/resource.h"
 #include "gpu/state.h"
 #include "gpu/texture.h"
@@ -48,7 +49,7 @@ public:
         GPUTexturePtr deferredBufferC;      /**< Specular colour. */
         GPUTexturePtr deferredBufferD;      /**< Copy of depth buffer. */
         glm::ivec2 deferredBufferSize;      /**< Current size of G-Buffer. */
-    public:
+
         RenderTargets() :
             screenBufferSize(0, 0),
             deferredBufferSize(0, 0)
@@ -65,6 +66,14 @@ public:
         GPUResourceSetLayoutPtr viewResourceSetLayout;
         GPUResourceSetLayoutPtr lightResourceSetLayout;
         GPUResourceSetLayoutPtr postEffectResourceSetLayout;
+
+        /** Standard render passes. */
+        GPURenderPassPtr sceneShadowMapPass;
+        GPURenderPassPtr sceneGBufferPass;
+        GPURenderPassPtr sceneLightPass;
+        GPURenderPassPtr sceneForwardPass;
+        GPURenderPassPtr sceneForwardClearPass;
+        GPURenderPassPtr postEffectBlitPass;
 
         /** Basic geometry. */
         GPUVertexDataPtr quadVertexData;

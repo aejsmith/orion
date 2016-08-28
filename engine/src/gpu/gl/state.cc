@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -33,9 +33,6 @@
  * entries here.
  */
 GLState::GLState() :
-    clearColour(0.0f, 0.0f, 0.0f, 0.0f),
-    clearDepth(1.0f),
-    clearStencil(0.0f),
     blendEnabled(false),
     blendEquation(GL_FUNC_ADD),
     blendSourceFactor(GL_ONE),
@@ -73,33 +70,6 @@ void GLState::setViewport(const IntRect &viewport) {
     if (viewport != this->viewport) {
         glViewport(viewport.x, viewport.y, viewport.width, viewport.height);
         this->viewport = viewport;
-    }
-}
-
-/** Set the colour clear value.
- * @param colour        Colour clear value. */
-void GLState::setClearColour(const glm::vec4 &colour) {
-    if (colour != this->clearColour) {
-        glClearColor(colour.r, colour.g, colour.b, colour.a);
-        this->clearColour = colour;
-    }
-}
-
-/** Set the depth clear value.
- * @param depth         Depth clear value. */
-void GLState::setClearDepth(float depth) {
-    if (depth != this->clearDepth) {
-        glClearDepth(depth);
-        this->clearDepth = depth;
-    }
-}
-
-/** Set the stencil clear value.
- * @param stencil       Stencil clear value. */
-void GLState::setClearStencil(uint32_t stencil) {
-    if (stencil != this->clearStencil) {
-        glClearStencil(stencil);
-        this->clearStencil = stencil;
     }
 }
 
@@ -401,6 +371,8 @@ GPUBlendStatePtr GLGPUManager::createBlendState(const GPUBlendStateDesc &desc) {
 /** Set the blend state.
  * @param state         Blend state to set. */
 void GLGPUManager::setBlendState(GPUBlendState *state) {
+    check(m_currentRenderPass);
+
     GLBlendState *glState = static_cast<GLBlendState *>(state);
 
     this->state.enableBlend(glState->enable);
@@ -426,6 +398,8 @@ GPUDepthStencilStatePtr GLGPUManager::createDepthStencilState(const GPUDepthSten
 /** Set the depth/stencil state.
  * @param state         State to set. */
 void GLGPUManager::setDepthStencilState(GPUDepthStencilState *state) {
+    check(m_currentRenderPass);
+
     GLDepthStencilState *glState = static_cast<GLDepthStencilState *>(state);
     const GPUDepthStencilStateDesc &desc = state->desc();
 
@@ -448,6 +422,8 @@ GPURasterizerStatePtr GLGPUManager::createRasterizerState(const GPURasterizerSta
 /** Set the rasterizer state.
  * @param state         State to set. */
 void GLGPUManager::setRasterizerState(GPURasterizerState *state) {
+    check(m_currentRenderPass);
+
     GLRasterizerState *glState = static_cast<GLRasterizerState *>(state);
     const GPURasterizerStateDesc &desc = state->desc();
 

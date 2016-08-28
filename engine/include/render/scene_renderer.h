@@ -69,8 +69,6 @@ private:
     void renderForward();
 
     void setViewResources(SceneView *view, RenderPath path);
-    void setOutputRenderTarget();
-    void setDeferredRenderTarget();
 private:
     Scene *m_scene;                 /**< Scene being rendered. */
     SceneView *m_view;              /**< View into the scene to render from. */

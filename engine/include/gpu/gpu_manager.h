@@ -27,6 +27,7 @@
 #include "gpu/index_data.h"
 #include "gpu/pipeline.h"
 #include "gpu/program.h"
+#include "gpu/render_pass.h"
 #include "gpu/resource.h"
 #include "gpu/state.h"
 #include "gpu/texture.h"
@@ -51,7 +52,7 @@ public:
     virtual ~GPUManager();
 
     /**
-     * Resource creation methods.
+     * Object creation methods.
      */
 
     /** Create a GPU buffer.
@@ -69,6 +70,8 @@ public:
      * @param desc          Parameters for the pipeline.
      * @return              Pointer to created pipeline. */
     virtual GPUPipelinePtr createPipeline(GPUPipelineDesc &&desc) = 0;
+
+    virtual GPURenderPassPtr createRenderPass(GPURenderPassDesc &&desc);
 
     /** Create a texture.
      * @param desc          Descriptor containing texture parameters.
@@ -114,8 +117,62 @@ public:
         const std::string &name) = 0;
 
     /**
-     * State methods.
+     * Frame methods.
      */
+
+    /** Begin a new frame. */
+    virtual void startFrame() {}
+
+    /** End a frame and present it on screen. */
+    virtual void endFrame() = 0;
+
+    /**
+     * Texture operations.
+     */
+
+    /**
+     * Copy pixels from one texture to another.
+     *
+     * Copies a rectangle of pixels from one texture to another. If either the
+     * source or dest arguments are null image references, the main window will
+     * be used.
+     *
+     * @param source        Source texture image reference.
+     * @param dest          Destination texture image reference.
+     * @param sourcePos     Position in source texture to copy from.
+     * @param destPos       Position in destination texture to copy to.
+     * @param size          Size of area to copy.
+     */
+    virtual void blit(
+        const GPUTextureImageRef &source,
+        const GPUTextureImageRef &dest,
+        glm::ivec2 sourcePos,
+        glm::ivec2 destPos,
+        glm::ivec2 size) = 0;
+
+    /**
+     * Rendering methods.
+     */
+
+    /**
+     * Begin a render pass.
+     *
+     * Begins a new render pass instance. The render pass defines the targets
+     * that will be drawn to. All draw calls must take place within a render
+     * pass. Once the render pass is finished, it must be ended by calling
+     * endRenderPass().
+     *
+     * Beginning a render pass resets several pieces of state: the viewport
+     * will be set to the specified render area, the scissor test will be
+     * disabled, and the blend, depth/stencil and rasterizer states will be
+     * set to the default states.
+     *
+     * @param desc          Descriptor for the render pass instance.
+     */
+    virtual void beginRenderPass(const GPURenderPassInstanceDesc &desc) = 0;
+
+    /** End the current render pass. */
+    virtual void endRenderPass() = 0;
 
     /** Bind a pipeline for rendering.
      * @param pipeline      Pipeline to use. */
@@ -145,21 +202,6 @@ public:
      * @param state         Rasterizer state to set. */
     virtual void setRasterizerState(GPURasterizerState *state) = 0;
 
-    /**
-     * Set the render targets.
-     *
-     * Sets the current render target. A render target is described by a
-     * GPURenderTargetDesc, which specifies a number of texture colour targets
-     * and a depth/stencil target. If the descriptor pointer is given as null,
-     * the render target will be set to the main window. If a viewport rectangle
-     * is provided, that viewport will be set, else this function will reset the
-     * viewport to the size of the new render target.
-     *
-     * @param desc          Pointer to render target descriptor.
-     * @param viewport      Optional viewport rectangle.
-     */
-    virtual void setRenderTarget(const GPURenderTargetDesc *desc, const IntRect *viewport = nullptr) = 0;
-
     /** Set the viewport.
      * @param viewport      Viewport rectangle in pixels. Must be <= size of
      *                      the current render target. */
@@ -169,47 +211,6 @@ public:
      * @param enable        Whether to enable scissor testing.
      * @param scissor       Scissor rectangle. */
     virtual void setScissor(bool enable, const IntRect &scissor) = 0;
-
-    /**
-     * Frame methods.
-     */
-
-    /** Begin a new frame. */
-    virtual void startFrame() {}
-
-    /** End a frame and present it on screen. */
-    virtual void endFrame() = 0;
-
-    /**
-     * Rendering methods.
-     */
-
-    /**
-     * Copy pixels from one texture to another.
-     *
-     * Copies a rectangle of pixels from one texture to another. If either the
-     * source or dest arguments are null image references, the main window will
-     * be used.
-     *
-     * @param source        Source texture image reference.
-     * @param dest          Destination texture image reference.
-     * @param sourcePos     Position in source texture to copy from.
-     * @param destPos       Position in destination texture to copy to.
-     * @param size          Size of area to copy.
-     */
-    virtual void blit(
-        const GPUTextureImageRef &source,
-        const GPUTextureImageRef &dest,
-        glm::ivec2 sourcePos,
-        glm::ivec2 destPos,
-        glm::ivec2 size) = 0;
-
-    /** Clear rendering buffers.
-     * @param buffers       Buffers to clear (bitmask of ClearBuffer values).
-     * @param colour        Colour to clear to.
-     * @param depth         Depth value to clear to.
-     * @param stencil       Stencil value to clear to. */
-    virtual void clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil) = 0;
 
     /** Draw primitives.
      * @param type          Primitive type to render.
@@ -222,7 +223,8 @@ public:
      *
      * These methods are used to set GPU state to constant values known at
      * compile time. They are a shortcut which avoids a hash lookup for a
-     * matching state object at every call.
+     * matching state object at every call. They should only be used within
+     * a render pass.
      */
 
     template <

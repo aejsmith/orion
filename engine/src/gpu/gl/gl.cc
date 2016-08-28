@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -104,8 +104,8 @@ static void identifyGLCoreVersion() {
  * @param config        Engine configuration.
  * @param window        Where to store pointer to created window. */
 GLGPUManager::GLGPUManager(const EngineConfiguration &config, Window *&window) :
-    defaultVertexArray(0),
-    m_sdlContext(nullptr)
+    m_sdlContext(nullptr),
+    m_currentRenderPass(nullptr)
 {
     g_opengl = this;
 
@@ -128,7 +128,7 @@ GLGPUManager::GLGPUManager(const EngineConfiguration &config, Window *&window) :
     #endif
 
     /* Create the window. */
-    window = new Window(config, SDL_WINDOW_OPENGL);
+    window = new Window(config, SDL_WINDOW_OPENGL, PixelFormat::kR8G8B8A8);
 
     m_sdlContext = SDL_GL_CreateContext(g_mainWindow->sdlWindow());
     if (!m_sdlContext)
@@ -163,10 +163,6 @@ GLGPUManager::GLGPUManager(const EngineConfiguration &config, Window *&window) :
     /* Create the default VAO. */
     glGenVertexArrays(1, &this->defaultVertexArray);
     this->state.bindVertexArray(this->defaultVertexArray);
-
-    /* Set up initial render target/viewport state (main window). */
-    setRenderTarget(nullptr, nullptr);
-    this->state.scissor = this->state.viewport;
 
     /* Set up some default state. FIXME? */
     this->state.enableCullFace(true);

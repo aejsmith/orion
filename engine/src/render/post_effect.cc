@@ -73,14 +73,14 @@ void PostEffect::blit(
         (samplerState) ? samplerState : defaultSampler.get());
     g_gpuManager->bindResourceSet(ResourceSets::kPostEffectResources, resources);
 
-    /* Set the render target to the destination. */
-    GPURenderTargetDesc rtDesc;
-    rtDesc.numColours = 1;
-    rtDesc.colour[0].texture = dest;
-    g_gpuManager->setRenderTarget(&rtDesc);
+    /* Begin a render pass. */
+    GPURenderPassInstanceDesc passDesc(g_renderManager->resources().postEffectBlitPass);
+    passDesc.targets.colour[0].texture = dest;
+    passDesc.renderArea = IntRect(0, 0, dest->width(), dest->height());
+    g_gpuManager->beginRenderPass(passDesc);
 
-    /* Disable blending and depth testing/writes. TODO: Alpha blending should
-     * come from Pass properties. */
+    /* Disable blending and depth testing/writes. TODO: Blending should come
+     * from Pass properties. */
     g_gpuManager->setDepthStencilState<ComparisonFunc::kAlways, false>();
     g_gpuManager->setBlendState<>();
 
@@ -99,6 +99,8 @@ void PostEffect::blit(
 
     /* Draw it. */
     drawList.draw();
+
+    g_gpuManager->endRenderPass();
 }
 
 /** Initialise the post-processing effect chain. */

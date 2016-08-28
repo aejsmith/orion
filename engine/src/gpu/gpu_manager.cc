@@ -101,6 +101,13 @@ GPUIndexDataPtr GPUManager::createIndexData(
     return new GPUIndexData(buffer, type, count, offset);
 }
 
+/** Create a render pass object.
+ * @param desc          Descriptor for the render pass.
+ * @return              Created render pass object. */
+GPURenderPassPtr GPUManager::createRenderPass(GPURenderPassDesc &&desc) {
+    return new GPURenderPass(std::move(desc));
+}
+
 /** Create a vertex data layout object.
  * @param desc          Descriptor for vertex data layout.
  * @return              Pointer to created vertex data layout object. */

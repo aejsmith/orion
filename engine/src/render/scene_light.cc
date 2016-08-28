@@ -154,7 +154,7 @@ GPUTexture *SceneLight::allocShadowMap() const {
     desc.width = desc.height = g_renderManager->shadowMapResolution();
     desc.mips = 1;
     desc.flags = GPUTexture::kRenderTarget;
-    desc.format = PixelFormat::kDepth24Stencil8;
+    desc.format = kShadowMapFormat;
 
     switch (m_type) {
         case kSpotLight:

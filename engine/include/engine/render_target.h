@@ -21,13 +21,11 @@
 
 #pragma once
 
-#include "core/core.h"
+#include "gpu/render_pass.h"
 
 #include <list>
 
 class RenderTarget;
-
-struct GPUTextureImageRef;
 
 /**
  * Render target layer class.
@@ -67,9 +65,9 @@ public:
     /**
      * Render the layer.
      *
-     * Renders the layer. It is up to this function to set the render target
-     * and viewport, as well as to clear if necessary or configure blending
-     * between this layer and the previous layer.
+     * Renders the layer. It is up to this function to begin a render pass on
+     * the render target, clearing it if necessary, and to set up things like
+     * blending between this layer and the previous layer.
      */
     virtual void render() = 0;
 protected:
@@ -77,6 +75,8 @@ protected:
 
     void registerRenderLayer();
     void unregisterRenderLayer();
+
+    void beginLayerRenderPass(GPURenderLoadOp loadOp, const glm::vec4 &clearColour = glm::vec4());
 
     /** Called when the viewport is changed. */
     virtual void viewportChanged() {}
@@ -86,6 +86,16 @@ private:
     IntRect m_pixelViewport;        /**< Pixel viewport coordinates. */
     unsigned m_priority;            /**< Rendering priority. */
     bool m_registered;              /**< Whether the layer is registered. */
+
+    /**
+     * Render pass for this layer.
+     *
+     * This is only created if the layer's render method calls beginRenderPass()
+     * and points to a render pass which will render directly to the render
+     * target with not depth/stencil target. It is not used for scene rendering,
+     * SceneRenderer handles that internally.
+     */
+    GPURenderPassPtr m_renderPass;
 };
 
 /**
@@ -120,10 +130,11 @@ public:
     virtual ~RenderTarget();
 
     /** @return             Width of the render target (in pixels). */
-    virtual uint32_t width() const = 0;
+    uint32_t width() const { return m_width; }
     /** @return             Height of the render target (in pixels). */
-    virtual uint32_t height() const = 0;
-
+    uint32_t height() const { return m_height; }
+    /** @return             Pixel format of the render target. */
+    PixelFormat format() const { return m_format; }
     /** @return             Rendering priority. */
     unsigned priority() const { return m_priority; }
 
@@ -133,18 +144,17 @@ public:
     void render();
 
     /**
-     * Set the render target as the current.
+     * Get the target GPU render target descriptor.
      *
-     * Sets this render target the current render target. Note that most
-     * RenderTarget objects do not have their own depth buffer (only the main
-     * window does), therefore this should only be used with depth testing and
-     * writes disabled. In most cases, rendering to a render target should be
-     * done on temporary buffers and blitted onto the target.
+     * Gets a GPU render target descriptor referring to the render target. The
+     * returned descriptor will only have colour output, no depth or stencil
+     * buffer. Therefore this should only be used with depth/stencil testing
+     * and writes disabled. In most cases, rendering should be done on
+     * temporary buffers and blitted onto the target.
      *
-     * @param viewport      Optional viewport rectangle, if null viewport is set
-     *                      to the render target dimensions.
+     * @param ref           Image reference structure to fill in.
      */
-    virtual void set(const IntRect *viewport) = 0;
+    virtual void getRenderTargetDesc(GPURenderTargetDesc &desc) const = 0;
 
     /**
      * Get the target GPU texture image reference.
@@ -155,10 +165,13 @@ public:
      *
      * @param ref           Image reference structure to fill in.
      */
-    virtual void gpu(GPUTextureImageRef &ref) = 0;
+    virtual void getTextureImageRef(GPUTextureImageRef &ref) const = 0;
 protected:
-    explicit RenderTarget(unsigned priority);
+    RenderTarget(uint32_t width, uint32_t height, PixelFormat format, unsigned priority);
 private:
+    uint32_t m_width;               /**< Width of the render target. */
+    uint32_t m_height;              /**< Height of the render target. */
+    PixelFormat m_format;           /**< Pixel format of the render target. */
     unsigned m_priority;            /**< Rendering priority. */
     LayerList m_layers;             /**< Registered layers. */
 };

@@ -323,9 +323,7 @@ void DebugOverlay::render() {
     if (!drawData)
         return;
 
-    const IntRect &viewport = pixelViewport();
-
-    renderTarget()->set(&viewport);
+    beginLayerRenderPass(GPURenderLoadOp::kLoad);
 
     g_gpuManager->setBlendState<BlendFunc::kAdd, BlendFactor::kSourceAlpha, BlendFactor::kOneMinusSourceAlpha>();
     g_gpuManager->setDepthStencilState<ComparisonFunc::kAlways, false>();
@@ -368,6 +366,7 @@ void DebugOverlay::render() {
                 indexBufferOffset);
 
             /* Configure scissor test for clipping. */
+            const IntRect &viewport = pixelViewport();
             g_gpuManager->setScissor(
                 true,
                 IntRect(
@@ -389,8 +388,7 @@ void DebugOverlay::render() {
         }
     }
 
-    // FIXME: this should be reset elsewhere
-    g_gpuManager->setScissor(false, IntRect());
+    g_gpuManager->endRenderPass();
 
     /* Release any texture references held. */
     m_textures.clear();

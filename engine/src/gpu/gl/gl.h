@@ -117,15 +117,6 @@ public:
     GPUResourceSetLayoutPtr createResourceSetLayout(GPUResourceSetLayoutDesc &&desc) override;
     GPUProgramPtr createProgram(unsigned stage, const std::vector<uint32_t> &spirv, const std::string &name) override;
 
-    void bindPipeline(GPUPipeline *pipeline) override;
-    void bindResourceSet(unsigned index, GPUResourceSet *resources) override;
-    void setBlendState(GPUBlendState *state) override;
-    void setDepthStencilState(GPUDepthStencilState *state) override;
-    void setRasterizerState(GPURasterizerState *state) override;
-    void setRenderTarget(const GPURenderTargetDesc *desc, const IntRect *viewport) override;
-    void setViewport(const IntRect &viewport) override;
-    void setScissor(bool enable, const IntRect &scissor) override;
-
     void endFrame() override;
 
     void blit(
@@ -134,7 +125,18 @@ public:
         glm::ivec2 sourcePos,
         glm::ivec2 destPos,
         glm::ivec2 size) override;
-    void clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil) override;
+
+    void beginRenderPass(const GPURenderPassInstanceDesc &desc) override;
+    void endRenderPass() override;
+
+    void bindPipeline(GPUPipeline *pipeline) override;
+    void bindResourceSet(unsigned index, GPUResourceSet *resources) override;
+    void setBlendState(GPUBlendState *state) override;
+    void setDepthStencilState(GPUDepthStencilState *state) override;
+    void setRasterizerState(GPURasterizerState *state) override;
+    void setViewport(const IntRect &viewport) override;
+    void setScissor(bool enable, const IntRect &scissor) override;
+
     void draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) override;
 
     /**
@@ -165,6 +167,15 @@ private:
 
     /** Hash table of cached FBOs. */
     HashMap<GPURenderTargetDesc, GLuint> m_fbos;
+
+    /**
+     * Current render pass instance state.
+     *
+     * We don't need all of the render pass instance state so it would be
+     * wasteful to store it all. Keep only the bits we need.
+     */
+    const GPURenderPass *m_currentRenderPass;
+    IntRect m_currentRenderArea;
 };
 
 extern GLGPUManager *g_opengl;

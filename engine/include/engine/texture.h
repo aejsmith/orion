@@ -74,11 +74,8 @@ using TextureBasePtr = TypedAssetPtr<TextureBase>;
 /** Texture render target class. */
 class RenderTexture : public RenderTarget {
 public:
-    uint32_t width() const override;
-    uint32_t height() const override;
-
-    void set(const IntRect *viewport) override;
-    void gpu(GPUTextureImageRef &ref) override;
+    void getRenderTargetDesc(GPURenderTargetDesc &desc) const override;
+    void getTextureImageRef(GPUTextureImageRef &ref) const override;
 
     /** @return             Texture referred to by this render target. */
     TextureBase *texture() const { return m_texture; }

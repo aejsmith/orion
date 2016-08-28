@@ -31,11 +31,10 @@ Window *g_mainWindow;
 
 /** Create the main window.
  * @param config        Engine configuration structure.
- * @param sdlFlags      Additional SDL window flags. */
-Window::Window(const EngineConfiguration &config, uint32_t sdlFlags) :
-    RenderTarget(kWindowPriority),
-    m_width(config.displayWidth),
-    m_height(config.displayHeight)
+ * @param sdlFlags      Additional SDL window flags.
+ * @param format        Format of the window. */
+Window::Window(const EngineConfiguration &config, uint32_t sdlFlags, PixelFormat format) :
+    RenderTarget(config.displayWidth, config.displayHeight, format, kWindowPriority)
 {
     if (config.displayFullscreen)
         sdlFlags |= SDL_WINDOW_FULLSCREEN;
@@ -54,17 +53,16 @@ Window::~Window() {
     SDL_DestroyWindow(m_sdlWindow);
 }
 
-/** Set the render target as the current.
- * @param viewport      Optional viewport rectangle. */
-void Window::set(const IntRect *viewport) {
-    g_gpuManager->setRenderTarget(nullptr, viewport);
+/** Get the target GPU render target descriptor.
+ * @param ref           Image reference structure to fill in. */
+void Window::getRenderTargetDesc(GPURenderTargetDesc &desc) const {
+    desc = GPURenderTargetDesc();
 }
 
 /** Get the target GPU texture image reference.
  * @param ref           Image reference structure to fill in. */
-void Window::gpu(GPUTextureImageRef &ref) {
-    ref.texture = nullptr;
-    ref.layer = 0;
+void Window::getTextureImageRef(GPUTextureImageRef &ref) const {
+    ref = GPUTextureImageRef();
 }
 
 /** Set the window title.

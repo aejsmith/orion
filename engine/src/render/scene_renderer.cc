@@ -64,13 +64,6 @@ void SceneRenderer::render() {
     /* Set view resources once per frame. */
     setViewResources(m_view, m_path);
 
-    /* Set the primary render target and clear it. FIXME: Better place for clear
-     * and clear settings. */
-    setOutputRenderTarget();
-    g_gpuManager->clear(
-        ClearBuffer::kColourBuffer | ClearBuffer::kDepthBuffer | ClearBuffer::kStencilBuffer,
-        glm::vec4(0.0, 0.0, 0.0, 1.0), 1.0, 0);
-
     /* Render everything. */
     renderDeferred();
     renderForward();
@@ -82,13 +75,22 @@ void SceneRenderer::render() {
         ? effectChain->render(m_view->viewport().size())
         : targets.colourBuffer.get();
 
+    /* Begin the debug primitive pass. */
+    GPURenderPassInstanceDesc passDesc(g_renderManager->resources().sceneForwardPass);
+    passDesc.targets.colour[0].texture = targets.colourBuffer;
+    passDesc.targets.depthStencil.texture = targets.depthBuffer;
+    passDesc.renderArea = m_view->viewport();
+    g_gpuManager->beginRenderPass(passDesc);
+
     /* Draw debug primitives onto the view. */
     g_debugManager->renderView(m_view);
+
+    g_gpuManager->endRenderPass();
 
     /* Finally, blit the output buffer onto the real render target. */
     GPUTextureImageRef source(finalTexture);
     GPUTextureImageRef dest;
-    m_target->gpu(dest);
+    m_target->getTextureImageRef(dest);
     g_gpuManager->blit(
         source,
         dest,
@@ -164,11 +166,6 @@ void SceneRenderer::addEntity(SceneEntity *entity) {
 
 /** Render shadow maps. */
 void SceneRenderer::renderShadowMaps() {
-    /* Disable blending, enable depth testing/writing. */
-    g_gpuManager->setBlendState<>();
-    g_gpuManager->setDepthStencilState<>();
-    g_gpuManager->setRasterizerState<>();
-
     for (LightRenderState &state : m_lights) {
         if (!state.shadowMap)
             continue;
@@ -184,34 +181,48 @@ void SceneRenderer::renderShadowMaps() {
             /* Set view resources. */
             setViewResources(shadowView, RenderPath::kForward);
 
-            /* Set the render target. */
-            GPURenderTargetDesc desc;
-            desc.numColours = 0;
-            desc.depthStencil.texture = state.shadowMap;
-            desc.depthStencil.layer = i;
-            g_gpuManager->setRenderTarget(&desc, &shadowView->viewport());
+            /* Begin a shadow pass. */
+            GPURenderPassInstanceDesc passDesc(g_renderManager->resources().sceneShadowMapPass);
+            passDesc.targets.depthStencil.texture = state.shadowMap;
+            passDesc.targets.depthStencil.layer = i;
+            passDesc.clearDepth = 1.0;
+            passDesc.renderArea = shadowView->viewport();
+            g_gpuManager->beginRenderPass(passDesc);
 
-            /* Clear it. */
-            g_gpuManager->clear(ClearBuffer::kDepthBuffer, glm::vec4(0.0, 0.0, 0.0, 0.0), 1.0, 0);
+            /* Disable blending, enable depth testing/writing. */
+            g_gpuManager->setBlendState<>();
+            g_gpuManager->setDepthStencilState<>();
+            g_gpuManager->setRasterizerState<>();
 
             /* Render the shadow map. */
             state.shadowMapDrawLists[i].draw();
+
+            g_gpuManager->endRenderPass();
         }
     }
 }
 
 /** Perform deferred rendering. */
 void SceneRenderer::renderDeferred() {
-    if (m_path != RenderPath::kDeferred || m_deferredDrawList.empty())
+    if (m_deferredDrawList.empty())
         return;
 
     const RenderManager::RenderTargets &targets = g_renderManager->renderTargets();
 
-    /* Set the render target to the G-Buffer and clear it. */
-    setDeferredRenderTarget();
-    g_gpuManager->clear(
-        ClearBuffer::kColourBuffer | ClearBuffer::kDepthBuffer | ClearBuffer::kStencilBuffer,
-        glm::vec4(0.0, 0.0, 0.0, 0.0), 1.0, 0);
+    /* Begin the G-Buffer pass. We use the primary depth buffer texture here.
+     * Once the pass is completed, it is copied into deferredBufferD. */
+    GPURenderPassInstanceDesc deferredPassDesc(g_renderManager->resources().sceneGBufferPass);
+    deferredPassDesc.targets.colour[0].texture = targets.deferredBufferA;
+    deferredPassDesc.targets.colour[1].texture = targets.deferredBufferB;
+    deferredPassDesc.targets.colour[2].texture = targets.deferredBufferC;
+    deferredPassDesc.targets.depthStencil.texture = targets.depthBuffer;
+    deferredPassDesc.clearColours[0] = glm::vec4(0.0, 0.0, 0.0, 0.0);
+    deferredPassDesc.clearColours[1] = glm::vec4(0.0, 0.0, 0.0, 0.0);
+    deferredPassDesc.clearColours[2] = glm::vec4(0.0, 0.0, 0.0, 0.0);
+    deferredPassDesc.clearDepth = 1.0;
+    deferredPassDesc.clearStencil = 0;
+    deferredPassDesc.renderArea = m_view->viewport();
+    g_gpuManager->beginRenderPass(deferredPassDesc);
 
     /* Disable blending, enable depth testing/writing. FIXME: State push/pop. */
     g_gpuManager->setBlendState<>();
@@ -221,6 +232,8 @@ void SceneRenderer::renderDeferred() {
     /* Render everything to the G-Buffer. */
     m_deferredDrawList.draw();
 
+    g_gpuManager->endRenderPass();
+
     /* Make a copy of the depth buffer. We need to do this as we want to keep
      * the same depth buffer while rendering light volumes, but the light
      * shaders need to read the depth buffer. We cannot use a texture as a render
@@ -229,8 +242,21 @@ void SceneRenderer::renderDeferred() {
     GPUTextureImageRef dest(targets.deferredBufferD);
     g_gpuManager->blit(source, dest, glm::ivec2(0, 0), glm::ivec2(0, 0), targets.deferredBufferSize);
 
-    /* Now restore primary render target and render light volumes. */
-    setOutputRenderTarget();
+    /* Begin the light pass on the primary render target. */
+    GPURenderPassInstanceDesc lightPassDesc(g_renderManager->resources().sceneLightPass);
+    lightPassDesc.targets.colour[0].texture = targets.colourBuffer;
+    lightPassDesc.targets.depthStencil.texture = targets.depthBuffer;
+    // FIXME: Get clear settings from Camera. Wonder if it's worth just doing
+    // an explicit clear instead of relying on the render pass, seeing as we
+    // currently have the awkwardness of having 2 forward render pass objects
+    // depending on whether or not we cleared here.
+    lightPassDesc.clearColours[0] = glm::vec4(0.0, 0.0, 0.0, 1.0);
+    lightPassDesc.clearDepth = 1.0;
+    lightPassDesc.clearStencil = 0;
+    lightPassDesc.renderArea = m_view->viewport();
+    g_gpuManager->beginRenderPass(lightPassDesc);
+
+    /* Render light volumes. */
     g_gpuManager->setBlendState<BlendFunc::kAdd, BlendFactor::kOne, BlendFactor::kOne>();
     for (LightRenderState &lightState : m_lights) {
         /* Set up rasterizer/depth testing state. No depth writes here, the
@@ -273,10 +299,29 @@ void SceneRenderer::renderDeferred() {
             Pass::Type::kForward);
         list.draw(lightState.light);
     }
+
+    g_gpuManager->endRenderPass();
 }
 
 /** Perform forward rendering. */
 void SceneRenderer::renderForward() {
+    const RenderManager::RenderTargets &targets = g_renderManager->renderTargets();
+
+    /* Begin the forward pass. Need to clear if no deferred rendering was done. */
+    bool needClear = m_deferredDrawList.empty();
+    GPURenderPassInstanceDesc passDesc(
+        (needClear)
+            ? g_renderManager->resources().sceneForwardClearPass
+            : g_renderManager->resources().sceneForwardPass);
+    passDesc.targets.colour[0].texture = targets.colourBuffer;
+    passDesc.targets.depthStencil.texture = targets.depthBuffer;
+    // FIXME: Again, see above regarding clearing.
+    passDesc.clearColours[0] = glm::vec4(0.0, 0.0, 0.0, 1.0);
+    passDesc.clearDepth = 1.0;
+    passDesc.clearStencil = 0;
+    passDesc.renderArea = m_view->viewport();
+    g_gpuManager->beginRenderPass(passDesc);
+
     /* For entities with basic materials and for the first light, we don't want
      * blending. Depth buffer writes should be on. FIXME: These should be
      * defaults for the GPU interface here and when this is called this should
@@ -305,6 +350,8 @@ void SceneRenderer::renderForward() {
 
     /* Render all entities with basic materials. */
     m_basicDrawList.draw();
+
+    g_gpuManager->endRenderPass();
 }
 
 /** Update and set the view resources. */
@@ -329,32 +376,4 @@ void SceneRenderer::setViewResources(SceneView *view, RenderPath path) {
     }
 
     g_gpuManager->bindResourceSet(ResourceSets::kViewResources, resources);
-}
-
-/** Set the off-screen output buffers as the render target. */
-void SceneRenderer::setOutputRenderTarget() {
-    const RenderManager::RenderTargets &targets = g_renderManager->renderTargets();
-
-    GPURenderTargetDesc desc;
-    desc.numColours = 1;
-    desc.colour[0].texture = targets.colourBuffer;
-    desc.depthStencil.texture = targets.depthBuffer;
-    g_gpuManager->setRenderTarget(&desc, &m_view->viewport());
-}
-
-/** Set the G-Buffer as the render target. */
-void SceneRenderer::setDeferredRenderTarget() {
-    const RenderManager::RenderTargets &targets = g_renderManager->renderTargets();
-
-    GPURenderTargetDesc desc;
-    desc.numColours = 3;
-    desc.colour[0].texture = targets.deferredBufferA;
-    desc.colour[1].texture = targets.deferredBufferB;
-    desc.colour[2].texture = targets.deferredBufferC;
-
-    /* We use the primary depth buffer texture here. Once the G-Buffer pass is
-     * completed, it is copied into deferredBufferD. */
-    desc.depthStencil.texture = targets.depthBuffer;
-
-    g_gpuManager->setRenderTarget(&desc, &m_view->viewport());
 }
