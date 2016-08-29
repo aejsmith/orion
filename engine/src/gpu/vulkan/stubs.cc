@@ -59,13 +59,6 @@ GPUTexturePtr VulkanGPUManager::createTextureView(const GPUTextureImageRef &imag
     vkStub();
 }
 
-/** Create a resource set layout.
- * @param desc          Descriptor for the layout.
- * @return              Pointer to created resource set layout. */
-GPUResourceSetLayoutPtr VulkanGPUManager::createResourceSetLayout(GPUResourceSetLayoutDesc &&desc) {
-    vkStub();
-}
-
 /** Create a resource set.
  * @param layout        Layout for the resource set.
  * @return              Pointer to created resource set. */
