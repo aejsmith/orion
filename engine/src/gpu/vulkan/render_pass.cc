@@ -42,7 +42,6 @@ VulkanRenderPass::VulkanRenderPass(GPURenderPassDesc &&desc) :
                 case GPURenderLoadOp::kDontCare:
                     return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
                 default:
-                    check(false);
                     unreachable();
             }
         };

@@ -48,7 +48,6 @@ VulkanResourceSetLayout::VulkanResourceSetLayout(GPUResourceSetLayoutDesc &&desc
                 binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
                 break;
             default:
-                check(false);
                 unreachable();
         }
 

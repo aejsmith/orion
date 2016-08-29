@@ -48,7 +48,7 @@
     #define NOINLINE      __attribute__((noinline))
     #define likely(x)     __builtin_expect(!!(x), 1)
     #define unlikely(x)   __builtin_expect(!!(x), 0)
-    #define unreachable() __builtin_unreachable()
+    #define unreachable() do { check(false); __builtin_unreachable(); } while(0)
 #else
     #error "Compiler is not supported"
 #endif

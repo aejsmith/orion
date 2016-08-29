@@ -58,7 +58,6 @@ public:
             case VK_NOT_READY:
                 return false;
             default:
-                checkVk(result);
                 unreachable();
         }
     }
