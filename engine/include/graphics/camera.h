@@ -56,8 +56,6 @@ public:
     /** @return             Post-processing effect chain. */
     PostEffectChain &postEffectChain() { return m_postEffectChain; }
 
-    void render() override;
-
     /**
      * View settings.
      */
@@ -102,6 +100,8 @@ protected:
 
     void serialise(Serialiser &serialiser) const override;
     void deserialise(Serialiser &serialiser) override;
+
+    void render() override;
 
     void transformed(unsigned changed) override;
     void activated() override;

@@ -312,3 +312,24 @@ void GLGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexDat
 
     g_engine->stats().drawCalls++;
 }
+
+/**
+ * Debug methods.
+ */
+
+#ifdef ORION_BUILD_DEBUG
+
+/** Begin a debug group.
+ * @param str           Group string. */
+void GLGPUManager::beginDebugGroup(const std::string &str) {
+    if (this->features[GLFeatures::kCapKHRDebug])
+        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, str.length(), str.c_str());
+}
+
+/** End the current debug group. */
+void GLGPUManager::endDebugGroup() {
+    if (this->features[GLFeatures::kCapKHRDebug])
+        glPopDebugGroup();
+}
+
+#endif /* ORION_BUILD_DEBUG */

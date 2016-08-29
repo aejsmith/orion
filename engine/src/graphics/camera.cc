@@ -101,7 +101,7 @@ void Camera::deactivated() {
 
 /** @return             Name of the layer (for debug purposes). */
 std::string Camera::renderLayerName() const {
-    return String::format("Camera @ %s", entity()->path().c_str());
+    return String::format("Camera '%s'", entity()->path().c_str());
 }
 
 #endif

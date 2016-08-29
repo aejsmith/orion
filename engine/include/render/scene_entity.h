@@ -80,6 +80,10 @@ public:
     /** Get the material for the entity.
      * @return              Material for the entity. */
     virtual Material *material() const = 0;
+
+    #ifdef ORION_BUILD_DEBUG
+    std::string name;               /**< Name of the entity (used for debugging). */
+    #endif
 protected:
     SceneEntity();
 private:

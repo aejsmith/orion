@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -39,16 +39,16 @@
 struct DrawCall {
     Geometry geometry;                  /**< Geometry to draw. */
     Material *material;                 /**< Material to draw with. */
-    GPUResourceSet *resources;          /**< Entity resources. */
+    SceneEntity *entity;                /**< Entity from which to take resources. */
     const Pass *pass;                   /**< Pass to draw with. */
 };
 
 /** Class storing a list of draw calls. */
 class DrawList {
 public:
-    void addDrawCall(const Geometry &geometry, Material *material, GPUResourceSet *resources, const Pass *pass);
+    void addDrawCall(const Geometry &geometry, Material *material, SceneEntity *entity, const Pass *pass);
 
-    void addDrawCalls(const Geometry &geometry, Material *material, GPUResourceSet *resources, Pass::Type passType);
+    void addDrawCalls(const Geometry &geometry, Material *material, SceneEntity *entity, Pass::Type passType);
     void addDrawCalls(SceneEntity *entity, Pass::Type passType);
 
     void draw(SceneLight *light = nullptr) const;

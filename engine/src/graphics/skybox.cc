@@ -19,6 +19,8 @@
  * @brief               Skybox component.
  */
 
+#include "core/string.h"
+
 #include "engine/asset_manager.h"
 
 #include "graphics/skybox.h"
@@ -46,6 +48,10 @@ SkyboxSceneEntity::SkyboxSceneEntity(Skybox *parent) :
     /* Don't want to cull the skybox. */
     BoundingBox boundingBox(glm::vec3(-FLT_MAX), glm::vec3(FLT_MAX));
     setBoundingBox(boundingBox);
+
+    #ifdef ORION_BUILD_DEBUG
+        this->name = String::format("Skybox '%s'", parent->entity()->path().c_str());
+    #endif
 }
 
 /** Get the geometry for the entity.

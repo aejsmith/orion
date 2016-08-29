@@ -157,6 +157,8 @@ GPUTexture *PostEffectChain::render(const glm::ivec2 &size) const {
     if (m_effects.empty())
         return targets.colourBuffer;
 
+    GPU_DEBUG_GROUP("Post Processing");
+
     /* We bounce between up to 2 temporary render targets. These are allocated
      * below when needed. TODO: I'd like to reuse the scene colour buffer here
      * when possible, it's a bit awkward just because of the possibility of it
@@ -165,6 +167,8 @@ GPUTexture *PostEffectChain::render(const glm::ivec2 &size) const {
     GPUTexture *source = targets.colourBuffer;
 
     for (PostEffect *effect : m_effects) {
+        GPU_DEBUG_GROUP("%s", effect->metaClass().name());
+
         if (!dest || dest == targets.colourBuffer) {
             GPUTextureDesc textureDesc;
             textureDesc.type = GPUTexture::kTexture2D;

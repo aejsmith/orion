@@ -305,6 +305,7 @@ bool ShaderCompiler::compile(const ShaderCompiler::Options &options, std::vector
             break;
         default:
             checkMsg(false, "Unhandled shader stage type");
+            unreachable();
     }
 
     const EShMessages messages = static_cast<EShMessages>(EShMsgVulkanRules | EShMsgSpvRules);

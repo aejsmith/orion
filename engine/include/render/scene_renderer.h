@@ -67,6 +67,7 @@ private:
     void renderShadowMaps();
     void renderDeferred();
     void renderForward();
+    void renderDebug();
 
     void setViewResources(SceneView *view, RenderPath path);
 private:

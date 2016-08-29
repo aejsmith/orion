@@ -118,6 +118,10 @@ public:
     }
 
     bool cull(SceneView *view) const;
+
+    #ifdef ORION_BUILD_DEBUG
+    std::string name;               /**< Name of the light (used for debugging). */
+    #endif
 private:
     void setPosition(const glm::vec3 &position);
 

@@ -203,9 +203,17 @@ void GLGPUManager::initFeatures() {
 
     /* Check for required extensions. */
     for (size_t i = 0; i < arraySize(g_requiredGLExtensions); i++) {
-        if (!this->features[g_requiredGLExtensions[i]])
+        if (!features[g_requiredGLExtensions[i]])
             fatal("Required OpenGL extension '%s' is not supported", g_requiredGLExtensions[i]);
     }
+
+    /* Determine capabilities. */
+    auto checkCapExtension =
+        [&] (const std::string &extension, uint32_t cap) {
+            if (features[extension])
+                features.capabilities |= cap;
+        };
+    checkCapExtension("GL_KHR_debug", GLFeatures::kCapKHRDebug);
 
     /* Cache some GL information. */
     glGetIntegerv(GL_MAJOR_VERSION, &features.versionMajor);

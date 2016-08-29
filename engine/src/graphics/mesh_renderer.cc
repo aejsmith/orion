@@ -20,6 +20,7 @@
  */
 
 #include "core/serialiser.h"
+#include "core/string.h"
 
 #include "gpu/gpu_manager.h"
 
@@ -31,7 +32,7 @@
 /** Scene entity for rendering a SubMesh. */
 class SubMeshSceneEntity : public SceneEntity {
 public:
-    SubMeshSceneEntity(SubMesh *subMesh, MeshRenderer *parent);
+    SubMeshSceneEntity(Mesh *mesh, size_t index, MeshRenderer *parent);
 
     void geometry(Geometry &geometry) const override;
     Material *material() const override;
@@ -41,13 +42,18 @@ private:
 };
 
 /** Initialize the scene entity.
- * @param mesh          Submesh to render.
+ * @param mesh          Mesh the entity is for.
+ * @param index         Index of the submesh.
  * @param parent        Parent mesh renderer. */
-SubMeshSceneEntity::SubMeshSceneEntity(SubMesh *subMesh, MeshRenderer *parent) :
-    m_subMesh(subMesh),
+SubMeshSceneEntity::SubMeshSceneEntity(Mesh *mesh, size_t index, MeshRenderer *parent) :
+    m_subMesh(mesh->subMesh(index)),
     m_parent(parent)
 {
-    setBoundingBox(subMesh->boundingBox);
+    setBoundingBox(m_subMesh->boundingBox);
+
+    #ifdef ORION_BUILD_DEBUG
+        this->name = String::format("MeshRenderer '%s' SubMesh %zu", parent->entity()->path().c_str(), index);
+    #endif
 }
 
 /** Get the geometry for the entity.
@@ -171,7 +177,7 @@ void MeshRenderer::createSceneEntities(SceneEntityList &entities) {
     checkMsg(m_mesh, "No mesh set for MeshRenderer on '%s'", entity()->name.c_str());
 
     for (size_t i = 0; i < m_mesh->numSubMeshes(); i++) {
-        SubMeshSceneEntity *entity = new SubMeshSceneEntity(m_mesh->subMesh(i), this);
+        SubMeshSceneEntity *entity = new SubMeshSceneEntity(m_mesh, i, this);
         entities.push_back(entity);
     }
 }

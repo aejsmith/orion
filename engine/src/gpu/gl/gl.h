@@ -56,21 +56,37 @@ class GLTexture;
  *    to do a string comparison every time they are checked.
  */
 struct GLFeatures {
+    /** Capabilities of the GL implementation (e.g. frequently-checked extensions). */
+    enum : uint32_t {
+        /** GL_KHR_debug. */
+        kCapKHRDebug = (1 << 0),
+    };
+
     GLint versionMajor;                 /**< GL_MAJOR_VERSION. */
     GLint versionMinor;                 /**< GL_MINOR_VERSION. */
 
     /** List of extensions. */
     std::set<std::string> extensions;
 
+    /** Capability flags. */
+    uint32_t capabilities;
+
     /** Cached glGet* parameters. */
     GLfloat maxAnisotropy;              /**< GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT */
     GLint maxTextureUnits;              /**< GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS */
-public:
+
     /** Check whether an extension is supported.
      * @param extension     Extension to check for.
      * @return              Whether the extension is supported. */
-    bool operator [](const char *extension) const {
+    bool operator [](const std::string &extension) const {
         return this->extensions.find(extension) != this->extensions.end();
+    }
+
+    /** Check for a capability.
+     * @param caps          Capability flags to check for.
+     * @return              Whether the capability is supported. */
+    bool operator [](uint32_t caps) const {
+        return (this->capabilities & caps) == caps;
     }
 };
 
@@ -138,6 +154,11 @@ public:
     void setScissor(bool enable, const IntRect &scissor) override;
 
     void draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) override;
+
+    #ifdef ORION_BUILD_DEBUG
+    void beginDebugGroup(const std::string &str) override;
+    void endDebugGroup() override;
+    #endif
 
     /**
      * Internal methods.

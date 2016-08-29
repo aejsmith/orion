@@ -211,7 +211,11 @@ void RenderTarget::removeLayer(RenderLayer *layer) {
 
 /** Render the render target. */
 void RenderTarget::render() {
+    GPU_DEBUG_GROUP("RenderTarget '%s'", renderTargetName().c_str());
+
     /* Render all our layers. */
-    for (RenderLayer *layer : m_layers)
+    for (RenderLayer *layer : m_layers) {
+        GPU_DEBUG_GROUP("%s", layer->renderLayerName().c_str());
         layer->render();
+    }
 }

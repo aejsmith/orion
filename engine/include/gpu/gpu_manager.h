@@ -22,6 +22,7 @@
 #pragma once
 
 #include "core/hash_table.h"
+#include "core/string.h"
 
 #include "gpu/buffer.h"
 #include "gpu/index_data.h"
@@ -242,6 +243,21 @@ public:
         CullMode cullMode = CullMode::kBack,
         bool depthClamp = false>
     void setRasterizerState();
+
+    /**
+     * Debug methods.
+     */
+
+    #ifdef ORION_BUILD_DEBUG
+
+    /** Begin a debug group.
+     * @param str           Group string. */
+    virtual void beginDebugGroup(const std::string &str) {}
+
+    /** End the current debug group. */
+    virtual void endDebugGroup() {}
+
+    #endif
 protected:
     GPUManager();
 
@@ -275,3 +291,42 @@ private:
 extern GPUManager *g_gpuManager;
 
 #include "gpu/const_state.h"
+
+#ifdef ORION_BUILD_DEBUG
+
+/** RAII debug group class. */
+class GPUDebugGroup {
+public:
+    /** Begin a debug group.
+     * @param str           Group string. */
+    explicit GPUDebugGroup(const std::string &str) {
+        g_gpuManager->beginDebugGroup(str);
+    }
+
+    /** End the debug group. */
+    ~GPUDebugGroup() {
+        g_gpuManager->endDebugGroup();
+    }
+};
+
+/** Begin a scoped debug group.
+ * @param fmt           Format string and arguments for group name. */
+#define GPU_DEBUG_GROUP(fmt...) \
+    GPUDebugGroup debugGroup_ ## __LINE__ (String::format(fmt));
+
+/** Begin a debug group.
+ * @param fmt           Format string and arguments for group name. */
+#define GPU_BEGIN_DEBUG_GROUP(fmt...) \
+    g_gpuManager->beginDebugGroup(String::format(fmt));
+
+/** End a debug group. */
+#define GPU_END_DEBUG_GROUP() \
+    g_gpuManager->endDebugGroup();
+
+#else /* ORION_BUILD_DEBUG */
+
+#define GPU_DEBUG_GROUP(fmt...) do {} while(0)
+#define GPU_BEGIN_DEBUG_GROUP(fmt...) do {} while(0)
+#define GPU_END_DEBUG_GROUP() do {} while(0)
+
+#endif /* ORION_BUILD_DEBUG */

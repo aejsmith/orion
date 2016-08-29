@@ -51,10 +51,11 @@ public:
     void addText(const std::string &text, const glm::vec4 &colour);
 
     void startFrame();
-    void render() override;
 
     void registerWindow(std::unique_ptr<DebugWindow> window);
 protected:
+    void render() override;
+
     bool handleButtonDown(const ButtonEvent &event) override;
     bool handleButtonUp(const ButtonEvent &event) override;
     bool handleAxis(const AxisEvent &event) override;

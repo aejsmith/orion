@@ -61,6 +61,11 @@ public:
     const IntRect &pixelViewport() const { return m_pixelViewport; }
     /** @return             Rendering priority. */
     unsigned renderPriority() const { return m_priority; }
+protected:
+    explicit RenderLayer(unsigned priority);
+
+    void registerRenderLayer();
+    void unregisterRenderLayer();
 
     /**
      * Render the layer.
@@ -70,11 +75,6 @@ public:
      * blending between this layer and the previous layer.
      */
     virtual void render() = 0;
-protected:
-    explicit RenderLayer(unsigned priority);
-
-    void registerRenderLayer();
-    void unregisterRenderLayer();
 
     void beginLayerRenderPass(GPURenderLoadOp loadOp, const glm::vec4 &clearColour = glm::vec4());
 
@@ -101,6 +101,8 @@ private:
      * SceneRenderer handles that internally.
      */
     GPURenderPassPtr m_renderPass;
+
+    friend class RenderTarget;
 };
 
 /**
