@@ -26,7 +26,14 @@
 /** Create a pipeline object.
  * @see                 GPUPipeline::GPUPipeline().
  * @return              Pointer to created pipeline. */
-GPUPipelinePtr VulkanGPUManager::createPipeline(const GPUPipelineDesc &desc) {
+GPUPipelinePtr VulkanGPUManager::createPipeline(GPUPipelineDesc &&desc) {
+    vkStub();
+}
+
+/** Create a render pass object.
+ * @param desc          Descriptor for the render pass.
+ * @return              Created render pass object. */
+GPURenderPassPtr VulkanGPUManager::createRenderPass(GPURenderPassDesc &&desc) {
     vkStub();
 }
 
@@ -52,11 +59,41 @@ GPUTexturePtr VulkanGPUManager::createTextureView(const GPUTextureImageRef &imag
     vkStub();
 }
 
+/** Create a resource set layout.
+ * @param desc          Descriptor for the layout.
+ * @return              Pointer to created resource set layout. */
+GPUResourceSetLayoutPtr VulkanGPUManager::createResourceSetLayout(GPUResourceSetLayoutDesc &&desc) {
+    vkStub();
+}
+
+/** Create a resource set.
+ * @param layout        Layout for the resource set.
+ * @return              Pointer to created resource set. */
+GPUResourceSetPtr VulkanGPUManager::createResourceSet(GPUResourceSetLayout *layout) {
+    vkStub();
+}
+
 /** Create a GPU program from a SPIR-V binary.
  * @param stage         Stage that the program is for.
  * @param spirv         SPIR-V binary for the shader.
+ * @param name          Name of the program for debugging purposes.
  * @return              Pointer to created shader on success, null on error. */
-GPUProgramPtr VulkanGPUManager::createProgram(unsigned stage, const std::vector<uint32_t> &spirv) {
+GPUProgramPtr VulkanGPUManager::createProgram(
+    unsigned stage,
+    const std::vector<uint32_t> &spirv,
+    const std::string &name)
+{
+    vkStub();
+}
+
+/** Begin a render pass.
+ * @param desc          Descriptor for the render pass instance. */
+void VulkanGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
+    vkStub();
+}
+
+/** End the current render pass. */
+void VulkanGPUManager::endRenderPass() {
     vkStub();
 }
 
@@ -66,18 +103,10 @@ void VulkanGPUManager::bindPipeline(GPUPipeline *pipeline) {
     vkStub();
 }
 
-/** Bind a texture.
- * @param index         Texture unit index to bind to.
- * @param texture       Texture to bind.
- * @param sampler       Sampler state. */
-void VulkanGPUManager::bindTexture(unsigned index, GPUTexture *texture, GPUSamplerState *sampler) {
-    vkStub();
-}
-
-/** Bind a uniform buffer.
- * @param index         Uniform block index to bind to.
- * @param buffer        Buffer to bind. */
-void VulkanGPUManager::bindUniformBuffer(unsigned index, GPUBuffer *buffer) {
+/** Bind a resource set.
+ * @param index         Resource set index to bind to.
+ * @param resources     Resource set to bind. */
+void VulkanGPUManager::bindResourceSet(unsigned index, GPUResourceSet *resources) {
     vkStub();
 }
 
@@ -96,13 +125,6 @@ void VulkanGPUManager::setDepthStencilState(GPUDepthStencilState *state) {
 /** Set the rasterizer state.
  * @param state         Rasterizer state to set. */
 void VulkanGPUManager::setRasterizerState(GPURasterizerState *state) {
-    vkStub();
-}
-
-/** Set the render targets.
- * @param desc          Pointer to render target descriptor.
- * @param viewport      Optional viewport rectangle. */
-void VulkanGPUManager::setRenderTarget(const GPURenderTargetDesc *desc, const IntRect *viewport) {
     vkStub();
 }
 
@@ -135,15 +157,6 @@ void VulkanGPUManager::blit(
     vkStub();
 }
 
-/** Clear rendering buffers.
- * @param buffers       Buffers to clear (bitmask of ClearBuffer values).
- * @param colour        Colour to clear to.
- * @param depth         Depth value to clear to.
- * @param stencil       Stencil value to clear to. */
-void VulkanGPUManager::clear(unsigned buffers, const glm::vec4 &colour, float depth, uint32_t stencil) {
-    vkStub();
-}
-
 /** Draw primitives.
  * @param type          Primitive type to render.
  * @param vertices      Vertex data to use.
@@ -151,3 +164,18 @@ void VulkanGPUManager::clear(unsigned buffers, const glm::vec4 &colour, float de
 void VulkanGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) {
     vkStub();
 }
+
+#ifdef ORION_BUILD_DEBUG
+
+/** Begin a debug group.
+ * @param str           Group string. */
+void VulkanGPUManager::beginDebugGroup(const std::string &str) {
+    vkStub();
+}
+
+/** End the current debug group. */
+void VulkanGPUManager::endDebugGroup() {
+    vkStub();
+}
+
+#endif

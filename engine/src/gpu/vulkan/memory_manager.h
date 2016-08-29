@@ -23,6 +23,8 @@
 
 #include "vulkan.h"
 
+#include <list>
+
 class VulkanDevice;
 
 /** Buffer pool allocation size (minimum). */

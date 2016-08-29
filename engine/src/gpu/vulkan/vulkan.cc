@@ -183,7 +183,7 @@ VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&w
     g_vulkan = this;
 
     /* Create the main window. */
-    window = new Window(config, 0);
+//    window = new Window(config, 0);
 
     logInfo("Initialising Vulkan");
 
