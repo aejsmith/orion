@@ -152,7 +152,17 @@ GLGPUManager::GLGPUManager(const EngineConfiguration &config, Window *&window) :
         if (this->features["GL_ARB_debug_output"]) {
             glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
             glDebugMessageCallback((GLDEBUGPROC)debugCallback, nullptr);
-            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, 0, true);
+
+            /* Enable all messages by default. */
+            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
+
+            /* Don't want to see push/pop group messages. */
+            if (this->features[GLFeatures::kCapKHRDebug]) {
+                glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_PUSH_GROUP, GL_DONT_CARE, 0, nullptr, false);
+                glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_POP_GROUP, GL_DONT_CARE, 0, nullptr, false);
+            }
+
+            /* Only enable debug notifications if we want them. */
             glDebugMessageControl(
                 GL_DONT_CARE, GL_DONT_CARE,
                 GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr,
