@@ -30,13 +30,6 @@ GPUPipelinePtr VulkanGPUManager::createPipeline(GPUPipelineDesc &&desc) {
     vkStub();
 }
 
-/** Create a render pass object.
- * @param desc          Descriptor for the render pass.
- * @return              Created render pass object. */
-GPURenderPassPtr VulkanGPUManager::createRenderPass(GPURenderPassDesc &&desc) {
-    vkStub();
-}
-
 /** Create a sampler state object.
  * @param desc          Descriptor for sampler state.
  * @return              Pointer to created sampler state object. */

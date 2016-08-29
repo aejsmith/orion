@@ -32,8 +32,17 @@ GPURenderPass::GPURenderPass(GPURenderPassDesc &&desc) :
     check(m_desc.colourAttachments.size() <= kMaxColourRenderTargets);
     check(m_desc.colourAttachments.size() > 0 || m_desc.depthStencilAttachment);
 
-    for (const GPURenderAttachmentDesc &attachment : m_desc.colourAttachments)
+    for (const GPURenderAttachmentDesc &attachment : m_desc.colourAttachments) {
+        /* Note: This is assumed in the API-specific implementations as well.
+         * If this ever changes (i.e. we allow sparse attachment indices), those
+         * will need to be updated accordingly. */
         check(attachment);
+
+        check(PixelFormat::isColour(attachment.format));
+    }
+
+    if (m_desc.depthStencilAttachment)
+        check(PixelFormat::isDepth(m_desc.depthStencilAttachment.format));
 }
 
 #ifdef ORION_BUILD_DEBUG
