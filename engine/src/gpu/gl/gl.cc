@@ -234,7 +234,7 @@ void GLGPUManager::initFeatures() {
 
 /** Initialize the supported pixel format conversion table. */
 void GLGPUManager::initPixelFormats() {
-    PixelFormatArray &f = this->pixelFormats;
+    auto &f = this->pixelFormats;
 
     /* TODO: For now this is a static table. We should identify the formats
      * that are actually supported, and have an engine generic table of

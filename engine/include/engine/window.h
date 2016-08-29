@@ -29,7 +29,10 @@ struct SDL_Window;
 /** Engine main window class. */
 class Window : public RenderTarget {
 public:
-    Window(const EngineConfiguration &config, uint32_t sdlFlags, PixelFormat format);
+    Window(
+        const EngineConfiguration &config,
+        uint32_t sdlFlags = 0,
+        PixelFormat format = PixelFormat::kUnknown);
     ~Window();
 
     void getRenderTargetDesc(GPURenderTargetDesc &desc) const override;
@@ -43,9 +46,8 @@ protected:
     #ifdef ORION_BUILD_DEBUG
     std::string renderTargetName() const override;
     #endif
-private:
-    SDL_Window *m_sdlWindow;        /**< SDL window. */
 
+    SDL_Window *m_sdlWindow;        /**< SDL window. */
 };
 
 extern Window *g_mainWindow;

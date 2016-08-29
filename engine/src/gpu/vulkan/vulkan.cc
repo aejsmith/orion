@@ -29,7 +29,6 @@
 #include "core/string.h"
 
 #include "engine/engine.h"
-#include "engine/window.h"
 
 /** Global Vulkan GPU manager instance. */
 VulkanGPUManager *g_vulkan;
@@ -48,12 +47,12 @@ GPUManager *GPUManager::create(const EngineConfiguration &config, Window *&windo
 }
 
 /** Determine the instance layers/extensions to use.
- * @param window        Window (needed to determine required surface extension).
+ * @param surface       Surface for main window.
  * @param layers        Where to store array of layers to enable.
  * @param extensions    Where to store array of extensions to enable.
  * @param features      Features structure to fill in. */
 static void enableInstanceExtensions(
-    Window *window,
+    VulkanSurface *surface,
     std::vector<const char *> &layers,
     std::vector<const char *> &extensions,
     VulkanFeatures &features)
@@ -106,7 +105,7 @@ static void enableInstanceExtensions(
     extensions.assign(
         kRequiredInstanceExtensions,
         &kRequiredInstanceExtensions[arraySize(kRequiredInstanceExtensions)]);
-    extensions.push_back(VulkanSurface::getPlatformExtensionName(window));
+    extensions.push_back(surface->getPlatformExtensionName());
     for (const char *extension : extensions) {
         if (availableExtensions.find(extension) == availableExtensions.end())
             fatal("Required Vulkan instance extension '%s' not available", extension);
@@ -182,15 +181,17 @@ VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&w
 
     g_vulkan = this;
 
-    /* Create the main window. */
-//    window = new Window(config, 0);
+    /* Create the main window. We do this first as we need it to get the surface
+     * extension that we need to enable. We do not yet initialise the surface. */
+    m_surface = new VulkanSurface(config);
+    window = m_surface;
 
     logInfo("Initialising Vulkan");
 
     /* Determine the extensions to use. */
     std::vector<const char *> enabledLayers;
     std::vector<const char *> enabledExtensions;
-    enableInstanceExtensions(window, enabledLayers, enabledExtensions, m_features);
+    enableInstanceExtensions(m_surface, enabledLayers, enabledExtensions, m_features);
 
     /* Create the instance. */
     VkApplicationInfo applicationInfo = {};
@@ -228,8 +229,8 @@ VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&w
         m_functions.CreateDebugReportCallbackEXT(m_instance, &callbackCreateInfo, nullptr, &callback);
     #endif
 
-    /* Create a surface for the main window. */
-    m_surface = new VulkanSurface(window);
+    /* Now we can create the surface. */
+    m_surface->init();
 
     /* Get a list of physical devices. */
     uint32_t deviceCount = 0;
@@ -269,6 +270,12 @@ VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&w
     /* Create the logical device. */
     m_device->init();
 
+    /* Initialise other feature information. */
+    initFeatures();
+
+    /* Choose the surface format to use based on the device we chose. */
+    m_surface->chooseFormat(m_device, m_features);
+
     /* Create a swapchain. */
     m_swapchain = new VulkanSwapchain(m_device, m_surface);
 }
@@ -279,9 +286,50 @@ VulkanGPUManager::~VulkanGPUManager() {
 
     delete m_swapchain;
     delete m_device;
-    delete m_surface;
+
+    /* Freed by the engine, but we need to destroy the surface prior to the
+     * instance to avoid validation errors. */
+    m_surface->destroy();
 
     vkDestroyInstance(m_instance, nullptr);
+}
+
+/** Initialise the feature information table. */
+void VulkanGPUManager::initFeatures() {
+    /* Initialise the format mapping table and check for support. */
+    auto initFormat =
+        [&] (PixelFormat engineFormat, VkFormat vkFormat) {
+            auto &format = m_features.formats[engineFormat];
+            format.format = vkFormat;
+            vkGetPhysicalDeviceFormatProperties(
+                m_device->physicalHandle(),
+                vkFormat,
+                &format.properties);
+            if (!format.properties.linearTilingFeatures &&
+                !format.properties.optimalTilingFeatures &&
+                !format.properties.bufferFeatures)
+            {
+                fatal("Required Vulkan image format %u (for %u) is not supported", vkFormat, engineFormat);
+            }
+        };
+    initFormat(PixelFormat::kR8G8B8A8,          VK_FORMAT_R8G8B8A8_UNORM);
+    initFormat(PixelFormat::kR8G8B8,            VK_FORMAT_R8G8B8_UNORM);
+    initFormat(PixelFormat::kR8G8,              VK_FORMAT_R8G8_UNORM);
+    initFormat(PixelFormat::kR8,                VK_FORMAT_R8_UNORM);
+    initFormat(PixelFormat::kB8G8R8A8,          VK_FORMAT_B8G8R8A8_UNORM);
+    initFormat(PixelFormat::kB8G8R8,            VK_FORMAT_B8G8R8_UNORM);
+    initFormat(PixelFormat::kR10G10B10A2,       VK_FORMAT_A2B10G10R10_UNORM_PACK32);
+    initFormat(PixelFormat::kFloatR16G16B16A16, VK_FORMAT_R16G16B16A16_SFLOAT);
+    initFormat(PixelFormat::kFloatR16G16B16,    VK_FORMAT_R16G16B16_SFLOAT);
+    initFormat(PixelFormat::kFloatR16G16,       VK_FORMAT_R16G16_SFLOAT);
+    initFormat(PixelFormat::kFloatR16,          VK_FORMAT_R16_SFLOAT);
+    initFormat(PixelFormat::kFloatR32G32B32A32, VK_FORMAT_R32G32B32A32_SFLOAT);
+    initFormat(PixelFormat::kFloatR32G32B32,    VK_FORMAT_R32G32B32_SFLOAT);
+    initFormat(PixelFormat::kFloatR32G32,       VK_FORMAT_R32G32_SFLOAT);
+    initFormat(PixelFormat::kFloatR32,          VK_FORMAT_R32_SFLOAT);
+    initFormat(PixelFormat::kDepth16,           VK_FORMAT_D16_UNORM);
+    initFormat(PixelFormat::kDepth24,           VK_FORMAT_X8_D24_UNORM_PACK32);
+    initFormat(PixelFormat::kDepth24Stencil8,   VK_FORMAT_D24_UNORM_S8_UINT);
 }
 
 /** Begin a new frame. */

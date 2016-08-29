@@ -23,27 +23,34 @@
 
 #include "vulkan.h"
 
+#include "engine/window.h"
+
+struct VulkanFeatures;
+
 /**
  * Class wrapping a Vulkan surface.
  *
- * This class encapsulates all the platform specifics of getting a surface
- * object referring to the application window. It uses the required platform-
- * specific extensions to create a surface, which can then be used by the
- * platform independent code.
+ * This class is an extension of the generic Window class which encapsulates
+ * all of the platform specifics of getting a Vulkan surface object referring
+ * to the application window. It uses the required platform-specific extensions
+ * to create a surface, which can then be used by the platform independent code.
  */
-class VulkanSurface {
+class VulkanSurface : public Window {
 public:
-    explicit VulkanSurface(Window *window);
-    ~VulkanSurface();
+    explicit VulkanSurface(const EngineConfiguration &config);
+
+    void init();
+    void chooseFormat(VulkanDevice *device, const VulkanFeatures &features);
+    void destroy();
+
+    const char *getPlatformExtensionName();
 
     /** @return             Handle to the surface. */
     VkSurfaceKHR handle() const { return m_handle; }
-    /** @return             Window the surface is for. */
-    Window *window() const { return m_window; }
-
-    static const char *getPlatformExtensionName(Window *window);
+    /** @return             Vulkan surface format. */
+    VkSurfaceFormatKHR surfaceFormat() const { return m_surfaceFormat; }
 private:
-    VkSurfaceKHR m_handle;          /**< Handle to the surface. */
-    Window *m_window;               /**< Window the surface is for. */
+    VkSurfaceKHR m_handle;              /**< Handle to the surface. */
+    VkSurfaceFormatKHR m_surfaceFormat; /**< Vulkan surface format. */
 };
 

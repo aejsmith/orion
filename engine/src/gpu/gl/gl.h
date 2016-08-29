@@ -106,9 +106,6 @@ public:
 /** OpenGL GPU interface implementation. */
 class GLGPUManager : public GPUManager {
 public:
-    /** Type of the pixel format mapping array. */
-    typedef std::array<GLPixelFormat, PixelFormat::kNumFormats> PixelFormatArray;
-public:
     GLGPUManager(const EngineConfiguration &config, Window *&window);
     ~GLGPUManager();
 
@@ -166,9 +163,16 @@ public:
 
     GLuint createFBO(const GPURenderTargetDesc &desc);
     void invalidateFBOs(const GLTexture *texture);
-public:
+
+    /**
+     * Public data.
+     */
+
     GLFeatures features;                /**< GL feature information. */
-    PixelFormatArray pixelFormats;      /**< Mapping of engine pixel formats to GL types. */
+
+    /** Mapping of engine pixel formats to GL types. */
+    std::array<GLPixelFormat, PixelFormat::kNumFormats> pixelFormats;
+
     GLState state;                      /**< Cached GL state. */
     GLuint defaultVertexArray;          /**< Default VAO when no object-specific VAO is in use. */
 private:
@@ -183,7 +187,7 @@ private:
         GLsizei length,
         const GLchar *message,
         const GLvoid *param);
-private:
+
     SDL_GLContext m_sdlContext;         /**< SDL GL context. */
 
     /** Hash table of cached FBOs. */

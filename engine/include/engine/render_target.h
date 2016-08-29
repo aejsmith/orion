@@ -180,10 +180,11 @@ protected:
     /** @return             Name of the target (for debug purposes). */
     virtual std::string renderTargetName() const { return ""; }
     #endif
-private:
+
     uint32_t m_width;               /**< Width of the render target. */
     uint32_t m_height;              /**< Height of the render target. */
     PixelFormat m_format;           /**< Pixel format of the render target. */
+private:
     unsigned m_priority;            /**< Rendering priority. */
     LayerList m_layers;             /**< Registered layers. */
 };

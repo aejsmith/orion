@@ -46,6 +46,15 @@ class VulkanSwapchain;
 /** Details of Vulkan features. */
 struct VulkanFeatures {
     bool validation;                    /**< Whether validation layers are enabled. */
+
+    /** Structure containing details of a pixel format. */
+    struct Format {
+        VkFormat format;                /**< Vulkan format value. */
+        VkFormatProperties properties;  /**< Format properties. */
+    };
+
+    /** Array of pixel format information, indexed by generic pixel format. */
+    std::array<Format, PixelFormat::kNumFormats> formats;
 };
 
 /** Vulkan GPU manager implementation. */
@@ -128,6 +137,8 @@ public:
         return m_primaryCmdBuf;
     }
 private:
+    void initFeatures();
+
     VulkanFeatures m_features;              /**< Feature details. */
     VkInstance m_instance;                  /**< Vulkan instance handle. */
     VulkanInstanceFunctions m_functions;    /**< Instance function pointer table. */

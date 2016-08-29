@@ -24,7 +24,6 @@
 #include "swapchain.h"
 
 #include "engine/engine.h"
-#include "engine/window.h"
 
 /** Number of swapchain images we want to create. */
 static const uint32_t kNumSwapchainImages = 3;
@@ -92,14 +91,13 @@ void VulkanSwapchain::recreate() {
      * this means the surface size will be determined by the size we give for
      * the swap chain, so set the requested window size in this case. Otherwise,
      * use what we are given. */
-    Window *window = m_surface->window();
     if (surfaceCapabilities.currentExtent.width == static_cast<uint32_t>(-1)) {
         createInfo.imageExtent.width = glm::clamp(
-            window->width(),
+            m_surface->width(),
             surfaceCapabilities.minImageExtent.width,
             surfaceCapabilities.maxImageExtent.width);
         createInfo.imageExtent.height = glm::clamp(
-            window->height(),
+            m_surface->height(),
             surfaceCapabilities.minImageExtent.height,
             surfaceCapabilities.maxImageExtent.height);
     } else {
@@ -112,45 +110,8 @@ void VulkanSwapchain::recreate() {
             ? VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR
             : surfaceCapabilities.currentTransform;
 
-    /* Get surface formats. */
-    result = vkGetPhysicalDeviceSurfaceFormatsKHR(
-        m_device->physicalHandle(),
-        m_surface->handle(),
-        &count,
-        nullptr);
-    if (result != VK_SUCCESS) {
-        fatal("Failed to get Vulkan surface formats (1): %d", result);
-    } else if (count == 0) {
-        fatal("No Vulkan surface formats");
-    }
-
-    std::vector<VkSurfaceFormatKHR> formats(count);
-    result = vkGetPhysicalDeviceSurfaceFormatsKHR(
-        m_device->physicalHandle(),
-        m_surface->handle(),
-        &count,
-        &formats[0]);
-    if (result != VK_SUCCESS)
-        fatal("Failed to get Vulkan surface formats (2): %d", result);
-
-    createInfo.imageColorSpace = formats[0].colorSpace;
-
-    /* A single entry with undefined format means that there is no preferred
-     * format, and we can choose whatever we like. */
-    if (formats.size() == 1 && formats[0].format == VK_FORMAT_UNDEFINED) {
-        m_colourFormat = VK_FORMAT_R8G8B8A8_UNORM;
-    } else {
-        /* Default to the first format in the list. */
-        m_colourFormat = formats[0].format;
-
-        /* Search for our desired format (R8G8B8A8 unsigned normalised). */
-        for (const VkSurfaceFormatKHR &format : formats) {
-            if (format.format == VK_FORMAT_R8G8B8A8_UNORM)
-                m_colourFormat = format.format;
-        }
-    }
-
-    createInfo.imageFormat = m_colourFormat;
+    createInfo.imageColorSpace = m_surface->surfaceFormat().colorSpace;
+    createInfo.imageFormat = m_surface->surfaceFormat().format;
 
     /* Get presentation modes. */
     result = vkGetPhysicalDeviceSurfacePresentModesKHR(
@@ -215,7 +176,7 @@ void VulkanSwapchain::recreate() {
     VkImageViewCreateInfo viewCreateInfo = {};
     viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    viewCreateInfo.format = m_colourFormat;
+    viewCreateInfo.format = m_surface->surfaceFormat().format;
     viewCreateInfo.components = {
         VK_COMPONENT_SWIZZLE_R,
         VK_COMPONENT_SWIZZLE_G,

@@ -41,8 +41,6 @@ public:
 
     /** @return             Handle to the swap chain. */
     VkSwapchainKHR handle() const { return m_handle; }
-    /** @return             Colour image format. */
-    VkFormat colourFormat() const { return m_colourFormat; }
     /** @return             Current image details. */
     const Buffer &currentImage() const { return m_images[m_currentImage]; }
 
@@ -55,7 +53,6 @@ private:
     VulkanSurface *m_surface;           /**< Surface the swap chain is for. */
 
     VkSwapchainKHR m_handle;            /**< Handle to the swap chain. */
-    VkFormat m_colourFormat;            /**< Format of the colour images. */
     std::vector<Buffer> m_images;       /**< Array of image handles. */
     uint32_t m_currentImage;            /**< Current image index. */
 

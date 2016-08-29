@@ -29,10 +29,10 @@
 class GlobalInputInfo : public InputInfo {
 public:
     /** Type of the global input information map. */
-    typedef HashMap<std::string, InputInfo *> InfoMap;
+    using InfoMap = HashMap<std::string, InputInfo *>;
 
     /** Type of the global input information array. */
-    typedef std::array<InputInfo *, static_cast<size_t>(InputCode::kNumInputCodes)> InfoArray;
+    using InfoArray = std::array<InputInfo *, static_cast<size_t>(InputCode::kNumInputCodes)>;
 public:
     template <typename... Args>
     GlobalInputInfo(Args &&...args) :
