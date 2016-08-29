@@ -150,6 +150,26 @@ void Entity::deserialise(Serialiser &serialiser) {
 }
 
 /**
+ * Get the path of the entity from the root of the world.
+ *
+ * Gets a path string which refers to the entity in the world. The root entity's
+ * path is "/", and all other entities' paths are a concatenation of all of
+ * their parents' names, separated by "/", e.g. "/parent/child".
+ *
+ * @return              Path string for the entity.
+ */
+std::string Entity::path() const {
+    if (!m_parent)
+        return "/";
+
+    std::string path = m_parent->path();
+    if (path[path.length() - 1] != '/')
+        path += '/';
+    path += this->name;
+    return path;
+}
+
+/**
  * Set whether the entity is active.
  *
  * Sets the entity's active property. Note that when setting to true, the entity

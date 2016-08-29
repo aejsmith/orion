@@ -69,6 +69,8 @@ public:
     /** Name of the entity. */
     PROPERTY() std::string name;
 
+    std::string path() const;
+
     /**
      * Basic functionality.
      */
