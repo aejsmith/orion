@@ -78,6 +78,11 @@ protected:
 
     void beginLayerRenderPass(GPURenderLoadOp loadOp, const glm::vec4 &clearColour = glm::vec4());
 
+    #ifdef ORION_BUILD_DEBUG
+    /** @return             Name of the layer (for debug purposes). */
+    virtual std::string renderLayerName() const { return ""; }
+    #endif
+
     /** Called when the viewport is changed. */
     virtual void viewportChanged() {}
 private:
@@ -168,6 +173,11 @@ public:
     virtual void getTextureImageRef(GPUTextureImageRef &ref) const = 0;
 protected:
     RenderTarget(uint32_t width, uint32_t height, PixelFormat format, unsigned priority);
+
+    #ifdef ORION_BUILD_DEBUG
+    /** @return             Name of the target (for debug purposes). */
+    virtual std::string renderTargetName() const { return ""; }
+    #endif
 private:
     uint32_t m_width;               /**< Width of the render target. */
     uint32_t m_height;              /**< Height of the render target. */

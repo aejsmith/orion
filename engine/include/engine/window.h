@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -39,6 +39,10 @@ public:
 
     /** @return             SDL window. */
     SDL_Window *sdlWindow() const { return m_sdlWindow; }
+protected:
+    #ifdef ORION_BUILD_DEBUG
+    std::string renderTargetName() const override;
+    #endif
 private:
     SDL_Window *m_sdlWindow;        /**< SDL window. */
 

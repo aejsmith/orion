@@ -106,6 +106,10 @@ protected:
     void transformed(unsigned changed) override;
     void activated() override;
     void deactivated() override;
+
+    #ifdef ORION_BUILD_DEBUG
+    std::string renderLayerName() const override;
+    #endif
 private:
     void viewportChanged() override;
 

@@ -24,6 +24,7 @@
  */
 
 #include "core/serialiser.h"
+#include "core/string.h"
 
 #include "engine/entity.h"
 #include "engine/render_target.h"
@@ -95,3 +96,12 @@ void Camera::activated() {
 void Camera::deactivated() {
     unregisterRenderLayer();
 }
+
+#ifdef ORION_BUILD_DEBUG
+
+/** @return             Name of the layer (for debug purposes). */
+std::string Camera::renderLayerName() const {
+    return String::format("Camera @ %s", entity()->path().c_str());
+}
+
+#endif

@@ -70,3 +70,12 @@ void Window::getTextureImageRef(GPUTextureImageRef &ref) const {
 void Window::setTitle(const std::string &title) {
     SDL_SetWindowTitle(m_sdlWindow, title.c_str());
 }
+
+#ifdef ORION_BUILD_DEBUG
+
+/** @return             Name of the target (for debug purposes). */
+std::string Window::renderTargetName() const {
+    return "window";
+}
+
+#endif

@@ -59,6 +59,10 @@ protected:
     bool handleButtonUp(const ButtonEvent &event) override;
     bool handleAxis(const AxisEvent &event) override;
     void handleTextInput(const TextInputEvent &event) override;
+
+    #ifdef ORION_BUILD_DEBUG
+    std::string renderLayerName() const override;
+    #endif
 private:
     /** State of the GUI. */
     enum class State {
@@ -522,6 +526,15 @@ const char *DebugOverlay::getClipboardText() {
 void DebugOverlay::setClipboardText(const char *text) {
     SDL_SetClipboardText(text);
 }
+
+#ifdef ORION_BUILD_DEBUG
+
+/** @return             Name of the layer (for debug purposes). */
+std::string DebugOverlay::renderLayerName() const {
+    return "DebugOverlay";
+}
+
+#endif
 
 /** Initialise the debug manager. */
 DebugManager::DebugManager() {
