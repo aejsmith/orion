@@ -31,3 +31,12 @@ public:
 private:
     VkDescriptorSetLayout m_handle;     /**< Handle to the layout. */
 };
+
+/** Vulkan resource set implementation. */
+class VulkanResourceSet : public GPUResourceSet {
+public:
+    VulkanResourceSet(GPUResourceSetLayout *layout);
+    ~VulkanResourceSet();
+protected:
+    void updateSlot(size_t index) override;
+};

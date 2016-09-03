@@ -72,9 +72,32 @@ VulkanResourceSetLayout::~VulkanResourceSetLayout() {
     vkDestroyDescriptorSetLayout(g_vulkan->device()->handle(), m_handle, nullptr);
 }
 
+/** Initialise the resource set.
+ * @param layout        Layout for the resource set. */
+VulkanResourceSet::VulkanResourceSet(GPUResourceSetLayout *layout) :
+    GPUResourceSet(layout)
+{}
+
+/** Destroy the resource set. */
+VulkanResourceSet::~VulkanResourceSet() {}
+
+/** Update a slot's binding.
+ * @param index         Index of the slot that was changed. */
+void VulkanResourceSet::updateSlot(size_t index) {
+    // TODO
+}
+
+
 /** Create a resource set layout.
  * @param desc          Descriptor for the layout.
  * @return              Pointer to created resource set layout. */
 GPUResourceSetLayoutPtr VulkanGPUManager::createResourceSetLayout(GPUResourceSetLayoutDesc &&desc) {
     return new VulkanResourceSetLayout(std::move(desc));
+}
+
+/** Create a resource set.
+ * @param layout        Layout for the resource set.
+ * @return              Pointer to created resource set. */
+GPUResourceSetPtr VulkanGPUManager::createResourceSet(GPUResourceSetLayout *layout) {
+    return new VulkanResourceSet(layout);
 }

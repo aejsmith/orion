@@ -45,13 +45,6 @@ GPUTexturePtr VulkanGPUManager::createTextureView(const GPUTextureImageRef &imag
     vkStub();
 }
 
-/** Create a resource set.
- * @param layout        Layout for the resource set.
- * @return              Pointer to created resource set. */
-GPUResourceSetPtr VulkanGPUManager::createResourceSet(GPUResourceSetLayout *layout) {
-    vkStub();
-}
-
 /** Begin a render pass.
  * @param desc          Descriptor for the render pass instance. */
 void VulkanGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
