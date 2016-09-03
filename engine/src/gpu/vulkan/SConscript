@@ -13,6 +13,7 @@ objects = map(env.Object, [
     'device.cc',
     'loader.cc',
     'memory_manager.cc',
+    'pipeline.cc',
     'program.cc',
     'queue.cc',
     'render_pass.cc',

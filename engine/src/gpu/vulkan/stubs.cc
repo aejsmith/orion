@@ -23,13 +23,6 @@
 
 #define vkStub() fatal("Vulkan function '%s' not implemented", __func__)
 
-/** Create a pipeline object.
- * @see                 GPUPipeline::GPUPipeline().
- * @return              Pointer to created pipeline. */
-GPUPipelinePtr VulkanGPUManager::createPipeline(GPUPipelineDesc &&desc) {
-    vkStub();
-}
-
 /** Create a sampler state object.
  * @param desc          Descriptor for sampler state.
  * @return              Pointer to created sampler state object. */
