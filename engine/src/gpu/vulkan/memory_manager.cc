@@ -55,6 +55,7 @@ VulkanMemoryManager::VulkanMemoryManager(VulkanDevice *device) :
                 continue;
 
             std::string typeFlags;
+
             if (type.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
                 addFlag(typeFlags, "device local");
             if (type.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)

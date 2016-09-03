@@ -59,19 +59,6 @@ GPUResourceSetPtr VulkanGPUManager::createResourceSet(GPUResourceSetLayout *layo
     vkStub();
 }
 
-/** Create a GPU program from a SPIR-V binary.
- * @param stage         Stage that the program is for.
- * @param spirv         SPIR-V binary for the shader.
- * @param name          Name of the program for debugging purposes.
- * @return              Pointer to created shader on success, null on error. */
-GPUProgramPtr VulkanGPUManager::createProgram(
-    unsigned stage,
-    const std::vector<uint32_t> &spirv,
-    const std::string &name)
-{
-    vkStub();
-}
-
 /** Begin a render pass.
  * @param desc          Descriptor for the render pass instance. */
 void VulkanGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
