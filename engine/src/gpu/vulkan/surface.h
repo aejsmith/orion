@@ -35,9 +35,11 @@ struct VulkanFeatures;
  * to the application window. It uses the required platform-specific extensions
  * to create a surface, which can then be used by the platform independent code.
  */
-class VulkanSurface : public Window {
+class VulkanSurface :
+    public Window,
+    public VulkanHandle<VkSurfaceKHR> {
 public:
-    explicit VulkanSurface(const EngineConfiguration &config);
+    VulkanSurface(VulkanGPUManager *manager, const EngineConfiguration &config);
 
     void init();
     void chooseFormat(VulkanDevice *device, const VulkanFeatures &features);
@@ -45,12 +47,9 @@ public:
 
     const char *getPlatformExtensionName();
 
-    /** @return             Handle to the surface. */
-    VkSurfaceKHR handle() const { return m_handle; }
     /** @return             Vulkan surface format. */
     VkSurfaceFormatKHR surfaceFormat() const { return m_surfaceFormat; }
 private:
-    VkSurfaceKHR m_handle;              /**< Handle to the surface. */
     VkSurfaceFormatKHR m_surfaceFormat; /**< Vulkan surface format. */
 };
 

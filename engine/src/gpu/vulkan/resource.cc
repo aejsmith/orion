@@ -23,9 +23,11 @@
 #include "resource.h"
 
 /** Initialise the resource set layout.
+ * @param manager       Manager that owns the resource set layout.
  * @param desc          Descriptor for the layout. */
-VulkanResourceSetLayout::VulkanResourceSetLayout(GPUResourceSetLayoutDesc &&desc) :
-    GPUResourceSetLayout(std::move(desc))
+VulkanResourceSetLayout::VulkanResourceSetLayout(VulkanGPUManager *manager, GPUResourceSetLayoutDesc &&desc) :
+    GPUResourceSetLayout(std::move(desc)),
+    VulkanHandle(manager)
 {
     std::vector<VkDescriptorSetLayoutBinding> bindings;
     bindings.reserve(desc.slots.size());
@@ -61,7 +63,7 @@ VulkanResourceSetLayout::VulkanResourceSetLayout(GPUResourceSetLayoutDesc &&desc
     createInfo.pBindings = &bindings[0];
 
     checkVk(vkCreateDescriptorSetLayout(
-        g_vulkan->device()->handle(),
+        manager->device()->handle(),
         &createInfo,
         nullptr,
         &m_handle));
@@ -69,13 +71,15 @@ VulkanResourceSetLayout::VulkanResourceSetLayout(GPUResourceSetLayoutDesc &&desc
 
 /** Destroy the resource set layout. */
 VulkanResourceSetLayout::~VulkanResourceSetLayout() {
-    vkDestroyDescriptorSetLayout(g_vulkan->device()->handle(), m_handle, nullptr);
+    vkDestroyDescriptorSetLayout(manager()->device()->handle(), m_handle, nullptr);
 }
 
 /** Initialise the resource set.
+ * @param manager       Manager that owns the resource set.
  * @param layout        Layout for the resource set. */
-VulkanResourceSet::VulkanResourceSet(GPUResourceSetLayout *layout) :
-    GPUResourceSet(layout)
+VulkanResourceSet::VulkanResourceSet(VulkanGPUManager *manager, GPUResourceSetLayout *layout) :
+    GPUResourceSet(layout),
+    VulkanObject(manager)
 {}
 
 /** Destroy the resource set. */
@@ -92,12 +96,12 @@ void VulkanResourceSet::updateSlot(size_t index) {
  * @param desc          Descriptor for the layout.
  * @return              Pointer to created resource set layout. */
 GPUResourceSetLayoutPtr VulkanGPUManager::createResourceSetLayout(GPUResourceSetLayoutDesc &&desc) {
-    return new VulkanResourceSetLayout(std::move(desc));
+    return new VulkanResourceSetLayout(this, std::move(desc));
 }
 
 /** Create a resource set.
  * @param layout        Layout for the resource set.
  * @return              Pointer to created resource set. */
 GPUResourceSetPtr VulkanGPUManager::createResourceSet(GPUResourceSetLayout *layout) {
-    return new VulkanResourceSet(layout);
+    return new VulkanResourceSet(this, layout);
 }

@@ -39,7 +39,10 @@
     }
 
 class VulkanCommandBuffer;
+class VulkanCommandPool;
 class VulkanDevice;
+class VulkanMemoryManager;
+class VulkanQueue;
 class VulkanSurface;
 class VulkanSwapchain;
 
@@ -121,6 +124,12 @@ public:
     VulkanSurface *surface() const { return m_surface; }
     /** @return             Main logical device. */
     VulkanDevice *device() const { return m_device; }
+    /** @return             Device's queue. */
+    VulkanQueue *queue() const { return m_queue; }
+    /** @return             Device's command pool. */
+    VulkanCommandPool *commandPool() const { return m_commandPool; }
+    /** @return             Device's memory manager. */
+    VulkanMemoryManager *memoryManager() const { return m_memoryManager; }
 
     /**
      * Get the primary command buffer for the current frame.
@@ -144,10 +153,43 @@ private:
     VulkanInstanceFunctions m_functions;    /**< Instance function pointer table. */
     VulkanSurface *m_surface;               /**< Surface for the main window. */
     VulkanDevice *m_device;                 /**< Main logical device. */
+    VulkanQueue *m_queue;                   /**< Device queue. */
+    VulkanCommandPool *m_commandPool;       /**< Command buffer pool. */
+    VulkanMemoryManager *m_memoryManager;   /**< Device memory manager. */
     VulkanSwapchain *m_swapchain;           /**< Swap chain. */
 
     /** Primary command buffer for the current frame. */
     VulkanCommandBuffer *m_primaryCmdBuf;
 };
 
-extern VulkanGPUManager *g_vulkan;
+/** Base class for a Vulkan child object. */
+class VulkanObject {
+public:
+    /** @return             Manager that owns the object. */
+    VulkanGPUManager *manager() const { return m_manager; }
+protected:
+    /** Initialise the object.
+     * @param manager       Manager that owns the object. */
+    explicit VulkanObject(VulkanGPUManager *manager) :
+        m_manager(manager)
+    {}
+private:
+    VulkanGPUManager *m_manager;            /**< Manager that owns the object. */
+};
+
+/** Base class for a Vulkan object that owns a handle. */
+template <typename T>
+class VulkanHandle : public VulkanObject {
+public:
+    /** @return             Handle to the object. */
+    T handle() const { return m_handle; }
+protected:
+    /** Initialise the object.
+     * @param manager       Manager that owns the object. */
+    explicit VulkanHandle(VulkanGPUManager *manager) :
+        VulkanObject(manager),
+        m_handle(VK_NULL_HANDLE)
+    {}
+
+    T m_handle;                             /**< Handle to the object. */
+};

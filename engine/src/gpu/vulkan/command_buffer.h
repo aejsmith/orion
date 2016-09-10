@@ -34,9 +34,9 @@ class VulkanCommandBuffer;
  * This class wraps a Vulkan command buffer pool, and on top of that handles
  * the destruction of buffers when they are no longer needed.
  */
-class VulkanCommandPool {
+class VulkanCommandPool : public VulkanObject {
 public:
-    VulkanCommandPool(VulkanDevice *device, uint32_t queueFamily);
+    explicit VulkanCommandPool(VulkanGPUManager *manager);
     ~VulkanCommandPool();
 
     VulkanCommandBuffer *allocateTransient();
@@ -50,10 +50,11 @@ private:
         /** Fence signalled upon completion of the frame's submission. */
         VulkanFence fence;
 
-        Frame(VulkanDevice *device) : fence(device) {}
+        explicit Frame(VulkanGPUManager *manager) :
+            fence(manager)
+        {}
     };
 
-    VulkanDevice *m_device;             /**< Device that this command pool belongs to. */
     VkCommandPool m_transientPool;      /**< Pool for transient command buffers. */
 
     /**
@@ -70,11 +71,8 @@ private:
 };
 
 /** Class wrapping a command buffer. */
-class VulkanCommandBuffer {
+class VulkanCommandBuffer : public VulkanHandle<VkCommandBuffer> {
 public:
-    /** @return             Handle to the command buffer. */
-    VkCommandBuffer handle() const { return m_handle; }
-
     void begin(VkCommandBufferUsageFlagBits usage);
     void end();
 private:
@@ -91,7 +89,6 @@ private:
 
     VulkanCommandPool *m_pool;          /**< Pool that the buffer belongs to. */
     bool m_transient;                   /**< Whether the buffer is transient. */
-    VkCommandBuffer m_handle;           /**< Handle to the command buffer. */
     State m_state;                      /**< State of the command buffer. */
 
     friend class VulkanCommandPool;

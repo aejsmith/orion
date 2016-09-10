@@ -23,9 +23,11 @@
 #include "render_pass.h"
 
 /** Initialise the render pass.
+ * @param manager       Manager that owns this render pass.
  * @param desc          Descriptor for the render pass. */
-VulkanRenderPass::VulkanRenderPass(GPURenderPassDesc &&desc) :
-    GPURenderPass(std::move(desc))
+VulkanRenderPass::VulkanRenderPass(VulkanGPUManager *manager, GPURenderPassDesc &&desc) :
+    GPURenderPass(std::move(desc)),
+    VulkanHandle(manager)
 {
     std::vector<VkAttachmentDescription> attachments;
     attachments.reserve(m_desc.colourAttachments.size() + ((m_desc.depthStencilAttachment) ? 1 : 0));
@@ -51,7 +53,7 @@ VulkanRenderPass::VulkanRenderPass(GPURenderPassDesc &&desc) :
             attachments.emplace_back();
             auto &attachment = attachments.back();
 
-            auto &format = g_vulkan->features().formats[inAttachment.format];
+            auto &format = manager->features().formats[inAttachment.format];
             attachment.format = format.format;
 
             if (depthStencil) {
@@ -106,7 +108,7 @@ VulkanRenderPass::VulkanRenderPass(GPURenderPassDesc &&desc) :
     createInfo.pSubpasses = &subpass;
 
     checkVk(vkCreateRenderPass(
-        g_vulkan->device()->handle(),
+        manager->device()->handle(),
         &createInfo,
         nullptr,
         &m_handle));
@@ -114,12 +116,12 @@ VulkanRenderPass::VulkanRenderPass(GPURenderPassDesc &&desc) :
 
 /** Destroy the render pass. */
 VulkanRenderPass::~VulkanRenderPass() {
-    vkDestroyRenderPass(g_vulkan->device()->handle(), m_handle, nullptr);
+    vkDestroyRenderPass(manager()->device()->handle(), m_handle, nullptr);
 }
 
 /** Create a render pass object.
  * @param desc          Descriptor for the render pass.
  * @return              Created render pass object. */
 GPURenderPassPtr VulkanGPUManager::createRenderPass(GPURenderPassDesc &&desc) {
-    return new VulkanRenderPass(std::move(desc));
+    return new VulkanRenderPass(this, std::move(desc));
 }

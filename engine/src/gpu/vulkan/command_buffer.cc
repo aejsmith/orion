@@ -27,24 +27,23 @@
 #include "command_buffer.h"
 
 /** Create a command pool.
- * @param device        Device that this command pool belongs to.
- * @param queueFamily   Queue family to create command buffers for. */
-VulkanCommandPool::VulkanCommandPool(VulkanDevice *device, uint32_t queueFamily) :
-    m_device(device)
+ * @param manager       Manager that owns this command pool. */
+VulkanCommandPool::VulkanCommandPool(VulkanGPUManager *manager) :
+    VulkanObject(manager)
 {
     VkCommandPoolCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     createInfo.flags =
         VK_COMMAND_POOL_CREATE_TRANSIENT_BIT |
         VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    createInfo.queueFamilyIndex = queueFamily;
+    createInfo.queueFamilyIndex = manager->device()->queueFamily();
 
-    checkVk(vkCreateCommandPool(m_device->handle(), &createInfo, nullptr, &m_transientPool));
+    checkVk(vkCreateCommandPool(manager->device()->handle(), &createInfo, nullptr, &m_transientPool));
 }
 
 /** Destroy the command pool. */
 VulkanCommandPool::~VulkanCommandPool() {
-    vkDestroyCommandPool(m_device->handle(), m_transientPool, nullptr);
+    vkDestroyCommandPool(manager()->device()->handle(), m_transientPool, nullptr);
 }
 
 /**
@@ -98,13 +97,14 @@ void VulkanCommandPool::startFrame() {
     }
 
     /* Start the new frame. */
-    m_frames.emplace_back(m_device);
+    m_frames.emplace_back(manager());
 }
 
 /** Create a new command buffer.
  * @param pool          Pool the command buffer is being allocated from.
  * @param transient     Whether the buffer is transient. */
 VulkanCommandBuffer::VulkanCommandBuffer(VulkanCommandPool *pool, bool transient) :
+    VulkanHandle(pool->manager()),
     m_pool(pool),
     m_transient(transient),
     m_state(State::kAllocated)
@@ -119,13 +119,13 @@ VulkanCommandBuffer::VulkanCommandBuffer(VulkanCommandPool *pool, bool transient
     allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocateInfo.commandBufferCount = 1;
 
-    checkVk(vkAllocateCommandBuffers(m_pool->m_device->handle(), &allocateInfo, &m_handle));
+    checkVk(vkAllocateCommandBuffers(manager()->device()->handle(), &allocateInfo, &m_handle));
 }
 
 /** Destroy the command buffer. */
 VulkanCommandBuffer::~VulkanCommandBuffer() {
     check(m_state != State::kSubmitted);
-    vkFreeCommandBuffers(m_pool->m_device->handle(), m_pool->m_transientPool, 1, &m_handle);
+    vkFreeCommandBuffers(manager()->device()->handle(), m_pool->m_transientPool, 1, &m_handle);
 }
 
 /** Begin recording a command buffer.

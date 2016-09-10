@@ -24,9 +24,9 @@
 #include "memory_manager.h"
 
 /** Vulkan GPU buffer implementation. */
-class VulkanBuffer : public GPUBuffer {
+class VulkanBuffer : public GPUBuffer, public VulkanObject {
 public:
-    VulkanBuffer(Type type, Usage usage, size_t size);
+    VulkanBuffer(VulkanGPUManager *manager, Type type, Usage usage, size_t size);
     ~VulkanBuffer();
 protected:
     void writeImpl(size_t offset, size_t size, const void *buf) override;

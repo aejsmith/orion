@@ -23,11 +23,13 @@
 #include "device.h"
 
 /** Create a new buffer.
+ * @param manager       Manager which owns the buffer.
  * @param type          Type of the buffer.
  * @param usage         Usage hint.
  * @param size          Buffer size. */
-VulkanBuffer::VulkanBuffer(Type type, Usage usage, size_t size) :
-    GPUBuffer(type, usage, size)
+VulkanBuffer::VulkanBuffer(VulkanGPUManager *manager, Type type, Usage usage, size_t size) :
+    GPUBuffer(type, usage, size),
+    VulkanObject(manager)
 {
     /* Determine Vulkan usage flag. */
     VkBufferUsageFlags usageFlag;
@@ -47,8 +49,7 @@ VulkanBuffer::VulkanBuffer(Type type, Usage usage, size_t size) :
 
     // FIXME: Staging buffers! Dynamic/per-frame need to handle differently too.
     // Staging buffers must be created with VK_BUFFER_USAGE_TRANSFER_SRC_BIT.
-    VulkanMemoryManager *memoryManager = g_vulkan->device()->memoryManager();
-    m_allocation = memoryManager->allocateBuffer(
+    m_allocation = manager->memoryManager()->allocateBuffer(
         m_size,
         usageFlag,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
@@ -56,8 +57,7 @@ VulkanBuffer::VulkanBuffer(Type type, Usage usage, size_t size) :
 
 /** Destroy the buffer. */
 VulkanBuffer::~VulkanBuffer() {
-    VulkanMemoryManager *memoryManager = g_vulkan->device()->memoryManager();
-    memoryManager->freeBuffer(m_allocation);
+    manager()->memoryManager()->freeBuffer(m_allocation);
 }
 
 /** Write data to the buffer.
@@ -94,5 +94,5 @@ void VulkanBuffer::unmapImpl() {
  * @param size          Buffer size.
  * @return              Pointer to created buffer. */
 GPUBufferPtr VulkanGPUManager::createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) {
-    return new VulkanBuffer(type, usage, size);
+    return new VulkanBuffer(this, type, usage, size);
 }

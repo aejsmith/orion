@@ -23,9 +23,11 @@
 #include "queue.h"
 
 /** Create a queue object managing a device queue.
- * @param device        Device that queue belongs to.
+ * @param manager       Manager that owns this queue.
  * @param queueFamily   Queue family that queue belongs to.
  * @param index         Index of the queue. */
-VulkanQueue::VulkanQueue(const VulkanDevice *device, uint32_t queueFamily, uint32_t index) {
-    vkGetDeviceQueue(device->handle(), queueFamily, index, &m_handle);
+VulkanQueue::VulkanQueue(VulkanGPUManager *manager, uint32_t queueFamily, uint32_t index) :
+    VulkanHandle(manager)
+{
+    vkGetDeviceQueue(manager->device()->handle(), queueFamily, index, &m_handle);
 }

@@ -23,15 +23,18 @@
 #include "program.h"
 
 /** Initialise a Vulkan program from a SPIR-V binary.
+ * @param manager       Manager that owns this program.
  * @param stage         Stage that the program is for.
  * @param spirv         SPIR-V binary for the shader.
  * @param name          Name of the program for debugging purposes. */
 VulkanProgram::VulkanProgram(
+    VulkanGPUManager *manager,
     unsigned stage,
     const std::vector<uint32_t> &spirv,
     const std::string &name)
     :
-    GPUProgram(stage)
+    GPUProgram(stage),
+    VulkanHandle(manager)
 {
     /* TODO: Object names. */
     VkShaderModuleCreateInfo createInfo = {};
@@ -40,7 +43,7 @@ VulkanProgram::VulkanProgram(
     createInfo.pCode = &spirv[0];
 
     checkVk(vkCreateShaderModule(
-        g_vulkan->device()->handle(),
+        manager->device()->handle(),
         &createInfo,
         nullptr,
         &m_handle));
@@ -48,7 +51,7 @@ VulkanProgram::VulkanProgram(
 
 /** Destroy the program. */
 VulkanProgram::~VulkanProgram() {
-    vkDestroyShaderModule(g_vulkan->device()->handle(), m_handle, nullptr);
+    vkDestroyShaderModule(manager()->device()->handle(), m_handle, nullptr);
 }
 
 /** Create a GPU program from a SPIR-V binary.
@@ -61,5 +64,5 @@ GPUProgramPtr VulkanGPUManager::createProgram(
     const std::vector<uint32_t> &spirv,
     const std::string &name)
 {
-    return new VulkanProgram(stage, spirv, name);
+    return new VulkanProgram(this, stage, spirv, name);
 }

@@ -24,10 +24,10 @@
 #include "vulkan.h"
 
 /** Vulkan render pass class. */
-class VulkanRenderPass : public GPURenderPass {
+class VulkanRenderPass :
+    public GPURenderPass,
+    public VulkanHandle<VkRenderPass> {
 public:
-    explicit VulkanRenderPass(GPURenderPassDesc &&desc);
+    VulkanRenderPass(VulkanGPUManager *manager, GPURenderPassDesc &&desc);
     ~VulkanRenderPass();
-private:
-    VkRenderPass m_handle;          /**< Handle to the render pass. */
 };

@@ -50,7 +50,7 @@ static const VkDeviceSize kBufferPoolSize = 8 * 1024 * 1024;
  * for each allocation, and then just make use of offsets into that buffer for
  * individual GPUBuffer objects.
  */
-class VulkanMemoryManager {
+class VulkanMemoryManager : public VulkanObject {
 private:
     struct PoolEntry;
     struct Pool;
@@ -100,7 +100,7 @@ public:
         {}
     };
 
-    explicit VulkanMemoryManager(VulkanDevice *device);
+    explicit VulkanMemoryManager(VulkanGPUManager *manager);
     ~VulkanMemoryManager();
 
     BufferMemory *allocateBuffer(
@@ -135,8 +135,6 @@ private:
 
     Pool *createPool(VkDeviceSize size, uint32_t memoryType);
     bool allocatePoolEntry(Pool *pool, VkDeviceSize size, VkDeviceSize alignment, PoolReference &reference);
-
-    VulkanDevice *m_device;             /**< Device that this memory manager is for. */
 
     /** Device memory properties. */
     VkPhysicalDeviceMemoryProperties m_properties;

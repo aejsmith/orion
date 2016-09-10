@@ -42,9 +42,11 @@
 #include "engine/window.h"
 
 /** Create the window.
+ * @param manager       Manager that owns the surface.
  * @param config        Engine configuration structure. */
-VulkanSurface::VulkanSurface(const EngineConfiguration &config) :
-    Window(config)
+VulkanSurface::VulkanSurface(VulkanGPUManager *manager, const EngineConfiguration &config) :
+    Window(config),
+    VulkanHandle(manager)
 {}
 
 /** Initialise the surface. */
@@ -65,7 +67,7 @@ void VulkanSurface::init() {
                 createInfo.connection = XGetXCBConnection(wmInfo.info.x11.display);
                 createInfo.window = wmInfo.info.x11.window;
 
-                result = vkCreateXcbSurfaceKHR(g_vulkan->instance(), &createInfo, nullptr, &m_handle);
+                result = vkCreateXcbSurfaceKHR(manager()->instance(), &createInfo, nullptr, &m_handle);
                 break;
             }
         #endif
@@ -127,7 +129,7 @@ void VulkanSurface::chooseFormat(VulkanDevice *device, const VulkanFeatures &fea
 
 /** Destroy the surface. */
 void VulkanSurface::destroy() {
-    vkDestroySurfaceKHR(g_vulkan->instance(), m_handle, nullptr);
+    vkDestroySurfaceKHR(manager()->instance(), m_handle, nullptr);
 }
 
 /** Get the platform-specific surface extension name.

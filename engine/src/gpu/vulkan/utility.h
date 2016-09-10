@@ -24,34 +24,31 @@
 #include "device.h"
 
 /** Class wrapping a Vulkan fence. */
-class VulkanFence {
+class VulkanFence : public VulkanHandle<VkFence> {
 public:
     /** Create a new fence.
-     * @param device        Device to create the semaphore on.
+     * @param manager       Manager that owns the fence.
      * @param signalled     Whether the fence should begin in the signalled
      *                      state (defaults to false). */
-    explicit VulkanFence(VulkanDevice *device, bool signalled = false) :
-        m_device(device)
+    explicit VulkanFence(VulkanGPUManager *manager, bool signalled = false) :
+        VulkanHandle(manager)
     {
         VkFenceCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         if (signalled)
             createInfo.flags |= VK_FENCE_CREATE_SIGNALED_BIT;
-        checkVk(vkCreateFence(m_device->handle(), &createInfo, nullptr, &m_handle));
+        checkVk(vkCreateFence(manager->device()->handle(), &createInfo, nullptr, &m_handle));
     }
 
     /** Destroy the fence. */
     ~VulkanFence() {
-        vkDestroyFence(m_device->handle(), m_handle, nullptr);
+        vkDestroyFence(manager()->device()->handle(), m_handle, nullptr);
     }
-
-    /** @return             Handle to the fence. */
-    VkFence handle() const { return m_handle; }
 
     /** Get the fence status.
      * @return              Whether the fence is signalled. */
     bool getStatus() const {
-        VkResult result = vkGetFenceStatus(m_device->handle(), m_handle);
+        VkResult result = vkGetFenceStatus(manager()->device()->handle(), m_handle);
         switch (result) {
             case VK_SUCCESS:
                 return true;
@@ -61,32 +58,23 @@ public:
                 unreachable();
         }
     }
-private:
-    VulkanDevice *m_device;             /**< Device the fence belongs to. */
-    VkFence m_handle;                   /**< Handle to the fence. */
 };
 
 /** Class wrapping a Vulkan semaphore. */
-class VulkanSemaphore {
+class VulkanSemaphore : public VulkanHandle<VkSemaphore> {
 public:
     /** Create a new semaphore.
-     * @param device        Device to create the semaphore on. */
-    explicit VulkanSemaphore(VulkanDevice *device) :
-        m_device(device)
+     * @param manager       Manager that owns the semaphore. */
+    explicit VulkanSemaphore(VulkanGPUManager *manager) :
+        VulkanHandle(manager)
     {
         VkSemaphoreCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        checkVk(vkCreateSemaphore(m_device->handle(), &createInfo, nullptr, &m_handle));
+        checkVk(vkCreateSemaphore(manager->device()->handle(), &createInfo, nullptr, &m_handle));
     }
 
     /** Destroy the semaphore. */
     ~VulkanSemaphore() {
-        vkDestroySemaphore(m_device->handle(), m_handle, nullptr);
+        vkDestroySemaphore(manager()->device()->handle(), m_handle, nullptr);
     }
-
-    /** @return             Handle to the semaphore. */
-    VkSemaphore handle() const { return m_handle; }
-private:
-    VulkanDevice *m_device;             /**< Device the semaphore belongs to. */
-    VkSemaphore m_handle;               /**< Handle to the semaphore. */
 };

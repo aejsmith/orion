@@ -26,7 +26,7 @@
 class VulkanSurface;
 
 /** Class wrapping a Vulkan swap chain. */
-class VulkanSwapchain {
+class VulkanSwapchain : public VulkanHandle<VkSwapchainKHR> {
 public:
     /** Structure containing buffer details. */
     struct Buffer {
@@ -34,13 +34,11 @@ public:
         VkImageView view;               /**< View to the image. */
     };
 
-    VulkanSwapchain(VulkanDevice *device, VulkanSurface *surface);
+    explicit VulkanSwapchain(VulkanGPUManager *manager);
     ~VulkanSwapchain();
 
     void recreate();
 
-    /** @return             Handle to the swap chain. */
-    VkSwapchainKHR handle() const { return m_handle; }
     /** @return             Current image details. */
     const Buffer &currentImage() const { return m_images[m_currentImage]; }
 
@@ -49,10 +47,6 @@ public:
 private:
     void clearImages();
 
-    VulkanDevice *m_device;             /**< Device the swap chain is for. */
-    VulkanSurface *m_surface;           /**< Surface the swap chain is for. */
-
-    VkSwapchainKHR m_handle;            /**< Handle to the swap chain. */
     std::vector<Buffer> m_images;       /**< Array of image handles. */
     uint32_t m_currentImage;            /**< Current image index. */
 

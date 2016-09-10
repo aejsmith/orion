@@ -24,16 +24,14 @@
 #include "vulkan.h"
 
 /** Vulkan GPU program implementation. */
-class VulkanProgram : public GPUProgram {
+class VulkanProgram :
+    public GPUProgram,
+    public VulkanHandle<VkShaderModule> {
 public:
     VulkanProgram(
+        VulkanGPUManager *manager,
         unsigned stage,
         const std::vector<uint32_t> &spirv,
         const std::string &name);
     ~VulkanProgram();
-
-    /** @return             Vulkan shader module handle. */
-    VkShaderModule handle() const { return m_handle; }
-private:
-    VkShaderModule m_handle;            /**< Handle to the shader module. */
 };

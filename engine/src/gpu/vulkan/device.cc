@@ -31,17 +31,15 @@ static const char *kRequiredDeviceExtensions[] = {
 };
 
 /** Initialise the device object (does not create device).
+ * @param manager        Manager that owns this device.
  * @param physicalDevice Physical device this object corresponds to. */
-VulkanDevice::VulkanDevice(VkPhysicalDevice physicalDevice) :
-    m_handle(VK_NULL_HANDLE),
+VulkanDevice::VulkanDevice(VulkanGPUManager *manager, VkPhysicalDevice physicalDevice) :
+    VulkanHandle(manager),
     m_physicalHandle(physicalDevice)
 {}
 
 /** Destroy the device. */
 VulkanDevice::~VulkanDevice() {
-    delete m_commandPool;
-    delete m_queue;
-
     if (m_handle != VK_NULL_HANDLE)
         vkDestroyDevice(m_handle, nullptr);
 }
@@ -163,7 +161,7 @@ void VulkanDevice::init() {
 
     /* Assume that if the instance layers are available, the device layers are. */
     #if ORION_VULKAN_VALIDATION
-        if (g_vulkan->features().validation)
+        if (manager()->features().validation)
             layers.push_back("VK_LAYER_LUNARG_standard_validation");
     #endif
 
@@ -179,8 +177,4 @@ void VulkanDevice::init() {
     VkResult result = vkCreateDevice(m_physicalHandle, &deviceCreateInfo, nullptr, &m_handle);
     if (result != VK_SUCCESS)
         fatal("Failed to create Vulkan device: %d", result);
-
-    m_queue = new VulkanQueue(this, m_queueFamily, 0);
-    m_commandPool = new VulkanCommandPool(this, m_queueFamily);
-    m_memoryManager = new VulkanMemoryManager(this);
 }

@@ -24,18 +24,18 @@
 #include "vulkan.h"
 
 /** Vulkan resource set layout implementation. */
-class VulkanResourceSetLayout : public GPUResourceSetLayout {
+class VulkanResourceSetLayout :
+    public GPUResourceSetLayout,
+    public VulkanHandle<VkDescriptorSetLayout> {
 public:
-    explicit VulkanResourceSetLayout(GPUResourceSetLayoutDesc &&desc);
+    VulkanResourceSetLayout(VulkanGPUManager *manager, GPUResourceSetLayoutDesc &&desc);
     ~VulkanResourceSetLayout();
-private:
-    VkDescriptorSetLayout m_handle;     /**< Handle to the layout. */
 };
 
 /** Vulkan resource set implementation. */
-class VulkanResourceSet : public GPUResourceSet {
+class VulkanResourceSet : public GPUResourceSet, public VulkanObject {
 public:
-    explicit VulkanResourceSet(GPUResourceSetLayout *layout);
+    VulkanResourceSet(VulkanGPUManager *manager, GPUResourceSetLayout *layout);
     ~VulkanResourceSet();
 protected:
     void updateSlot(size_t index) override;

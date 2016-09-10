@@ -21,6 +21,8 @@
 
 #include "command_buffer.h"
 #include "device.h"
+#include "memory_manager.h"
+#include "queue.h"
 #include "surface.h"
 #include "swapchain.h"
 #include "vulkan.h"
@@ -29,9 +31,6 @@
 #include "core/string.h"
 
 #include "engine/engine.h"
-
-/** Global Vulkan GPU manager instance. */
-VulkanGPUManager *g_vulkan;
 
 /** List of required instance extensions. */
 static const char *kRequiredInstanceExtensions[] = {
@@ -179,11 +178,9 @@ VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&w
 {
     VkResult result;
 
-    g_vulkan = this;
-
     /* Create the main window. We do this first as we need it to get the surface
      * extension that we need to enable. We do not yet initialise the surface. */
-    m_surface = new VulkanSurface(config);
+    m_surface = new VulkanSurface(this, config);
     window = m_surface;
 
     logInfo("Initialising Vulkan");
@@ -251,7 +248,7 @@ VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&w
     uint32_t bestDevice = UINT32_MAX;
     for (uint32_t i = 0; i < physicalDevices.size(); i++) {
         logInfo("  Device %u:", i);
-        std::unique_ptr<VulkanDevice> device = std::make_unique<VulkanDevice>(physicalDevices[i]);
+        std::unique_ptr<VulkanDevice> device = std::make_unique<VulkanDevice>(this, physicalDevices[i]);
         if (device->identify(m_surface)) {
             if (bestDevice == UINT32_MAX || device->isBetterThan(devices[i].get()))
                 bestDevice = i;
@@ -276,8 +273,11 @@ VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&w
     /* Choose the surface format to use based on the device we chose. */
     m_surface->chooseFormat(m_device, m_features);
 
-    /* Create a swapchain. */
-    m_swapchain = new VulkanSwapchain(m_device, m_surface);
+    /* Create other global objects. */
+    m_queue = new VulkanQueue(this, m_device->queueFamily(), 0);
+    m_commandPool = new VulkanCommandPool(this);
+    m_memoryManager = new VulkanMemoryManager(this);
+    m_swapchain = new VulkanSwapchain(this);
 }
 
 /** Shut down the Vulkan GPU manager. */
@@ -285,6 +285,9 @@ VulkanGPUManager::~VulkanGPUManager() {
     vkDeviceWaitIdle(m_device->handle());
 
     delete m_swapchain;
+    delete m_memoryManager;
+    delete m_commandPool;
+    delete m_queue;
     delete m_device;
 
     /* Freed by the engine, but we need to destroy the surface prior to the
@@ -335,8 +338,8 @@ void VulkanGPUManager::initFeatures() {
 /** Begin a new frame. */
 void VulkanGPUManager::startFrame() {
     /* Begin a new frame and allocate the primary command buffer. */
-    m_device->commandPool()->startFrame();
-    m_primaryCmdBuf = m_device->commandPool()->allocateTransient();
+    m_commandPool->startFrame();
+    m_primaryCmdBuf = m_commandPool->allocateTransient();
     m_primaryCmdBuf->begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
     /* Acquire a new image from the swap chain. */

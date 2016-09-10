@@ -22,9 +22,11 @@
 #include "pipeline.h"
 
 /** Create a pipeline object.
+ * @param manager       Manager that the pipeline is for.
  * @param desc          Descriptor for the pipeline. */
-VulkanPipeline::VulkanPipeline(GPUPipelineDesc &&desc) :
-    GPUPipeline(std::move(desc))
+VulkanPipeline::VulkanPipeline(VulkanGPUManager *manager, GPUPipelineDesc &&desc) :
+    GPUPipeline(std::move(desc)),
+    VulkanObject(manager)
 {}
 
 /** Destroy the pipeline. */
@@ -34,5 +36,5 @@ VulkanPipeline::~VulkanPipeline() {}
  * @param desc          Descriptor for the pipeline.
  * @return              Pointer to created pipeline. */
 GPUPipelinePtr VulkanGPUManager::createPipeline(GPUPipelineDesc &&desc) {
-    return new VulkanPipeline(std::move(desc));
+    return new VulkanPipeline(this, std::move(desc));
 }

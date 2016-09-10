@@ -26,12 +26,7 @@
 class VulkanDevice;
 
 /** Class managing a Vulkan queue. */
-class VulkanQueue {
+class VulkanQueue : public VulkanHandle<VkQueue> {
 public:
-    VulkanQueue(const VulkanDevice *device, uint32_t queueFamily, uint32_t index);
-
-    /** @return             Handle to the queue. */
-    VkQueue handle() const { return m_handle; }
-private:
-    VkQueue m_handle;               /**< Handle to the queue. */
+    VulkanQueue(VulkanGPUManager *manager, uint32_t queueFamily, uint32_t index);
 };

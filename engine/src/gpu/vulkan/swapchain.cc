@@ -29,14 +29,11 @@
 static const uint32_t kNumSwapchainImages = 3;
 
 /** Create a swap chain.
- * @param device        Device the swap chain is for.
- * @param surface       Surface the swap chain is for. */
-VulkanSwapchain::VulkanSwapchain(VulkanDevice *device, VulkanSurface *surface) :
-    m_device(device),
-    m_surface(surface),
-    m_handle(VK_NULL_HANDLE),
+ * @param manager       Manager that owns the swap chain. */
+VulkanSwapchain::VulkanSwapchain(VulkanGPUManager *manager) :
+    VulkanHandle(manager),
     m_currentImage(UINT32_MAX),
-    m_presentCompleteSem(device)
+    m_presentCompleteSem(manager)
 {
     recreate();
 }
@@ -44,13 +41,13 @@ VulkanSwapchain::VulkanSwapchain(VulkanDevice *device, VulkanSurface *surface) :
 /** Destroy the swap chain. */
 VulkanSwapchain::~VulkanSwapchain() {
     clearImages();
-    vkDestroySwapchainKHR(m_device->handle(), m_handle, nullptr);
+    vkDestroySwapchainKHR(manager()->device()->handle(), m_handle, nullptr);
 }
 
 /** Free existing images. */
 void VulkanSwapchain::clearImages() {
     for (Buffer &buffer : m_images)
-        vkDestroyImageView(m_device->handle(), buffer.view, nullptr);
+        vkDestroyImageView(manager()->device()->handle(), buffer.view, nullptr);
 }
 
 /** (Re)create the swap chain. */
@@ -58,11 +55,14 @@ void VulkanSwapchain::recreate() {
     VkResult result;
     uint32_t count;
 
+    VulkanDevice *device = manager()->device();
+    VulkanSurface *surface = manager()->surface();
+
     VkSwapchainKHR oldSwapchain = m_handle;
 
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface = m_surface->handle();
+    createInfo.surface = surface->handle();
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -73,8 +73,8 @@ void VulkanSwapchain::recreate() {
     /* Get surface capabilities. */
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
     result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
-        m_device->physicalHandle(),
-        m_surface->handle(),
+        device->physicalHandle(),
+        surface->handle(),
         &surfaceCapabilities);
     if (result != VK_SUCCESS)
         fatal("Failed to get Vulkan surface capabilities: %d", result);
@@ -93,11 +93,11 @@ void VulkanSwapchain::recreate() {
      * use what we are given. */
     if (surfaceCapabilities.currentExtent.width == static_cast<uint32_t>(-1)) {
         createInfo.imageExtent.width = glm::clamp(
-            m_surface->width(),
+            surface->width(),
             surfaceCapabilities.minImageExtent.width,
             surfaceCapabilities.maxImageExtent.width);
         createInfo.imageExtent.height = glm::clamp(
-            m_surface->height(),
+            surface->height(),
             surfaceCapabilities.minImageExtent.height,
             surfaceCapabilities.maxImageExtent.height);
     } else {
@@ -110,13 +110,13 @@ void VulkanSwapchain::recreate() {
             ? VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR
             : surfaceCapabilities.currentTransform;
 
-    createInfo.imageColorSpace = m_surface->surfaceFormat().colorSpace;
-    createInfo.imageFormat = m_surface->surfaceFormat().format;
+    createInfo.imageColorSpace = surface->surfaceFormat().colorSpace;
+    createInfo.imageFormat = surface->surfaceFormat().format;
 
     /* Get presentation modes. */
     result = vkGetPhysicalDeviceSurfacePresentModesKHR(
-        m_device->physicalHandle(),
-        m_surface->handle(),
+        device->physicalHandle(),
+        surface->handle(),
         &count,
         nullptr);
     if (result != VK_SUCCESS) {
@@ -127,8 +127,8 @@ void VulkanSwapchain::recreate() {
 
     std::vector<VkPresentModeKHR> presentModes(count);
     result = vkGetPhysicalDeviceSurfacePresentModesKHR(
-        m_device->physicalHandle(),
-        m_surface->handle(),
+        device->physicalHandle(),
+        surface->handle(),
         &count,
         &presentModes[0]);
     if (result != VK_SUCCESS)
@@ -152,23 +152,23 @@ void VulkanSwapchain::recreate() {
         }
     }
 
-    result = vkCreateSwapchainKHR(m_device->handle(), &createInfo, nullptr, &m_handle);
+    result = vkCreateSwapchainKHR(device->handle(), &createInfo, nullptr, &m_handle);
     if (result != VK_SUCCESS)
         fatal("Failed to create Vulkan swap chain: %d", result);
 
     if (oldSwapchain != VK_NULL_HANDLE) {
         clearImages();
-        vkDestroySwapchainKHR(m_device->handle(), oldSwapchain, nullptr);
+        vkDestroySwapchainKHR(device->handle(), oldSwapchain, nullptr);
     }
 
     /* Get an array of images. */
-    result = vkGetSwapchainImagesKHR(m_device->handle(), m_handle, &count, nullptr);
+    result = vkGetSwapchainImagesKHR(device->handle(), m_handle, &count, nullptr);
     if (result != VK_SUCCESS)
         fatal("Failed to get Vulkan swap chain images (1): %d", result);
     check(count);
 
     std::vector<VkImage> images(count);
-    result = vkGetSwapchainImagesKHR(m_device->handle(), m_handle, &count, &images[0]);
+    result = vkGetSwapchainImagesKHR(device->handle(), m_handle, &count, &images[0]);
     if (result != VK_SUCCESS)
         fatal("Failed to get Vulkan swap chain images (2): %d", result);
 
@@ -176,7 +176,7 @@ void VulkanSwapchain::recreate() {
     VkImageViewCreateInfo viewCreateInfo = {};
     viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    viewCreateInfo.format = m_surface->surfaceFormat().format;
+    viewCreateInfo.format = surface->surfaceFormat().format;
     viewCreateInfo.components = {
         VK_COMPONENT_SWIZZLE_R,
         VK_COMPONENT_SWIZZLE_G,
@@ -192,7 +192,7 @@ void VulkanSwapchain::recreate() {
 
         /* Create an image view. */
         viewCreateInfo.image = images[i];
-        checkVk(vkCreateImageView(m_device->handle(), &viewCreateInfo, nullptr, &m_images[i].view));
+        checkVk(vkCreateImageView(device->handle(), &viewCreateInfo, nullptr, &m_images[i].view));
     }
 }
 
@@ -210,7 +210,7 @@ void VulkanSwapchain::startFrame() {
      * indefinitely until an image is available. The image however may not
      * actually be usable for rendering until the semaphore is signalled. */
     checkVk(vkAcquireNextImageKHR(
-        m_device->handle(),
+        manager()->device()->handle(),
         m_handle,
         UINT64_MAX,
         m_presentCompleteSem.handle(),
@@ -232,7 +232,7 @@ void VulkanSwapchain::endFrame() {
     presentInfo.pSwapchains = &m_handle;
     presentInfo.pImageIndices = &m_currentImage;
 
-    checkVk(vkQueuePresentKHR(m_device->queue()->handle(), &presentInfo));
+    checkVk(vkQueuePresentKHR(manager()->queue()->handle(), &presentInfo));
 
     m_currentImage = UINT32_MAX;
 }

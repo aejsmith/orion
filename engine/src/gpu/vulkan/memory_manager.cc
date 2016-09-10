@@ -23,11 +23,11 @@
 #include "memory_manager.h"
 
 /** Initialise the memory manager.
- * @param device        Device that the memory manager is for. */
-VulkanMemoryManager::VulkanMemoryManager(VulkanDevice *device) :
-    m_device(device)
+ * @param manager       Manager that the memory manager is for. */
+VulkanMemoryManager::VulkanMemoryManager(VulkanGPUManager *manager) :
+    VulkanObject(manager)
 {
-    vkGetPhysicalDeviceMemoryProperties(m_device->physicalHandle(), &m_properties);
+    vkGetPhysicalDeviceMemoryProperties(manager->device()->physicalHandle(), &m_properties);
 
     logInfo("  Memory Heaps:");
 
@@ -87,7 +87,7 @@ VulkanMemoryManager::Pool *VulkanMemoryManager::createPool(VkDeviceSize size, ui
     allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocateInfo.allocationSize = size;
     allocateInfo.memoryTypeIndex = memoryType;
-    checkVk(vkAllocateMemory(m_device->handle(), &allocateInfo, nullptr, &pool->handle));
+    checkVk(vkAllocateMemory(manager()->device()->handle(), &allocateInfo, nullptr, &pool->handle));
 
     pool->buffer = VK_NULL_HANDLE;
     pool->size = size;
@@ -103,7 +103,7 @@ VulkanMemoryManager::Pool *VulkanMemoryManager::createPool(VkDeviceSize size, ui
 
     if (m_properties.memoryTypes[memoryType].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
         checkVk(vkMapMemory(
-            m_device->handle(),
+            manager()->device()->handle(),
             pool->handle,
             0, pool->size,
             0,
@@ -206,7 +206,7 @@ VulkanMemoryManager::BufferMemory *VulkanMemoryManager::allocateBuffer(
     VkMemoryPropertyFlags memoryFlags)
 {
     /* From the usage given, determine the required alignment of the buffer. */
-    const VkPhysicalDeviceLimits &limits = m_device->limits();
+    const VkPhysicalDeviceLimits &limits = manager()->device()->limits();
     VkDeviceSize alignment = 0;
     if (usage & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
         alignment = std::max(alignment, limits.minUniformBufferOffsetAlignment);
@@ -255,6 +255,8 @@ VulkanMemoryManager::BufferMemory *VulkanMemoryManager::allocateBuffer(
          * implementation. */
         Pool *pool = createPool(std::max(kBufferPoolSize, size), memoryType);
 
+        VkDevice device = manager()->device()->handle();
+
         /* Allocate a buffer object. We mark the buffer as usable for all types
          * of GPUBuffer we can create, as we mix buffer types within a pool. */
         VkBufferCreateInfo bufferCreateInfo = {};
@@ -264,14 +266,14 @@ VulkanMemoryManager::BufferMemory *VulkanMemoryManager::allocateBuffer(
             VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
             VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-        checkVk(vkCreateBuffer(m_device->handle(), &bufferCreateInfo, nullptr, &pool->buffer));
+        checkVk(vkCreateBuffer(device, &bufferCreateInfo, nullptr, &pool->buffer));
 
         /* Bind the memory to the buffer. */
         VkMemoryRequirements requirements;
-        vkGetBufferMemoryRequirements(m_device->handle(), pool->buffer, &requirements);
+        vkGetBufferMemoryRequirements(device, pool->buffer, &requirements);
         check(requirements.size == pool->size);
         check(requirements.memoryTypeBits & (1 << memoryType));
-        checkVk(vkBindBufferMemory(m_device->handle(), pool->buffer, pool->handle, 0));
+        checkVk(vkBindBufferMemory(device, pool->buffer, pool->handle, 0));
 
         m_bufferPools.push_back(pool);
 

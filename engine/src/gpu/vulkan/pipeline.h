@@ -24,8 +24,8 @@
 #include "vulkan.h"
 
 /** Vulkan pipeline implementation. */
-class VulkanPipeline : public GPUPipeline {
+class VulkanPipeline : public GPUPipeline, public VulkanObject {
 public:
-    explicit VulkanPipeline(GPUPipelineDesc &&desc);
+    VulkanPipeline(VulkanGPUManager *manager, GPUPipelineDesc &&desc);
     ~VulkanPipeline();
 };
