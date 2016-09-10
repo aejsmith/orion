@@ -26,6 +26,6 @@
 /** Vulkan pipeline implementation. */
 class VulkanPipeline : public GPUPipeline {
 public:
-    VulkanPipeline(GPUPipelineDesc &&desc);
+    explicit VulkanPipeline(GPUPipelineDesc &&desc);
     ~VulkanPipeline();
 };

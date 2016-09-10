@@ -26,7 +26,7 @@
 /** Vulkan render pass class. */
 class VulkanRenderPass : public GPURenderPass {
 public:
-    VulkanRenderPass(GPURenderPassDesc &&desc);
+    explicit VulkanRenderPass(GPURenderPassDesc &&desc);
     ~VulkanRenderPass();
 private:
     VkRenderPass m_handle;          /**< Handle to the render pass. */

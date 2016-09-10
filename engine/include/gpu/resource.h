@@ -108,7 +108,7 @@ public:
     /** @return             Array of bindings for each slot. */
     const std::vector<Slot> &slots() const { return m_slots; }
 protected:
-    GPUResourceSet(GPUResourceSetLayout *layout);
+    explicit GPUResourceSet(GPUResourceSetLayout *layout);
     ~GPUResourceSet();
 
     /** Update a slot's binding.

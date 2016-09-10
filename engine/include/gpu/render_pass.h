@@ -88,7 +88,7 @@ class GPURenderPass : public GPUState<GPURenderPassDesc> {
 public:
     void validateInstance(const GPURenderPassInstanceDesc &instanceDesc) const;
 protected:
-    GPURenderPass(GPURenderPassDesc &&desc);
+    explicit GPURenderPass(GPURenderPassDesc &&desc);
 
     /* For default creation method in GPUManager. */
     friend class GPUManager;
