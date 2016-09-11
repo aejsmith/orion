@@ -20,6 +20,7 @@
  */
 
 #include "device.h"
+#include "frame.h"
 #include "memory_manager.h"
 
 /** Initialise the memory manager.
@@ -75,12 +76,30 @@ VulkanMemoryManager::VulkanMemoryManager(VulkanGPUManager *manager) :
 /** Shut down the memory manager. */
 VulkanMemoryManager::~VulkanMemoryManager() {}
 
+/** Select a memory type which supports the given flags.
+ * @param flags         Memory property flags.
+ * @return              Selected memory type. */
+uint32_t VulkanMemoryManager::selectMemoryType(VkMemoryPropertyFlags flags) const {
+    /* As detailed in section 10.2 of the spec, the memory type indices are
+     * ordered such that index X <= Y if X's properties are a strict subset of
+     * Y's, or if they are the same and X is determined by the implementation to
+     * be "better" than Y. */
+    for (uint32_t memoryType = 0; memoryType < m_properties.memoryTypeCount; memoryType++) {
+        const VkMemoryType &typeInfo = m_properties.memoryTypes[memoryType];
+
+        if ((typeInfo.propertyFlags & flags) == flags)
+            return memoryType;
+    }
+
+    fatal("No memory type to satisfy allocation with properties 0x%x", flags);
+}
+
 /** Create a new pool.
  * @param size          Size of the pool to allocate.
  * @param memoryType    Required memory type.
  * @return              Pointer to pool created. */
 VulkanMemoryManager::Pool *VulkanMemoryManager::createPool(VkDeviceSize size, uint32_t memoryType) {
-    Pool *pool = new Pool();
+    auto pool = new Pool();
 
     /* Allocate a block of device memory. */
     VkMemoryAllocateInfo allocateInfo = {};
@@ -215,20 +234,8 @@ VulkanMemoryManager::BufferMemory *VulkanMemoryManager::allocateBuffer(
     if (usage & (VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT))
         alignment = std::max(alignment, limits.minTexelBufferOffsetAlignment);
 
-    /* Select the memory type that we should use. As detailed in section 10.2
-     * of the spec, the memory type indices are ordered such that index X <= Y
-     * if X's properties are a strict subset of Y's, or if they are the same
-     * and X is determined by the implementation to be "better" than Y. */
-    uint32_t memoryType = 0;
-    while (true) {
-        const VkMemoryType &typeInfo = m_properties.memoryTypes[memoryType];
-
-        if ((typeInfo.propertyFlags & memoryFlags) == memoryFlags)
-            break;
-
-        if (++memoryType == m_properties.memoryTypeCount)
-            fatal("No memory type to satisfy allocation with properties 0x%x", memoryFlags);
-    }
+    /* Select the memory type that we should use. */
+    uint32_t memoryType = selectMemoryType(memoryFlags);
 
     PoolReference reference;
     bool found = false;
@@ -253,7 +260,7 @@ VulkanMemoryManager::BufferMemory *VulkanMemoryManager::allocateBuffer(
          * take the maximum. Note that vkAllocateMemory() is guaranteed to
          * return memory that can satisfy all alignment requirements of the
          * implementation. */
-        Pool *pool = createPool(std::max(kBufferPoolSize, size), memoryType);
+        auto pool = createPool(std::max(kBufferPoolSize, size), memoryType);
 
         VkDevice device = manager()->device()->handle();
 
@@ -295,4 +302,75 @@ VulkanMemoryManager::BufferMemory *VulkanMemoryManager::allocateBuffer(
  * @param allocation    Handle returned from allocateBuffer(). */
 void VulkanMemoryManager::freeBuffer(BufferMemory *suballocation) {
     fatal("VulkanMemoryManager::freeBuffer: TODO");
+}
+
+/**
+ * Allocate staging memory.
+ *
+ * This function allocates a block of memory visible to the host for use as a
+ * staging buffer to transfer to device local memory. The buffer will be added
+ * to a list of buffers to be freed once the current frame is finished on the
+ * GPU, therefore should not be used across multiple frames.
+ *
+ * @param size          Size of the buffer to allocate.
+ *
+ * @return              Staging memory handle.
+ */
+VulkanMemoryManager::StagingMemory *VulkanMemoryManager::allocateStagingMemory(VkDeviceSize size) {
+    VkDevice device = manager()->device()->handle();
+
+    auto memory = new StagingMemory();
+
+    /* Staging memory should be host visible and coherent. */
+    uint32_t memoryType = selectMemoryType(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    /* Allocate a buffer object. */
+    VkBufferCreateInfo bufferCreateInfo = {};
+    bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferCreateInfo.size = size;
+    bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    checkVk(vkCreateBuffer(device, &bufferCreateInfo, nullptr, &memory->m_buffer));
+
+    /* Allocate a device memory block. */
+    VkMemoryRequirements requirements;
+    vkGetBufferMemoryRequirements(device, memory->m_buffer, &requirements);
+    check(requirements.memoryTypeBits & (1 << memoryType));
+    VkMemoryAllocateInfo allocateInfo = {};
+    allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocateInfo.allocationSize = requirements.size;
+    allocateInfo.memoryTypeIndex = memoryType;
+    checkVk(vkAllocateMemory(device, &allocateInfo, nullptr, &memory->m_memory));
+
+    /* Bind memory to the buffer. */
+    checkVk(vkBindBufferMemory(device, memory->m_buffer, memory->m_memory, 0));
+
+    /* And finally map it. */
+    checkVk(vkMapMemory(device, memory->m_memory, 0, requirements.size, 0, &memory->m_mapping));
+
+    /* Record it to be freed at the end of the frame. */
+    manager()->currentFrame().stagingAllocations.push_back(memory);
+
+    return memory;
+}
+
+/** Free up previous frame memory allocations.
+ * @param frame         Frame to clean up.
+ * @param completed     Whether the frame has completed. */
+void VulkanMemoryManager::cleanupFrame(VulkanFrame &frame, bool completed) {
+    if (!completed)
+        return;
+
+    VkDevice device = manager()->device()->handle();
+
+    /* Free staging allocations. */
+    while (!frame.stagingAllocations.empty()) {
+        StagingMemory *memory = frame.stagingAllocations.front();
+        frame.stagingAllocations.pop_front();
+
+        vkUnmapMemory(device, memory->m_memory);
+        vkDestroyBuffer(device, memory->m_buffer, nullptr);
+        vkFreeMemory(device, memory->m_memory, nullptr);
+
+        delete memory;
+    }
 }

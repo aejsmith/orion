@@ -43,12 +43,13 @@
 class VulkanCommandBuffer;
 class VulkanCommandPool;
 class VulkanDevice;
-class VulkanFence;
 class VulkanGPUManager;
 class VulkanMemoryManager;
 class VulkanQueue;
 class VulkanSurface;
 class VulkanSwapchain;
+
+struct VulkanFrame;
 
 /** Details of Vulkan features. */
 struct VulkanFeatures {
@@ -62,17 +63,6 @@ struct VulkanFeatures {
 
     /** Array of pixel format information, indexed by generic pixel format. */
     std::array<Format, PixelFormat::kNumFormats> formats;
-};
-
-/** Structure tracking per-frame data for cleanup once the frame completes. */
-struct VulkanFrame {
-    /** Fence signalled upon completion of the frame's submission. */
-    std::unique_ptr<VulkanFence> fence;
-
-    /** List of command buffers allocated for the frame. */
-    std::list<VulkanCommandBuffer *> cmdBuffers;
-
-    explicit VulkanFrame(VulkanGPUManager *manager);
 };
 
 /** Vulkan GPU manager implementation. */
@@ -147,9 +137,9 @@ public:
     VulkanMemoryManager *memoryManager() const { return m_memoryManager; }
 
     /** @return             Data for the current frame. */
-    const VulkanFrame &currentFrame() const { return m_frames.back(); }
+    const VulkanFrame &currentFrame() const { return *m_frames.back(); }
     /** @return             Data for the current frame. */
-    VulkanFrame &currentFrame() { return m_frames.back(); }
+    VulkanFrame &currentFrame() { return *m_frames.back(); }
 
     /**
      * Get the primary command buffer for the current frame.
@@ -187,7 +177,7 @@ private:
      * completed, we free up any resources used for it which are no longer
      * needed.
      */
-    std::list<VulkanFrame> m_frames;
+    std::list<VulkanFrame *> m_frames;
 
     /** Primary command buffer for the current frame. */
     VulkanCommandBuffer *m_primaryCmdBuf;

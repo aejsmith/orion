@@ -25,6 +25,7 @@
  */
 
 #include "command_buffer.h"
+#include "frame.h"
 
 /** Create a command pool.
  * @param manager       Manager that owns this command pool. */

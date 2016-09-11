@@ -49,6 +49,20 @@ static const VkDeviceSize kBufferPoolSize = 8 * 1024 * 1024;
  * ourselves to individual resources. For buffers, we create a single VkBuffer
  * for each allocation, and then just make use of offsets into that buffer for
  * individual GPUBuffer objects.
+ *
+ * We implement different behaviour depending on the usage of a buffer:
+ *
+ *  - Static:  This indicates that a buffer is long-lived and infrequently
+ *             changed. For these, we allocate device-local memory, and use
+ *             staging buffers to upload data (more on those below).
+ *  - Dynamic: These buffers are for frequently changed data that may be used
+ *             across a few frames. For these we allocate host-visible and
+ *             coherent memory.
+ *
+ * Staging buffers are used to upload data for static buffers and for textures.
+ * These are allocated as device-local memory, and allocated as needed rather
+ * than from the usual memory pool. We free them once the frame that they were
+ * allocated within has completed.
  */
 class VulkanMemoryManager : public VulkanObject {
 private:
@@ -75,7 +89,7 @@ public:
 
         /** Get a mapping of the memory (must have been allocated host-visible).
          * @return              Pointer to mapped memory. */
-        uint8_t *map() const {
+        void *map() const {
             check(m_parent.first->mapping);
             return m_parent.first->mapping + offset();
         }
@@ -100,6 +114,19 @@ public:
         {}
     };
 
+    /** Class containing details of a staging buffer allocation. */
+    class StagingMemory {
+    public:
+        /** @return             Pointer to the staging memory. */
+        void *map() { return m_mapping; }
+    private:
+        VkDeviceMemory m_memory;        /**< Device memory allocation. */
+        VkBuffer m_buffer;              /**< Buffer handle. */
+        void *m_mapping;                /**< Mapping of the memory. */
+
+        friend class VulkanMemoryManager;
+    };
+
     explicit VulkanMemoryManager(VulkanGPUManager *manager);
     ~VulkanMemoryManager();
 
@@ -108,6 +135,10 @@ public:
         VkBufferUsageFlags usage,
         VkMemoryPropertyFlags memoryFlags);
     void freeBuffer(BufferMemory *allocation);
+
+    StagingMemory *allocateStagingMemory(VkDeviceSize size);
+
+    void cleanupFrame(VulkanFrame &frame, bool completed);
 private:
     /** Memory pool suballocation list entry. */
     struct PoolEntry {
@@ -132,6 +163,8 @@ private:
         /** List of references to free pool entries. */
         std::list<std::list<PoolEntry>::iterator> freeEntries;
     };
+
+    uint32_t selectMemoryType(VkMemoryPropertyFlags flags) const;
 
     Pool *createPool(VkDeviceSize size, uint32_t memoryType);
     bool allocatePoolEntry(Pool *pool, VkDeviceSize size, VkDeviceSize alignment, PoolReference &reference);

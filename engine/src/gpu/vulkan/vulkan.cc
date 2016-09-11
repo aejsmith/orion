@@ -21,6 +21,7 @@
 
 #include "command_buffer.h"
 #include "device.h"
+#include "frame.h"
 #include "memory_manager.h"
 #include "queue.h"
 #include "surface.h"
@@ -335,34 +336,30 @@ void VulkanGPUManager::initFeatures() {
     initFormat(PixelFormat::kDepth24Stencil8,   VK_FORMAT_D24_UNORM_S8_UINT);
 }
 
-/** Initialise a frame.
- * @param manager       Manager that owns the frame. */
-VulkanFrame::VulkanFrame(VulkanGPUManager *manager) :
-    fence(new VulkanFence(manager))
-{}
-
 /** Begin a new frame. */
 void VulkanGPUManager::startFrame() {
     /* Clean up completed frames. */
     for (auto i = m_frames.begin(); i != m_frames.end(); ) {
-        auto &frame = *i;
+        auto frame = *i;
 
         /* Check whether the frame has completed. */
-        bool completed = frame.fence->getStatus();
+        bool completed = frame->fence.getStatus();
 
         /* Perform cleanup work on the frame. */
-        m_commandPool->cleanupFrame(frame, completed);
+        m_commandPool->cleanupFrame(*frame, completed);
+        m_memoryManager->cleanupFrame(*frame, completed);
 
         /* Remove the frame if it has completed. */
         if (completed) {
             m_frames.erase(i++);
+            delete frame;
         } else {
             ++i;
         }
     }
 
     /* Start the new frame. */
-    m_frames.emplace_back(this);
+    m_frames.push_back(new VulkanFrame(this));
 
     /* Allocate the primary command buffer. */
     m_primaryCmdBuf = m_commandPool->allocateTransient();
