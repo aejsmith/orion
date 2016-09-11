@@ -57,47 +57,31 @@ VulkanCommandPool::~VulkanCommandPool() {
  * @return              Allocated command buffer.
  */
 VulkanCommandBuffer *VulkanCommandPool::allocateTransient() {
-    check(!m_frames.empty());
-    Frame &currentFrame = m_frames.back();
+    auto &currentFrame = manager()->currentFrame();
 
     VulkanCommandBuffer *buffer = new VulkanCommandBuffer(this, true);
-    currentFrame.buffers.push_back(buffer);
+    currentFrame.cmdBuffers.push_back(buffer);
     return buffer;
 }
 
-/** Start a new frame. */
-void VulkanCommandPool::startFrame() {
-    /* Clean up completed frames. */
-    for (auto i = m_frames.begin(); i != m_frames.end(); ) {
-        Frame &frame = *i;
+/** Clean up a previous frame's data.
+ * @param frame         Frame to clean up.
+ * @param completed     Whether the frame has been completed. */
+void VulkanCommandPool::cleanupFrame(VulkanFrame &frame, bool completed) {
+    for (auto i = frame.cmdBuffers.begin(); i != frame.cmdBuffers.end(); ) {
+        VulkanCommandBuffer *buffer = *i;
 
-        /* Check whether the frame has completed. */
-        bool completed = frame.fence.getStatus();
+        /* Free unsubmitted buffers or all buffers if completed. */
+        if (buffer->m_state != VulkanCommandBuffer::State::kSubmitted || completed) {
+            if (buffer->m_state == VulkanCommandBuffer::State::kSubmitted)
+                buffer->m_state = VulkanCommandBuffer::State::kAllocated;
 
-        for (auto j = frame.buffers.begin(); j != frame.buffers.end(); ) {
-            VulkanCommandBuffer *buffer = *j;
-
-            /* Free unsubmitted buffers or all buffers if completed. */
-            if (buffer->m_state != VulkanCommandBuffer::State::kSubmitted || completed) {
-                if (buffer->m_state == VulkanCommandBuffer::State::kSubmitted)
-                    buffer->m_state = VulkanCommandBuffer::State::kAllocated;
-
-                delete buffer;
-                frame.buffers.erase(j++);
-            } else {
-                ++j;
-            }
-        }
-
-        if (frame.buffers.empty()) {
-            m_frames.erase(i++);
+            delete buffer;
+            frame.cmdBuffers.erase(i++);
         } else {
             ++i;
         }
     }
-
-    /* Start the new frame. */
-    m_frames.emplace_back(manager());
 }
 
 /** Create a new command buffer.

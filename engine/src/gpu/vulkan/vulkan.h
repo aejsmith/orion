@@ -30,6 +30,8 @@
 
 #include "gpu/gpu_manager.h"
 
+#include <list>
+
 /** Macro to check the result of Vulkan API calls. */
 #define checkVk(call) \
     { \
@@ -41,6 +43,8 @@
 class VulkanCommandBuffer;
 class VulkanCommandPool;
 class VulkanDevice;
+class VulkanFence;
+class VulkanGPUManager;
 class VulkanMemoryManager;
 class VulkanQueue;
 class VulkanSurface;
@@ -58,6 +62,17 @@ struct VulkanFeatures {
 
     /** Array of pixel format information, indexed by generic pixel format. */
     std::array<Format, PixelFormat::kNumFormats> formats;
+};
+
+/** Structure tracking per-frame data for cleanup once the frame completes. */
+struct VulkanFrame {
+    /** Fence signalled upon completion of the frame's submission. */
+    std::unique_ptr<VulkanFence> fence;
+
+    /** List of command buffers allocated for the frame. */
+    std::list<VulkanCommandBuffer *> cmdBuffers;
+
+    explicit VulkanFrame(VulkanGPUManager *manager);
 };
 
 /** Vulkan GPU manager implementation. */
@@ -131,6 +146,11 @@ public:
     /** @return             Device's memory manager. */
     VulkanMemoryManager *memoryManager() const { return m_memoryManager; }
 
+    /** @return             Data for the current frame. */
+    const VulkanFrame &currentFrame() const { return m_frames.back(); }
+    /** @return             Data for the current frame. */
+    VulkanFrame &currentFrame() { return m_frames.back(); }
+
     /**
      * Get the primary command buffer for the current frame.
      *
@@ -157,6 +177,17 @@ private:
     VulkanCommandPool *m_commandPool;       /**< Command buffer pool. */
     VulkanMemoryManager *m_memoryManager;   /**< Device memory manager. */
     VulkanSwapchain *m_swapchain;           /**< Swap chain. */
+
+    /**
+     * List of frame data.
+     *
+     * The current frame's data is the last element of the list. We have to
+     * keep around resources used by earlier frames until their work has been
+     * completed, which is determined using the fence. Once a frame has been
+     * completed, we free up any resources used for it which are no longer
+     * needed.
+     */
+    std::list<VulkanFrame> m_frames;
 
     /** Primary command buffer for the current frame. */
     VulkanCommandBuffer *m_primaryCmdBuf;

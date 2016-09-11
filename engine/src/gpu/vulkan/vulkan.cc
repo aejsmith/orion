@@ -335,10 +335,36 @@ void VulkanGPUManager::initFeatures() {
     initFormat(PixelFormat::kDepth24Stencil8,   VK_FORMAT_D24_UNORM_S8_UINT);
 }
 
+/** Initialise a frame.
+ * @param manager       Manager that owns the frame. */
+VulkanFrame::VulkanFrame(VulkanGPUManager *manager) :
+    fence(new VulkanFence(manager))
+{}
+
 /** Begin a new frame. */
 void VulkanGPUManager::startFrame() {
-    /* Begin a new frame and allocate the primary command buffer. */
-    m_commandPool->startFrame();
+    /* Clean up completed frames. */
+    for (auto i = m_frames.begin(); i != m_frames.end(); ) {
+        auto &frame = *i;
+
+        /* Check whether the frame has completed. */
+        bool completed = frame.fence->getStatus();
+
+        /* Perform cleanup work on the frame. */
+        m_commandPool->cleanupFrame(frame, completed);
+
+        /* Remove the frame if it has completed. */
+        if (completed) {
+            m_frames.erase(i++);
+        } else {
+            ++i;
+        }
+    }
+
+    /* Start the new frame. */
+    m_frames.emplace_back(this);
+
+    /* Allocate the primary command buffer. */
     m_primaryCmdBuf = m_commandPool->allocateTransient();
     m_primaryCmdBuf->begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 

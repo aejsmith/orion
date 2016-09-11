@@ -24,8 +24,6 @@
 #include "device.h"
 #include "utility.h"
 
-#include <list>
-
 class VulkanCommandBuffer;
 
 /**
@@ -41,31 +39,9 @@ public:
 
     VulkanCommandBuffer *allocateTransient();
 
-    void startFrame();
+    void cleanupFrame(VulkanFrame &frame, bool completed);
 private:
-    /** Structure tracking a single frame's transient buffers. */
-    struct Frame {
-        /** List of buffers allocated for the frame. */
-        std::list<VulkanCommandBuffer *> buffers;
-        /** Fence signalled upon completion of the frame's submission. */
-        VulkanFence fence;
-
-        explicit Frame(VulkanGPUManager *manager) :
-            fence(manager)
-        {}
-    };
-
     VkCommandPool m_transientPool;      /**< Pool for transient command buffers. */
-
-    /**
-     * List of frame data.
-     *
-     * The current frame's data is the last element of the list. We have to
-     * keep around earlier frames' buffers until their work has been completed,
-     * which is determined using the fence. Once a frame has been completed, we
-     * clean up its buffers and remove it from this list.
-     */
-    std::list<Frame> m_frames;
 
     friend class VulkanCommandBuffer;
 };
