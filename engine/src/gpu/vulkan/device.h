@@ -41,14 +41,13 @@ public:
     /** @return             Device properties. */
     const VkPhysicalDeviceProperties &properties() const { return m_properties; }
     /** @return             Device limits. */
-    const VkPhysicalDeviceLimits &limits() const { return m_limits; }
+    const VkPhysicalDeviceLimits &limits() const { return m_properties.limits; }
 private:
     uint32_t m_queueFamily;                 /**< Queue family to use. */
     VkPhysicalDevice m_physicalHandle;      /**< Physical device handle. */
 
     /** Physical device properties. */
     VkPhysicalDeviceProperties m_properties;
-    VkPhysicalDeviceLimits m_limits;
 
     /** Enabled device extensions. */
     std::vector<const char *> m_extensions;
