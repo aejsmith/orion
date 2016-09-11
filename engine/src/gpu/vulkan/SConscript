@@ -21,6 +21,8 @@ objects = map(env.Object, [
     'stubs.cc',
     'surface.cc',
     'swapchain.cc',
+    'texture.cc',
+    'utility.cc',
     'vulkan.cc',
 ])
 

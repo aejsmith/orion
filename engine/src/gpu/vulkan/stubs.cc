@@ -30,24 +30,11 @@ GPUSamplerStatePtr VulkanGPUManager::createSamplerState(const GPUSamplerStateDes
     vkStub();
 }
 
-/** Create a texture.
- * @see                 GPUTexture::GPUTexture().
- * @param desc          Descriptor containing texture parameters.
- * @return              Pointer to created texture. */
-GPUTexturePtr VulkanGPUManager::createTexture(const GPUTextureDesc &desc) {
-    vkStub();
-}
-
-/** Create a texture view.
- * @param image         Image to create the view for.
- * @return              Pointer to created texture view. */
-GPUTexturePtr VulkanGPUManager::createTextureView(const GPUTextureImageRef &image) {
-    vkStub();
-}
-
 /** Begin a render pass.
  * @param desc          Descriptor for the render pass instance. */
 void VulkanGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
+    // TODO: Need to transition images. Could have shader read as default state,
+    // transition to right attachment layout at beginning and end.
     vkStub();
 }
 

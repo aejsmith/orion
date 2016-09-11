@@ -78,3 +78,18 @@ public:
         vkDestroySemaphore(manager()->device()->handle(), m_handle, nullptr);
     }
 };
+
+namespace VulkanUtil {
+    extern void setImageLayout(
+        VulkanCommandBuffer *cmdBuf,
+        VkImage image,
+        VkImageSubresourceRange subresources,
+        VkImageLayout oldLayout,
+        VkImageLayout newLayout);
+    extern void setImageLayout(
+        VulkanCommandBuffer *cmdBuf,
+        VkImage image,
+        VkImageAspectFlagBits aspectMask,
+        VkImageLayout oldLayout,
+        VkImageLayout newLayout);
+}

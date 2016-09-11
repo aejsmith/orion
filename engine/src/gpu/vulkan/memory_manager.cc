@@ -80,20 +80,23 @@ VulkanMemoryManager::~VulkanMemoryManager() {}
 
 /** Select a memory type which supports the given flags.
  * @param flags         Memory property flags.
+ * @param typeBits      Allowed memory type bits.
  * @return              Selected memory type. */
-uint32_t VulkanMemoryManager::selectMemoryType(VkMemoryPropertyFlags flags) const {
+uint32_t VulkanMemoryManager::selectMemoryType(VkMemoryPropertyFlags flags, uint32_t typeBits) const {
     /* As detailed in section 10.2 of the spec, the memory type indices are
      * ordered such that index X <= Y if X's properties are a strict subset of
      * Y's, or if they are the same and X is determined by the implementation to
      * be "better" than Y. */
     for (uint32_t memoryType = 0; memoryType < m_properties.memoryTypeCount; memoryType++) {
-        const VkMemoryType &typeInfo = m_properties.memoryTypes[memoryType];
+        if (typeBits & (1 << memoryType)) {
+            const VkMemoryType &typeInfo = m_properties.memoryTypes[memoryType];
 
-        if ((typeInfo.propertyFlags & flags) == flags)
-            return memoryType;
+            if (typeInfo.propertyFlags && (typeInfo.propertyFlags & flags) == flags)
+                return memoryType;
+        }
     }
 
-    fatal("No memory type to satisfy allocation with properties 0x%x", flags);
+    fatal("No memory type to satisfy allocation with properties 0x%x, types 0x%x", flags, typeBits);
 }
 
 /** Create a new pool.
@@ -250,7 +253,7 @@ VulkanMemoryManager::BufferMemory *VulkanMemoryManager::allocateBuffer(
         found = allocatePoolEntry(pool, size, alignment, reference);
         if (found) {
             logDebug(
-                "VulkanMemoryManager: Allocated from existing pool %p %" PRIu64 " %" PRIu64,
+                "VulkanMemoryManager: Allocated buffer from existing pool %p %" PRIu64 " %" PRIu64,
                 pool, reference.second->offset, reference.second->size);
             break;
         }
@@ -298,7 +301,7 @@ VulkanMemoryManager::BufferMemory *VulkanMemoryManager::allocateBuffer(
         check(found);
 
         logDebug(
-            "VulkanMemoryManager: Allocated new pool %p %" PRIu64 " %" PRIu64,
+            "VulkanMemoryManager: Allocated new buffer pool %p %" PRIu64 " %" PRIu64,
             pool, reference.second->offset, reference.second->size);
     }
 
@@ -308,9 +311,70 @@ VulkanMemoryManager::BufferMemory *VulkanMemoryManager::allocateBuffer(
 }
 
 /** Free a buffer memory allocation.
- * @param allocation    Handle returned from allocateBuffer(). */
-void VulkanMemoryManager::freeBuffer(BufferMemory *suballocation) {
+ * @param handle        Handle returned from allocateBuffer(). */
+void VulkanMemoryManager::freeBuffer(BufferMemory *handle) {
+    // TODO: Need to track while buffer is still in use.
     fatal("VulkanMemoryManager::freeBuffer: TODO");
+}
+
+/**
+ * Allocate memory for an image.
+ *
+ * This function allocates memory to back an image. The memory returned is a
+ * suballocation of a potentially larger allocation.
+ *
+ * @param requirements  Image memory requirements.
+ *
+ * @return              Handle to the allocated memory.
+ */
+VulkanMemoryManager::ImageMemory *VulkanMemoryManager::allocateImage(VkMemoryRequirements &requirements) {
+    /* Select a memory type. */
+    uint32_t memoryType = selectMemoryType(0, requirements.memoryTypeBits);
+
+    PoolReference reference;
+    bool found = false;
+
+    /* Look for an existing pool with free space that we can allocate from. */
+    for (Pool *pool : m_imagePools) {
+        if (pool->memoryType != memoryType)
+            continue;
+
+        found = allocatePoolEntry(pool, requirements.size, requirements.alignment, reference);
+        if (found) {
+            logDebug(
+                "VulkanMemoryManager: Allocated image from existing pool %p %" PRIu64 " %" PRIu64,
+                pool, reference.second->offset, reference.second->size);
+            break;
+        }
+    }
+
+
+    /* If nothing is found, create a new pool. */
+    if (!found) {
+        /* In case the allocation size is larger than our standard pool size,
+         * take the maximum. */
+        auto pool = createPool(std::max(kImagePoolSize, requirements.size), memoryType);
+        m_imagePools.push_back(pool);
+
+        /* Allocate the entry. This should always succeed. */
+        found = allocatePoolEntry(pool, requirements.size, requirements.alignment, reference);
+        check(found);
+
+        logDebug(
+            "VulkanMemoryManager: Allocated new image pool %p %" PRIu64 " %" PRIu64,
+            pool, reference.second->offset, reference.second->size);
+    }
+
+    auto handle = new ImageMemory(reference);
+    reference.second->child = handle;
+    return handle;
+}
+
+/** Free an image memory allocation.
+ * @param handle        Handle returned from allocateImage(). */
+void VulkanMemoryManager::freeImage(ImageMemory *handle) {
+    // TODO: Need to track while image is still in use.
+    fatal("VulkanMemoryManager::freeImage: TODO");
 }
 
 /**

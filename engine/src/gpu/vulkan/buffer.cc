@@ -132,7 +132,7 @@ void VulkanBuffer::unmap() {
         vkCmdCopyBuffer(
             stagingCmdBuf->handle(),
             m_mapStaging->buffer(),
-            m_allocation->handle(),
+            m_allocation->buffer(),
             1, &bufferCopy);
     }
 
