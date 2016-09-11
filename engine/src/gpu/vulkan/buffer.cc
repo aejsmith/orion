@@ -60,32 +60,19 @@ VulkanBuffer::~VulkanBuffer() {
     manager()->memoryManager()->freeBuffer(m_allocation);
 }
 
-/** Write data to the buffer.
- * @param offset        Offset to write at.
- * @param size          Size of the data to write.
- * @param buf           Buffer containing data to write. */
-void VulkanBuffer::writeImpl(size_t offset, size_t size, const void *buf) {
-    // FIXME: This is all wrong for buffers that might be already in use on the
-    // GPU. Need to wait until the access has completed. We really need staging
-    // buffers here. This is just to get things going.
-
-    uint8_t *mapping = m_allocation->map();
-    std::memcpy(mapping + offset, buf, size);
-}
-
 /** Map the buffer.
  * @param offset        Offset to map from.
  * @param size          Size of the range to map.
  * @param flags         Bitmask of mapping behaviour flags (see MapFlags).
- * @param access        Bitmask of access flags.
+ * @param access        Access mode.
  * @return              Pointer to mapped buffer. */
-void *VulkanBuffer::mapImpl(size_t offset, size_t size, uint32_t flags, uint32_t access) {
-    fatal("VulkanBuffer::mapImpl: TODO");
+void *VulkanBuffer::map(size_t offset, size_t size, uint32_t flags, uint32_t access) {
+    fatal("VulkanBuffer::map: TODO");
 }
 
 /** Unmap the previous mapping created for the buffer. */
-void VulkanBuffer::unmapImpl() {
-    fatal("VulkanBuffer::unmapImpl: TODO");
+void VulkanBuffer::unmap() {
+    fatal("VulkanBuffer::unmap: TODO");
 }
 
 /** Create a GPU buffer.

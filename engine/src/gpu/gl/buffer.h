@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -29,15 +29,15 @@ public:
     GLBuffer(Type type, Usage usage, size_t size);
     ~GLBuffer();
 
+    void *map(size_t offset, size_t size, uint32_t flags, uint32_t access) override;
+    void unmap() override;
+    void write(size_t offset, size_t size, const void *buf, uint32_t flags) override;
+
     void bind() const;
     void bindIndexed(unsigned index) const;
 
     /** @return             GL buffer ID. */
     GLuint buffer() const { return m_buffer; }
-protected:
-    void writeImpl(size_t offset, size_t size, const void *buf) override;
-    void *mapImpl(size_t offset, size_t size, uint32_t flags, uint32_t access) override;
-    void unmapImpl() override;
 private:
     GLuint m_buffer;                /**< Buffer object ID. */
     GLenum m_glTarget;              /**< GL target. */

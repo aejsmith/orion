@@ -308,24 +308,12 @@ namespace GLUtil {
      * @return              OpenGL usage hint value. */
     static inline GLenum convertBufferUsage(GPUBuffer::Usage usage) {
         switch (usage) {
-            case GPUBuffer::kStreamDrawUsage:
-                return GL_STREAM_DRAW;
-            case GPUBuffer::kStreamReadUsage:
-                return GL_STREAM_READ;
-            case GPUBuffer::kStreamCopyUsage:
-                return GL_STREAM_COPY;
-            case GPUBuffer::kStaticDrawUsage:
+            case GPUBuffer::kStaticUsage:
                 return GL_STATIC_DRAW;
-            case GPUBuffer::kStaticReadUsage:
-                return GL_STATIC_READ;
-            case GPUBuffer::kStaticCopyUsage:
-                return GL_STATIC_COPY;
-            case GPUBuffer::kDynamicDrawUsage:
+            case GPUBuffer::kDynamicUsage:
                 return GL_DYNAMIC_DRAW;
-            case GPUBuffer::kDynamicReadUsage:
-                return GL_DYNAMIC_READ;
-            case GPUBuffer::kDynamicCopyUsage:
-                return GL_DYNAMIC_COPY;
+            case GPUBuffer::kTransientUsage:
+                return GL_STREAM_DRAW;
             default:
                 return 0;
         }

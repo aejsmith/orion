@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -60,55 +60,60 @@ void GLBuffer::bindIndexed(unsigned index) const {
     g_opengl->state.bindBufferBase(m_glTarget, index, m_buffer);
 }
 
+/** Map the buffer.
+ * @param offset        Offset to map from.
+ * @param size          Size of the range to map.
+ * @param flags         Bitmask of mapping behaviour flags (see MapFlags).
+ * @param access        Access mode.
+ * @return              Pointer to mapped buffer. */
+void *GLBuffer::map(size_t offset, size_t size, uint32_t flags, uint32_t access) {
+    uint32_t glFlags = 0;
+
+    check((offset + size) <= m_size);
+
+    check(access == kWriteAccess);
+    glFlags |= GL_MAP_WRITE_BIT;
+
+    if (flags & kMapInvalidateBuffer || (offset == 0 && size == m_size)) {
+        glFlags |= GL_MAP_INVALIDATE_BUFFER_BIT;
+    } else {
+        glFlags |= GL_MAP_INVALIDATE_RANGE_BIT;
+    }
+
+    g_opengl->state.bindBuffer(m_glTarget, m_buffer);
+
+    /* If we are invalidating, reallocate storage explicitly. OS X's GL
+     * implementation appears to be too stupid to do this itself, doing it
+     * explictly here knocks a huge chunk off the time it takes to do a buffer
+     * map. */
+    if (glFlags & GL_MAP_INVALIDATE_BUFFER_BIT)
+        glBufferData(m_glTarget, m_size, nullptr, m_glUsage);
+
+    return glMapBufferRange(m_glTarget, offset, size, glFlags);
+}
+
+/** Unmap the previous mapping created for the buffer with map(). */
+void GLBuffer::unmap() {
+    g_opengl->state.bindBuffer(m_glTarget, m_buffer);
+    glUnmapBuffer(m_glTarget);
+}
+
 /** Write data to the buffer.
  * @param offset        Offset to write at.
  * @param size          Size of the data to write.
- * @param buf           Buffer containing data to write. */
-void GLBuffer::writeImpl(size_t offset, size_t size, const void *buf) {
+ * @param buf           Buffer containing data to write.
+ * @param flags         Mapping flags to use. */
+void GLBuffer::write(size_t offset, size_t size, const void *buf, uint32_t flags) {
     g_opengl->state.bindBuffer(m_glTarget, m_buffer);
 
     if (offset == 0 && size == m_size) {
         glBufferData(m_glTarget, m_size, buf, m_glUsage);
     } else {
+        if (flags & kMapInvalidateBuffer)
+            glBufferData(m_glTarget, m_size, nullptr, m_glUsage);
+
         glBufferSubData(m_glTarget, offset, size, buf);
     }
-}
-
-/** Map the buffer.
- * @param offset        Offset to map from.
- * @param size          Size of the range to map.
- * @param flags         Bitmask of mapping behaviour flags (see MapFlags).
- * @param access        Bitmask of access flags.
- * @return              Pointer to mapped buffer. */
-void *GLBuffer::mapImpl(size_t offset, size_t size, uint32_t flags, uint32_t access) {
-    uint32_t gl = 0;
-
-    if (flags & kMapInvalidate)
-        gl |= GL_MAP_INVALIDATE_RANGE_BIT;
-    if (flags & kMapInvalidateBuffer)
-        gl |= GL_MAP_INVALIDATE_BUFFER_BIT;
-
-    if (access & kReadAccess)
-        gl |= GL_MAP_READ_BIT;
-    if (access & kWriteAccess)
-        gl |= GL_MAP_WRITE_BIT;
-
-    g_opengl->state.bindBuffer(m_glTarget, m_buffer);
-
-    /* If we are invalidating, reallocate storage explicitly. OS X's GL
-     * implementation appears to be too stupid to do this itself, doing
-     * it explictly here knocks a huge chunk off the time it takes to do
-     * a buffer map. */
-    if (flags & kMapInvalidateBuffer)
-        glBufferData(m_glTarget, m_size, nullptr, m_glUsage);
-
-    return glMapBufferRange(m_glTarget, offset, size, gl);
-}
-
-/** Unmap the previous mapping created for the buffer with _map(). */
-void GLBuffer::unmapImpl() {
-    g_opengl->state.bindBuffer(m_glTarget, m_buffer);
-    glUnmapBuffer(m_glTarget);
 }
 
 /** Create a GPU buffer.

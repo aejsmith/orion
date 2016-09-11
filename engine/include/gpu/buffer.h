@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -44,57 +44,62 @@ public:
 
     /** Enum describing intended buffer usage. */
     enum Usage {
-        /** Stream: modified once and used at most a few times. */
-        kStreamDrawUsage,           /**< Used for drawing operations. */
-        kStreamReadUsage,           /**< Used to read from. */
-        kStreamCopyUsage,           /**< Used for reading and drawing. */
+        /** Infrequently modified data. */
+        kStaticUsage,
 
-        /** Static: modified once and used many times. */
-        kStaticDrawUsage,           /**< Used for drawing operations. */
-        kStaticReadUsage,           /**< Used to read from. */
-        kStaticCopyUsage,           /**< Used for reading and drawing. */
+        /** Modified frequently, used multiple times. */
+        kDynamicUsage,
 
-        /** Dynamic: modified repeatedly and used many times. */
-        kDynamicDrawUsage,          /**< Used for drawing operations. */
-        kDynamicReadUsage,          /**< Used to read from. */
-        kDynamicCopyUsage,          /**< Used for reading and drawing. */
+        /** Modified once, used at most a few times within the current frame. */
+        kTransientUsage,
     };
 
     /** Buffer mapping flags. */
     enum MapFlags : uint32_t {
-        /**
-         * Invalidate the range contents when mapping.
-         *
-         * This flag should be used when the entire contents of the mapped range
-         * is to be overwritten. If mapping the whole buffer, the whole buffer
-         * will be invalidated, allowing the driver to reallocate the buffer and
-         * avoid synchronization with any previous draw calls still using the
-         * buffer. Note that this can be useful even on partial ranges when
-         * mapping write-only, as this allows the driver to return temporary
-         * memory to avoid synchronization.
-         */
-        kMapInvalidate = (1 << 0),
-
         /**
          * Invalidate the entire buffer when mapping.
          *
          * This forces an invalidation of the entire buffer even if only
          * partially mapping it.
          */
-        kMapInvalidateBuffer = (1 << 1),
+        kMapInvalidateBuffer = (1 << 0),
     };
 
     /** Buffer mapping access flags. */
-    enum AccessFlags : uint32_t {
-        /** Map for reading. */
-        kReadAccess = (1 << 0),
-        /** Map for writing. */
-        kWriteAccess = (1 << 1),
+    enum Access {
+        kWriteAccess,               /**< Map for writing. */
     };
 
-    void write(size_t offset, size_t size, const void *buf);
-    void *map(size_t offset, size_t size, uint32_t flags, uint32_t access);
-    void unmap();
+    /**
+     * Map the buffer.
+     *
+     * Map the buffer into the CPU address space. This function returns a
+     * pointer through which the buffer contents can be accessed and modified.
+     * When it is no longer needed it should be unmapped with unmap(). Note that
+     * only one part of a buffer can be mapped at any one time.
+     *
+     * Mapping a range for write access will invalidate the contents of that
+     * range, therefore users are expected to re-write the entire buffer
+     * content.
+     *
+     * Mapping a subrange of the buffer may cause synchronization with the GPU
+     * if any previous draw calls which access the data are still in progress.
+     * To avoid this, the kMapInvalidateBuffer flag can be specified which will
+     * invalidate the entire buffer content instead of just the subrange.
+     *
+     * @param offset        Offset to map from.
+     * @param size          Size of the range to map.
+     * @param flags         Bitmask of mapping behaviour flags (see MapFlags).
+     * @param access        Access mode.
+     *
+     * @return              Pointer to mapped buffer.
+     */
+    virtual void *map(size_t offset, size_t size, uint32_t flags, uint32_t access) = 0;
+
+    /** Unmap the previous mapping created for the buffer with map(). */
+    virtual void unmap() = 0;
+
+    virtual void write(size_t offset, size_t size, const void *buf, uint32_t flags = 0);
 
     /** @return             Type of the buffer. */
     Type type() const { return m_type; }
@@ -104,21 +109,13 @@ public:
     size_t size() const { return m_size; }
 protected:
     GPUBuffer(Type type, Usage usage, size_t size);
-    ~GPUBuffer();
 
-    /** API-specific implementation of write(). */
-    virtual void writeImpl(size_t offset, size_t size, const void *buf) = 0;
-
-    /** API-specific implementation of map(). */
-    virtual void *mapImpl(size_t offset, size_t size, uint32_t flags, uint32_t access) = 0;
-
-    /** API-specific implementation of unmap(). */
-    virtual void unmapImpl() = 0;
+    /** Destroy the buffer. */
+    ~GPUBuffer() {}
 
     Type m_type;                    /**< Type of the buffer */
     Usage m_usage;                  /**< Buffer usage hint. */
     size_t m_size;                  /**< Buffer size. */
-    bool m_mapped;                  /**< Whether the buffer is currently mapped. */
 };
 
 /** Type of a pointer to a GPU buffer. */
@@ -126,54 +123,3 @@ using GPUBufferPtr = GPUObjectPtr<GPUBuffer>;
 
 /** Type of a GPU buffer array. */
 using GPUBufferArray = std::vector<GPUBufferPtr>;
-
-/**
- * Scoped buffer mapper class.
- *
- * This class is an RAII class which will map a GPUBuffer, and unmap it once it
- * goes out of scope. The object behaves as a pointer of the specified type,
- * through which the buffer contents can be accessed.
- *
- * @tparam T        Type of the data contained in the buffer.
- */
-template <typename T>
-class GPUBufferMapper : Noncopyable {
-public:
-    /** Map the entire buffer.
-     * @see                 GPUBuffer::map(). */
-    GPUBufferMapper(GPUBuffer *buffer, uint32_t flags, uint32_t access) :
-        m_buffer(buffer)
-    {
-        m_mapping = reinterpret_cast<T *>(m_buffer->map(0, buffer->size(), flags, access));
-    }
-
-    /** Map a range of the buffer.
-     * @see                 GPUBuffer::map(). */
-    GPUBufferMapper(GPUBuffer *buffer, size_t offset, size_t size, uint32_t flags, uint32_t access) :
-        m_buffer(buffer)
-    {
-        m_mapping = reinterpret_cast<T *>(m_buffer->map(offset, size, flags, access));
-    }
-
-    /** Unmap the buffer. */
-    ~GPUBufferMapper() {
-        m_buffer->unmap();
-    }
-
-    /** Get the mapping.
-     * @return              Pointer to mapping. Valid while this object is
-     *                      still in scope. */
-    T *get() const { return m_mapping; }
-
-    T &operator *() const { return *m_mapping; }
-    T *operator ->() const { return m_mapping; }
-    T &operator [](size_t n) const { return m_mapping[n]; }
-private:
-    /** Buffer being mapped.
-     * @note                Hold just a raw pointer as the user should hold
-     *                      a reference to the buffer. */
-    GPUBuffer *m_buffer;
-
-    /** Pointer to mapping. */
-    T *m_mapping;
-};

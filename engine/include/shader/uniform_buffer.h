@@ -152,7 +152,7 @@ private:
  */
 class UniformBufferBase {
 public:
-    UniformBufferBase(const UniformStruct &ustruct, GPUBuffer::Usage usage = GPUBuffer::kDynamicDrawUsage);
+    UniformBufferBase(const UniformStruct &ustruct, GPUBuffer::Usage usage = GPUBuffer::kDynamicUsage);
     ~UniformBufferBase();
 
     /** @return             Uniform structure for this buffer. */
@@ -209,7 +209,7 @@ class UniformBuffer : public UniformBufferBase {
 public:
     /** Initialize the buffer.
      * @param usage         GPU buffer usage hint. */
-    explicit UniformBuffer(GPUBuffer::Usage usage = GPUBuffer::kDynamicDrawUsage) :
+    explicit UniformBuffer(GPUBuffer::Usage usage = GPUBuffer::kDynamicUsage) :
         UniformBufferBase(Uniforms::kUniformStruct, usage)
     {}
 

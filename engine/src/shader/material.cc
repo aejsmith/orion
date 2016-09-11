@@ -50,7 +50,7 @@ void Material::createResources() {
     if (m_shader->uniformStruct()) {
         /* Material parameters should be changed infrequently, therefore set
          * the uniform buffer usage as static. */
-        m_uniforms = new UniformBufferBase(*m_shader->uniformStruct(), GPUBuffer::kStaticDrawUsage);
+        m_uniforms = new UniformBufferBase(*m_shader->uniformStruct(), GPUBuffer::kStaticUsage);
         m_resources->bindUniformBuffer(ResourceSlots::kUniforms, m_uniforms->gpu());
     }
 }

@@ -28,10 +28,9 @@ class VulkanBuffer : public GPUBuffer, public VulkanObject {
 public:
     VulkanBuffer(VulkanGPUManager *manager, Type type, Usage usage, size_t size);
     ~VulkanBuffer();
-protected:
-    void writeImpl(size_t offset, size_t size, const void *buf) override;
-    void *mapImpl(size_t offset, size_t size, uint32_t flags, uint32_t access) override;
-    void unmapImpl() override;
+
+    void *map(size_t offset, size_t size, uint32_t flags, uint32_t access) override;
+    void unmap() override;
 private:
     /** Memory allocation backing this buffer. */
     VulkanMemoryManager::BufferMemory *m_allocation;

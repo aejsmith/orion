@@ -85,7 +85,7 @@ void PrimitiveRenderer::draw(SceneView *view) {
             buffers[0] = RenderUtil::buildGPUBuffer(
                 GPUBuffer::kVertexBuffer,
                 data.vertices,
-                GPUBuffer::kStreamDrawUsage);
+                GPUBuffer::kTransientUsage);
 
             data.gpu = g_gpuManager->createVertexData(
                 data.vertices.size(),

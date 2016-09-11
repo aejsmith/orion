@@ -342,7 +342,7 @@ void DebugOverlay::render() {
         GPUBufferArray vertexBuffers(1);
         vertexBuffers[0] = g_gpuManager->createBuffer(
             GPUBuffer::kVertexBuffer,
-            GPUBuffer::kStreamDrawUsage,
+            GPUBuffer::kTransientUsage,
             vertexBufferSize);
         vertexBuffers[0]->write(0, vertexBufferSize, &cmdList->VtxBuffer.front());
         GPUVertexDataPtr vertexData = g_gpuManager->createVertexData(
@@ -354,7 +354,7 @@ void DebugOverlay::render() {
         size_t indexBufferSize = cmdList->IdxBuffer.size() * sizeof(ImDrawIdx);
         GPUBufferPtr indexBuffer = g_gpuManager->createBuffer(
             GPUBuffer::kIndexBuffer,
-            GPUBuffer::kStreamDrawUsage,
+            GPUBuffer::kTransientUsage,
             indexBufferSize);
         indexBuffer->write(0, indexBufferSize, &cmdList->IdxBuffer.front());
 
