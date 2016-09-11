@@ -64,7 +64,7 @@ static const VkDeviceSize kImagePoolSize = 128 * 1024 * 1024;
  *             coherent memory.
  *
  * Staging buffers are used to upload data for static buffers and for textures.
- * These are allocated as device-local memory, and allocated as needed rather
+ * These are allocated as host-visible memory, and allocated as needed rather
  * than from the usual memory pool. We free them once the frame that they were
  * allocated within has completed.
  */
