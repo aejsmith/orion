@@ -22,11 +22,13 @@
 #include "device.h"
 #include "frame.h"
 #include "memory_manager.h"
+#include "queue.h"
 
 /** Initialise the memory manager.
  * @param manager       Manager that the memory manager is for. */
 VulkanMemoryManager::VulkanMemoryManager(VulkanGPUManager *manager) :
-    VulkanObject(manager)
+    VulkanObject(manager),
+    m_stagingCommandBuffer(nullptr)
 {
     vkGetPhysicalDeviceMemoryProperties(manager->device()->physicalHandle(), &m_properties);
 
@@ -264,15 +266,22 @@ VulkanMemoryManager::BufferMemory *VulkanMemoryManager::allocateBuffer(
 
         VkDevice device = manager()->device()->handle();
 
-        /* Allocate a buffer object. We mark the buffer as usable for all types
-         * of GPUBuffer we can create, as we mix buffer types within a pool. */
+        /* Allocate a buffer object. */
         VkBufferCreateInfo bufferCreateInfo = {};
         bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         bufferCreateInfo.size = pool->size;
+
+        /* We mark the buffer as usable for all types of GPUBuffer we can
+         * create, as we mix buffer types within a pool. */
         bufferCreateInfo.usage =
             VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
             VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+
+        /* If this is device local, we probably want to be able to transfer to it. */
+        if (memoryFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+            bufferCreateInfo.usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
         checkVk(vkCreateBuffer(device, &bufferCreateInfo, nullptr, &pool->buffer));
 
         /* Bind the memory to the buffer. */
@@ -372,5 +381,36 @@ void VulkanMemoryManager::cleanupFrame(VulkanFrame &frame, bool completed) {
         vkFreeMemory(device, memory->m_memory, nullptr);
 
         delete memory;
+    }
+}
+
+/**
+ * Get a command buffer for staging transfers.
+ *
+ * Gets a command buffer to be used for host to device-local memory transfers.
+ * This will be flushed prior to submission of any other commands.
+ *
+ * @return              Command buffer for staging transfers.
+ */
+VulkanCommandBuffer *VulkanMemoryManager::getStagingCommandBuffer() {
+    if (!m_stagingCommandBuffer) {
+        m_stagingCommandBuffer = manager()->commandPool()->allocateTransient();
+        m_stagingCommandBuffer->begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+    }
+
+    return m_stagingCommandBuffer;
+}
+
+/** Submit the staging command buffer. */
+void VulkanMemoryManager::flushStagingCommandBuffer() {
+    if (m_stagingCommandBuffer) {
+        // TODO: Could use a separate transfer queue here?
+        // TODO: If we submit all frame work in a single vkQueueSubmit at the
+        // end of a frame, perhaps we could bundle this into the same call?
+        m_stagingCommandBuffer->end();
+        manager()->queue()->submit(m_stagingCommandBuffer);
+
+        /* Will be freed with the frame, it's transient. */
+        m_stagingCommandBuffer = nullptr;
     }
 }

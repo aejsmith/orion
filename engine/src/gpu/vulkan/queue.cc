@@ -31,3 +31,24 @@ VulkanQueue::VulkanQueue(VulkanGPUManager *manager, uint32_t queueFamily, uint32
 {
     vkGetDeviceQueue(manager->device()->handle(), queueFamily, index, &m_handle);
 }
+
+/** Submit a command buffer.
+ * @param cmdBuf        Command buffer to submit.
+ * @param fence         Optional fence to signal upon completion. */
+void VulkanQueue::submit(VulkanCommandBuffer *cmdBuf, VulkanFence *fence) {
+    check(cmdBuf->m_state == VulkanCommandBuffer::State::kRecorded);
+
+    VkCommandBuffer handle = cmdBuf->handle();
+
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &handle;
+
+    checkVk(vkQueueSubmit(
+        m_handle,
+        1, &submitInfo,
+        (fence) ? fence->handle() : VK_NULL_HANDLE));
+
+    cmdBuf->m_state = VulkanCommandBuffer::State::kSubmitted;
+}

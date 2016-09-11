@@ -279,6 +279,9 @@ VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&w
     m_commandPool = new VulkanCommandPool(this);
     m_memoryManager = new VulkanMemoryManager(this);
     m_swapchain = new VulkanSwapchain(this);
+
+    /* Begin the first frame. */
+    startFrame();
 }
 
 /** Shut down the Vulkan GPU manager. */
@@ -338,6 +341,28 @@ void VulkanGPUManager::initFeatures() {
 
 /** Begin a new frame. */
 void VulkanGPUManager::startFrame() {
+    /* Start the new frame. */
+    m_frames.push_back(new VulkanFrame(this));
+
+    /* Allocate the primary command buffer. */
+    m_primaryCmdBuf = m_commandPool->allocateTransient();
+    m_primaryCmdBuf->begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+    /* Acquire a new image from the swap chain. */
+    m_swapchain->startFrame();
+
+    // TODO: Need to wait for present complete semaphore, transition layout.
+}
+
+/** End a frame and present it on screen. */
+void VulkanGPUManager::endFrame() {
+    // TODO: Transition image layout to present.
+
+    m_memoryManager->flushStagingCommandBuffer();
+    m_primaryCmdBuf->end();
+
+    m_swapchain->endFrame();
+
     /* Clean up completed frames. */
     for (auto i = m_frames.begin(); i != m_frames.end(); ) {
         auto frame = *i;
@@ -358,24 +383,6 @@ void VulkanGPUManager::startFrame() {
         }
     }
 
-    /* Start the new frame. */
-    m_frames.push_back(new VulkanFrame(this));
-
-    /* Allocate the primary command buffer. */
-    m_primaryCmdBuf = m_commandPool->allocateTransient();
-    m_primaryCmdBuf->begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-
-    /* Acquire a new image from the swap chain. */
-    m_swapchain->startFrame();
-
-    // TODO: Need to wait for present complete semaphore, transition layout.
-}
-
-/** End a frame and present it on screen. */
-void VulkanGPUManager::endFrame() {
-    // TODO: Transition image layout to present.
-
-    m_primaryCmdBuf->end();
-
-    m_swapchain->endFrame();
+    /* Prepare state for the next frame. */
+    startFrame();
 }

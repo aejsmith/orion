@@ -32,6 +32,14 @@ public:
     void *map(size_t offset, size_t size, uint32_t flags, uint32_t access) override;
     void unmap() override;
 private:
+    void reallocate();
+
     /** Memory allocation backing this buffer. */
     VulkanMemoryManager::BufferMemory *m_allocation;
+
+    size_t m_mapOffset;             /**< Current mapping offset. */
+    size_t m_mapSize;               /**< Current mapping size. */
+
+    /** Staging memory for the current mapping (for static buffers). */
+    VulkanMemoryManager::StagingMemory *m_mapStaging;
 };

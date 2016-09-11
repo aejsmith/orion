@@ -69,6 +69,7 @@ void GLBuffer::bindIndexed(unsigned index) const {
 void *GLBuffer::map(size_t offset, size_t size, uint32_t flags, uint32_t access) {
     uint32_t glFlags = 0;
 
+    check(size);
     check((offset + size) <= m_size);
 
     check(access == kWriteAccess);

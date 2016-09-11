@@ -29,11 +29,27 @@
  * @param size          Buffer size. */
 VulkanBuffer::VulkanBuffer(VulkanGPUManager *manager, Type type, Usage usage, size_t size) :
     GPUBuffer(type, usage, size),
-    VulkanObject(manager)
+    VulkanObject(manager),
+    m_allocation(nullptr),
+    m_mapSize(0)
 {
+    /* Allocate the buffer. */
+    reallocate();
+}
+
+/** Destroy the buffer. */
+VulkanBuffer::~VulkanBuffer() {
+    manager()->memoryManager()->freeBuffer(m_allocation);
+}
+
+/** (Re)allocate the buffer. */
+void VulkanBuffer::reallocate() {
+    if (m_allocation)
+        manager()->memoryManager()->freeBuffer(m_allocation);
+
     /* Determine Vulkan usage flag. */
     VkBufferUsageFlags usageFlag;
-    switch (type) {
+    switch (m_type) {
         case kVertexBuffer:
             usageFlag = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
             break;
@@ -44,20 +60,25 @@ VulkanBuffer::VulkanBuffer(VulkanGPUManager *manager, Type type, Usage usage, si
             usageFlag = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
             break;
         default:
-            check(false);
+            unreachable();
     }
 
-    // FIXME: Staging buffers! Dynamic/per-frame need to handle differently too.
-    // Staging buffers must be created with VK_BUFFER_USAGE_TRANSFER_SRC_BIT.
-    m_allocation = manager->memoryManager()->allocateBuffer(
-        m_size,
-        usageFlag,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-}
+    /* Determine memory flags based on the usage flag given. */
+    uint32_t memoryFlags;
+    switch (m_usage) {
+        case kStaticUsage:
+            memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+            break;
+        case kDynamicUsage:
+        case kTransientUsage:
+            memoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+            break;
+        default:
+            unreachable();
+    }
 
-/** Destroy the buffer. */
-VulkanBuffer::~VulkanBuffer() {
-    manager()->memoryManager()->freeBuffer(m_allocation);
+    /* Allocate a buffer. */
+    m_allocation = manager()->memoryManager()->allocateBuffer(m_size, usageFlag, memoryFlags);
 }
 
 /** Map the buffer.
@@ -67,12 +88,55 @@ VulkanBuffer::~VulkanBuffer() {
  * @param access        Access mode.
  * @return              Pointer to mapped buffer. */
 void *VulkanBuffer::map(size_t offset, size_t size, uint32_t flags, uint32_t access) {
-    fatal("VulkanBuffer::map: TODO");
+    check(size);
+    check((offset + size) <= m_size);
+    check(access == kWriteAccess);
+
+    check(!m_mapSize);
+
+    void *ret;
+
+    if (m_usage == kStaticUsage) {
+        /* Allocate a staging buffer. */
+        m_mapStaging = manager()->memoryManager()->allocateStagingMemory(size);
+        ret = m_mapStaging->map();
+    } else {
+        checkMsg(
+            (flags & kMapInvalidateBuffer) || (offset == 0 && size == m_size),
+            "Non-invalidating dynamic buffer mappings not implemented");
+
+        /* We're invalidating the whole buffer, so re-allocate it. TODO: Don't
+         * need to do this if the buffer is not in use on the GPU. */
+        reallocate();
+        ret = m_allocation->map() + offset;
+    }
+
+    m_mapOffset = offset;
+    m_mapSize = size;
+
+    return ret;
 }
 
 /** Unmap the previous mapping created for the buffer. */
 void VulkanBuffer::unmap() {
-    fatal("VulkanBuffer::unmap: TODO");
+    check(m_mapSize);
+
+    if (m_usage == kStaticUsage) {
+        /* Upload the staging buffer. */
+        VkBufferCopy bufferCopy = {};
+        bufferCopy.srcOffset = 0;
+        bufferCopy.dstOffset = m_mapOffset;
+        bufferCopy.size = m_mapSize;
+
+        VulkanCommandBuffer *stagingCmdBuf = manager()->memoryManager()->getStagingCommandBuffer();
+        vkCmdCopyBuffer(
+            stagingCmdBuf->handle(),
+            m_mapStaging->buffer(),
+            m_allocation->handle(),
+            1, &bufferCopy);
+    }
+
+    m_mapSize = 0;
 }
 
 /** Create a GPU buffer.

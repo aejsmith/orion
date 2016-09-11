@@ -87,7 +87,6 @@ public:
     GPUResourceSetPtr createResourceSet(GPUResourceSetLayout *layout) override;
     GPUProgramPtr createProgram(unsigned stage, const std::vector<uint32_t> &spirv, const std::string &name) override;
 
-    void startFrame() override;
     void endFrame() override;
 
     void blit(
@@ -157,6 +156,8 @@ public:
     }
 private:
     void initFeatures();
+
+    void startFrame();
 
     VulkanFeatures m_features;              /**< Feature details. */
     VkInstance m_instance;                  /**< Vulkan instance handle. */

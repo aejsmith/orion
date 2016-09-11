@@ -130,7 +130,6 @@ void Engine::run() {
         if (!pollEvents())
             return;
 
-        g_gpuManager->startFrame();
         g_debugManager->startFrame();
 
         /* Display statistics from the previous frame. */

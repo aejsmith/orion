@@ -68,4 +68,5 @@ private:
     State m_state;                      /**< State of the command buffer. */
 
     friend class VulkanCommandPool;
+    friend class VulkanQueue;
 };

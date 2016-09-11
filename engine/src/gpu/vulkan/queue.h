@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "vulkan.h"
+#include "command_buffer.h"
 
 class VulkanDevice;
 
@@ -29,4 +29,6 @@ class VulkanDevice;
 class VulkanQueue : public VulkanHandle<VkQueue> {
 public:
     VulkanQueue(VulkanGPUManager *manager, uint32_t queueFamily, uint32_t index);
+
+    void submit(VulkanCommandBuffer *cmdBuf, VulkanFence *fence = nullptr);
 };

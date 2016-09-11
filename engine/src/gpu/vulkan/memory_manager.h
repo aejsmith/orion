@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "command_buffer.h"
 #include "vulkan.h"
 
 #include <list>
@@ -83,13 +84,13 @@ public:
     class ResourceMemory {
     public:
         /** @return             Offset in the parent. */
-        VkDeviceSize offset() const { return m_parent.second->offset; }
+        VkDeviceSize offset() { return m_parent.second->offset; }
         /** @return             Size of the allocation. */
-        VkDeviceSize size() const { return m_parent.second->size; }
+        VkDeviceSize size() { return m_parent.second->size; }
 
         /** Get a mapping of the memory (must have been allocated host-visible).
          * @return              Pointer to mapped memory. */
-        void *map() const {
+        uint8_t *map() {
             check(m_parent.first->mapping);
             return m_parent.first->mapping + offset();
         }
@@ -105,7 +106,7 @@ public:
     class BufferMemory : public ResourceMemory {
     public:
         /** @return             Handle for the buffer. */
-        VkBuffer handle() const {
+        VkBuffer handle() {
             return m_parent.first->buffer;
         }
 
@@ -117,6 +118,8 @@ public:
     /** Class containing details of a staging buffer allocation. */
     class StagingMemory {
     public:
+        /** @return             Handle for the buffer. */
+        VkBuffer buffer() { return m_buffer; }
         /** @return             Pointer to the staging memory. */
         void *map() { return m_mapping; }
     private:
@@ -137,6 +140,9 @@ public:
     void freeBuffer(BufferMemory *allocation);
 
     StagingMemory *allocateStagingMemory(VkDeviceSize size);
+
+    VulkanCommandBuffer *getStagingCommandBuffer();
+    void flushStagingCommandBuffer();
 
     void cleanupFrame(VulkanFrame &frame, bool completed);
 private:
@@ -174,4 +180,7 @@ private:
 
     /** Currently existing buffer memory pools. */
     std::list<Pool *> m_bufferPools;
+
+    /** Command buffer for host to device memory transfers. */
+    VulkanCommandBuffer *m_stagingCommandBuffer;
 };
