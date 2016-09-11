@@ -23,13 +23,6 @@
 
 #define vkStub() fatal("Vulkan function '%s' not implemented", __func__)
 
-/** Create a sampler state object.
- * @param desc          Descriptor for sampler state.
- * @return              Pointer to created sampler state object. */
-GPUSamplerStatePtr VulkanGPUManager::createSamplerState(const GPUSamplerStateDesc &desc) {
-    vkStub();
-}
-
 /** Begin a render pass.
  * @param desc          Descriptor for the render pass instance. */
 void VulkanGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {

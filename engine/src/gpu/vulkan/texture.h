@@ -42,3 +42,12 @@ private:
 
     bool m_new;                     /**< Whether this texture is newly created. */
 };
+
+/** Vulkan sampler state object implementation. */
+class VulkanSamplerState :
+    public GPUSamplerState,
+    public VulkanHandle<VkSampler> {
+public:
+    VulkanSamplerState(VulkanGPUManager *manager, const GPUSamplerStateDesc &desc);
+    ~VulkanSamplerState();
+};

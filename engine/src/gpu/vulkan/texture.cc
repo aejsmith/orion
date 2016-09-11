@@ -219,3 +219,71 @@ GPUTexturePtr VulkanGPUManager::createTexture(const GPUTextureDesc &desc) {
 GPUTexturePtr VulkanGPUManager::createTextureView(const GPUTextureImageRef &image) {
     return new VulkanTexture(this, image);
 }
+
+/** Initialise the sampler state object.
+ * @param manager       Manager that owns the object.
+ * @param desc          Descriptor for sampler state. */
+VulkanSamplerState::VulkanSamplerState(VulkanGPUManager *manager, const GPUSamplerStateDesc &desc) :
+    GPUSamplerState(desc),
+    VulkanHandle(manager)
+{
+    VkSamplerCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+
+    switch (m_desc.filterMode) {
+        case SamplerFilterMode::kBilinear:
+            createInfo.magFilter = VK_FILTER_LINEAR;
+            createInfo.minFilter = VK_FILTER_LINEAR;
+            createInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+            break;
+        case SamplerFilterMode::kTrilinear:
+            createInfo.magFilter = VK_FILTER_LINEAR;
+            createInfo.minFilter = VK_FILTER_LINEAR;
+            createInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+            break;
+        case SamplerFilterMode::kAnisotropic:
+            createInfo.magFilter = VK_FILTER_LINEAR;
+            createInfo.minFilter = VK_FILTER_LINEAR;
+            createInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+            createInfo.anisotropyEnable = true;
+            /* TODO: global default if set to 0, see GL note about hashing. */
+            createInfo.maxAnisotropy = glm::clamp(
+                static_cast<float>(m_desc.maxAnisotropy),
+                1.0f,
+                manager->device()->limits().maxSamplerAnisotropy);
+            break;
+        default:
+            createInfo.magFilter = VK_FILTER_NEAREST;
+            createInfo.minFilter = VK_FILTER_NEAREST;
+            createInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+            break;
+    }
+
+    auto convertAddressMode =
+        [] (SamplerAddressMode mode) -> VkSamplerAddressMode {
+            switch (mode) {
+                case SamplerAddressMode::kClamp:
+                    return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+                case SamplerAddressMode::kWrap:
+                    return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            }
+        };
+
+    createInfo.addressModeU = convertAddressMode(desc.addressU);
+    createInfo.addressModeV = convertAddressMode(desc.addressV);
+    createInfo.addressModeW = convertAddressMode(desc.addressW);
+
+    checkVk(vkCreateSampler(manager->device()->handle(), &createInfo, nullptr, &m_handle));
+}
+
+/** Destroy the sampler state. */
+VulkanSamplerState::~VulkanSamplerState() {
+    vkDestroySampler(manager()->device()->handle(), m_handle, nullptr);
+}
+
+/** Create a sampler state object.
+ * @param desc          Descriptor for sampler state.
+ * @return              Pointer to created sampler state object. */
+GPUSamplerStatePtr VulkanGPUManager::createSamplerState(const GPUSamplerStateDesc &desc) {
+    return new VulkanSamplerState(this, desc);
+}
