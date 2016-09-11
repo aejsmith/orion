@@ -72,7 +72,7 @@ bool TGALoader::loadData() {
     /* Determine image properties. */
     m_width = header.width;
     m_height = header.height;
-    m_format = (header.depth == 32) ? PixelFormat::kB8G8R8A8 : PixelFormat::kB8G8R8;
+    m_format = PixelFormat::kB8G8R8A8;
 
     /* Read in the data, which is after the ID and colour map. */
     size_t size = m_width * m_height * (header.depth / 8);
@@ -80,10 +80,26 @@ bool TGALoader::loadData() {
         header.idLength +
         (header.colourMapLength * (header.colourMapDepth / 8));
 
-    m_buffer.reset(new char[size]);
-    if (!m_data->read(m_buffer.get(), size, offset)) {
+    std::unique_ptr<uint8_t []> buffer(new uint8_t[size]);
+
+    if (!m_data->read(buffer.get(), size, offset)) {
         logError("%s: Failed to read asset data", m_path);
         return false;
+    }
+
+    if (header.depth == 24) {
+        /* Bleh, NVIDIA Vulkan doesn't support RGB/BGR formats so we have to
+         * convert to an alpha format. */
+        m_buffer.reset(new uint8_t[m_width * m_height * 4]);
+
+        for (size_t i = 0; i < m_width * m_height; i++) {
+            m_buffer[(i * 4) + 0] = buffer[(i * 3) + 0];
+            m_buffer[(i * 4) + 1] = buffer[(i * 3) + 1];
+            m_buffer[(i * 4) + 2] = buffer[(i * 3) + 2];
+            m_buffer[(i * 4) + 3] = 255;
+        }
+    } else {
+        m_buffer = std::move(buffer);
     }
 
     return true;

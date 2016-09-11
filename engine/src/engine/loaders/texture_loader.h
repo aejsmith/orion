@@ -42,5 +42,7 @@ protected:
     uint32_t m_width;                   /**< Width of the texture. */
     uint32_t m_height;                  /**< Height of the texture. */
     PixelFormat m_format;               /**< Format of the texture. */
-    std::unique_ptr<char []> m_buffer;  /**< Buffer containing texture data. */
+
+    /** Buffer containing texture data. */
+    std::unique_ptr<uint8_t []> m_buffer;
 };
