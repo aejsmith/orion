@@ -68,7 +68,7 @@ VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureDesc &de
         case kTextureCube:
             createInfo.imageType = VK_IMAGE_TYPE_2D;
             createInfo.extent.depth = 1;
-            createInfo.arrayLayers = 6;
+            createInfo.arrayLayers = CubeFace::kNumFaces;
             createInfo.flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
             break;
         case kTexture3D:
@@ -202,8 +202,108 @@ void VulkanTexture::update(const IntBox &area, const void *data, unsigned mip) {
 /** Generate mipmap images. */
 void VulkanTexture::generateMipmap() {
     check(m_flags & kAutoMipmap);
+    check(!PixelFormat::isDepth(m_format));
+    check(m_type != kTexture3D);
 
-    fatal("TODO: mipmap generation");
+    unsigned numLayers;
+    switch (m_type) {
+        case kTexture2DArray:
+            numLayers = m_depth;
+            break;
+        case kTextureCube:
+            numLayers = CubeFace::kNumFaces;
+            break;
+        default:
+            numLayers = 1;
+            break;
+    }
+
+    /* We have to manually generate each mip by blitting from the base mip. */
+    std::vector<VkImageBlit> imageBlits;
+    imageBlits.reserve(m_mips - 1);
+
+    int32_t mipWidth = m_width;
+    int32_t mipHeight = m_height;
+
+    for (unsigned mip = 1; mip < m_mips; mip++) {
+        if (mipWidth > 1)
+            mipWidth >>= 1;
+        if (mipHeight > 1)
+            mipHeight >>= 1;
+
+        imageBlits.emplace_back();
+        VkImageBlit &imageBlit = imageBlits.back();
+
+        /* Copy the base mip level for all layers to the current mip level. */
+        imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        imageBlit.srcSubresource.mipLevel = 0;
+        imageBlit.srcSubresource.baseArrayLayer = 0;
+        imageBlit.srcSubresource.layerCount = numLayers;
+        imageBlit.srcOffsets[0] = { 0, 0, 0 };
+        imageBlit.srcOffsets[1] = { static_cast<int32_t>(m_width), static_cast<int32_t>(m_height), 1 };
+        imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        imageBlit.dstSubresource.mipLevel = mip;
+        imageBlit.dstSubresource.baseArrayLayer = 0;
+        imageBlit.dstSubresource.layerCount = numLayers;
+        imageBlit.dstOffsets[0] = { 0, 0, 0 };
+        imageBlit.dstOffsets[1] = { mipWidth, mipHeight, 1 };
+    }
+
+    VulkanCommandBuffer *stagingCmdBuf = manager()->memoryManager()->getStagingCommandBuffer();
+
+    /* Transition the base level to the transfer source layout. */
+    VkImageSubresourceRange srcSubresource = {};
+    srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    srcSubresource.baseMipLevel = 0;
+    srcSubresource.levelCount = 1;
+    srcSubresource.baseArrayLayer = 0;
+    srcSubresource.layerCount = numLayers;
+    VulkanUtil::setImageLayout(
+        stagingCmdBuf,
+        m_handle,
+        srcSubresource,
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+
+    /* Transition the other levels to the transfer destination layout. Don't
+     * care about their existing content. */
+    VkImageSubresourceRange dstSubresource = {};
+    dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    dstSubresource.baseMipLevel = 1;
+    dstSubresource.levelCount = m_mips - 1;
+    dstSubresource.baseArrayLayer = 0;
+    dstSubresource.layerCount = numLayers;
+    VulkanUtil::setImageLayout(
+        stagingCmdBuf,
+        m_handle,
+        dstSubresource,
+        VK_IMAGE_LAYOUT_UNDEFINED,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+    /* Perform the blits. */
+    vkCmdBlitImage(
+        stagingCmdBuf->handle(),
+        m_handle,
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        m_handle,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        imageBlits.size(),
+        &imageBlits[0],
+        VK_FILTER_LINEAR);
+
+    /* Transition the whole image back to shader read only. */
+    VulkanUtil::setImageLayout(
+        stagingCmdBuf,
+        m_handle,
+        srcSubresource,
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    VulkanUtil::setImageLayout(
+        stagingCmdBuf,
+        m_handle,
+        dstSubresource,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 /** Create a texture.
