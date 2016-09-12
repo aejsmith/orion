@@ -116,6 +116,20 @@ public:
         }
     }
 
+    /** Append a string to the path.
+     * @param str           String to append. */
+    Path &operator +=(const std::string &str) {
+        m_path += str;
+        return *this;
+    }
+
+    /** Concatenate two path strings.
+     * @param str           String to concatenate.
+     * @return              Path formed by concatenating this path and the string. */
+    Path operator +(const std::string &str) const {
+        return Path(*this) += str;
+    }
+
     /**
      * Queries.
      */
