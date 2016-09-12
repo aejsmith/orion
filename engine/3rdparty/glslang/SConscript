@@ -8,7 +8,7 @@ localEnv = env.Clone()
 
 localEnv['CCFLAGS'] += [
     '-Wno-reorder', '-Wno-logical-op-parentheses', '-Wno-unused-variable',
-    '-Wno-tautological-constant-out-of-range-compare',
+    '-Wno-tautological-constant-out-of-range-compare', '-Wno-unknown-pragmas',
 ]
 
 objects = []
@@ -30,6 +30,7 @@ objects += map(localEnv.Object, [
     'repo/glslang/MachineIndependent/IntermTraverse.cpp',
     'repo/glslang/MachineIndependent/Intermediate.cpp',
     'repo/glslang/MachineIndependent/ParseHelper.cpp',
+    'repo/glslang/MachineIndependent/ParseContextBase.cpp',
     'repo/glslang/MachineIndependent/PoolAlloc.cpp',
     'repo/glslang/MachineIndependent/RemoveTree.cpp',
     'repo/glslang/MachineIndependent/Scan.cpp',
