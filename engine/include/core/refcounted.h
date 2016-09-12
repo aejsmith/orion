@@ -57,7 +57,7 @@ public:
     int32_t refcount() const { return m_refcount; }
 protected:
     virtual ~Refcounted();
-private:
+
     virtual void released();
 private:
     mutable int32_t m_refcount;     /**< Object reference count. */

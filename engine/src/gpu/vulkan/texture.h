@@ -36,6 +36,9 @@ public:
     void update(const IntRect &area, const void *data, unsigned mip, unsigned layer) override;
     void update(const IntBox &area, const void *data, unsigned mip) override;
     void generateMipmap() override;
+
+    /** @return             Memory allocation backing this image. */
+    VulkanMemoryManager::ImageMemory *allocation() const { return m_allocation; }
 private:
     /** Memory allocation backing this image. */
     VulkanMemoryManager::ImageMemory *m_allocation;

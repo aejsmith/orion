@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include "command_buffer.h"
 #include "vulkan.h"
 
 #include <list>
 
+class VulkanCommandBuffer;
 class VulkanDevice;
 
 /** Buffer pool allocation size (minimum). */
@@ -84,7 +84,7 @@ private:
     using PoolReference = std::pair<Pool *, std::list<PoolEntry>::iterator>;
 public:
     /** Class containing details of a resource memory allocation. */
-    class ResourceMemory {
+    class ResourceMemory : public Refcounted {
     public:
         /** @return             Offset in the parent. */
         VkDeviceSize offset() { return m_parent.second->offset; }
@@ -100,9 +100,19 @@ public:
             return m_parent.first->mapping + offset();
         }
     protected:
+        /** Initialise the handle.
+         * @param parent        Reference to the pool that this came from. */
         explicit ResourceMemory(const PoolReference &parent) :
             m_parent(parent)
-        {}
+        {
+            /* Reference which is released when freeResource() is called. */
+            retain();
+        }
+
+        /** Release the memory. */
+        void released() override {
+            m_parent.first->manager->releaseResource(this);
+        }
 
         PoolReference m_parent;
     };
@@ -113,6 +123,8 @@ public:
         /** @return             Handle for the buffer. */
         VkBuffer buffer() { return m_parent.first->buffer; }
 
+        /** Initialise the handle.
+         * @param parent        Reference to the pool that this came from. */
         explicit BufferMemory(const PoolReference &parent) :
             ResourceMemory(parent)
         {}
@@ -121,6 +133,8 @@ public:
     /** Class containing details of an image memory allocation. */
     class ImageMemory : public ResourceMemory {
     public:
+        /** Initialise the handle.
+         * @param parent        Reference to the pool that this came from. */
         explicit ImageMemory(const PoolReference &parent) :
             ResourceMemory(parent)
         {}
@@ -148,10 +162,8 @@ public:
         VkDeviceSize size,
         VkBufferUsageFlags usage,
         VkMemoryPropertyFlags memoryFlags);
-    void freeBuffer(BufferMemory *handle);
-
     ImageMemory *allocateImage(VkMemoryRequirements &requirements);
-    void freeImage(ImageMemory *handle);
+    void freeResource(ResourceMemory *memory);
 
     StagingMemory *allocateStagingMemory(VkDeviceSize size);
 
@@ -171,6 +183,8 @@ private:
 
     /** Structure containing details of a device memory pool. */
     struct Pool {
+        VulkanMemoryManager *manager;   /**< Manager that this pool belongs to. */
+
         VkDeviceMemory handle;          /**< Handle to the allocation. */
         VkBuffer buffer;                /**< Buffer handle (if this is a buffer). */
         VkDeviceSize size;              /**< Size of the allocation. */
@@ -189,6 +203,8 @@ private:
     Pool *createPool(VkDeviceSize size, uint32_t memoryType);
     bool allocatePoolEntry(Pool *pool, VkDeviceSize size, VkDeviceSize alignment, PoolReference &reference);
 
+    void releaseResource(ResourceMemory *handle);
+
     /** Device memory properties. */
     VkPhysicalDeviceMemoryProperties m_properties;
 
@@ -199,4 +215,6 @@ private:
 
     /** Command buffer for host to device memory transfers. */
     VulkanCommandBuffer *m_stagingCmdBuf;
+
+    friend class ResourceMemory;
 };

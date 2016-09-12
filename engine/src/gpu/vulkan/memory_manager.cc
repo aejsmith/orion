@@ -310,13 +310,6 @@ VulkanMemoryManager::BufferMemory *VulkanMemoryManager::allocateBuffer(
     return handle;
 }
 
-/** Free a buffer memory allocation.
- * @param handle        Handle returned from allocateBuffer(). */
-void VulkanMemoryManager::freeBuffer(BufferMemory *handle) {
-    // TODO: Need to track while buffer is still in use.
-    fatal("VulkanMemoryManager::freeBuffer: TODO");
-}
-
 /**
  * Allocate memory for an image.
  *
@@ -370,11 +363,20 @@ VulkanMemoryManager::ImageMemory *VulkanMemoryManager::allocateImage(VkMemoryReq
     return handle;
 }
 
-/** Free an image memory allocation.
- * @param handle        Handle returned from allocateImage(). */
-void VulkanMemoryManager::freeImage(ImageMemory *handle) {
-    // TODO: Need to track while image is still in use.
-    fatal("VulkanMemoryManager::freeImage: TODO");
+/** Free a resource memory allocation.
+ * @param handle        Handle returned from allocateBuffer() or allocateImage(). */
+void VulkanMemoryManager::freeResource(ResourceMemory *handle) {
+    /* Just remove the reference we added to it when we first allocated it.
+     * Any command buffers using the memory will still hold a reference, so we
+     * will not actually free the memory until it is no longer in use. This is
+     * done by releaseResource(). */
+    handle->release();
+}
+
+/** Actually free resource memory that is no longer in use.
+ * @param handle        Handle to memory to free. */
+void VulkanMemoryManager::releaseResource(ResourceMemory *handle) {
+    fatal("VulkanMemoryManager::releaseResource: TODO");
 }
 
 /**

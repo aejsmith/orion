@@ -20,6 +20,7 @@
  */
 
 #include "buffer.h"
+#include "command_buffer.h"
 #include "device.h"
 
 /** Create a new buffer.
@@ -39,13 +40,13 @@ VulkanBuffer::VulkanBuffer(VulkanGPUManager *manager, Type type, Usage usage, si
 
 /** Destroy the buffer. */
 VulkanBuffer::~VulkanBuffer() {
-    manager()->memoryManager()->freeBuffer(m_allocation);
+    manager()->memoryManager()->freeResource(m_allocation);
 }
 
 /** (Re)allocate the buffer. */
 void VulkanBuffer::reallocate() {
     if (m_allocation)
-        manager()->memoryManager()->freeBuffer(m_allocation);
+        manager()->memoryManager()->freeResource(m_allocation);
 
     /* Determine Vulkan usage flag. */
     VkBufferUsageFlags usageFlag;
@@ -134,6 +135,8 @@ void VulkanBuffer::unmap() {
             m_mapStaging->buffer(),
             m_allocation->buffer(),
             1, &bufferCopy);
+        stagingCmdBuf->addObjectRef(this);
+        stagingCmdBuf->addMemoryRef(m_allocation);
     }
 
     m_mapSize = 0;

@@ -133,3 +133,29 @@ void VulkanCommandBuffer::end() {
     checkVk(vkEndCommandBuffer(m_handle));
     m_state = State::kRecorded;
 }
+
+/**
+ * Add an object reference.
+ *
+ * This adds a reference to the specified GPU object which ensures that it will
+ * not be freed until the command buffer is destroyed (either has completed
+ * execution or is discarded).
+ *
+ * @param object        Object to reference.
+ */
+void VulkanCommandBuffer::addObjectRef(GPUObject *object) {
+    m_objectRefs.emplace_back(object);
+}
+
+/**
+ * Add an object reference.
+ *
+ * This adds a reference to the specified resource memory allocation which
+ * ensures that it will not be freed until the command buffer is destroyed
+ * (either has completed execution or is discarded).
+ *
+ * @param handle        Resource memory handle.
+ */
+void VulkanCommandBuffer::addMemoryRef(VulkanMemoryManager::ResourceMemory *handle) {
+    m_memoryRefs.emplace_back(handle);
+}

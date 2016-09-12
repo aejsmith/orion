@@ -108,7 +108,7 @@ VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureImageRef
 /** Destroy the texture. */
 VulkanTexture::~VulkanTexture() {
     vkDestroyImage(manager()->device()->handle(), m_handle, nullptr);
-    manager()->memoryManager()->freeImage(m_allocation);
+    manager()->memoryManager()->freeResource(m_allocation);
 }
 
 /** Calculate the size of a mip level.
@@ -197,6 +197,11 @@ void VulkanTexture::update(const IntRect &area, const void *data, unsigned mip, 
         subresources,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    /* Ensure that the texture and its memory are kept alive until the update
+     * is complete. */
+    stagingCmdBuf->addObjectRef(this);
+    stagingCmdBuf->addMemoryRef(m_allocation);
 }
 
 /** Update 3D texture area.
@@ -312,6 +317,9 @@ void VulkanTexture::generateMipmap() {
         dstSubresource,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    stagingCmdBuf->addObjectRef(this);
+    stagingCmdBuf->addMemoryRef(m_allocation);
 }
 
 /** Create a texture.
@@ -507,4 +515,9 @@ void VulkanGPUManager::blit(
         dstSubresource,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    m_primaryCmdBuf->addObjectRef(vkSource);
+    m_primaryCmdBuf->addObjectRef(vkDest);
+    m_primaryCmdBuf->addMemoryRef(vkSource->allocation());
+    m_primaryCmdBuf->addMemoryRef(vkDest->allocation());
 }
