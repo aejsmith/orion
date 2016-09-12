@@ -20,6 +20,53 @@
  */
 
 #include "command_buffer.h"
+#include "frame.h"
+
+/** Bind a pipeline for rendering.
+ * @param pipeline      Pipeline to use. */
+void VulkanGPUManager::bindPipeline(GPUPipeline *pipeline) {
+    currentFrame().pipeline = static_cast<VulkanPipeline *>(pipeline);
+}
+
+/** Bind a resource set.
+ * @param index         Resource set index to bind to.
+ * @param resources     Resource set to bind. */
+void VulkanGPUManager::bindResourceSet(unsigned index, GPUResourceSet *resources) {
+    check(index < currentFrame().resourceSets.size());
+    currentFrame().resourceSets[index] = static_cast<VulkanResourceSet *>(resources);
+}
+
+/** Set the blend state.
+ * @param state         Blend state to set. */
+void VulkanGPUManager::setBlendState(GPUBlendState *state) {
+    currentFrame().blendState = state;
+}
+
+/** Set the depth/stencil state.
+ * @param state         Depth/stencil state to set. */
+void VulkanGPUManager::setDepthStencilState(GPUDepthStencilState *state) {
+    currentFrame().depthStencilState = state;
+}
+
+/** Set the rasterizer state.
+ * @param state         Rasterizer state to set. */
+void VulkanGPUManager::setRasterizerState(GPURasterizerState *state) {
+    currentFrame().rasterizerState = state;
+}
+
+/** Set the viewport.
+ * @param viewport      Viewport rectangle in pixels. */
+void VulkanGPUManager::setViewport(const IntRect &viewport) {
+    currentFrame().viewport = viewport;
+}
+
+/** Set the scissor test parameters.
+ * @param enable        Whether to enable scissor testing.
+ * @param scissor       Scissor rectangle. */
+void VulkanGPUManager::setScissor(bool enable, const IntRect &scissor) {
+    currentFrame().scissorEnabled = enable;
+    currentFrame().scissor = scissor;
+}
 
 #ifdef ORION_BUILD_DEBUG
 
@@ -33,14 +80,14 @@ void VulkanGPUManager::beginDebugGroup(const std::string &str) {
         markerInfo.color[2] = 1.0f;
         markerInfo.color[3] = 1.0f;
 
-        m_functions.CmdDebugMarkerBeginEXT(m_primaryCmdBuf->handle(), &markerInfo);
+        m_functions.CmdDebugMarkerBeginEXT(currentFrame().primaryCmdBuf->handle(), &markerInfo);
     }
 }
 
 /** End the current debug group. */
 void VulkanGPUManager::endDebugGroup() {
     if (m_features.debugMarker)
-        m_functions.CmdDebugMarkerEndEXT(m_primaryCmdBuf->handle());
+        m_functions.CmdDebugMarkerEndEXT(currentFrame().primaryCmdBuf->handle());
 }
 
 #endif

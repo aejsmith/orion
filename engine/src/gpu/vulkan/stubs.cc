@@ -36,50 +36,6 @@ void VulkanGPUManager::endRenderPass() {
     vkStub();
 }
 
-/** Bind a pipeline for rendering.
- * @param pipeline      Pipeline to use. */
-void VulkanGPUManager::bindPipeline(GPUPipeline *pipeline) {
-    vkStub();
-}
-
-/** Bind a resource set.
- * @param index         Resource set index to bind to.
- * @param resources     Resource set to bind. */
-void VulkanGPUManager::bindResourceSet(unsigned index, GPUResourceSet *resources) {
-    vkStub();
-}
-
-/** Set the blend state.
- * @param state         Blend state to set. */
-void VulkanGPUManager::setBlendState(GPUBlendState *state) {
-    vkStub();
-}
-
-/** Set the depth/stencil state.
- * @param state         Depth/stencil state to set. */
-void VulkanGPUManager::setDepthStencilState(GPUDepthStencilState *state) {
-    vkStub();
-}
-
-/** Set the rasterizer state.
- * @param state         Rasterizer state to set. */
-void VulkanGPUManager::setRasterizerState(GPURasterizerState *state) {
-    vkStub();
-}
-
-/** Set the viewport.
- * @param viewport      Viewport rectangle in pixels. */
-void VulkanGPUManager::setViewport(const IntRect &viewport) {
-    vkStub();
-}
-
-/** Set the scissor test parameters.
- * @param enable        Whether to enable scissor testing.
- * @param scissor       Scissor rectangle. */
-void VulkanGPUManager::setScissor(bool enable, const IntRect &scissor) {
-    vkStub();
-}
-
 /** Draw primitives.
  * @param type          Primitive type to render.
  * @param vertices      Vertex data to use.

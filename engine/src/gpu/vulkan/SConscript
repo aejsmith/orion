@@ -12,6 +12,7 @@ objects = map(env.Object, [
     'commands.cc',
     'command_buffer.cc',
     'device.cc',
+    'frame.cc',
     'loader.cc',
     'memory_manager.cc',
     'pipeline.cc',

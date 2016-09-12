@@ -23,7 +23,9 @@
 #include "device.h"
 #include "frame.h"
 #include "memory_manager.h"
+#include "pipeline.h"
 #include "queue.h"
+#include "resource.h"
 #include "surface.h"
 #include "swapchain.h"
 #include "vulkan.h"
@@ -183,8 +185,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugReportCallback(
  * @param config        Engine configuration.
  * @param window        Where to store pointer to created window. */
 VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&window) :
-    m_features(),
-    m_primaryCmdBuf(nullptr)
+    m_features()
 {
     VkResult result;
 
@@ -346,52 +347,4 @@ void VulkanGPUManager::initFeatures() {
     initFormat(PixelFormat::kDepth16,           VK_FORMAT_D16_UNORM);
     initFormat(PixelFormat::kDepth24,           VK_FORMAT_X8_D24_UNORM_PACK32);
     initFormat(PixelFormat::kDepth24Stencil8,   VK_FORMAT_D24_UNORM_S8_UINT);
-}
-
-/** Begin a new frame. */
-void VulkanGPUManager::startFrame() {
-    /* Start the new frame. */
-    m_frames.push_back(new VulkanFrame(this));
-
-    /* Allocate the primary command buffer. */
-    m_primaryCmdBuf = m_commandPool->allocateTransient();
-    m_primaryCmdBuf->begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-
-    /* Acquire a new image from the swap chain. */
-    m_swapchain->startFrame();
-
-    // TODO: Need to wait for present complete semaphore, transition layout.
-}
-
-/** End a frame and present it on screen. */
-void VulkanGPUManager::endFrame() {
-    // TODO: Transition image layout to present.
-
-    m_memoryManager->flushStagingCmdBuf();
-    m_primaryCmdBuf->end();
-
-    m_swapchain->endFrame();
-
-    /* Clean up completed frames. */
-    for (auto i = m_frames.begin(); i != m_frames.end(); ) {
-        auto frame = *i;
-
-        /* Check whether the frame has completed. */
-        bool completed = frame->fence.getStatus();
-
-        /* Perform cleanup work on the frame. */
-        m_commandPool->cleanupFrame(*frame, completed);
-        m_memoryManager->cleanupFrame(*frame, completed);
-
-        /* Remove the frame if it has completed. */
-        if (completed) {
-            m_frames.erase(i++);
-            delete frame;
-        } else {
-            ++i;
-        }
-    }
-
-    /* Prepare state for the next frame. */
-    startFrame();
 }

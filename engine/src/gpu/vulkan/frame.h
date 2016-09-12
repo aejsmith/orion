@@ -22,19 +22,45 @@
 #pragma once
 
 #include "memory_manager.h"
+#include "pipeline.h"
+#include "resource.h"
 #include "utility.h"
-#include "vulkan.h"
 
 /** Structure tracking per-frame data for cleanup once the frame completes. */
 struct VulkanFrame {
     /** Fence signalled upon completion of the frame's submission. */
     VulkanFence fence;
 
+    /** Primary command buffer for the current frame. */
+    VulkanCommandBuffer *primaryCmdBuf;
+
     /** List of command buffers allocated for the frame. */
     std::list<VulkanCommandBuffer *> cmdBuffers;
 
     /** List of staging memory allocations for the frame. */
     std::list<VulkanMemoryManager::StagingMemory *> stagingAllocations;
+
+    /**
+     * Rendering state.
+     */
+
+    /** Bound pipeline. */
+    GPUObjectPtr<VulkanPipeline> pipeline;
+
+    /** Bound resource sets. */
+    std::array<GPUObjectPtr<VulkanResourceSet>, ResourceSets::kNumResourceSets> resourceSets;
+
+    /** State object bindings. */
+    GPUBlendStatePtr blendState;
+    GPUDepthStencilStatePtr depthStencilState;
+    GPURasterizerStatePtr rasterizerState;
+
+    /** Viewport. */
+    IntRect viewport;
+
+    /** Scissor state. */
+    bool scissorEnabled;
+    IntRect scissor;
 
     /** Initialise the frame.
      * @param manager       Manager that owns the frame. */

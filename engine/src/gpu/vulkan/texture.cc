@@ -20,6 +20,7 @@
  */
 
 #include "command_buffer.h"
+#include "frame.h"
 #include "texture.h"
 
 /** Initialize a new texture.
@@ -464,6 +465,8 @@ void VulkanGPUManager::blit(
     VulkanTexture *vkSource = static_cast<VulkanTexture *>(source.texture);
     VulkanTexture *vkDest = static_cast<VulkanTexture *>(dest.texture);
 
+    VulkanCommandBuffer *primaryCmdBuf = currentFrame().primaryCmdBuf;
+
     /* Transition the source subresource to the transfer source layout. */
     VkImageSubresourceRange srcSubresource = {};
     srcSubresource.aspectMask = imageBlit.srcSubresource.aspectMask;
@@ -472,7 +475,7 @@ void VulkanGPUManager::blit(
     srcSubresource.baseArrayLayer = source.layer;
     srcSubresource.layerCount = 1;
     VulkanUtil::setImageLayout(
-        m_primaryCmdBuf,
+        primaryCmdBuf,
         vkSource->handle(),
         srcSubresource,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
@@ -486,7 +489,7 @@ void VulkanGPUManager::blit(
     dstSubresource.baseArrayLayer = dest.layer;
     dstSubresource.layerCount = 1;
     VulkanUtil::setImageLayout(
-        m_primaryCmdBuf,
+        primaryCmdBuf,
         vkDest->handle(),
         dstSubresource,
         (isWholeDestSubresource) ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
@@ -494,7 +497,7 @@ void VulkanGPUManager::blit(
 
     /* Perform the blit. */
     vkCmdBlitImage(
-        m_primaryCmdBuf->handle(),
+        primaryCmdBuf->handle(),
         vkSource->handle(),
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
         vkDest->handle(),
@@ -504,20 +507,20 @@ void VulkanGPUManager::blit(
 
     /* Transition the images back to shader read only. */
     VulkanUtil::setImageLayout(
-        m_primaryCmdBuf,
+        primaryCmdBuf,
         vkSource->handle(),
         srcSubresource,
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     VulkanUtil::setImageLayout(
-        m_primaryCmdBuf,
+        primaryCmdBuf,
         vkDest->handle(),
         dstSubresource,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-    m_primaryCmdBuf->addObjectRef(vkSource);
-    m_primaryCmdBuf->addObjectRef(vkDest);
-    m_primaryCmdBuf->addMemoryRef(vkSource->allocation());
-    m_primaryCmdBuf->addMemoryRef(vkDest->allocation());
+    primaryCmdBuf->addObjectRef(vkSource);
+    primaryCmdBuf->addObjectRef(vkDest);
+    primaryCmdBuf->addMemoryRef(vkSource->allocation());
+    primaryCmdBuf->addMemoryRef(vkDest->allocation());
 }

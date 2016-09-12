@@ -26,9 +26,9 @@
 
 #include "loader.h"
 
-#include "core/hash_table.h"
-
 #include "gpu/gpu_manager.h"
+
+#include "shader/resource.h"
 
 #include <list>
 
@@ -140,21 +140,6 @@ public:
     const VulkanFrame &currentFrame() const { return *m_frames.back(); }
     /** @return             Data for the current frame. */
     VulkanFrame &currentFrame() { return *m_frames.back(); }
-
-    /**
-     * Get the primary command buffer for the current frame.
-     *
-     * At the start of each frame, a transient command buffer is allocated to
-     * act as the "primary" command buffer for the frame. This is where we
-     * record everything for the frame (potentially referencing secondary
-     * command buffers), and it is submitted in one go at the end of the frame.
-     *
-     * @return              Primary command buffer.
-     */
-    VulkanCommandBuffer *primaryCmdBuf() const {
-        check(m_primaryCmdBuf);
-        return m_primaryCmdBuf;
-    }
 private:
     void initFeatures();
 
@@ -180,9 +165,6 @@ private:
      * needed.
      */
     std::list<VulkanFrame *> m_frames;
-
-    /** Primary command buffer for the current frame. */
-    VulkanCommandBuffer *m_primaryCmdBuf;
 };
 
 /** Base class for a Vulkan child object. */
