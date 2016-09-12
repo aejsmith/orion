@@ -38,7 +38,8 @@ IMPLEMENT_UNIFORM_STRUCT(LightUniforms, "light", ResourceSets::kLightResources);
  * @param type          Type of the light.
  */
 SceneLight::SceneLight(Type type) :
-    m_type(type)
+    m_type(type),
+    m_castShadows(false)
 {
     m_resources = g_gpuManager->createResourceSet(
         g_renderManager->resources().lightResourceSetLayout);
