@@ -93,6 +93,11 @@ public:
         /** @return             Handle for the device memory allocation. */
         VkDeviceMemory memory() { return m_parent.first->handle; }
 
+        /** @return             Whether the memory is in use. */
+        bool isInUse() const {
+            return refcount() > 1;
+        }
+
         /** Get a mapping of the memory (must have been allocated host-visible).
          * @return              Pointer to mapped memory. */
         uint8_t *map() {

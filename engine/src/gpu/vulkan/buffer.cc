@@ -106,9 +106,11 @@ void *VulkanBuffer::map(size_t offset, size_t size, uint32_t flags, uint32_t acc
             (flags & kMapInvalidateBuffer) || (offset == 0 && size == m_size),
             "Non-invalidating dynamic buffer mappings not implemented");
 
-        /* We're invalidating the whole buffer, so re-allocate it. TODO: Don't
-         * need to do this if the buffer is not in use on the GPU. */
-        reallocate();
+        /* We're invalidating the whole buffer, so re-allocate it if it is in
+         * use, to save us having to synchronise. */
+        if (m_allocation->isInUse())
+            reallocate();
+
         ret = m_allocation->map() + offset;
     }
 
