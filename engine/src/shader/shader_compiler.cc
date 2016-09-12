@@ -341,5 +341,28 @@ bool ShaderCompiler::compile(const ShaderCompiler::Options &options, std::vector
     if (!logSPIRVMessages(options.path.c_str(), logger))
         return false;
 
+    #if ORION_BUILD_DEBUG
+        /* Save SPIR-V files. TODO: better system than environment variables. */
+        const char *dumpEnv = getenv("ORION_DUMP_SPIRV");
+        if (dumpEnv) {
+            Path dumpFileName = options.path.directoryName() / options.path.baseFileName();
+            for (const std::string &keyword : options.keywords)
+                dumpFileName += String::format("__%s", keyword.c_str());
+            dumpFileName += ".spv";
+
+            /* Allow dumping everything, by variation, or by shader source. */
+            if (strcmp(dumpEnv, "1") == 0 ||
+                strcmp(dumpEnv, dumpFileName.c_str()) == 0 ||
+                strcmp(dumpEnv, options.path.c_str()) == 0)
+            {
+                std::unique_ptr<File> dumpFile(g_filesystem->openFile(
+                    dumpFileName,
+                    File::kWrite | File::kCreate | File::kTruncate));
+                if (dumpFile)
+                    dumpFile->write(&spirv[0], spirv.size() * sizeof(spirv[0]));
+            }
+        }
+    #endif
+
     return true;
 }
