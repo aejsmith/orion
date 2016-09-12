@@ -358,7 +358,7 @@ void VulkanGPUManager::startFrame() {
 void VulkanGPUManager::endFrame() {
     // TODO: Transition image layout to present.
 
-    m_memoryManager->flushStagingCommandBuffer();
+    m_memoryManager->flushStagingCmdBuf();
     m_primaryCmdBuf->end();
 
     m_swapchain->endFrame();

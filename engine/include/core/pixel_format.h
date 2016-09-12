@@ -90,6 +90,18 @@ struct PixelFormat {
         }
     }
 
+    /** Check if a format is a depth/stencil format.
+     * @param format        Format to check.
+     * @return              Whether the format is a depth format. */
+    static bool isDepthStencil(PixelFormat format) {
+        switch (format) {
+            case kDepth24Stencil8:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     static size_t bytesPerPixel(PixelFormat format);
 
     /** Get a hash from a pixel format. */

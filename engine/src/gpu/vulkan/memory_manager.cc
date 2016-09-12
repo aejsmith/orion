@@ -28,7 +28,7 @@
  * @param manager       Manager that the memory manager is for. */
 VulkanMemoryManager::VulkanMemoryManager(VulkanGPUManager *manager) :
     VulkanObject(manager),
-    m_stagingCommandBuffer(nullptr)
+    m_stagingCmdBuf(nullptr)
 {
     vkGetPhysicalDeviceMemoryProperties(manager->device()->physicalHandle(), &m_properties);
 
@@ -456,25 +456,25 @@ void VulkanMemoryManager::cleanupFrame(VulkanFrame &frame, bool completed) {
  *
  * @return              Command buffer for staging transfers.
  */
-VulkanCommandBuffer *VulkanMemoryManager::getStagingCommandBuffer() {
-    if (!m_stagingCommandBuffer) {
-        m_stagingCommandBuffer = manager()->commandPool()->allocateTransient();
-        m_stagingCommandBuffer->begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+VulkanCommandBuffer *VulkanMemoryManager::getStagingCmdBuf() {
+    if (!m_stagingCmdBuf) {
+        m_stagingCmdBuf = manager()->commandPool()->allocateTransient();
+        m_stagingCmdBuf->begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
     }
 
-    return m_stagingCommandBuffer;
+    return m_stagingCmdBuf;
 }
 
 /** Submit the staging command buffer. */
-void VulkanMemoryManager::flushStagingCommandBuffer() {
-    if (m_stagingCommandBuffer) {
+void VulkanMemoryManager::flushStagingCmdBuf() {
+    if (m_stagingCmdBuf) {
         // TODO: Could use a separate transfer queue here?
         // TODO: If we submit all frame work in a single vkQueueSubmit at the
         // end of a frame, perhaps we could bundle this into the same call?
-        m_stagingCommandBuffer->end();
-        manager()->queue()->submit(m_stagingCommandBuffer);
+        m_stagingCmdBuf->end();
+        manager()->queue()->submit(m_stagingCmdBuf);
 
         /* Will be freed with the frame, it's transient. */
-        m_stagingCommandBuffer = nullptr;
+        m_stagingCmdBuf = nullptr;
     }
 }

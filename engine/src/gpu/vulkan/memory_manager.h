@@ -155,8 +155,8 @@ public:
 
     StagingMemory *allocateStagingMemory(VkDeviceSize size);
 
-    VulkanCommandBuffer *getStagingCommandBuffer();
-    void flushStagingCommandBuffer();
+    VulkanCommandBuffer *getStagingCmdBuf();
+    void flushStagingCmdBuf();
 
     void cleanupFrame(VulkanFrame &frame, bool completed);
 private:
@@ -198,5 +198,5 @@ private:
     std::list<Pool *> m_imagePools;
 
     /** Command buffer for host to device memory transfers. */
-    VulkanCommandBuffer *m_stagingCommandBuffer;
+    VulkanCommandBuffer *m_stagingCmdBuf;
 };

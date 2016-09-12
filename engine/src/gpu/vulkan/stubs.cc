@@ -80,22 +80,6 @@ void VulkanGPUManager::setScissor(bool enable, const IntRect &scissor) {
     vkStub();
 }
 
-/** Copy pixels from one texture to another.
- * @param source        Source texture image reference.
- * @param dest          Destination texture image reference.
- * @param sourcePos     Position in source texture to copy from.
- * @param destPos       Position in destination texture to copy to.
- * @param size          Size of area to copy. */
-void VulkanGPUManager::blit(
-    const GPUTextureImageRef &source,
-    const GPUTextureImageRef &dest,
-    glm::ivec2 sourcePos,
-    glm::ivec2 destPos,
-    glm::ivec2 size)
-{
-    vkStub();
-}
-
 /** Draw primitives.
  * @param type          Primitive type to render.
  * @param vertices      Vertex data to use.
