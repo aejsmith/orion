@@ -54,6 +54,7 @@ struct VulkanFrame;
 /** Details of Vulkan features. */
 struct VulkanFeatures {
     bool validation;                    /**< Whether validation layers are enabled. */
+    bool debugMarker;                   /**< Whether the debug marker extension is enabled. */
 
     /** Structure containing details of a pixel format. */
     struct Format {

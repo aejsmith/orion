@@ -24,15 +24,27 @@
 #include <vulkan/vulkan.h>
 
 #if ORION_VULKAN_VALIDATION
-    #define ENUMERATE_VK_INSTANCE_DEBUG_FUNCTIONS(macro, features) \
+    #define ENUMERATE_VK_INSTANCE_DEBUG_REPORT_FUNCTIONS(macro, features) \
         macro(CreateDebugReportCallbackEXT, features.validation) \
         macro(DestroyDebugReportCallbackEXT, features.validation)
 #else
-    #define ENUMERATE_VK_INSTANCE_DEBUG_FUNCTIONS(macro, features)
+    #define ENUMERATE_VK_INSTANCE_DEBUG_REPORT_FUNCTIONS(macro, features)
+#endif
+
+#if ORION_BUILD_DEBUG
+    #define ENUMERATE_VK_INSTANCE_DEBUG_MARKER_FUNCTIONS(macro, features) \
+        macro(DebugMarkerSetObjectTagEXT, features.debugMarker) \
+        macro(DebugMarkerSetObjectNameEXT, features.debugMarker) \
+        macro(CmdDebugMarkerBeginEXT, features.debugMarker) \
+        macro(CmdDebugMarkerEndEXT, features.debugMarker) \
+        macro(CmdDebugMarkerInsertEXT, features.debugMarker)
+#else
+    #define ENUMERATE_VK_INSTANCE_DEBUG_MARKER_FUNCTIONS(macro, features)
 #endif
 
 #define ENUMERATE_VK_INSTANCE_FUNCTIONS(macro, features) \
-    ENUMERATE_VK_INSTANCE_DEBUG_FUNCTIONS(macro, features)
+    ENUMERATE_VK_INSTANCE_DEBUG_REPORT_FUNCTIONS(macro, features) \
+    ENUMERATE_VK_INSTANCE_DEBUG_MARKER_FUNCTIONS(macro, features)
 
 struct VulkanFeatures;
 

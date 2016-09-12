@@ -87,18 +87,3 @@ void VulkanGPUManager::setScissor(bool enable, const IntRect &scissor) {
 void VulkanGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) {
     vkStub();
 }
-
-#ifdef ORION_BUILD_DEBUG
-
-/** Begin a debug group.
- * @param str           Group string. */
-void VulkanGPUManager::beginDebugGroup(const std::string &str) {
-    vkStub();
-}
-
-/** End the current debug group. */
-void VulkanGPUManager::endDebugGroup() {
-    vkStub();
-}
-
-#endif

@@ -111,7 +111,7 @@ static void enableInstanceExtensions(
             fatal("Required Vulkan instance extension '%s' not available", extension);
     }
 
-    /* Enable validation/debug extensions if requested and present. */
+    /* Enable validation extensions if requested and present. */
     #if ORION_VULKAN_VALIDATION
         auto validationLayer = availableLayers.find("VK_LAYER_LUNARG_standard_validation");
         auto reportExtension = availableExtensions.find(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
@@ -120,6 +120,15 @@ static void enableInstanceExtensions(
             layers.push_back("VK_LAYER_LUNARG_standard_validation");
             extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
             features.validation = true;
+        }
+    #endif
+
+    /* Enable debug marker extension if present. */
+    #if ORION_BUILD_DEBUG
+        auto markerExtension = availableExtensions.find(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+        if (markerExtension != availableExtensions.end()) {
+            extensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+            features.debugMarker = true;
         }
     #endif
 }

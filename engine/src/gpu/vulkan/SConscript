@@ -9,6 +9,7 @@ if os.uname()[0] == 'Linux':
 
 objects = map(env.Object, [
     'buffer.cc',
+    'commands.cc',
     'command_buffer.cc',
     'device.cc',
     'loader.cc',
