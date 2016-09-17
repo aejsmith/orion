@@ -28,10 +28,27 @@
 VulkanPipeline::VulkanPipeline(VulkanGPUManager *manager, GPUPipelineDesc &&desc) :
     GPUPipeline(std::move(desc)),
     VulkanObject(manager)
-{}
+{
+    /* Create a pipeline layout. */
+    std::vector<VkDescriptorSetLayout> setLayouts;
+    setLayouts.reserve(m_resourceLayout.size());
+    for (const GPUResourceSetLayout *it : m_resourceLayout) {
+        auto resourceSetLayout = static_cast<const VulkanResourceSetLayout *>(it);
+        setLayouts.push_back(resourceSetLayout->handle());
+    }
+
+    VkPipelineLayoutCreateInfo layoutCreateInfo = {};
+    layoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    layoutCreateInfo.setLayoutCount = setLayouts.size();
+    layoutCreateInfo.pSetLayouts = &setLayouts[0];
+
+    checkVk(vkCreatePipelineLayout(manager->device()->handle(), &layoutCreateInfo, nullptr, &m_layout));
+}
 
 /** Destroy the pipeline. */
-VulkanPipeline::~VulkanPipeline() {}
+VulkanPipeline::~VulkanPipeline() {
+    vkDestroyPipelineLayout(manager()->device()->handle(), m_layout, nullptr);
+}
 
 /** Create a pipeline object.
  * @param desc          Descriptor for the pipeline.

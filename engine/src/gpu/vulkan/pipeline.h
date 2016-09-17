@@ -28,4 +28,9 @@ class VulkanPipeline : public GPUPipeline, public VulkanObject {
 public:
     VulkanPipeline(VulkanGPUManager *manager, GPUPipelineDesc &&desc);
     ~VulkanPipeline();
+
+    /** @return         Handle to the pipeline layout. */
+    VkPipelineLayout layout() const { return m_layout; }
+private:
+    VkPipelineLayout m_layout;          /**< Pipeline layout. */
 };
