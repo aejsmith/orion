@@ -350,6 +350,10 @@ void VulkanGPUManager::startFrame() {
     frame.primaryCmdBuf = m_commandPool->allocateTransient();
     frame.primaryCmdBuf->begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
+    /* Initialise state. */
+    frame.renderPass = nullptr;
+    frame.framebuffer = nullptr;
+
     /* Acquire a new image from the swap chain. */
     m_swapchain->startFrame();
 

@@ -79,7 +79,7 @@ VulkanSemaphore::~VulkanSemaphore() {
 void VulkanUtil::setImageLayout(
     VulkanCommandBuffer *cmdBuf,
     VkImage image,
-    VkImageSubresourceRange subresources,
+    const VkImageSubresourceRange &subresources,
     VkImageLayout oldLayout,
     VkImageLayout newLayout)
 {
@@ -152,7 +152,7 @@ void VulkanUtil::setImageLayout(
 void VulkanUtil::setImageLayout(
     VulkanCommandBuffer *cmdBuf,
     VkImage image,
-    VkImageAspectFlagBits aspectMask,
+    VkImageAspectFlags aspectMask,
     VkImageLayout oldLayout,
     VkImageLayout newLayout)
 {

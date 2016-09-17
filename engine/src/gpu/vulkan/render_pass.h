@@ -31,3 +31,56 @@ public:
     VulkanRenderPass(VulkanGPUManager *manager, GPURenderPassDesc &&desc);
     ~VulkanRenderPass();
 };
+
+/**
+ * Key for a Vulkan framebuffer.
+ *
+ * This is a key to find framebuffers with given render targets that are
+ * compatible with a given render pass. See the Vulkan spec on rules for
+ * render pass compatibility.
+ */
+struct VulkanFramebufferKey {
+    /** Render targets. */
+    GPURenderTargetDesc targets;
+
+    /** Initialise the key.
+     * @param inTargets     Render target descriptor.
+     * @param inPass        Pass that the framebuffer should be compatible with. */
+    VulkanFramebufferKey(const GPURenderTargetDesc &inTargets, const VulkanRenderPass *inPass) :
+        targets(inTargets)
+    {
+        /* Nothing else to do here for now, since we only support a single
+         * subpass at the moment. This means all that matters is the format
+         * and sample count of the attachments, which is covered by equality of
+         * the render target descriptors. If we add multiple subpass support,
+         * we will need to handle that here. */
+    }
+
+    /** Compare this key with another. */
+    bool operator ==(const VulkanFramebufferKey &other) const {
+        return targets == other.targets;
+    }
+
+    /** Get a hash from a framebuffer key. */
+    friend size_t hashValue(const VulkanFramebufferKey &key) {
+        return hashValue(key.targets);
+    }
+};
+
+/** Vulkan framebuffer class. */
+class VulkanFramebuffer : public VulkanHandle<VkFramebuffer> {
+public:
+    VulkanFramebuffer(
+        VulkanGPUManager *manager,
+        const GPURenderTargetDesc &targets,
+        const VulkanRenderPass *pass);
+    ~VulkanFramebuffer();
+
+    /** @return             Render target descriptor. */
+    const GPURenderTargetDesc &targets() const { return m_targets; }
+private:
+    /** Render target descriptor. */
+    GPURenderTargetDesc m_targets;
+    /** Array of views for each attachment. */
+    std::vector<VkImageView> m_views;
+};

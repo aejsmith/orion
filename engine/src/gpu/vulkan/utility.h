@@ -43,13 +43,30 @@ namespace VulkanUtil {
     extern void setImageLayout(
         VulkanCommandBuffer *cmdBuf,
         VkImage image,
-        VkImageSubresourceRange subresources,
+        const VkImageSubresourceRange &subresources,
         VkImageLayout oldLayout,
         VkImageLayout newLayout);
     extern void setImageLayout(
         VulkanCommandBuffer *cmdBuf,
         VkImage image,
-        VkImageAspectFlagBits aspectMask,
+        VkImageAspectFlags aspectMask,
         VkImageLayout oldLayout,
         VkImageLayout newLayout);
+
+    /** Determine the aspect mask covering a given format.
+     * @param format        Pixel format.
+     * @return              Aspect mask. */
+    inline VkImageAspectFlags aspectMaskForFormat(PixelFormat format) {
+        VkImageAspectFlags aspectMask;
+
+        if (PixelFormat::isDepth(format)) {
+            aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+            if (PixelFormat::isDepthStencil(format))
+                aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+        } else {
+            aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        }
+
+        return aspectMask;
+    }
 }

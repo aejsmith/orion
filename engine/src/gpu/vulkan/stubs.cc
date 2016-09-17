@@ -23,19 +23,6 @@
 
 #define vkStub() fatal("Vulkan function '%s' not implemented", __func__)
 
-/** Begin a render pass.
- * @param desc          Descriptor for the render pass instance. */
-void VulkanGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
-    // TODO: Need to transition images. Could have shader read as default state,
-    // transition to right attachment layout at beginning and end.
-    vkStub();
-}
-
-/** End the current render pass. */
-void VulkanGPUManager::endRenderPass() {
-    vkStub();
-}
-
 /** Draw primitives.
  * @param type          Primitive type to render.
  * @param vertices      Vertex data to use.

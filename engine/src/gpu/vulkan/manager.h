@@ -26,10 +26,14 @@
 #include "memory_manager.h"
 #include "pipeline.h"
 #include "queue.h"
+#include "render_pass.h"
 #include "resource.h"
 #include "surface.h"
 #include "swapchain.h"
+#include "texture.h"
 #include "utility.h"
+
+#include "core/hash_table.h"
 
 #include "shader/resource.h"
 
@@ -85,6 +89,10 @@ struct VulkanFrame {
     /** Scissor state. */
     bool scissorEnabled;
     IntRect scissor;
+
+    /** Current render pass. */
+    const VulkanRenderPass *renderPass;
+    const VulkanFramebuffer *framebuffer;
 
     /** Initialise the frame.
      * @param manager       Manager that owns the frame. */
@@ -167,6 +175,8 @@ public:
     const VulkanFrame &currentFrame() const { return m_frames.back(); }
     /** @return             Data for the current frame. */
     VulkanFrame &currentFrame() { return m_frames.back(); }
+
+    void invalidateFramebuffers(const VulkanTexture *texture);
 private:
     void initFeatures();
 
@@ -192,4 +202,7 @@ private:
      * needed.
      */
     std::list<VulkanFrame> m_frames;
+
+    /** Hash table of cached framebuffers. */
+    HashMap<VulkanFramebufferKey, VulkanFramebuffer *> m_framebuffers;
 };

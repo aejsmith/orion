@@ -91,6 +91,20 @@ VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureDesc &de
 
     /* Bind the memory to the image. */
     checkVk(vkBindImageMemory(device, m_handle, m_allocation->memory(), m_allocation->offset()));
+
+    /* Set the initial image layout. */
+    VkImageSubresourceRange subresources;
+    subresources.aspectMask = VulkanUtil::aspectMaskForFormat(m_format);
+    subresources.baseMipLevel = 0;
+    subresources.levelCount = m_mips;
+    subresources.baseArrayLayer = 0;
+    subresources.layerCount = createInfo.arrayLayers;
+    VulkanUtil::setImageLayout(
+        manager->memoryManager()->getStagingCmdBuf(),
+        m_handle,
+        subresources,
+        VK_IMAGE_LAYOUT_UNDEFINED,
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 /** Initialize a new texture view.
@@ -107,6 +121,8 @@ VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureImageRef
 
 /** Destroy the texture. */
 VulkanTexture::~VulkanTexture() {
+    manager()->invalidateFramebuffers(this);
+
     vkDestroyImage(manager()->device()->handle(), m_handle, nullptr);
     manager()->memoryManager()->freeResource(m_allocation);
 }
@@ -262,7 +278,7 @@ void VulkanTexture::generateMipmap() {
         imageBlit.dstOffsets[1] = { mipWidth, mipHeight, 1 };
     }
 
-    VulkanCommandBuffer *stagingCmdBuf = manager()->memoryManager()->getStagingCmdBuf();
+    VulkanCommandBuffer *cmdBuf = manager()->currentFrame().primaryCmdBuf;
 
     /* Transition the base level to the transfer source layout. */
     VkImageSubresourceRange srcSubresource = {};
@@ -272,7 +288,7 @@ void VulkanTexture::generateMipmap() {
     srcSubresource.baseArrayLayer = 0;
     srcSubresource.layerCount = numLayers;
     VulkanUtil::setImageLayout(
-        stagingCmdBuf,
+        cmdBuf,
         m_handle,
         srcSubresource,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
@@ -287,7 +303,7 @@ void VulkanTexture::generateMipmap() {
     dstSubresource.baseArrayLayer = 0;
     dstSubresource.layerCount = numLayers;
     VulkanUtil::setImageLayout(
-        stagingCmdBuf,
+        cmdBuf,
         m_handle,
         dstSubresource,
         VK_IMAGE_LAYOUT_UNDEFINED,
@@ -295,7 +311,7 @@ void VulkanTexture::generateMipmap() {
 
     /* Perform the blits. */
     vkCmdBlitImage(
-        stagingCmdBuf->handle(),
+        cmdBuf->handle(),
         m_handle,
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
         m_handle,
@@ -306,20 +322,20 @@ void VulkanTexture::generateMipmap() {
 
     /* Transition the whole image back to shader read only. */
     VulkanUtil::setImageLayout(
-        stagingCmdBuf,
+        cmdBuf,
         m_handle,
         srcSubresource,
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     VulkanUtil::setImageLayout(
-        stagingCmdBuf,
+        cmdBuf,
         m_handle,
         dstSubresource,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-    stagingCmdBuf->addObjectRef(this);
-    stagingCmdBuf->addMemoryRef(m_allocation);
+    cmdBuf->addObjectRef(this);
+    cmdBuf->addMemoryRef(m_allocation);
 }
 
 /** Create a texture.
@@ -428,24 +444,13 @@ void VulkanGPUManager::blit(
     check(!isDepth || source.texture->format() == dest.texture->format());
 
     VkImageBlit imageBlit = {};
-
-    if (isDepth) {
-        imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-        imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-        if (PixelFormat::isDepthStencil(source.texture->format())) {
-            imageBlit.srcSubresource.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
-            imageBlit.dstSubresource.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
-        }
-    } else {
-        imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    }
-
+    imageBlit.srcSubresource.aspectMask = VulkanUtil::aspectMaskForFormat(source.texture->format());
     imageBlit.srcSubresource.mipLevel = source.mip;
     imageBlit.srcSubresource.baseArrayLayer = source.layer;
     imageBlit.srcSubresource.layerCount = 1;
     imageBlit.srcOffsets[0] = { sourcePos.x, sourcePos.y, 0 };
     imageBlit.srcOffsets[1] = { sourcePos.x + size.x, sourcePos.y + size.y, 1 };
+    imageBlit.dstSubresource.aspectMask = imageBlit.srcSubresource.aspectMask;
     imageBlit.dstSubresource.mipLevel = dest.mip;
     imageBlit.dstSubresource.baseArrayLayer = dest.layer;
     imageBlit.dstSubresource.layerCount = 1;
