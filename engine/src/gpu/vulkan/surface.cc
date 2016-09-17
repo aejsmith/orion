@@ -36,7 +36,7 @@
     #undef Window
 #endif
 
-#include "device.h"
+#include "manager.h"
 #include "surface.h"
 
 #include "engine/window.h"

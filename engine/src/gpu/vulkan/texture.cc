@@ -19,8 +19,7 @@
  * @brief               Vulkan texture implementation.
  */
 
-#include "command_buffer.h"
-#include "frame.h"
+#include "manager.h"
 #include "texture.h"
 
 /** Initialize a new texture.

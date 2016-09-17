@@ -19,8 +19,7 @@
  * @brief               Vulkan swapchain class.
  */
 
-#include "queue.h"
-#include "surface.h"
+#include "manager.h"
 #include "swapchain.h"
 
 #include "engine/engine.h"

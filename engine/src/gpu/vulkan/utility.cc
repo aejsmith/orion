@@ -19,8 +19,56 @@
  * @brief               Vulkan utility functions.
  */
 
-#include "command_buffer.h"
+#include "manager.h"
 #include "utility.h"
+
+/** Create a new fence.
+ * @param manager       Manager that owns the fence.
+ * @param signalled     Whether the fence should begin in the signalled state
+ *                      (defaults to false). */
+VulkanFence::VulkanFence(VulkanGPUManager *manager, bool signalled) :
+    VulkanHandle(manager)
+{
+    VkFenceCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    if (signalled)
+        createInfo.flags |= VK_FENCE_CREATE_SIGNALED_BIT;
+    checkVk(vkCreateFence(manager->device()->handle(), &createInfo, nullptr, &m_handle));
+}
+
+/** Destroy the fence. */
+VulkanFence::~VulkanFence() {
+    vkDestroyFence(manager()->device()->handle(), m_handle, nullptr);
+}
+
+/** Get the fence status.
+ * @return              Whether the fence is signalled. */
+bool VulkanFence::getStatus() const {
+    VkResult result = vkGetFenceStatus(manager()->device()->handle(), m_handle);
+    switch (result) {
+        case VK_SUCCESS:
+            return true;
+        case VK_NOT_READY:
+            return false;
+        default:
+            unreachable();
+    }
+}
+
+/** Create a new semaphore.
+ * @param manager       Manager that owns the semaphore. */
+VulkanSemaphore::VulkanSemaphore(VulkanGPUManager *manager) :
+    VulkanHandle(manager)
+{
+    VkSemaphoreCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    checkVk(vkCreateSemaphore(manager->device()->handle(), &createInfo, nullptr, &m_handle));
+}
+
+/** Destroy the semaphore. */
+VulkanSemaphore::~VulkanSemaphore() {
+    vkDestroySemaphore(manager()->device()->handle(), m_handle, nullptr);
+}
 
 /** Set the layout of an image.
  * @param cmdBuf        Command buffer to use.

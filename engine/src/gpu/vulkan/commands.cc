@@ -20,7 +20,7 @@
  */
 
 #include "command_buffer.h"
-#include "frame.h"
+#include "manager.h"
 
 /** Bind a pipeline for rendering.
  * @param pipeline      Pipeline to use. */

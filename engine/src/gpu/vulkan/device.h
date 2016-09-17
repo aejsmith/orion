@@ -23,6 +23,8 @@
 
 #include "vulkan.h"
 
+class VulkanSurface;
+
 /** Class wrapping a logical device. */
 class VulkanDevice : public VulkanHandle<VkDevice> {
 public:

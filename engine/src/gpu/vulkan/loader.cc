@@ -19,7 +19,7 @@
  * @brief               Vulkan function pointers.
  */
 
-#include "vulkan.h"
+#include "manager.h"
 
 /** Get all required instance function pointers.
  * @param instance      Vulkan instance.

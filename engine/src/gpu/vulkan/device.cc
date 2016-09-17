@@ -19,11 +19,8 @@
  * @brief               Vulkan device class.
  */
 
-#include "command_buffer.h"
 #include "device.h"
-#include "memory_manager.h"
-#include "queue.h"
-#include "surface.h"
+#include "manager.h"
 
 /** List of required device extensions. */
 static const char *kRequiredDeviceExtensions[] = {

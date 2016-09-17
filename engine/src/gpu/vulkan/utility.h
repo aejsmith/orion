@@ -21,62 +21,22 @@
 
 #pragma once
 
-#include "device.h"
+#include "vulkan.h"
 
 /** Class wrapping a Vulkan fence. */
 class VulkanFence : public VulkanHandle<VkFence> {
 public:
-    /** Create a new fence.
-     * @param manager       Manager that owns the fence.
-     * @param signalled     Whether the fence should begin in the signalled
-     *                      state (defaults to false). */
-    explicit VulkanFence(VulkanGPUManager *manager, bool signalled = false) :
-        VulkanHandle(manager)
-    {
-        VkFenceCreateInfo createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        if (signalled)
-            createInfo.flags |= VK_FENCE_CREATE_SIGNALED_BIT;
-        checkVk(vkCreateFence(manager->device()->handle(), &createInfo, nullptr, &m_handle));
-    }
+    explicit VulkanFence(VulkanGPUManager *manager, bool signalled = false);
+    ~VulkanFence();
 
-    /** Destroy the fence. */
-    ~VulkanFence() {
-        vkDestroyFence(manager()->device()->handle(), m_handle, nullptr);
-    }
-
-    /** Get the fence status.
-     * @return              Whether the fence is signalled. */
-    bool getStatus() const {
-        VkResult result = vkGetFenceStatus(manager()->device()->handle(), m_handle);
-        switch (result) {
-            case VK_SUCCESS:
-                return true;
-            case VK_NOT_READY:
-                return false;
-            default:
-                unreachable();
-        }
-    }
+    bool getStatus() const;
 };
 
 /** Class wrapping a Vulkan semaphore. */
 class VulkanSemaphore : public VulkanHandle<VkSemaphore> {
 public:
-    /** Create a new semaphore.
-     * @param manager       Manager that owns the semaphore. */
-    explicit VulkanSemaphore(VulkanGPUManager *manager) :
-        VulkanHandle(manager)
-    {
-        VkSemaphoreCreateInfo createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        checkVk(vkCreateSemaphore(manager->device()->handle(), &createInfo, nullptr, &m_handle));
-    }
-
-    /** Destroy the semaphore. */
-    ~VulkanSemaphore() {
-        vkDestroySemaphore(manager()->device()->handle(), m_handle, nullptr);
-    }
+    explicit VulkanSemaphore(VulkanGPUManager *manager);
+    ~VulkanSemaphore();
 };
 
 namespace VulkanUtil {

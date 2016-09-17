@@ -12,8 +12,8 @@ objects = map(env.Object, [
     'commands.cc',
     'command_buffer.cc',
     'device.cc',
-    'frame.cc',
     'loader.cc',
+    'manager.cc',
     'memory_manager.cc',
     'pipeline.cc',
     'program.cc',
@@ -25,7 +25,6 @@ objects = map(env.Object, [
     'swapchain.cc',
     'texture.cc',
     'utility.cc',
-    'vulkan.cc',
 ])
 
 Return('objects')

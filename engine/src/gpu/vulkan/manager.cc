@@ -19,16 +19,7 @@
  * @brief               Vulkan GPU manager.
  */
 
-#include "command_buffer.h"
-#include "device.h"
-#include "frame.h"
-#include "memory_manager.h"
-#include "pipeline.h"
-#include "queue.h"
-#include "resource.h"
-#include "surface.h"
-#include "swapchain.h"
-#include "vulkan.h"
+#include "manager.h"
 
 #include "core/hash_table.h"
 #include "core/string.h"
@@ -347,4 +338,63 @@ void VulkanGPUManager::initFeatures() {
     initFormat(PixelFormat::kDepth16,           VK_FORMAT_D16_UNORM);
     initFormat(PixelFormat::kDepth24,           VK_FORMAT_X8_D24_UNORM_PACK32);
     initFormat(PixelFormat::kDepth24Stencil8,   VK_FORMAT_D24_UNORM_S8_UINT);
+}
+
+/** Begin a new frame. */
+void VulkanGPUManager::startFrame() {
+    /* Start the new frame. */
+    m_frames.emplace_back(this);
+    VulkanFrame &frame = currentFrame();
+
+    /* Allocate the primary command buffer. */
+    frame.primaryCmdBuf = m_commandPool->allocateTransient();
+    frame.primaryCmdBuf->begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+    /* Acquire a new image from the swap chain. */
+    m_swapchain->startFrame();
+
+    // TODO: Need to wait for present complete semaphore, transition layout.
+}
+
+/** End a frame and present it on screen. */
+void VulkanGPUManager::endFrame() {
+    // TODO: Transition image layout to present.
+    VulkanFrame &completedFrame = currentFrame();
+
+    m_memoryManager->flushStagingCmdBuf();
+    completedFrame.primaryCmdBuf->end();
+
+    m_swapchain->endFrame();
+
+    /* Release all state. Probably a bit unnecessary because these have probably
+     * been used for rendering and therefore have been referenced in a command
+     * buffer anyway, but doesn't hurt to drop our references now. */
+    completedFrame.pipeline = nullptr;
+    completedFrame.blendState = nullptr;
+    completedFrame.depthStencilState = nullptr;
+    completedFrame.rasterizerState = nullptr;
+    for (size_t i = 0; i < completedFrame.resourceSets.size(); i++)
+        completedFrame.resourceSets[i] = nullptr;
+
+    /* Clean up completed frames. */
+    for (auto i = m_frames.begin(); i != m_frames.end(); ) {
+        auto frame = *i;
+
+        /* Check whether the frame has completed. */
+        bool completed = frame.fence.getStatus();
+
+        /* Perform cleanup work on the frame. */
+        m_commandPool->cleanupFrame(frame, completed);
+        m_memoryManager->cleanupFrame(frame, completed);
+
+        /* Remove the frame if it has completed. */
+        if (completed) {
+            m_frames.erase(i++);
+        } else {
+            ++i;
+        }
+    }
+
+    /* Prepare state for the next frame. */
+    startFrame();
 }

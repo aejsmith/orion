@@ -19,7 +19,7 @@
  * @brief               Vulkan stub functions.
  */
 
-#include "vulkan.h"
+#include "manager.h"
 
 #define vkStub() fatal("Vulkan function '%s' not implemented", __func__)
 

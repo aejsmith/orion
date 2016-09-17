@@ -19,10 +19,8 @@
  * @brief               Vulkan memory manager.
  */
 
-#include "device.h"
-#include "frame.h"
+#include "manager.h"
 #include "memory_manager.h"
-#include "queue.h"
 
 /** Initialise the memory manager.
  * @param manager       Manager that the memory manager is for. */

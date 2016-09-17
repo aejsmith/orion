@@ -19,7 +19,7 @@
  * @brief               Vulkan GPU program implementation.
  */
 
-#include "device.h"
+#include "manager.h"
 #include "program.h"
 
 /** Initialise a Vulkan program from a SPIR-V binary.

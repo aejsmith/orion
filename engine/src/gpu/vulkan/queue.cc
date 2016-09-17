@@ -19,7 +19,7 @@
  * @brief               Vulkan queue class.
  */
 
-#include "device.h"
+#include "manager.h"
 #include "queue.h"
 
 /** Create a queue object managing a device queue.

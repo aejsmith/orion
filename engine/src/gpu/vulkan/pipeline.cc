@@ -19,6 +19,7 @@
  * @brief               Vulkan pipeline implementation.
  */
 
+#include "manager.h"
 #include "pipeline.h"
 
 /** Create a pipeline object.

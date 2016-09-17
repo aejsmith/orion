@@ -20,8 +20,7 @@
  */
 
 #include "buffer.h"
-#include "command_buffer.h"
-#include "device.h"
+#include "manager.h"
 
 /** Create a new buffer.
  * @param manager       Manager which owns the buffer.

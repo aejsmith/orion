@@ -19,7 +19,7 @@
  * @brief               Vulkan render pass implementation.
  */
 
-#include "device.h"
+#include "manager.h"
 #include "render_pass.h"
 
 /** Initialise the render pass.

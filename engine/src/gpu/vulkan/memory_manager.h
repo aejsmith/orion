@@ -28,6 +28,8 @@
 class VulkanCommandBuffer;
 class VulkanDevice;
 
+struct VulkanFrame;
+
 /** Buffer pool allocation size (minimum). */
 static const VkDeviceSize kBufferPoolSize = 8 * 1024 * 1024;
 

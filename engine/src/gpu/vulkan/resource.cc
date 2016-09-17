@@ -19,7 +19,7 @@
  * @brief               Vulkan resource set implementation.
  */
 
-#include "device.h"
+#include "manager.h"
 #include "resource.h"
 
 /** Initialise the resource set layout.
