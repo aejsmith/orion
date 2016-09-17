@@ -34,14 +34,14 @@
  */
 namespace ResourceSets {
     enum ENUM() Value {
-        /** Resources for the entity currently being rendered. */
-        kEntityResources = 0,
         /** Resources for the view the scene is being rendered from. */
-        kViewResources = 1,
+        kViewResources = 0,
         /** Resources for the light for the current pass. */
-        kLightResources = 2,
+        kLightResources = 1,
         /** Resources for the current material (contents defined by shader). */
-        kMaterialResources = 3,
+        kMaterialResources = 2,
+        /** Resources for the entity currently being rendered. */
+        kEntityResources = 3,
         /** Resources for the current post-processing pass. */
         kPostEffectResources = 4,
 
