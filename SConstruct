@@ -3,11 +3,13 @@ import os, sys
 # Add the path to our build utilities to the path.
 sys.path = [os.path.abspath(os.path.join('dev', 'build'))] + sys.path
 
+import util
+
 # Configurable build options.
 opts = Variables('.options.cache')
 opts.AddVariables(
     ('GPU_API', 'GPU API to use (gl, vulkan)', 'gl'),
-    BoolVariable('DEBUG', 'Whether to perform a debug build', 1),
+    ('BUILD', 'Build type to perform (debug, release)', 'release'),
 )
 
 env = Environment(ENV = os.environ, variables = opts)
@@ -38,14 +40,25 @@ if not ARGUMENTS.get('V'):
 # Compiler setup #
 ##################
 
+build_types = {
+    'debug': {
+        'CCFLAGS': ['-g'],
+        'CPPDEFINES': {'ORION_BUILD_DEBUG': None},
+    },
+    'release': {
+        'CCFLAGS': ['-O2'],
+        'CPPDEFINES': {},
+    }
+}
+
+if not env['BUILD'] in build_types:
+    util.StopError("Invalid build type '%s'" % (env['BUILD']))
+
 env['CC'] = 'clang'
 env['CXX'] = 'clang++'
 
+env['CCFLAGS'] += build_types[env['BUILD']]['CCFLAGS']
 env['CCFLAGS'] += [
-    # Optimization flags.
-    '-O2',
-
-    # Warning flags.
     '-Wall', '-Wextra', '-Wno-variadic-macros', '-Wno-unused-parameter',
     '-Wwrite-strings', '-Wmissing-declarations', '-Wredundant-decls',
     '-Wno-format', '-Wno-unused-function', '-Wno-comment',
@@ -56,14 +69,9 @@ env['CXXFLAGS'] += [
     '-Wsign-promo', '-std=c++14'
 ]
 
-env['CPPDEFINES'] = {}
+env['CPPDEFINES'] = build_types[env['BUILD']]['CPPDEFINES']
 env['CPPPATH'] = []
 env['LIBS'] = []
-
-# Set debug build flags.
-if env['DEBUG']:
-    env['CCFLAGS'] += ['-g']
-    env['CPPDEFINES']['ORION_BUILD_DEBUG'] = None
 
 #########################
 # Platform dependencies #
@@ -81,4 +89,4 @@ elif sys.platform.startswith('linux'):
 ##############
 
 Export('env')
-SConscript('SConscript', variant_dir = 'build')
+SConscript('SConscript', variant_dir = os.path.join('build', env['BUILD']))

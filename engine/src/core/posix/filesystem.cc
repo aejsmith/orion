@@ -269,7 +269,7 @@ Filesystem *Platform::createFilesystem() {
      * binary directory, the base directory is above that. */
     char *basePath = SDL_GetBasePath();
     std::string path(basePath);
-    path += "..";
+    path += "../..";
 
     int ret = chdir(path.c_str());
     if (ret != 0)
