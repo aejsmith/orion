@@ -203,17 +203,11 @@ VkDescriptorSet VulkanResourceSet::prepareForDraw(VulkanCommandBuffer *cmdBuf) {
     std::vector<VkDescriptorBufferInfo> bufferInfos;
     std::vector<VkDescriptorImageInfo> imageInfos;
 
-    /* Guess at how many we'll need to avoid reallocation. */
-    if (needUpdate) {
-        descriptorWrites.reserve(m_slots.size());
-        descriptorCopies.reserve(m_slots.size());
-        bufferInfos.reserve(m_slots.size());
-        imageInfos.reserve(m_slots.size());
-    }
-
     ReferencePtr<DescriptorSet> prev;
 
     if (needNew) {
+        descriptorCopies.reserve(m_slots.size());
+
         /* Save the previous set pointer as we're going to do copies from the
          * unchanged descriptors, so it must stay alive until after the update. */
         prev = std::move(m_current);
@@ -247,6 +241,10 @@ VkDescriptorSet VulkanResourceSet::prepareForDraw(VulkanCommandBuffer *cmdBuf) {
     }
 
     if (needUpdate) {
+        descriptorWrites.reserve(m_slots.size());
+        bufferInfos.reserve(m_slots.size());
+        imageInfos.reserve(m_slots.size());
+
         for (size_t i = 0; i < m_slots.size(); i++) {
             if (m_dirtySlots[i]) {
                 const Slot &slot = m_slots[i];

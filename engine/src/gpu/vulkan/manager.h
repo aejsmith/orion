@@ -26,6 +26,7 @@
 #include "device.h"
 #include "memory_manager.h"
 #include "pipeline.h"
+#include "program.h"
 #include "queue.h"
 #include "render_pass.h"
 #include "resource.h"
@@ -77,6 +78,8 @@ struct VulkanFrame {
     GPUObjectPtr<VulkanPipeline> pipeline;
     /** Pipeline actually bound on the command buffer (not done until draw). */
     GPUObjectPtr<VulkanPipeline> boundPipeline;
+    /** Underlying pipeline object bound on the command buffer. */
+    VkPipeline boundPipelineObject;
 
     /** Resource sets. */
     std::array<GPUObjectPtr<VulkanResourceSet>, ResourceSets::kNumResourceSets> resourceSets;
@@ -121,7 +124,11 @@ public:
     GPURenderPassPtr createRenderPass(GPURenderPassDesc &&desc) override;
     GPUTexturePtr createTexture(const GPUTextureDesc &desc) override;
     GPUTexturePtr createTextureView(const GPUTextureImageRef &image) override;
+    GPUVertexDataLayoutPtr createVertexDataLayout(GPUVertexDataLayoutDesc &&desc) override;
 
+    GPUBlendStatePtr createBlendState(const GPUBlendStateDesc &desc) override;
+    GPUDepthStencilStatePtr createDepthStencilState(const GPUDepthStencilStateDesc &desc) override;
+    GPURasterizerStatePtr createRasterizerState(const GPURasterizerStateDesc &desc) override;
     GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) override;
 
     GPUResourceSetLayoutPtr createResourceSetLayout(GPUResourceSetLayoutDesc &&desc) override;

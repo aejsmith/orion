@@ -35,6 +35,16 @@
  */
 struct VertexBinding {
     size_t stride;                  /**< Offset between each vertex. */
+
+    /** Compare this descriptor with another. */
+    bool operator ==(const VertexBinding &other) const {
+        return stride == other.stride;
+    }
+
+    /** Get a hash from a vertex binding descriptor. */
+    friend size_t hashValue(const VertexBinding &desc) {
+        return hashValue(desc.stride);
+    }
 };
 
 /**
@@ -66,6 +76,7 @@ struct VertexAttribute {
         kUnsignedIntType,           /**< Unsigned 32-bit integer. */
         kFloatType,                 /**< Single-precision floating point. */
         kDoubleType,                /**< Double-precision floating point. */
+        kNumTypes,
     };
 
     Semantic semantic;              /**< Semantic of the attribute. */
@@ -106,6 +117,30 @@ struct VertexAttribute {
     unsigned glslIndex() const { return glslIndex(this->semantic, this->index); }
 
     static unsigned glslIndex(Semantic semantic, unsigned index);
+
+    /** Compare this descriptor with another. */
+    bool operator ==(const VertexAttribute &other) const {
+        return
+            semantic == other.semantic &&
+            index == other.index &&
+            type == other.type &&
+            normalised == other.normalised &&
+            components == other.components &&
+            binding == other.binding &&
+            offset == other.offset;
+    }
+
+    /** Get a hash from a vertex attribute descriptor. */
+    friend size_t hashValue(const VertexAttribute &desc) {
+        size_t hash = hashValue(desc.semantic);
+        hash = hashCombine(hash, desc.index);
+        hash = hashCombine(hash, desc.type);
+        hash = hashCombine(hash, desc.normalised);
+        hash = hashCombine(hash, desc.components);
+        hash = hashCombine(hash, desc.binding);
+        hash = hashCombine(hash, desc.offset);
+        return hash;
+    }
 };
 
 /** Vertex data layout descriptor. */
@@ -126,6 +161,28 @@ struct GPUVertexDataLayoutDesc {
         bindings(numBindings),
         attributes(numAttributes)
     {}
+
+    /** Compare this descriptor with another. */
+    bool operator ==(const GPUVertexDataLayoutDesc &other) const {
+        return
+            bindings == other.bindings &&
+            attributes == other.attributes;
+    }
+
+    /** Get a hash from a vertex data layout descriptor. */
+    friend size_t hashValue(const GPUVertexDataLayoutDesc &desc) {
+        size_t hash = hashValue(desc.bindings.size());
+
+        for (size_t i = 0; i < desc.bindings.size(); i++)
+            hash = hashCombine(hash, desc.bindings[i]);
+
+        hash = hashCombine(hash, desc.attributes.size());
+
+        for (size_t i = 0; i < desc.attributes.size(); i++)
+            hash = hashCombine(hash, desc.attributes[i]);
+
+        return hash;
+    }
 };
 
 /**

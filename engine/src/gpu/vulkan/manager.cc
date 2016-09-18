@@ -355,6 +355,7 @@ void VulkanGPUManager::startFrame() {
     /* Initialise state. */
     frame.renderPass = nullptr;
     frame.framebuffer = nullptr;
+    frame.boundPipelineObject = VK_NULL_HANDLE;
     for (size_t i = 0; i < frame.boundDescriptorSets.size(); i++)
         frame.boundDescriptorSets[i] = VK_NULL_HANDLE;
 

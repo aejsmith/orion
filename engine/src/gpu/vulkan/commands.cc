@@ -106,8 +106,12 @@ void VulkanGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUInde
         frame.boundPipeline = frame.pipeline;
     }
 
-    // TODO: Create and bind real pipeline object based on current state.
-    // Reference vertex/index buffers.
+    /* Get us a pipeline matching the current state. */
+    VkPipeline pipeline = frame.boundPipeline->lookup(frame, type, vertices);
+
+    // TODO: Create and bind real pipeline object based on current state (bind if changed).
+    // Reference pipeline.
+    // Bind and reference vertex/index buffers.
 
     /* Bind resource sets. */
     const GPUResourceSetLayoutArray &resourceLayout = frame.boundPipeline->resourceLayout();
@@ -130,6 +134,8 @@ void VulkanGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUInde
             frame.boundDescriptorSets[i] = descriptorSet;
         }
     }
+
+    // set viewport and scissor. flag these as dirty somehow.
 
     #if 0
     m_memoryManager->flushStagingCmdBuf();
