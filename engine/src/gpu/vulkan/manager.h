@@ -93,10 +93,12 @@ struct VulkanFrame {
 
     /** Viewport. */
     IntRect viewport;
+    bool viewportDirty;
 
     /** Scissor state. */
     bool scissorEnabled;
     IntRect scissor;
+    bool scissorDirty;
 
     /** Current render pass. */
     const VulkanRenderPass *renderPass;

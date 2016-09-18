@@ -35,7 +35,6 @@ class GPUIndexData : public GPUObject {
 public:
     /** Type of index elements. */
     enum Type {
-        kUnsignedByteType,          /**< Unsigned 8-bit. */
         kUnsignedShortType,         /**< Unsigned 16-bit. */
         kUnsignedIntType,           /**< Unsigned 32-bit. */
     };
@@ -56,14 +55,12 @@ public:
      * @return              Size of element. */
     static size_t elementSize(Type type) {
         switch (type) {
-        case kUnsignedByteType:
-            return 1;
-        case kUnsignedShortType:
-            return 2;
-        case kUnsignedIntType:
-            return 4;
-        default:
-            return 0;
+            case kUnsignedShortType:
+                return 2;
+            case kUnsignedIntType:
+                return 4;
+            default:
+                return 0;
         }
     }
 protected:

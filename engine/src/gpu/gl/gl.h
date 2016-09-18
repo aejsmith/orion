@@ -364,8 +364,6 @@ namespace GLUtil {
      * @return              GL data type. */
     static inline GLenum convertIndexType(GPUIndexData::Type type) {
         switch (type) {
-            case GPUIndexData::kUnsignedByteType:
-                return GL_UNSIGNED_BYTE;
             case GPUIndexData::kUnsignedShortType:
                 return GL_UNSIGNED_SHORT;
             case GPUIndexData::kUnsignedIntType:

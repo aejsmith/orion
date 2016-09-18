@@ -64,19 +64,29 @@ void VulkanGPUManager::setRasterizerState(GPURasterizerState *state) {
 /** Set the viewport.
  * @param viewport      Viewport rectangle in pixels. */
 void VulkanGPUManager::setViewport(const IntRect &viewport) {
-    check(currentFrame().renderPass);
+    VulkanFrame &frame = currentFrame();
 
-    currentFrame().viewport = viewport;
+    check(frame.renderPass);
+
+    if (frame.viewport != viewport) {
+        frame.viewport = viewport;
+        frame.viewportDirty = true;
+    }
 }
 
 /** Set the scissor test parameters.
  * @param enable        Whether to enable scissor testing.
  * @param scissor       Scissor rectangle. */
 void VulkanGPUManager::setScissor(bool enable, const IntRect &scissor) {
-    check(currentFrame().renderPass);
+    VulkanFrame &frame = currentFrame();
 
-    currentFrame().scissorEnabled = enable;
-    currentFrame().scissor = scissor;
+    check(frame.renderPass);
+
+    if (frame.scissorEnabled != enable || frame.scissor != scissor) {
+        frame.scissorEnabled = enable;
+        frame.scissor = scissor;
+        frame.scissorDirty = true;
+    }
 }
 
 /** Draw primitives.
@@ -106,12 +116,50 @@ void VulkanGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUInde
         frame.boundPipeline = frame.pipeline;
     }
 
-    /* Get us a pipeline matching the current state. */
+    /* Get and bind a pipeline matching the current state. */
     VkPipeline pipeline = frame.boundPipeline->lookup(frame, type, vertices);
+    if (pipeline != frame.boundPipelineObject) {
+        vkCmdBindPipeline(cmdBuf->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        frame.boundPipelineObject = pipeline;
 
-    // TODO: Create and bind real pipeline object based on current state (bind if changed).
-    // Reference pipeline.
-    // Bind and reference vertex/index buffers.
+        /* Reference the object (will already have been done if already bound). */
+        cmdBuf->addReference(frame.boundPipeline);
+    }
+
+    /* Set viewport state. */
+    if (frame.viewportDirty) {
+        VkViewport viewport;
+        viewport.x = frame.viewport.x;
+        viewport.y = frame.viewport.y;
+        viewport.width = frame.viewport.width;
+        viewport.height = frame.viewport.height;
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+
+        vkCmdSetViewport(cmdBuf->handle(), 0, 1, &viewport);
+
+        frame.viewportDirty = false;
+    }
+
+    /* Set scissor state. */
+    if (frame.scissorDirty) {
+        VkRect2D scissor;
+        if (frame.scissorEnabled) {
+            scissor.offset.x = frame.scissor.x;
+            scissor.offset.y = frame.scissor.y;
+            scissor.extent.width = frame.scissor.width;
+            scissor.extent.height = frame.scissor.height;
+        } else {
+            scissor.offset.x = frame.viewport.x;
+            scissor.offset.y = frame.viewport.y;
+            scissor.extent.width = frame.viewport.width;
+            scissor.extent.height = frame.viewport.height;
+        }
+
+        vkCmdSetScissor(cmdBuf->handle(), 0, 1, &scissor);
+
+        frame.scissorDirty = false;
+    }
 
     /* Bind resource sets. */
     const GPUResourceSetLayoutArray &resourceLayout = frame.boundPipeline->resourceLayout();
@@ -135,17 +183,63 @@ void VulkanGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUInde
         }
     }
 
-    // set viewport and scissor. flag these as dirty somehow.
+    /* Bind vertex buffers. */
+    std::vector<VkBuffer> vertexBuffers(vertices->buffers().size());
+    std::vector<VkDeviceSize> vertexBufferOffsets(vertices->buffers().size());
+    for (size_t i = 0; i < vertices->buffers().size(); i++) {
+        VulkanBuffer *buffer = static_cast<VulkanBuffer *>(vertices->buffers()[i].get());
+        vertexBuffers[i] = buffer->allocation()->buffer();
+        vertexBufferOffsets[i] = buffer->allocation()->offset();
 
-    #if 0
+        // FIXME: Put both these calls into a helper on VulkanBuffer, it's an
+        // implementation detail.
+        cmdBuf->addReference(buffer);
+        cmdBuf->addReference(buffer->allocation());
+    }
+
+    vkCmdBindVertexBuffers(
+        cmdBuf->handle(),
+        0,
+        vertexBuffers.size(),
+        &vertexBuffers[0],
+        &vertexBufferOffsets[0]);
+
+    /* Bind the index buffer. */
+    if (indices) {
+        VkIndexType indexType;
+        switch (indices->type()) {
+            case GPUIndexData::kUnsignedShortType:
+                indexType = VK_INDEX_TYPE_UINT16;
+                break;
+            case GPUIndexData::kUnsignedIntType:
+                indexType = VK_INDEX_TYPE_UINT32;
+                break;
+        }
+
+        VulkanBuffer *buffer = static_cast<VulkanBuffer *>(indices->buffer());
+        vkCmdBindIndexBuffer(
+            cmdBuf->handle(),
+            buffer->allocation()->buffer(),
+            buffer->allocation()->offset(),
+            indexType);
+
+        cmdBuf->addReference(buffer);
+        cmdBuf->addReference(buffer->allocation());
+    }
+
+    /* Perform the draw! */
+    if (indices) {
+        vkCmdDrawIndexed(cmdBuf->handle(), indices->count(), 1, indices->offset(), 0, 0);
+    } else {
+        vkCmdDraw(cmdBuf->handle(), vertices->count(), 1, 0, 0);
+    }
+#if 0
     m_memoryManager->flushStagingCmdBuf();
     endRenderPass();
     cmdBuf->end();
     m_queue->submit(cmdBuf);
     vkDeviceWaitIdle(m_device->handle());
-    #endif
-
-    fatal("TODO: draw");
+#endif
 }
 
 #ifdef ORION_BUILD_DEBUG
