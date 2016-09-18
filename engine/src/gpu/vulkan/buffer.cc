@@ -136,8 +136,12 @@ void VulkanBuffer::unmap() {
             m_mapStaging->buffer(),
             m_allocation->buffer(),
             1, &bufferCopy);
-        stagingCmdBuf->addObjectRef(this);
-        stagingCmdBuf->addMemoryRef(m_allocation);
+
+        /* Our memory allocation lifetime is not tied directly to our own
+         * lifetime due to invalidation, so we must reference both ourself and
+         * our allocation in the command buffer. */
+        stagingCmdBuf->addReference(this);
+        stagingCmdBuf->addReference(m_allocation);
     }
 
     m_mapSize = 0;

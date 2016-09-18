@@ -252,8 +252,7 @@ static void transitionRenderTarget(VulkanCommandBuffer *cmdBuf, const GPUTexture
 
     if (begin) {
         /* Reference the textures in the command buffer. */
-        cmdBuf->addObjectRef(texture);
-        cmdBuf->addMemoryRef(texture->allocation());
+        cmdBuf->addReference(texture);
     }
 }
 

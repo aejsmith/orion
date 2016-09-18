@@ -214,10 +214,10 @@ void VulkanTexture::update(const IntRect &area, const void *data, unsigned mip, 
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-    /* Ensure that the texture and its memory are kept alive until the update
-     * is complete. */
-    stagingCmdBuf->addObjectRef(this);
-    stagingCmdBuf->addMemoryRef(m_allocation);
+    /* Ensure that the texture is kept alive until the update is complete. Our
+     * memory allocation lifetime is tied to our own lifetime so there's no
+     * need to reference them separately. */
+    stagingCmdBuf->addReference(this);
 }
 
 /** Update 3D texture area.
@@ -334,8 +334,7 @@ void VulkanTexture::generateMipmap() {
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-    cmdBuf->addObjectRef(this);
-    cmdBuf->addMemoryRef(m_allocation);
+    cmdBuf->addReference(this);
 }
 
 /** Create a texture.
@@ -523,8 +522,6 @@ void VulkanGPUManager::blit(
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-    primaryCmdBuf->addObjectRef(vkSource);
-    primaryCmdBuf->addObjectRef(vkDest);
-    primaryCmdBuf->addMemoryRef(vkSource->allocation());
-    primaryCmdBuf->addMemoryRef(vkDest->allocation());
+    primaryCmdBuf->addReference(vkSource);
+    primaryCmdBuf->addReference(vkDest);
 }

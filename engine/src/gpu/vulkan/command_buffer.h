@@ -52,8 +52,7 @@ public:
     void begin(VkCommandBufferUsageFlagBits usage);
     void end();
 
-    void addObjectRef(GPUObject *object);
-    void addMemoryRef(VulkanMemoryManager::ResourceMemory *handle);
+    void addReference(Refcounted *object);
 private:
     /** State of the command buffer. */
     enum class State {
@@ -71,24 +70,13 @@ private:
     State m_state;                      /**< State of the command buffer. */
 
     /**
-     * List of GPU object references.
+     * List of object references.
      *
-     * This is used to record GPU objects which must be kept alive until the
-     * command buffer has completed. We just add an extra reference on them
-     * which prevents them from being freed.
+     * This is used to record objects which must be kept alive until the command
+     * buffer has completed. We just add an extra reference on them which
+     * prevents them from being freed.
      */
-    std::list<ReferencePtr<GPUObject>> m_objectRefs;
-
-    /**
-     * List of resource memory references.
-     *
-     * Similarly to m_objectRefs, this keeps alive resource memory allocations
-     * that the command buffer is using until it has completed. This is done
-     * separately because there are cases where the memory allocation lifetime
-     * is not tied to the GPU object lifetime, e.g. buffers can reallocate their
-     * memory.
-     */
-    std::list<ReferencePtr<VulkanMemoryManager::ResourceMemory>> m_memoryRefs;
+    std::list<ReferencePtr<Refcounted>> m_references;
 
     friend class VulkanCommandPool;
     friend class VulkanQueue;
