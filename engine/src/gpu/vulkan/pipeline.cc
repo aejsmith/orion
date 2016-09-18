@@ -50,6 +50,35 @@ VulkanPipeline::~VulkanPipeline() {
     vkDestroyPipelineLayout(manager()->device()->handle(), m_layout, nullptr);
 }
 
+/**
+ * Determine if two pipeline layouts are compatible for a resource set.
+ *
+ * The Vulkan specification details rules for pipeline layout compatiblity.
+ * Two pipeline layouts are compatible for set N if they were created with
+ * matching (the same, or identically defined) descriptor set layouts for sets
+ * 0 through N, and they were created with identical push constant ranges.
+ * This function checks that compatibility between two pipelines.
+ *
+ * @param other         Other pipeline to check.
+ * @param set           Set number to check.
+ *
+ * @return              Whether the pipelines are compatible for the given set.
+ */
+bool VulkanPipeline::isCompatibleForSet(VulkanPipeline *other, size_t set) const {
+    for (size_t i = 0; i <= set; i++) {
+        if (i >= m_resourceLayout.size() || i >= other->m_resourceLayout.size())
+            return false;
+
+        // TODO: Could check layout definition as well, but I'm not sure how
+        // much benefit we'll get from this.
+        if (m_resourceLayout[i] != other->m_resourceLayout[i])
+            return false;
+    }
+
+    // TODO: If we ever use push constants we will need to check that here.
+    return true;
+}
+
 /** Create a pipeline object.
  * @param desc          Descriptor for the pipeline.
  * @return              Pointer to created pipeline. */

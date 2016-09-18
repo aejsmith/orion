@@ -24,9 +24,7 @@
 #include "memory_manager.h"
 
 /** Vulkan texture implementation. */
-class VulkanTexture :
-    public GPUTexture,
-    public VulkanHandle<VkImage> {
+class VulkanTexture : public GPUTexture, public VulkanHandle<VkImage> {
 public:
     VulkanTexture(VulkanGPUManager *manager, const GPUTextureDesc &desc);
     VulkanTexture(VulkanGPUManager *manager, const GPUTextureImageRef &image);
@@ -37,19 +35,18 @@ public:
     void update(const IntBox &area, const void *data, unsigned mip) override;
     void generateMipmap() override;
 
-    /** @return             Memory allocation backing this image. */
-    VulkanMemoryManager::ImageMemory *allocation() const { return m_allocation; }
+    /** @return             Image view for binding the texture in a resource set. */
+    VkImageView resourceView() const { return m_resourceView; }
 private:
     /** Memory allocation backing this image. */
     VulkanMemoryManager::ImageMemory *m_allocation;
 
-    bool m_new;                     /**< Whether this texture is newly created. */
+    /** Image view for binding the texture in a resource set. */
+    VkImageView m_resourceView;
 };
 
 /** Vulkan sampler state object implementation. */
-class VulkanSamplerState :
-    public GPUSamplerState,
-    public VulkanHandle<VkSampler> {
+class VulkanSamplerState : public GPUSamplerState, public VulkanHandle<VkSampler> {
 public:
     VulkanSamplerState(VulkanGPUManager *manager, const GPUSamplerStateDesc &desc);
     ~VulkanSamplerState();

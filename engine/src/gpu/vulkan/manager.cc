@@ -278,6 +278,7 @@ VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&w
     /* Create other global objects. */
     m_queue = new VulkanQueue(this, m_device->queueFamily(), 0);
     m_commandPool = new VulkanCommandPool(this);
+    m_descriptorPool = new VulkanDescriptorPool(this);
     m_memoryManager = new VulkanMemoryManager(this);
     m_swapchain = new VulkanSwapchain(this);
 
@@ -291,6 +292,7 @@ VulkanGPUManager::~VulkanGPUManager() {
 
     delete m_swapchain;
     delete m_memoryManager;
+    delete m_descriptorPool;
     delete m_commandPool;
     delete m_queue;
     delete m_device;
@@ -353,6 +355,8 @@ void VulkanGPUManager::startFrame() {
     /* Initialise state. */
     frame.renderPass = nullptr;
     frame.framebuffer = nullptr;
+    for (size_t i = 0; i < frame.boundDescriptorSets.size(); i++)
+        frame.boundDescriptorSets[i] = VK_NULL_HANDLE;
 
     /* Acquire a new image from the swap chain. */
     m_swapchain->startFrame();
@@ -374,6 +378,7 @@ void VulkanGPUManager::endFrame() {
      * been used for rendering and therefore have been referenced in a command
      * buffer anyway, but doesn't hurt to drop our references now. */
     completedFrame.pipeline = nullptr;
+    completedFrame.boundPipeline = nullptr;
     completedFrame.blendState = nullptr;
     completedFrame.depthStencilState = nullptr;
     completedFrame.rasterizerState = nullptr;

@@ -33,30 +33,39 @@ void VulkanGPUManager::bindPipeline(GPUPipeline *pipeline) {
  * @param resources     Resource set to bind. */
 void VulkanGPUManager::bindResourceSet(unsigned index, GPUResourceSet *resources) {
     check(index < currentFrame().resourceSets.size());
+
     currentFrame().resourceSets[index] = static_cast<VulkanResourceSet *>(resources);
 }
 
 /** Set the blend state.
  * @param state         Blend state to set. */
 void VulkanGPUManager::setBlendState(GPUBlendState *state) {
+    check(currentFrame().renderPass);
+
     currentFrame().blendState = state;
 }
 
 /** Set the depth/stencil state.
  * @param state         Depth/stencil state to set. */
 void VulkanGPUManager::setDepthStencilState(GPUDepthStencilState *state) {
+    check(currentFrame().renderPass);
+
     currentFrame().depthStencilState = state;
 }
 
 /** Set the rasterizer state.
  * @param state         Rasterizer state to set. */
 void VulkanGPUManager::setRasterizerState(GPURasterizerState *state) {
+    check(currentFrame().renderPass);
+
     currentFrame().rasterizerState = state;
 }
 
 /** Set the viewport.
  * @param viewport      Viewport rectangle in pixels. */
 void VulkanGPUManager::setViewport(const IntRect &viewport) {
+    check(currentFrame().renderPass);
+
     currentFrame().viewport = viewport;
 }
 
@@ -64,8 +73,73 @@ void VulkanGPUManager::setViewport(const IntRect &viewport) {
  * @param enable        Whether to enable scissor testing.
  * @param scissor       Scissor rectangle. */
 void VulkanGPUManager::setScissor(bool enable, const IntRect &scissor) {
+    check(currentFrame().renderPass);
+
     currentFrame().scissorEnabled = enable;
     currentFrame().scissor = scissor;
+}
+
+/** Draw primitives.
+ * @param type          Primitive type to render.
+ * @param vertices      Vertex data to use.
+ * @param indices       Index data to use (can be null). */
+void VulkanGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) {
+    VulkanFrame &frame = currentFrame();
+
+    check(frame.renderPass);
+    check(frame.pipeline);
+
+    VulkanCommandBuffer *cmdBuf = frame.primaryCmdBuf;
+
+    if (frame.pipeline != frame.boundPipeline) {
+        /* Binding a new pipeline may invalidate descriptor set bindings due to
+         * layout incompatibilities. Clear out any which will become invalid so
+         * that we rebind them. */
+        size_t i = 0;
+        if (frame.boundPipeline) {
+            while (frame.boundPipeline->isCompatibleForSet(frame.pipeline, i))
+                i++;
+        }
+        for ( ; i < frame.boundDescriptorSets.size(); i++)
+            frame.boundDescriptorSets[i] = VK_NULL_HANDLE;
+
+        frame.boundPipeline = frame.pipeline;
+    }
+
+    // TODO: Create and bind real pipeline object based on current state.
+    // Reference vertex/index buffers.
+
+    /* Bind resource sets. */
+    const GPUResourceSetLayoutArray &resourceLayout = frame.boundPipeline->resourceLayout();
+    for (size_t i = 0; i < frame.resourceSets.size(); i++) {
+        if (!resourceLayout[i] || !frame.resourceSets[i])
+            continue;
+
+        VkDescriptorSet descriptorSet = frame.resourceSets[i]->prepareForDraw(cmdBuf);
+        if (descriptorSet != frame.boundDescriptorSets[i]) {
+            /* TODO: Maybe could bundle these up? It doesn't allow us to pass
+             * in a sparse set of bindings though. */
+            vkCmdBindDescriptorSets(
+                cmdBuf->handle(),
+                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                frame.boundPipeline->layout(),
+                i,
+                1, &descriptorSet,
+                0, nullptr);
+
+            frame.boundDescriptorSets[i] = descriptorSet;
+        }
+    }
+
+    #if 0
+    m_memoryManager->flushStagingCmdBuf();
+    endRenderPass();
+    cmdBuf->end();
+    m_queue->submit(cmdBuf);
+    vkDeviceWaitIdle(m_device->handle());
+    #endif
+
+    fatal("TODO: draw");
 }
 
 #ifdef ORION_BUILD_DEBUG

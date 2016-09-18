@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "buffer.h"
 #include "command_buffer.h"
 #include "device.h"
 #include "memory_manager.h"
@@ -72,11 +73,15 @@ struct VulkanFrame {
      * Rendering state.
      */
 
-    /** Bound pipeline. */
+    /** Pipeline bound with bindPipeline(). */
     GPUObjectPtr<VulkanPipeline> pipeline;
+    /** Pipeline actually bound on the command buffer (not done until draw). */
+    GPUObjectPtr<VulkanPipeline> boundPipeline;
 
-    /** Bound resource sets. */
+    /** Resource sets. */
     std::array<GPUObjectPtr<VulkanResourceSet>, ResourceSets::kNumResourceSets> resourceSets;
+    /** Descriptor sets actually bound on the command buffer. */
+    std::array<VkDescriptorSet, ResourceSets::kNumResourceSets> boundDescriptorSets;
 
     /** State object bindings. */
     GPUBlendStatePtr blendState;
@@ -168,6 +173,8 @@ public:
     VulkanQueue *queue() const { return m_queue; }
     /** @return             Device's command pool. */
     VulkanCommandPool *commandPool() const { return m_commandPool; }
+    /** @return             Device's descriptor pool. */
+    VulkanDescriptorPool *descriptorPool() const { return m_descriptorPool; }
     /** @return             Device's memory manager. */
     VulkanMemoryManager *memoryManager() const { return m_memoryManager; }
 
@@ -189,6 +196,7 @@ private:
     VulkanDevice *m_device;                 /**< Main logical device. */
     VulkanQueue *m_queue;                   /**< Device queue. */
     VulkanCommandPool *m_commandPool;       /**< Command buffer pool. */
+    VulkanDescriptorPool *m_descriptorPool; /**< Descriptor pool. */
     VulkanMemoryManager *m_memoryManager;   /**< Device memory manager. */
     VulkanSwapchain *m_swapchain;           /**< Swap chain. */
 

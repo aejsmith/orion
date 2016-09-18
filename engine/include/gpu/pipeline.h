@@ -55,6 +55,9 @@ struct GPUPipelineDesc {
  * cache the created pipelines to disk to further speed up creation.
  */
 class GPUPipeline : public GPUObject {
+public:
+    /** @return             Array of resource set layouts. */
+    const GPUResourceSetLayoutArray &resourceLayout() const { return m_resourceLayout; }
 protected:
     explicit GPUPipeline(GPUPipelineDesc &&desc);
     ~GPUPipeline() {}

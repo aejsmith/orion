@@ -31,6 +31,9 @@ public:
 
     void *map(size_t offset, size_t size, uint32_t flags, uint32_t access) override;
     void unmap() override;
+
+    /** @return             Memory allocation currently backing this buffer. */
+    VulkanMemoryManager::BufferMemory *allocation() const { return m_allocation; }
 private:
     void reallocate();
 

@@ -20,7 +20,6 @@ objects = map(env.Object, [
     'queue.cc',
     'render_pass.cc',
     'resource.cc',
-    'stubs.cc',
     'surface.cc',
     'swapchain.cc',
     'texture.cc',

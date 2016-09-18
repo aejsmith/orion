@@ -27,8 +27,7 @@
  * @param desc          Texture descriptor. */
 VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureDesc &desc) :
     GPUTexture(desc),
-    VulkanHandle(manager),
-    m_new(true)
+    VulkanHandle(manager)
 {
     VkDevice device = manager->device()->handle();
 
@@ -105,6 +104,44 @@ VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureDesc &de
         subresources,
         VK_IMAGE_LAYOUT_UNDEFINED,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    /* Create a resource view. */
+    VkImageViewCreateInfo viewCreateInfo = {};
+    viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewCreateInfo.image = m_handle;
+    viewCreateInfo.format = manager->features().formats[desc.format].format;
+    // TODO: Only have depth for depth/stencil formats for now, because we can
+    // only have one aspect set when using an image in a descriptor set.
+    viewCreateInfo.subresourceRange.aspectMask = (PixelFormat::isDepth(desc.format))
+        ? VK_IMAGE_ASPECT_DEPTH_BIT
+        : VK_IMAGE_ASPECT_COLOR_BIT;
+    viewCreateInfo.subresourceRange.baseMipLevel = 0;
+    viewCreateInfo.subresourceRange.levelCount = m_mips;
+    viewCreateInfo.subresourceRange.baseArrayLayer = 0;
+    viewCreateInfo.subresourceRange.layerCount = createInfo.arrayLayers;
+    viewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_R;
+    viewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_G;
+    viewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_B;
+    viewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_A;
+
+    switch (desc.type) {
+        case kTexture2D:
+            viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            break;
+        case kTexture2DArray:
+            viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+            break;
+        case kTextureCube:
+            viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
+            break;
+        case kTexture3D:
+            viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_3D;
+            break;
+        default:
+            unreachable();
+    }
+
+    checkVk(vkCreateImageView(manager->device()->handle(), &viewCreateInfo, nullptr, &m_resourceView));
 }
 
 /** Initialize a new texture view.

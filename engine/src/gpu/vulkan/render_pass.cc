@@ -324,15 +324,15 @@ void VulkanGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
 
     vkCmdBeginRenderPass(frame.primaryCmdBuf->handle(), &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
+    frame.renderPass = pass;
+    frame.framebuffer = framebuffer;
+
     /* Set up default state for the pass. */
     setViewport(desc.renderArea);
     setScissor(false, IntRect());
     GPUManager::setBlendState<>();
     GPUManager::setDepthStencilState<>();
     GPUManager::setRasterizerState<>();
-
-    frame.renderPass = pass;
-    frame.framebuffer = framebuffer;
 }
 
 /** End the current render pass. */

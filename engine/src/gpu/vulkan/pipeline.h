@@ -29,6 +29,8 @@ public:
     VulkanPipeline(VulkanGPUManager *manager, GPUPipelineDesc &&desc);
     ~VulkanPipeline();
 
+    bool isCompatibleForSet(VulkanPipeline *other, size_t set) const;
+
     /** @return         Handle to the pipeline layout. */
     VkPipelineLayout layout() const { return m_layout; }
 private:
