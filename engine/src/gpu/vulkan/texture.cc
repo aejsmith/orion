@@ -480,7 +480,10 @@ void VulkanGPUManager::blit(
     check(!isDepth || source.texture->format() == dest.texture->format());
 
     VkImageBlit imageBlit = {};
-    imageBlit.srcSubresource.aspectMask = VulkanUtil::aspectMaskForFormat(source.texture->format());
+    // FIXME: Can't blit depth and stencil together.
+    imageBlit.srcSubresource.aspectMask = (isDepth)
+        ? VK_IMAGE_ASPECT_DEPTH_BIT
+        : VK_IMAGE_ASPECT_COLOR_BIT;
     imageBlit.srcSubresource.mipLevel = source.mip;
     imageBlit.srcSubresource.baseArrayLayer = source.layer;
     imageBlit.srcSubresource.layerCount = 1;
