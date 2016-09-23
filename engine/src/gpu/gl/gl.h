@@ -200,6 +200,7 @@ private:
      * wasteful to store it all. Keep only the bits we need.
      */
     const GPURenderPass *m_currentRenderPass;
+    glm::ivec2 m_currentRTSize;
     IntRect m_currentRenderArea;
 };
 

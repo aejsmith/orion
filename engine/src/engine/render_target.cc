@@ -71,7 +71,7 @@ void RenderLayer::setRenderTarget(RenderTarget *target) {
  * Set the viewport.
  *
  * Sets the viewport rectangle. Coordinates are normalized, range from (0, 0)
- * in the bottom left corner to (1, 1) in the top right corner. The actual
+ * in the top left corner to (1, 1) in the bottom right corner. The actual
  * viewport rectangle is calculated automatically based on the render target's
  * dimensions.
  *

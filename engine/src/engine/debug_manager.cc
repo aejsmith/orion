@@ -264,9 +264,9 @@ void DebugOverlay::startFrame() {
         /* Set up a new projection matrix. */
         glm::mat4 projectionMatrix(
             2.0f / size.x, 0.0f,           0.0f,  0.0f,
-            0.0f,          2.0f / -size.y, 0.0f,  0.0f,
+            0.0f,          2.0f / size.y,  0.0f,  0.0f,
             0.0f,          0.0f,           -1.0f, 0.0f,
-            -1.0f,         1.0f,           0.0f,  1.0f);
+            -1.0f,         -1.0f,          0.0f,  1.0f);
         m_material->setValue("projectionMatrix", projectionMatrix);
 
         io.DisplaySize = size;
@@ -379,7 +379,7 @@ void DebugOverlay::render(bool first) {
                 true,
                 IntRect(
                     viewport.x + cmd->ClipRect.x,
-                    viewport.y + (viewport.height - cmd->ClipRect.w),
+                    viewport.y + cmd->ClipRect.y,
                     cmd->ClipRect.z - cmd->ClipRect.x,
                     cmd->ClipRect.w - cmd->ClipRect.y));
 

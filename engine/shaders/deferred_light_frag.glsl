@@ -70,7 +70,7 @@ void decodeGBuffer(out LightingData data) {
      * perf killer on Intel HD 3000.
      */
     vec4 ndcPosition = vec4(
-        (((gl_FragCoord.xy - view.viewportPosition) / view.viewportSize) * 2.0) - 1.0,
+        vec2(1.0, -1.0) * ((((gl_FragCoord.xy - view.viewportPosition) / view.viewportSize) * 2.0) - 1.0),
         bufferDepth,
         1.0);
     vec4 homogeneousPosition = view.inverseViewProjection * ndcPosition;

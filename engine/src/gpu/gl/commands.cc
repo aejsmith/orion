@@ -134,6 +134,18 @@ void GLGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
     m_currentRenderPass = desc.pass;
     m_currentRenderArea = desc.renderArea;
 
+    /* Get RT dimensions. */
+    if (desc.targets.isMainWindow()) {
+        m_currentRTSize.x = g_mainWindow->width();
+        m_currentRTSize.y = g_mainWindow->height();
+    } else {
+        GPUTexture *texture = (desc.targets.colour.size())
+            ? desc.targets.colour[0].texture
+            : desc.targets.depthStencil.texture;
+        m_currentRTSize.x = texture->width();
+        m_currentRTSize.y = texture->height();
+    }
+
     /* Get an FBO for the render target and bind it. */
     GLuint fbo = (desc.targets.isMainWindow())
         ? 0
@@ -151,16 +163,13 @@ void GLGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
     const GPURenderPassDesc &passDesc = desc.pass->desc();
 
     /* We want to only clear the specified render area. Use scissor to do this. */
+    bool needScissor =
+        desc.renderArea.x != 0 ||
+        desc.renderArea.y != 0 ||
+        desc.renderArea.width < m_currentRTSize.x ||
+        desc.renderArea.height < m_currentRTSize.y;
     auto configureScissor =
-        [&] (const GPUTexture *texture) {
-            uint32_t width = (texture) ? texture->width() : g_mainWindow->width();
-            uint32_t height = (texture) ? texture->height() : g_mainWindow->height();
-
-            bool needScissor =
-                desc.renderArea.x != 0 ||
-                desc.renderArea.y != 0 ||
-                static_cast<uint32_t>(desc.renderArea.width) < width ||
-                static_cast<uint32_t>(desc.renderArea.height) < height;
+        [&] () {
             if (needScissor) {
                 setScissor(true, desc.renderArea);
             } else {
@@ -173,7 +182,7 @@ void GLGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
         const GPURenderAttachmentDesc &attachment = passDesc.colourAttachments[i];
 
         if (attachment.loadOp == GPURenderLoadOp::kClear) {
-            configureScissor(desc.targets.colour[i].texture);
+            configureScissor();
             glClearBufferfv(GL_COLOR, i, reinterpret_cast<const GLfloat *>(&desc.clearColours[i]));
         }
     }
@@ -183,7 +192,7 @@ void GLGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
         const GPURenderAttachmentDesc &attachment = passDesc.depthStencilAttachment;
 
         if (attachment.loadOp == GPURenderLoadOp::kClear || attachment.stencilLoadOp == GPURenderLoadOp::kClear)
-            configureScissor(desc.targets.depthStencil.texture);
+            configureScissor();
 
         if (attachment.loadOp == GPURenderLoadOp::kClear && attachment.stencilLoadOp == GPURenderLoadOp::kClear) {
             glClearBufferfi(GL_DEPTH_STENCIL, 0, desc.clearDepth, desc.clearStencil);
@@ -255,7 +264,11 @@ void GLGPUManager::setViewport(const IntRect &viewport) {
     check(m_currentRenderPass);
     check(m_currentRenderArea.contains(viewport));
 
-    this->state.setViewport(viewport);
+    /* We have origin at top left, GL has it at bottom left. */
+    IntRect fixedViewport = viewport;
+    fixedViewport.y = m_currentRTSize.y - (viewport.y + viewport.height);
+
+    this->state.setViewport(fixedViewport);
 }
 
 /** Set the scissor test parameters.
@@ -268,7 +281,12 @@ void GLGPUManager::setScissor(bool enable, const IntRect &scissor) {
 
     if (enable) {
         check(m_currentRenderArea.contains(scissor));
-        this->state.setScissor(scissor);
+
+        /* We have origin at top left, GL has it at bottom left. */
+        IntRect fixedScissor = scissor;
+        fixedScissor.y = m_currentRTSize.y - (scissor.y + scissor.height);
+
+        this->state.setScissor(fixedScissor);
     }
 }
 

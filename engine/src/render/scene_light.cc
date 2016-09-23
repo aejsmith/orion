@@ -269,10 +269,10 @@ void SceneLight::updateShadowViews() {
              * transformation yields NDC coordinates, i.e. in the range [-1, 1].
              * Z is already in the [0, 1] range in NDC. */
             const glm::mat4 shadowBiasMatrix(
-                0.5, 0.0, 0.0, 0.0,
-                0.0, 0.5, 0.0, 0.0,
-                0.0, 0.0, 1.0, 0.0,
-                0.5, 0.5, 0.0, 1.0);
+                0.5,  0.0, 0.0, 0.0,
+                0.0, -0.5, 0.0, 0.0,
+                0.0,  0.0, 1.0, 0.0,
+                0.5,  0.5, 0.0, 1.0);
             m_uniforms.write()->shadowSpace
                 = shadowBiasMatrix * m_shadowViews[0].projection() * m_shadowViews[0].view();
             break;
