@@ -419,7 +419,7 @@ void VulkanGPUManager::endFrame() {
 
     /* Clean up completed frames. */
     for (auto i = m_frames.begin(); i != m_frames.end(); ) {
-        auto frame = *i;
+        VulkanFrame &frame = *i;
 
         /* Check whether the frame has completed. */
         bool completed = frame.fence.getStatus();
