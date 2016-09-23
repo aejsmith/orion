@@ -110,8 +110,9 @@ using GPURenderPassPtr = GPUObjectPtr<GPURenderPass>;
  * instance. The render target layout and format of each image used must be
  * compatible with the render pass' attachment description.
  *
- * As a special case, if a render target description has no colour targets and
- * a null depth/stencil target, then it refers to the main window.
+ * As a special case, if a render target description has 1 colour target which
+ * is a null image reference, and a null depth/stencil target, then it refers
+ * to the main window.
  */
 struct GPURenderTargetDesc {
     /** Array of colour render target descriptors. */
@@ -141,7 +142,7 @@ struct GPURenderTargetDesc {
 
     /** @return             Whether this descriptor refers to the main window. */
     bool isMainWindow() const {
-        return colour.size() == 0 && !depthStencil;
+        return colour.size() == 1 && !colour[0] && !depthStencil;
     }
 
     /** Get a hash from a render target descriptor. */

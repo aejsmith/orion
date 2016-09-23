@@ -56,7 +56,9 @@ Window::~Window() {
 /** Get the target GPU render target descriptor.
  * @param ref           Image reference structure to fill in. */
 void Window::getRenderTargetDesc(GPURenderTargetDesc &desc) const {
-    desc = GPURenderTargetDesc();
+    /* Descriptor with 1 null colour target and a null depth/stencil is treated
+     * as the main window. */
+    desc = GPURenderTargetDesc(1);
 }
 
 /** Get the target GPU texture image reference.
