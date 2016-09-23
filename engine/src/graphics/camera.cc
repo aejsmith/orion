@@ -70,8 +70,9 @@ void Camera::deserialise(Serialiser &serialiser) {
     serialiser.read("postEffectChain", m_postEffectChain);
 }
 
-/** Render the scene from the camera to its render target. */
-void Camera::render() {
+/** Render the scene from the camera to its render target.
+ * @param first         Whether this is the first layer on the RT. */
+void Camera::render(bool first) {
     SceneRenderer renderer(world()->scene(), &m_sceneView, renderTarget(), m_renderPath);
     renderer.render();
 }

@@ -73,8 +73,10 @@ protected:
      * Renders the layer. It is up to this function to begin a render pass on
      * the render target, clearing it if necessary, and to set up things like
      * blending between this layer and the previous layer.
+     *
+     * @param first         Whether this is the first layer on the RT.
      */
-    virtual void render() = 0;
+    virtual void render(bool first) = 0;
 
     void beginLayerRenderPass(GPURenderLoadOp loadOp, const glm::vec4 &clearColour = glm::vec4());
 

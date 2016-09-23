@@ -54,7 +54,7 @@ public:
 
     void registerWindow(std::unique_ptr<DebugWindow> window);
 protected:
-    void render() override;
+    void render(bool first) override;
 
     bool handleButtonDown(const ButtonEvent &event) override;
     bool handleButtonUp(const ButtonEvent &event) override;
@@ -295,8 +295,9 @@ void DebugOverlay::startFrame() {
     }
 }
 
-/** Render the debug overlay. */
-void DebugOverlay::render() {
+/** Render the debug overlay.
+ * @param first         Whether this is the first layer on the RT. */
+void DebugOverlay::render(bool first) {
     if (m_state >= State::kVisible) {
         if (m_state >= State::kActive) {
             /* Draw the main menu. */
@@ -328,7 +329,9 @@ void DebugOverlay::render() {
     if (!drawData)
         return;
 
-    beginLayerRenderPass(GPURenderLoadOp::kLoad);
+    beginLayerRenderPass(
+        (first) ? GPURenderLoadOp::kClear : GPURenderLoadOp::kLoad,
+        glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
     g_gpuManager->setBlendState<BlendFunc::kAdd, BlendFactor::kSourceAlpha, BlendFactor::kOneMinusSourceAlpha>();
     g_gpuManager->setDepthStencilState<ComparisonFunc::kAlways, false>();

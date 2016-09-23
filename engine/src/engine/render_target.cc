@@ -145,15 +145,13 @@ void RenderLayer::unregisterRenderLayer() {
  *                      clear to.
  */
 void RenderLayer::beginLayerRenderPass(GPURenderLoadOp loadOp, const glm::vec4 &clearColour) {
-    if (!m_renderPass) {
+    if (!m_renderPass || m_renderPass->desc().colourAttachments[0].loadOp != loadOp) {
         /* Need to create a new render pass. */
         GPURenderPassDesc passDesc(1);
         passDesc.colourAttachments[0].format = m_renderTarget->format();
         passDesc.colourAttachments[0].loadOp = loadOp;
         m_renderPass = g_gpuManager->createRenderPass(std::move(passDesc));
     }
-
-    check(m_renderPass->desc().colourAttachments[0].loadOp == loadOp);
 
     GPURenderPassInstanceDesc instanceDesc(m_renderPass);
     m_renderTarget->getRenderTargetDesc(instanceDesc.targets);
@@ -214,8 +212,10 @@ void RenderTarget::render() {
     GPU_DEBUG_GROUP("RenderTarget '%s'", renderTargetName().c_str());
 
     /* Render all our layers. */
+    bool first = true;
     for (RenderLayer *layer : m_layers) {
         GPU_DEBUG_GROUP("%s", layer->renderLayerName().c_str());
-        layer->render();
+        layer->render(first);
+        first = false;
     }
 }

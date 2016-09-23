@@ -101,7 +101,7 @@ protected:
     void serialise(Serialiser &serialiser) const override;
     void deserialise(Serialiser &serialiser) override;
 
-    void render() override;
+    void render(bool first) override;
 
     void transformed(unsigned changed) override;
     void activated() override;
