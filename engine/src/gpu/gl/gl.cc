@@ -179,6 +179,10 @@ GLGPUManager::GLGPUManager(const EngineConfiguration &config, Window *&window) :
     this->state.setCullFace(GL_BACK);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    /* For consistency with Vulkan we have NDC Z in the range [0, 1], rather
+     * than the default [-1, 1]. */
+    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 }
 
 /** Shut down the GPU interface. */

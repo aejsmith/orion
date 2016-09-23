@@ -68,14 +68,13 @@ float calcShadow(LightingData data) {
             /* Convert this value to a depth value. */
             float far = light.range;
             float near = light.shadowZNear;
-            float ndcDepth = ((far + near) / (far - near)) - ((2.0 * far * near) / (far - near) / localDepth);
-            float pixelDepth = (ndcDepth + 1.0) / 2.0;
+            float depth = -(far / (near - far)) - ((far * near) / (far - near) / localDepth);
 
             /* Sample the shadow map. */
             float shadowDepth = texture(shadowMap, direction).r;
 
             /* Same as above. */
-            return shadowDepth < (pixelDepth - 0.005) ? 0.2 : 1.0;
+            return shadowDepth < (depth - 0.005) ? 0.2 : 1.0;
         #else
             return 1.0;
         #endif

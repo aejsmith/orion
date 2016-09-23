@@ -264,14 +264,15 @@ void SceneLight::updateShadowViews() {
              * space, i.e. the view-projection transformation. We don't make the
              * shadow view uniforms available to shaders rendering with the
              * shadow map, so we need a copy of it in the light uniforms. We
-             * apply a bias to this matrix to map coordinates into the [0, 1]
-             * range for shadow map sampling, as just the VP transformation
-             * yields NDC coordinates, i.e. in the range [-1, 1]. */
+             * apply a bias to this matrix to map the X and Y coordinates into
+             * the [0, 1] range for shadow map sampling, as just the VP
+             * transformation yields NDC coordinates, i.e. in the range [-1, 1].
+             * Z is already in the [0, 1] range in NDC. */
             const glm::mat4 shadowBiasMatrix(
                 0.5, 0.0, 0.0, 0.0,
                 0.0, 0.5, 0.0, 0.0,
-                0.0, 0.0, 0.5, 0.0,
-                0.5, 0.5, 0.5, 1.0);
+                0.0, 0.0, 1.0, 0.0,
+                0.5, 0.5, 0.0, 1.0);
             m_uniforms.write()->shadowSpace
                 = shadowBiasMatrix * m_shadowViews[0].projection() * m_shadowViews[0].view();
             break;
