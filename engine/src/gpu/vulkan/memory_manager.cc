@@ -207,6 +207,53 @@ bool VulkanMemoryManager::allocatePoolEntry(
     return false;
 }
 
+/** Free a pool entry.
+ * @param reference     Pool reference. */
+void VulkanMemoryManager::freePoolEntry(const PoolReference &reference) {
+    Pool *pool = reference.first;
+    std::list<PoolEntry>::iterator entry = reference.second;
+
+    entry->child = nullptr;
+
+    logDebug(
+        "VulkanMemoryManager: Freed allocation from pool %p %" PRIu64 " %" PRIu64,
+        pool, entry->offset, entry->size);
+
+    /* Check if we can merge this entry with the previous one. */
+    if (entry != pool->entries.begin()) {
+        auto prev = std::prev(entry);
+
+        if (!prev->child) {
+            entry->offset = prev->offset;
+            entry->size += prev->size;
+            pool->freeEntries.remove(prev);
+            pool->entries.erase(prev);
+
+            logDebug(
+                "VulkanMemoryManager: Merged with previous %" PRIu64 " %" PRIu64,
+                entry->offset, entry->size);
+        }
+    }
+
+    /* Same for the following one. */
+    if (entry != pool->entries.begin()) {
+        auto next = std::next(entry);
+
+        if (!next->child) {
+            entry->size += next->size;
+            pool->freeEntries.remove(next);
+            pool->entries.erase(next);
+
+            logDebug(
+                "VulkanMemoryManager: Merged with next %" PRIu64 " %" PRIu64,
+                entry->offset, entry->size);
+        }
+    }
+
+    /* Push it onto the free list. */
+    pool->freeEntries.push_front(entry);
+}
+
 /**
  * Allocate memory for a buffer.
  *
@@ -374,7 +421,8 @@ void VulkanMemoryManager::freeResource(ResourceMemory *handle) {
 /** Actually free resource memory that is no longer in use.
  * @param handle        Handle to memory to free. */
 void VulkanMemoryManager::releaseResource(ResourceMemory *handle) {
-    fatal("VulkanMemoryManager::releaseResource: TODO");
+    freePoolEntry(handle->m_parent);
+    delete handle;
 }
 
 /**

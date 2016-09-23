@@ -122,6 +122,8 @@ public:
         }
 
         PoolReference m_parent;
+
+        friend class VulkanMemoryManager;
     };
 
     /** Class containing details of a buffer memory allocation. */
@@ -209,6 +211,7 @@ private:
 
     Pool *createPool(VkDeviceSize size, uint32_t memoryType);
     bool allocatePoolEntry(Pool *pool, VkDeviceSize size, VkDeviceSize alignment, PoolReference &reference);
+    void freePoolEntry(const PoolReference &reference);
 
     void releaseResource(ResourceMemory *handle);
 
