@@ -39,6 +39,7 @@ static const char *g_requiredGLExtensions[] = {
     "GL_ARB_texture_storage",
     "GL_ARB_texture_view",
     "GL_EXT_texture_filter_anisotropic",
+    "GL_ARB_clip_control",
 };
 
 /** Create the GPU manager.
@@ -181,7 +182,8 @@ GLGPUManager::GLGPUManager(const EngineConfiguration &config, Window *&window) :
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     /* For consistency with Vulkan we have NDC Z in the range [0, 1], rather
-     * than the default [-1, 1]. */
+     * than the default [-1, 1]. TODO: SPIRV-Cross can handle this fixup when
+     * we don't have ARB_clip_control. */
     glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 }
 
