@@ -147,9 +147,6 @@ public:
     /** @return             Rendering priority. */
     unsigned priority() const { return m_priority; }
 
-    void addLayer(RenderLayer *layer);
-    void removeLayer(RenderLayer *layer);
-
     void render();
 
     /**
@@ -187,6 +184,11 @@ protected:
     uint32_t m_height;              /**< Height of the render target. */
     PixelFormat m_format;           /**< Pixel format of the render target. */
 private:
+    void addLayer(RenderLayer *layer);
+    void removeLayer(RenderLayer *layer);
+
     unsigned m_priority;            /**< Rendering priority. */
     LayerList m_layers;             /**< Registered layers. */
+
+    friend class RenderLayer;
 };
