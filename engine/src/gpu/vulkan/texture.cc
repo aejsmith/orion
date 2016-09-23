@@ -160,6 +160,7 @@ VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureImageRef
 VulkanTexture::~VulkanTexture() {
     manager()->invalidateFramebuffers(this);
 
+    vkDestroyImageView(manager()->device()->handle(), m_resourceView, nullptr);
     vkDestroyImage(manager()->device()->handle(), m_handle, nullptr);
     manager()->memoryManager()->freeResource(m_allocation);
 }
