@@ -32,7 +32,7 @@ struct RectImpl {
     T height;               /**< Height. */
 public:
     /** Vector of type T. */
-    using VecType = glm::detail::tvec2<T, glm::highp>;
+    using VecType = glm::tvec2<T, glm::highp>;
 
     RectImpl() :
         x(0),

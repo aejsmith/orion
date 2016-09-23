@@ -34,7 +34,7 @@ struct BoxImpl {
     T depth;                /**< Depth. */
 public:
     /** Vector of type T. */
-    using VecType = glm::detail::tvec3<T, glm::highp>;
+    using VecType = glm::tvec3<T, glm::highp>;
 
     BoxImpl() :
         x(0),
