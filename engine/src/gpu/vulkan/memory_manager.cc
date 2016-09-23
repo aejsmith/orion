@@ -82,7 +82,24 @@ VulkanMemoryManager::VulkanMemoryManager(VulkanGPUManager *manager) :
 }
 
 /** Shut down the memory manager. */
-VulkanMemoryManager::~VulkanMemoryManager() {}
+VulkanMemoryManager::~VulkanMemoryManager() {
+    VkDevice device = manager()->device()->handle();
+
+    for (Pool *pool : m_bufferPools) {
+        if (pool->mapping)
+            vkUnmapMemory(device, pool->handle);
+
+        vkDestroyBuffer(device, pool->buffer, nullptr);
+        vkFreeMemory(device, pool->handle, nullptr);
+
+        delete pool;
+    }
+
+    for (Pool *pool : m_imagePools) {
+        vkFreeMemory(device, pool->handle, nullptr);
+        delete pool;
+    }
+}
 
 /** Select a memory type which supports the given flags.
  * @param flags         Memory property flags.

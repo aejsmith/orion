@@ -30,6 +30,14 @@ GPUManager::GPUManager() {}
 /** Destroy the GPU manager. */
 GPUManager::~GPUManager() {}
 
+/** Destroy cached state objects. */
+void GPUManager::destroyStates() {
+    m_blendStates.clear();
+    m_depthStencilStates.clear();
+    m_rasterizerStates.clear();
+    m_samplerStates.clear();
+}
+
 /** Get a (potentially pre-existing) blend state object.
  * @param desc          Descriptor for blend state.
  * @return              Created blend state object. */

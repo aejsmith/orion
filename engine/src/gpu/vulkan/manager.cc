@@ -235,8 +235,8 @@ VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&w
             VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
         callbackCreateInfo.pfnCallback = debugReportCallback;
 
-        VkDebugReportCallbackEXT callback;
-        m_functions.CreateDebugReportCallbackEXT(m_instance, &callbackCreateInfo, nullptr, &callback);
+        m_functions.CreateDebugReportCallbackEXT(
+            m_instance, &callbackCreateInfo, nullptr, &m_debugReportCallback);
     #endif
 
     /* Now we can create the surface. */
@@ -299,7 +299,15 @@ VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&w
 
 /** Shut down the Vulkan GPU manager. */
 VulkanGPUManager::~VulkanGPUManager() {
+    /* Wait for the device to finish, and clean up all frames still in flight. */
     vkDeviceWaitIdle(m_device->handle());
+    cleanupFrames(true);
+
+    /* Delete all framebuffer objects. */
+    invalidateFramebuffers(nullptr, VK_NULL_HANDLE);
+
+    /* Destroy all cached state objects. */
+    destroyStates();
 
     delete m_swapchain;
     delete m_memoryManager;
@@ -311,6 +319,9 @@ VulkanGPUManager::~VulkanGPUManager() {
     /* Freed by the engine, but we need to destroy the surface prior to the
      * instance to avoid validation errors. */
     m_surface->destroy();
+
+    /** Destroy the debug report callback. */
+    m_functions.DestroyDebugReportCallbackEXT(m_instance, m_debugReportCallback, nullptr);
 
     vkDestroyInstance(m_instance, nullptr);
 }
@@ -386,6 +397,29 @@ void VulkanGPUManager::startFrame() {
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
+/** Clean up completed frames.
+ * @param shutdown      If true, the engine is being shut down so all frames
+ *                      should have completed. */
+void VulkanGPUManager::cleanupFrames(bool shutdown) {
+    for (auto i = m_frames.begin(); i != m_frames.end(); ) {
+        VulkanFrame &frame = *i;
+
+        /* Check whether the frame has completed. */
+        bool completed = shutdown || frame.fence.getStatus();
+
+        /* Perform cleanup work on the frame. */
+        m_commandPool->cleanupFrame(frame, completed);
+        m_memoryManager->cleanupFrame(frame, completed);
+
+        /* Remove the frame if it has completed. */
+        if (completed) {
+            m_frames.erase(i++);
+        } else {
+            ++i;
+        }
+    }
+}
+
 /** End a frame and present it on screen. */
 void VulkanGPUManager::endFrame() {
     VulkanFrame &completedFrame = currentFrame();
@@ -429,23 +463,7 @@ void VulkanGPUManager::endFrame() {
         completedFrame.resourceSets[i] = nullptr;
 
     /* Clean up completed frames. */
-    for (auto i = m_frames.begin(); i != m_frames.end(); ) {
-        VulkanFrame &frame = *i;
-
-        /* Check whether the frame has completed. */
-        bool completed = frame.fence.getStatus();
-
-        /* Perform cleanup work on the frame. */
-        m_commandPool->cleanupFrame(frame, completed);
-        m_memoryManager->cleanupFrame(frame, completed);
-
-        /* Remove the frame if it has completed. */
-        if (completed) {
-            m_frames.erase(i++);
-        } else {
-            ++i;
-        }
-    }
+    cleanupFrames(false);
 
     /* Prepare state for the next frame. */
     startFrame();

@@ -215,20 +215,36 @@ VulkanFramebuffer::~VulkanFramebuffer() {
     vkDestroyFramebuffer(manager()->device()->handle(), m_handle, nullptr);
 }
 
-/** Invalidate framebuffers associated with a texture.
- * @param texture       Texture being destroyed. */
-void VulkanGPUManager::invalidateFramebuffers(const VulkanTexture *texture) {
+/**
+ * Invalidate framebuffers.
+ *
+ * Invalidates framebuffers associated with a texture or a swapchain image.
+ * If neither are specified, invalidates all framebuffers.
+ *
+ * @param texture       Texture to invalidate for.
+ * @param swapImage     Swapchain image to invalidate for.
+ */
+void VulkanGPUManager::invalidateFramebuffers(const VulkanTexture *texture, VkImage swapImage) {
+    check(!texture || swapImage == VK_NULL_HANDLE);
+
     for (auto it = m_framebuffers.begin(); it != m_framebuffers.end();) {
         const GPURenderTargetDesc &targets = it->first.targets;
         bool invalidate = false;
 
-        if (targets.depthStencil.texture == texture) {
-            invalidate = true;
-        } else {
-            for (size_t i = 0; i < targets.colour.size(); i++) {
-                if (targets.colour[i].texture == texture)
-                    invalidate = true;
+        if (texture) {
+            if (targets.depthStencil.texture == texture) {
+                invalidate = true;
+            } else {
+                for (size_t i = 0; i < targets.colour.size(); i++) {
+                    if (targets.colour[i].texture == texture)
+                        invalidate = true;
+                }
             }
+        } else if (swapImage != VK_NULL_HANDLE) {
+            if (it->first.swapchainImage == swapImage)
+                invalidate = true;
+        } else {
+            invalidate = true;
         }
 
         if (invalidate) {

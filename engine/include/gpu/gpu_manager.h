@@ -258,6 +258,8 @@ public:
 protected:
     GPUManager();
 
+    void destroyStates();
+
     /** Create a blend state object.
      * @param desc          Descriptor for blend state.
      * @return              Created blend state object. */

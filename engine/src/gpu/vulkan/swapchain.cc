@@ -48,6 +48,10 @@ void VulkanSwapchain::recreate() {
     VkResult result;
     uint32_t count;
 
+    /* Invalidate framebuffers referring to the old images. */
+    for (VkImage image : m_images)
+        manager()->invalidateFramebuffers(nullptr, image);
+
     VulkanDevice *device = manager()->device();
     VulkanSurface *surface = manager()->surface();
 

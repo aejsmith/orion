@@ -194,11 +194,12 @@ public:
     /** @return             Data for the current frame. */
     VulkanFrame &currentFrame() { return m_frames.back(); }
 
-    void invalidateFramebuffers(const VulkanTexture *texture);
+    void invalidateFramebuffers(const VulkanTexture *texture, VkImage swapImage);
 private:
     void initFeatures();
 
     void startFrame();
+    void cleanupFrames(bool shutdown);
 
     VulkanFeatures m_features;              /**< Feature details. */
     VkInstance m_instance;                  /**< Vulkan instance handle. */
@@ -224,4 +225,9 @@ private:
 
     /** Hash table of cached framebuffers. */
     HashMap<VulkanFramebufferKey, VulkanFramebuffer *> m_framebuffers;
+
+    #if ORION_VULKAN_VALIDATION
+    /** Debug report callback. */
+    VkDebugReportCallbackEXT m_debugReportCallback;
+    #endif
 };
