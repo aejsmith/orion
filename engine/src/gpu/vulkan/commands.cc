@@ -233,13 +233,6 @@ void VulkanGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUInde
     } else {
         vkCmdDraw(cmdBuf->handle(), vertices->count(), 1, 0, 0);
     }
-#if 0
-    m_memoryManager->flushStagingCmdBuf();
-    endRenderPass();
-    cmdBuf->end();
-    m_queue->submit(cmdBuf);
-    vkDeviceWaitIdle(m_device->handle());
-#endif
 }
 
 #ifdef ORION_BUILD_DEBUG

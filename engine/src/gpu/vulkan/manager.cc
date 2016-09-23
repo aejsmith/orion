@@ -364,17 +364,46 @@ void VulkanGPUManager::startFrame() {
     /* Acquire a new image from the swap chain. */
     m_swapchain->startFrame();
 
-    // TODO: Need to wait for present complete semaphore, transition layout.
+    /* Set the swapchain image layout to shader read-only because that is what
+     * everything else expects the "default" layout of an image to be. TODO: We
+     * can avoid this by treating the main window specially. */
+    VulkanUtil::setImageLayout(
+        frame.primaryCmdBuf,
+        m_swapchain->currentImage(),
+        VK_IMAGE_ASPECT_COLOR_BIT,
+        VK_IMAGE_LAYOUT_UNDEFINED,
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 /** End a frame and present it on screen. */
 void VulkanGPUManager::endFrame() {
-    // TODO: Transition image layout to present.
     VulkanFrame &completedFrame = currentFrame();
 
-    m_memoryManager->flushStagingCmdBuf();
-    completedFrame.primaryCmdBuf->end();
+    /* Set the swapchain image layout to present source. */
+    VulkanUtil::setImageLayout(
+        completedFrame.primaryCmdBuf,
+        m_swapchain->currentImage(),
+        VK_IMAGE_ASPECT_COLOR_BIT,
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
+    /* Perform any host to device transfers pending. */
+    m_memoryManager->flushStagingCmdBuf();
+
+    /* Submit the primary command buffer. Need to wait until presentation is
+     * completed before executing, and need to signal the semaphore that the
+     * present will wait on after execution. Also signal the frame fence when
+     * it has completed. */
+// TODO: Do I need a semaphore between staging and primary?
+    completedFrame.primaryCmdBuf->end();
+    m_queue->submit(
+        completedFrame.primaryCmdBuf,
+        &m_swapchain->presentCompleteSem(),
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        &m_swapchain->renderCompleteSem(),
+        &completedFrame.fence);
+
+    /* Present the frame. */
     m_swapchain->endFrame();
 
     /* Release all state. Probably a bit unnecessary because these have probably

@@ -186,6 +186,8 @@ public:
     VulkanDescriptorPool *descriptorPool() const { return m_descriptorPool; }
     /** @return             Device's memory manager. */
     VulkanMemoryManager *memoryManager() const { return m_memoryManager; }
+    /** @return             Device's swapchain. */
+    VulkanSwapchain *swapchain() const { return m_swapchain; }
 
     /** @return             Data for the current frame. */
     const VulkanFrame &currentFrame() const { return m_frames.back(); }

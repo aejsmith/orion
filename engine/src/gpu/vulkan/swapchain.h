@@ -28,26 +28,22 @@ class VulkanSurface;
 /** Class wrapping a Vulkan swap chain. */
 class VulkanSwapchain : public VulkanHandle<VkSwapchainKHR> {
 public:
-    /** Structure containing buffer details. */
-    struct Buffer {
-        VkImage image;                  /**< Image handle. */
-        VkImageView view;               /**< View to the image. */
-    };
-
     explicit VulkanSwapchain(VulkanGPUManager *manager);
     ~VulkanSwapchain();
 
     void recreate();
 
     /** @return             Current image details. */
-    const Buffer &currentImage() const { return m_images[m_currentImage]; }
+    VkImage currentImage() const { return m_images[m_currentImage]; }
+    /** @return             Presentation completion semaphore. */
+    VulkanSemaphore &presentCompleteSem() { return m_presentCompleteSem; }
+    /** @return             Rendering completion semaphore. */
+    VulkanSemaphore &renderCompleteSem() { return m_renderCompleteSem; }
 
     void startFrame();
     void endFrame();
 private:
-    void clearImages();
-
-    std::vector<Buffer> m_images;       /**< Array of image handles. */
+    std::vector<VkImage> m_images;      /**< Array of image handles. */
     uint32_t m_currentImage;            /**< Current image index. */
 
     /**
@@ -55,7 +51,17 @@ private:
      *
      * This semaphore is passed to vkAcquireNextImageKHR(). It will become
      * signalled once presentation is completed, i.e. when the image is actually
-     * usable.
+     * usable. This semaphore must be waited on before a new frame's command
+     * buffer starts executing.
      */
     VulkanSemaphore m_presentCompleteSem;
+
+    /**
+     * Semaphore signalled when rendering is complete.
+     *
+     * This semaphore is passed to vkQueuePresentKHR(). It must be signalled
+     * after the frame's command buffer is completed to indicate that the
+     * frame can be presented.
+     */
+    VulkanSemaphore m_renderCompleteSem;
 };

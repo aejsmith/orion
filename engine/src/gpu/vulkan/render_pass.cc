@@ -144,25 +144,41 @@ VulkanFramebuffer::VulkanFramebuffer(
 
     auto createView =
         [&] (const GPUTextureImageRef &imageRef) {
-            VulkanTexture *texture = static_cast<VulkanTexture *>(imageRef.texture);
-
-            /* These are validated to be the same for each texture. */
-            width = texture->width();
-            height = texture->height();
-
             VkImageViewCreateInfo viewCreateInfo = {};
             viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            viewCreateInfo.image = texture->handle();
+
+            if (imageRef) {
+                auto texture = static_cast<VulkanTexture *>(imageRef.texture);
+
+                viewCreateInfo.image = texture->handle();
+                viewCreateInfo.format = manager->features().formats[texture->format()].format;
+                viewCreateInfo.subresourceRange.aspectMask = VulkanUtil::aspectMaskForFormat(texture->format());
+
+                /* These are validated to be the same for each texture. */
+                width = texture->width();
+                height = texture->height();
+            } else {
+                VulkanSurface *surface = manager->surface();
+
+                /* We assume that when we're creating a new framebuffer for the
+                 * main window we want it to refer to current swapchain image.
+                 * The swapchain image forms part of the framebuffer key, so
+                 * this framebuffer will only be used for this specific image. */
+                viewCreateInfo.image = manager->swapchain()->currentImage();
+                viewCreateInfo.format = surface->surfaceFormat().format;
+                viewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+                width = surface->width();
+                height = surface->height();
+            }
 
             /* We're rendering to a single layer. */
             viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 
-            viewCreateInfo.format = manager->features().formats[texture->format()].format;
             viewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_R;
             viewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_G;
             viewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_B;
             viewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_A;
-            viewCreateInfo.subresourceRange.aspectMask = VulkanUtil::aspectMaskForFormat(texture->format());
             viewCreateInfo.subresourceRange.baseMipLevel = imageRef.mip;
             viewCreateInfo.subresourceRange.levelCount = 1;
             viewCreateInfo.subresourceRange.baseArrayLayer = imageRef.layer;
@@ -228,31 +244,46 @@ void VulkanGPUManager::invalidateFramebuffers(const VulkanTexture *texture) {
  * @param cmdBuf        Command buffer to use.
  * @param imageRef      Image reference.
  * @param begin         Whether this is the beginning of the pass. */
-static void transitionRenderTarget(VulkanCommandBuffer *cmdBuf, const GPUTextureImageRef &imageRef, bool begin) {
-    VulkanTexture *texture = static_cast<VulkanTexture *>(imageRef.texture);
-
+static void transitionRenderTarget(
+    VulkanCommandBuffer *cmdBuf,
+    VulkanSwapchain *swapchain,
+    const GPUTextureImageRef &imageRef,
+    bool begin)
+{
     VkImageSubresourceRange subresources;
-    subresources.aspectMask = VulkanUtil::aspectMaskForFormat(texture->format());
     subresources.baseMipLevel = imageRef.mip;
     subresources.levelCount = 1;
     subresources.baseArrayLayer = imageRef.layer;
     subresources.layerCount = 1;
 
+    VkImage handle;
+    bool isDepth;
+    if (imageRef) {
+        auto texture = static_cast<VulkanTexture *>(imageRef.texture);
+        handle = texture->handle();
+        isDepth = PixelFormat::isDepth(texture->format());
+        subresources.aspectMask = VulkanUtil::aspectMaskForFormat(texture->format());
+    } else {
+        handle = swapchain->currentImage();
+        isDepth = false;
+        subresources.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    }
+
     VkImageLayout defaultLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    VkImageLayout attachmentLayout = (PixelFormat::isDepth(texture->format()))
+    VkImageLayout attachmentLayout = (isDepth)
         ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
         : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     VulkanUtil::setImageLayout(
         cmdBuf,
-        texture->handle(),
+        handle,
         subresources,
         (begin) ? defaultLayout : attachmentLayout,
         (begin) ? attachmentLayout : defaultLayout);
 
-    if (begin) {
+    if (begin && imageRef) {
         /* Reference the textures in the command buffer. */
-        cmdBuf->addReference(texture);
+        cmdBuf->addReference(imageRef.texture);
     }
 }
 
@@ -260,18 +291,21 @@ static void transitionRenderTarget(VulkanCommandBuffer *cmdBuf, const GPUTexture
  * @param desc          Descriptor for the render pass instance. */
 void VulkanGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
     VulkanFrame &frame = currentFrame();
+
     check(!frame.renderPass);
 
-    check(!desc.targets.isMainWindow());
-
-    const VulkanRenderPass *pass = static_cast<const VulkanRenderPass *>(desc.pass);
+    auto pass = static_cast<const VulkanRenderPass *>(desc.pass);
 
     /* Validate render pass state. */
     pass->validateInstance(desc);
 
-    /* Look for an existing suitable framebuffer. */
+    /* Look for an existing suitable framebuffer. For the main window, we must
+     * key the framebuffer to the current swapchain image. */
     VulkanFramebuffer *framebuffer;
-    VulkanFramebufferKey key(desc.targets, pass);
+    VulkanFramebufferKey key(
+        desc.targets,
+        pass,
+        (desc.targets.isMainWindow()) ? m_swapchain->currentImage() : VK_NULL_HANDLE);
     auto ret = m_framebuffers.find(key);
     if (ret == m_framebuffers.end()) {
         /* Create a new one. */
@@ -283,9 +317,9 @@ void VulkanGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
 
     /* Transition the images to the right layout. */
     for (auto &imageRef : desc.targets.colour)
-        transitionRenderTarget(frame.primaryCmdBuf, imageRef, true);
+        transitionRenderTarget(frame.primaryCmdBuf, m_swapchain, imageRef, true);
     if (desc.targets.depthStencil)
-        transitionRenderTarget(frame.primaryCmdBuf, desc.targets.depthStencil, true);
+        transitionRenderTarget(frame.primaryCmdBuf, m_swapchain, desc.targets.depthStencil, true);
 
     /* Prepare clear values. */
     std::vector<VkClearValue> clearValues;
@@ -346,9 +380,9 @@ void VulkanGPUManager::endRenderPass() {
     /* Transition the images back from their attachment layouts. */
     const GPURenderTargetDesc &targets = frame.framebuffer->targets();
     for (auto &imageRef : targets.colour)
-        transitionRenderTarget(frame.primaryCmdBuf, imageRef, false);
+        transitionRenderTarget(frame.primaryCmdBuf, m_swapchain, imageRef, false);
     if (targets.depthStencil)
-        transitionRenderTarget(frame.primaryCmdBuf, targets.depthStencil, false);
+        transitionRenderTarget(frame.primaryCmdBuf, m_swapchain, targets.depthStencil, false);
 
     frame.renderPass = nullptr;
 }

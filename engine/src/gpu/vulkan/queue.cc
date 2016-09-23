@@ -34,8 +34,17 @@ VulkanQueue::VulkanQueue(VulkanGPUManager *manager, uint32_t queueFamily, uint32
 
 /** Submit a command buffer.
  * @param cmdBuf        Command buffer to submit.
+ * @param wait          Optional semaphore to wait on before executing.
+ * @param waitStages    Pipeline stages wait should take place at.
+ * @param signal        Optional semaphore to signal after execution is complete.
  * @param fence         Optional fence to signal upon completion. */
-void VulkanQueue::submit(VulkanCommandBuffer *cmdBuf, VulkanFence *fence) {
+void VulkanQueue::submit(
+    VulkanCommandBuffer *cmdBuf,
+    VulkanSemaphore *wait,
+    VkPipelineStageFlags waitStages,
+    VulkanSemaphore *signal,
+    VulkanFence *fence)
+{
     check(cmdBuf->m_state == VulkanCommandBuffer::State::kRecorded);
 
     VkCommandBuffer handle = cmdBuf->handle();
@@ -44,6 +53,13 @@ void VulkanQueue::submit(VulkanCommandBuffer *cmdBuf, VulkanFence *fence) {
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &handle;
+    submitInfo.waitSemaphoreCount = (wait) ? 1 : 0;
+    VkSemaphore waitHandle = (wait) ? wait->handle() : VK_NULL_HANDLE;
+    submitInfo.pWaitSemaphores = &waitHandle;
+    submitInfo.pWaitDstStageMask = &waitStages;
+    submitInfo.signalSemaphoreCount = (signal) ? 1 : 0;
+    VkSemaphore signalHandle = (signal) ? signal->handle() : VK_NULL_HANDLE;
+    submitInfo.pSignalSemaphores = &signalHandle;
 
     checkVk(vkQueueSubmit(
         m_handle,

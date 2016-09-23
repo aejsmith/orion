@@ -471,9 +471,6 @@ void VulkanGPUManager::blit(
 {
     // TODO: If formats are the same, we can use CopyImage.
 
-    // FIXME: main window
-    check(source && dest);
-
     /* If copying a depth texture, both formats must match. */
     bool isDepth = source && PixelFormat::isDepth(source.texture->format());
     check(isDepth == (dest && PixelFormat::isDepth(dest.texture->format())));
@@ -498,17 +495,33 @@ void VulkanGPUManager::blit(
 
     /* Determine if we're overwriting the whole destination, in which case we
      * can ignore the existing image content. */
-    int mipWidth = dest.texture->width();
-    int mipHeight = dest.texture->height();
+    int mipWidth = (dest) ? dest.texture->width() : m_surface->width();
+    int mipHeight = (dest) ? dest.texture->height() : m_surface->height();
     calcMipDimensions(dest.mip, mipWidth, mipHeight);
     bool isWholeDestSubresource =
         destPos.x == 0 && destPos.y == 0 &&
         size.x == mipWidth && size.y == mipHeight;
 
-    VulkanTexture *vkSource = static_cast<VulkanTexture *>(source.texture);
-    VulkanTexture *vkDest = static_cast<VulkanTexture *>(dest.texture);
-
     VulkanCommandBuffer *primaryCmdBuf = currentFrame().primaryCmdBuf;
+
+    /* Get the images. */
+    VkImage vkSource;
+    if (source) {
+        VulkanTexture *texture = static_cast<VulkanTexture *>(source.texture);
+        vkSource = texture->handle();
+        primaryCmdBuf->addReference(texture);
+    } else {
+        vkSource = m_swapchain->currentImage();
+    }
+
+    VkImage vkDest;
+    if (dest) {
+        VulkanTexture *texture = static_cast<VulkanTexture *>(dest.texture);
+        vkDest = texture->handle();
+        primaryCmdBuf->addReference(texture);
+    } else {
+        vkDest = m_swapchain->currentImage();
+    }
 
     /* Transition the source subresource to the transfer source layout. */
     VkImageSubresourceRange srcSubresource = {};
@@ -519,7 +532,7 @@ void VulkanGPUManager::blit(
     srcSubresource.layerCount = 1;
     VulkanUtil::setImageLayout(
         primaryCmdBuf,
-        vkSource->handle(),
+        vkSource,
         srcSubresource,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
@@ -533,7 +546,7 @@ void VulkanGPUManager::blit(
     dstSubresource.layerCount = 1;
     VulkanUtil::setImageLayout(
         primaryCmdBuf,
-        vkDest->handle(),
+        vkDest,
         dstSubresource,
         (isWholeDestSubresource) ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
@@ -541,9 +554,9 @@ void VulkanGPUManager::blit(
     /* Perform the blit. */
     vkCmdBlitImage(
         primaryCmdBuf->handle(),
-        vkSource->handle(),
+        vkSource,
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        vkDest->handle(),
+        vkDest,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         1, &imageBlit,
         VK_FILTER_NEAREST);
@@ -551,17 +564,14 @@ void VulkanGPUManager::blit(
     /* Transition the images back to shader read only. */
     VulkanUtil::setImageLayout(
         primaryCmdBuf,
-        vkSource->handle(),
+        vkSource,
         srcSubresource,
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     VulkanUtil::setImageLayout(
         primaryCmdBuf,
-        vkDest->handle(),
+        vkDest,
         dstSubresource,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-    primaryCmdBuf->addReference(vkSource);
-    primaryCmdBuf->addReference(vkDest);
 }

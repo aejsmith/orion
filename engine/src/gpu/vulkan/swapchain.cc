@@ -32,21 +32,15 @@ static const uint32_t kNumSwapchainImages = 3;
 VulkanSwapchain::VulkanSwapchain(VulkanGPUManager *manager) :
     VulkanHandle(manager),
     m_currentImage(UINT32_MAX),
-    m_presentCompleteSem(manager)
+    m_presentCompleteSem(manager),
+    m_renderCompleteSem(manager)
 {
     recreate();
 }
 
 /** Destroy the swap chain. */
 VulkanSwapchain::~VulkanSwapchain() {
-    clearImages();
     vkDestroySwapchainKHR(manager()->device()->handle(), m_handle, nullptr);
-}
-
-/** Free existing images. */
-void VulkanSwapchain::clearImages() {
-    for (Buffer &buffer : m_images)
-        vkDestroyImageView(manager()->device()->handle(), buffer.view, nullptr);
 }
 
 /** (Re)create the swap chain. */
@@ -63,7 +57,7 @@ void VulkanSwapchain::recreate() {
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     createInfo.surface = surface->handle();
     createInfo.imageArrayLayers = 1;
-    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
     createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     createInfo.clipped = VK_TRUE;
@@ -156,7 +150,7 @@ void VulkanSwapchain::recreate() {
         fatal("Failed to create Vulkan swap chain: %d", result);
 
     if (oldSwapchain != VK_NULL_HANDLE) {
-        clearImages();
+        m_images.clear();
         vkDestroySwapchainKHR(device->handle(), oldSwapchain, nullptr);
     }
 
@@ -166,33 +160,10 @@ void VulkanSwapchain::recreate() {
         fatal("Failed to get Vulkan swap chain images (1): %d", result);
     check(count);
 
-    std::vector<VkImage> images(count);
-    result = vkGetSwapchainImagesKHR(device->handle(), m_handle, &count, &images[0]);
+    m_images.resize(count);
+    result = vkGetSwapchainImagesKHR(device->handle(), m_handle, &count, &m_images[0]);
     if (result != VK_SUCCESS)
         fatal("Failed to get Vulkan swap chain images (2): %d", result);
-
-    /* Prepare image view state. */
-    VkImageViewCreateInfo viewCreateInfo = {};
-    viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    viewCreateInfo.format = surface->surfaceFormat().format;
-    viewCreateInfo.components = {
-        VK_COMPONENT_SWIZZLE_R,
-        VK_COMPONENT_SWIZZLE_G,
-        VK_COMPONENT_SWIZZLE_B,
-        VK_COMPONENT_SWIZZLE_A
-    };
-    viewCreateInfo.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-
-    m_images.resize(images.size());
-
-    for (size_t i = 0; i < images.size(); i++) {
-        m_images[i].image = images[i];
-
-        /* Create an image view. */
-        viewCreateInfo.image = images[i];
-        checkVk(vkCreateImageView(device->handle(), &viewCreateInfo, nullptr, &m_images[i].view));
-    }
 }
 
 /**
@@ -227,6 +198,9 @@ void VulkanSwapchain::endFrame() {
     /* Present the image. */
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.waitSemaphoreCount = 1;
+    VkSemaphore semaphore = m_renderCompleteSem.handle();
+    presentInfo.pWaitSemaphores = &semaphore;
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &m_handle;
     presentInfo.pImageIndices = &m_currentImage;

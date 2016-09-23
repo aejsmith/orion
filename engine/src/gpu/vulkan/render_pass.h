@@ -113,23 +113,45 @@ struct VulkanFramebufferKey {
     /** Render pass compatibility key. */
     VulkanRenderPassCompatibilityKey renderPass;
 
+    /**
+     * Swapchain image handle.
+     *
+     * For a framebuffer that refers to the main window, we cannot rely on just
+     * the RT descriptor because we have multiple swapchain images and we need
+     * a different framebuffer for each one. Therefore if the RT is the main
+     * window, we set this to the swapchain image handle the framebuffer was
+     * created for. If the RT is not the main window, this is set to null.
+     */
+    VkImage swapchainImage;
+
     /** Initialise the key.
      * @param inTargets     Render target descriptor.
-     * @param inPass        Pass that the framebuffer should be compatible with. */
-    VulkanFramebufferKey(const GPURenderTargetDesc &inTargets, const VulkanRenderPass *inPass) :
+     * @param inPass        Pass that the framebuffer should be compatible with.
+     * @param inSwapImage   For the main window, swapchain image this framebuffer
+     *                      is for. */
+    VulkanFramebufferKey(
+        const GPURenderTargetDesc &inTargets,
+        const VulkanRenderPass *inPass,
+        VkImage inSwapImage)
+        :
         targets(inTargets),
-        renderPass(inPass)
+        renderPass(inPass),
+        swapchainImage(inSwapImage)
     {}
 
     /** Compare this key with another. */
     bool operator ==(const VulkanFramebufferKey &other) const {
-        return targets == other.targets && renderPass == other.renderPass;
+        return
+            targets == other.targets &&
+            renderPass == other.renderPass &&
+            swapchainImage == other.swapchainImage;
     }
 
     /** Get a hash from a framebuffer key. */
     friend size_t hashValue(const VulkanFramebufferKey &key) {
         size_t hash = hashValue(key.targets);
         hash = hashCombine(hash, key.renderPass);
+        hash = hashCombine(hash, key.swapchainImage);
         return hash;
     }
 };
