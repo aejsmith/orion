@@ -221,7 +221,7 @@ VkDescriptorSet VulkanResourceSet::prepareForDraw(VulkanCommandBuffer *cmdBuf) {
             if (!m_dirtySlots[i]) {
                 const Slot &slot = m_slots[i];
 
-                if (slot.desc.type == GPUResourceType::kNone)
+                if (!slot.object)
                     continue;
 
                 check(prev);
