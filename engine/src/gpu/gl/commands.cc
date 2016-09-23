@@ -153,11 +153,14 @@ void GLGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
     /* We want to only clear the specified render area. Use scissor to do this. */
     auto configureScissor =
         [&] (const GPUTexture *texture) {
+            uint32_t width = (texture) ? texture->width() : g_mainWindow->width();
+            uint32_t height = (texture) ? texture->height() : g_mainWindow->height();
+
             bool needScissor =
                 desc.renderArea.x != 0 ||
                 desc.renderArea.y != 0 ||
-                static_cast<uint32_t>(desc.renderArea.width) < texture->width() ||
-                static_cast<uint32_t>(desc.renderArea.height) < texture->height();
+                static_cast<uint32_t>(desc.renderArea.width) < width ||
+                static_cast<uint32_t>(desc.renderArea.height) < height;
             if (needScissor) {
                 setScissor(true, desc.renderArea);
             } else {
