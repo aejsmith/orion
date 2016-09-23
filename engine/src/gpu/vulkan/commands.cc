@@ -184,25 +184,27 @@ void VulkanGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUInde
     }
 
     /* Bind vertex buffers. */
-    std::vector<VkBuffer> vertexBuffers(vertices->buffers().size());
-    std::vector<VkDeviceSize> vertexBufferOffsets(vertices->buffers().size());
-    for (size_t i = 0; i < vertices->buffers().size(); i++) {
-        VulkanBuffer *buffer = static_cast<VulkanBuffer *>(vertices->buffers()[i].get());
-        vertexBuffers[i] = buffer->allocation()->buffer();
-        vertexBufferOffsets[i] = buffer->allocation()->offset();
+    if (vertices->buffers().size()) {
+        std::vector<VkBuffer> vertexBuffers(vertices->buffers().size());
+        std::vector<VkDeviceSize> vertexBufferOffsets(vertices->buffers().size());
+        for (size_t i = 0; i < vertices->buffers().size(); i++) {
+            VulkanBuffer *buffer = static_cast<VulkanBuffer *>(vertices->buffers()[i].get());
+            vertexBuffers[i] = buffer->allocation()->buffer();
+            vertexBufferOffsets[i] = buffer->allocation()->offset();
 
-        // FIXME: Put both these calls into a helper on VulkanBuffer, it's an
-        // implementation detail.
-        cmdBuf->addReference(buffer);
-        cmdBuf->addReference(buffer->allocation());
+            // FIXME: Put both these calls into a helper on VulkanBuffer, it's an
+            // implementation detail.
+            cmdBuf->addReference(buffer);
+            cmdBuf->addReference(buffer->allocation());
+        }
+
+        vkCmdBindVertexBuffers(
+            cmdBuf->handle(),
+            0,
+            vertexBuffers.size(),
+            &vertexBuffers[0],
+            &vertexBufferOffsets[0]);
     }
-
-    vkCmdBindVertexBuffers(
-        cmdBuf->handle(),
-        0,
-        vertexBuffers.size(),
-        &vertexBuffers[0],
-        &vertexBufferOffsets[0]);
 
     /* Bind the index buffer. */
     if (indices) {
