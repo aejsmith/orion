@@ -128,6 +128,12 @@ static void enableInstanceExtensions(
 
 #if ORION_VULKAN_VALIDATION
 
+/** Filters on debug messages. */
+static const char *kDebugMessageFilters[] = {
+    /* Can't completely eliminate this, and it spams a lot. */
+    "any subsequent sets were disturbed by newly bound pipelineLayout",
+};
+
 /** Vulkan debug report callback. */
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugReportCallback(
     VkDebugReportFlagsEXT flags,
@@ -139,6 +145,11 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugReportCallback(
     const char *pMessage,
     void *pUserData)
 {
+    for (const char *filter : kDebugMessageFilters) {
+        if (std::strstr(pMessage, filter))
+            return VK_FALSE;
+    }
+
     LogLevel level = LogLevel::kDebug;
     std::string flagsString;
 

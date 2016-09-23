@@ -22,6 +22,14 @@
 #include "manager.h"
 #include "memory_manager.h"
 
+/* Set to 1 to enable debug messages. */
+#define MEMORY_DEBUG 0
+#if MEMORY_DEBUG
+#   define logMemoryDebug(fmt...) logDebug(fmt)
+#else
+#   define logMemoryDebug(fmt...)
+#endif
+
 /** Initialise the memory manager.
  * @param manager       Manager that the memory manager is for. */
 VulkanMemoryManager::VulkanMemoryManager(VulkanGPUManager *manager) :
@@ -215,7 +223,7 @@ void VulkanMemoryManager::freePoolEntry(const PoolReference &reference) {
 
     entry->child = nullptr;
 
-    logDebug(
+    logMemoryDebug(
         "VulkanMemoryManager: Freed allocation from pool %p %" PRIu64 " %" PRIu64,
         pool, entry->offset, entry->size);
 
@@ -229,7 +237,7 @@ void VulkanMemoryManager::freePoolEntry(const PoolReference &reference) {
             pool->freeEntries.remove(prev);
             pool->entries.erase(prev);
 
-            logDebug(
+            logMemoryDebug(
                 "VulkanMemoryManager: Merged with previous %" PRIu64 " %" PRIu64,
                 entry->offset, entry->size);
         }
@@ -244,7 +252,7 @@ void VulkanMemoryManager::freePoolEntry(const PoolReference &reference) {
             pool->freeEntries.remove(next);
             pool->entries.erase(next);
 
-            logDebug(
+            logMemoryDebug(
                 "VulkanMemoryManager: Merged with next %" PRIu64 " %" PRIu64,
                 entry->offset, entry->size);
         }
@@ -297,7 +305,7 @@ VulkanMemoryManager::BufferMemory *VulkanMemoryManager::allocateBuffer(
 
         found = allocatePoolEntry(pool, size, alignment, reference);
         if (found) {
-            logDebug(
+            logMemoryDebug(
                 "VulkanMemoryManager: Allocated buffer from existing pool %p %" PRIu64 " %" PRIu64,
                 pool, reference.second->offset, reference.second->size);
             break;
@@ -345,7 +353,7 @@ VulkanMemoryManager::BufferMemory *VulkanMemoryManager::allocateBuffer(
         found = allocatePoolEntry(pool, size, alignment, reference);
         check(found);
 
-        logDebug(
+        logMemoryDebug(
             "VulkanMemoryManager: Allocated new buffer pool %p %" PRIu64 " %" PRIu64,
             pool, reference.second->offset, reference.second->size);
     }
@@ -379,7 +387,7 @@ VulkanMemoryManager::ImageMemory *VulkanMemoryManager::allocateImage(VkMemoryReq
 
         found = allocatePoolEntry(pool, requirements.size, requirements.alignment, reference);
         if (found) {
-            logDebug(
+            logMemoryDebug(
                 "VulkanMemoryManager: Allocated image from existing pool %p %" PRIu64 " %" PRIu64,
                 pool, reference.second->offset, reference.second->size);
             break;
@@ -398,7 +406,7 @@ VulkanMemoryManager::ImageMemory *VulkanMemoryManager::allocateImage(VkMemoryReq
         found = allocatePoolEntry(pool, requirements.size, requirements.alignment, reference);
         check(found);
 
-        logDebug(
+        logMemoryDebug(
             "VulkanMemoryManager: Allocated new image pool %p %" PRIu64 " %" PRIu64,
             pool, reference.second->offset, reference.second->size);
     }
