@@ -361,6 +361,9 @@ void VulkanGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
     frame.renderPass = pass;
     frame.framebuffer = framebuffer;
 
+    /* Reference the render pass in the command buffer. */
+    frame.primaryCmdBuf->addReference(const_cast<VulkanRenderPass *>(pass));
+
     /* Set up default state for the pass. */
     setViewport(desc.renderArea);
     setScissor(false, IntRect());
