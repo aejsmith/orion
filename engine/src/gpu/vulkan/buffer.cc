@@ -127,7 +127,7 @@ void VulkanBuffer::unmap() {
         /* Upload the staging buffer. */
         VkBufferCopy bufferCopy = {};
         bufferCopy.srcOffset = 0;
-        bufferCopy.dstOffset = m_mapOffset;
+        bufferCopy.dstOffset = m_allocation->offset() + m_mapOffset;
         bufferCopy.size = m_mapSize;
 
         VulkanCommandBuffer *stagingCmdBuf = manager()->memoryManager()->getStagingCmdBuf();
