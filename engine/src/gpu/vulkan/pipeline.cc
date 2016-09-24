@@ -368,7 +368,7 @@ VulkanVertexDataLayout::VulkanVertexDataLayout(GPUVertexDataLayoutDesc &&desc) :
         check(attribDesc.components && attribDesc.components <= arraySize(kAttributeFormats[0]));
 
         m_attributes[i].format =
-            kAttributeFormats[attribDesc.type][attribDesc.components][attribDesc.normalised];
+            kAttributeFormats[attribDesc.type][attribDesc.components - 1][attribDesc.normalised];
 
         // FIXME: Check format support.
         check(m_attributes[i].format != VK_FORMAT_UNDEFINED);
