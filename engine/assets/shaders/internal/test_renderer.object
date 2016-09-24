@@ -13,6 +13,17 @@
                 "fragment": {
                     "source": "engine/shaders/test_renderer_frag.glsl"
                 }
+            },
+            {
+                "type": "kBasic",
+                "vertex": {
+                    "source": "engine/shaders/test_renderer_vtx.glsl",
+                    "keywords": ["VBO"]
+                },
+                "fragment": {
+                    "source": "engine/shaders/test_renderer_frag.glsl",
+                    "keywords": ["VBO"]
+                }
             }
         ]
     }

@@ -19,8 +19,18 @@
  * @brief               Test renderer fragment shader.
  */
 
+#ifdef VBO
+
+layout(location = 0) in vec4 vtxColour;
+
+#endif
+
 layout(location = 0) out vec4 fragColour;
 
 void main() {
-    fragColour = vec4(1.0);
+    #ifdef VBO
+        fragColour = vtxColour;
+    #else
+        fragColour = vec4(1.0);
+    #endif
 }

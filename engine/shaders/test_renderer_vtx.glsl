@@ -19,12 +19,28 @@
  * @brief               Test renderer vertex shader.
  */
 
+#ifdef VBO
+
+layout(location = kPositionSemantic) in vec2 attribPosition;
+layout(location = kDiffuseSemantic) in vec4 attribColour;
+
+layout(location = 0) out vec4 vtxColour;
+
+#else
+
 const vec2 vertices[3] = vec2[] (
     vec2(-0.3,  0.4),
     vec2( 0.3,  0.4),
     vec2( 0.0, -0.4)
 );
 
+#endif
+
 void main() {
-    gl_Position = vec4(vertices[gl_VertexIndex], 0.0, 1.0);
+    #ifdef VBO
+        vtxColour = attribColour;
+        gl_Position = vec4(attribPosition, 0.0, 1.0);
+    #else
+        gl_Position = vec4(vertices[gl_VertexIndex], 0.0, 1.0);
+    #endif
 }

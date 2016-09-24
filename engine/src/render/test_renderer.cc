@@ -25,6 +25,23 @@
 #include "gpu/gpu_manager.h"
 
 #include "render/test_renderer.h"
+#include "render/utility.h"
+
+/** Set to 1 to enable use of VBOs, 0 to use only shader constants. */
+#define TEST_VBO        1
+
+#if TEST_VBO
+static const size_t kUsePass = 1;
+#else
+static const size_t kUsePass = 0;
+#endif
+
+/** Vertex data layout. */
+struct Vertex {
+    glm::vec2 position;
+    glm::vec2 _pad;
+    glm::vec4 colour;
+};
 
 /** Initialise the test renderer. */
 TestRenderer::TestRenderer() :
@@ -43,9 +60,39 @@ TestRenderer::TestRenderer() :
     passDesc.colourAttachments[0].loadOp = GPURenderLoadOp::kClear;
     m_renderPass = g_gpuManager->createRenderPass(std::move(passDesc));
 
-    /* Create dummy vertex data. */
-    GPUVertexDataLayoutPtr vertexLayout = g_gpuManager->createVertexDataLayout(GPUVertexDataLayoutDesc());
-    m_vertices = g_gpuManager->createVertexData(3, vertexLayout, GPUBufferArray());
+    /* Create a vertex data layout. */
+    #if TEST_VBO
+        GPUVertexDataLayoutDesc vertexLayoutDesc(1, 2);
+        vertexLayoutDesc.bindings[0].stride = sizeof(Vertex);
+        vertexLayoutDesc.attributes[0].semantic = VertexAttribute::kPositionSemantic;
+        vertexLayoutDesc.attributes[0].index = 0;
+        vertexLayoutDesc.attributes[0].type = VertexAttribute::kFloatType;
+        vertexLayoutDesc.attributes[0].components = 2;
+        vertexLayoutDesc.attributes[0].binding = 0;
+        vertexLayoutDesc.attributes[0].offset = offsetof(Vertex, position);
+        vertexLayoutDesc.attributes[1].semantic = VertexAttribute::kDiffuseSemantic;
+        vertexLayoutDesc.attributes[1].index = 0;
+        vertexLayoutDesc.attributes[1].type = VertexAttribute::kFloatType;
+        vertexLayoutDesc.attributes[1].components = 4;
+        vertexLayoutDesc.attributes[1].binding = 0;
+        vertexLayoutDesc.attributes[1].offset = offsetof(Vertex, colour);
+
+        const std::vector<Vertex> vertices = {
+            { glm::vec2(-0.3f,  0.4f), glm::vec2(), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f) },
+            { glm::vec2( 0.3f,  0.4f), glm::vec2(), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f) },
+            { glm::vec2( 0.0f, -0.4f), glm::vec2(), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f) },
+        };
+
+        GPUBufferArray vertexBuffers(1);
+        vertexBuffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vertices);
+    #else
+        GPUVertexDataLayoutDesc vertexLayoutDesc;
+        GPUBufferArray vertexBuffers;
+    #endif
+
+    /* Create vertex data. */
+    GPUVertexDataLayoutPtr vertexLayout = g_gpuManager->createVertexDataLayout(std::move(vertexLayoutDesc));
+    m_vertices = g_gpuManager->createVertexData(3, vertexLayout, std::move(vertexBuffers));
 }
 
 /** Destroy the test renderer. */
@@ -63,7 +110,7 @@ void TestRenderer::render(bool first) {
     g_gpuManager->beginRenderPass(instanceDesc);
 
     m_material->setDrawState();
-    m_material->shader()->pass(Pass::Type::kBasic, 0)->setDrawState(nullptr);
+    m_material->shader()->pass(Pass::Type::kBasic, kUsePass)->setDrawState(nullptr);
 
     g_gpuManager->draw(PrimitiveType::kTriangleList, m_vertices, nullptr);
 
