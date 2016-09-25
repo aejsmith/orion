@@ -22,7 +22,11 @@
 #pragma once
 
 /** Whether to enable the Vulkan validation layers. */
-#define ORION_VULKAN_VALIDATION 1
+#ifdef ORION_BUILD_DEBUG
+#   define ORION_VULKAN_VALIDATION 1
+#else
+#   define ORION_VULKAN_VALIDATION 0
+#endif
 
 #include "loader.h"
 
