@@ -320,8 +320,10 @@ VulkanGPUManager::~VulkanGPUManager() {
      * instance to avoid validation errors. */
     m_surface->destroy();
 
-    /** Destroy the debug report callback. */
-    m_functions.DestroyDebugReportCallbackEXT(m_instance, m_debugReportCallback, nullptr);
+    #if ORION_VULKAN_VALIDATION
+        /** Destroy the debug report callback. */
+        m_functions.DestroyDebugReportCallbackEXT(m_instance, m_debugReportCallback, nullptr);
+    #endif
 
     vkDestroyInstance(m_instance, nullptr);
 }
