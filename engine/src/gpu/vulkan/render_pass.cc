@@ -382,7 +382,9 @@ void VulkanGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
 
     /* Set up default state for the pass. */
     setViewport(desc.renderArea);
+    frame.viewportDirty = true;
     setScissor(false, IntRect());
+    frame.scissorDirty = true;
     GPUManager::setBlendState<>();
     GPUManager::setDepthStencilState<>();
     GPUManager::setRasterizerState<>();
