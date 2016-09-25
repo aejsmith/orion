@@ -22,6 +22,8 @@
 #include "command_buffer.h"
 #include "manager.h"
 
+#include "engine/engine.h"
+
 /** Bind a pipeline for rendering.
  * @param pipeline      Pipeline to use. */
 void VulkanGPUManager::bindPipeline(GPUPipeline *pipeline) {
@@ -244,6 +246,8 @@ void VulkanGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUInde
     } else {
         vkCmdDraw(cmdBuf->handle(), vertices->count(), 1, 0, 0);
     }
+
+    g_engine->stats().drawCalls++;
 }
 
 #ifdef ORION_BUILD_DEBUG
