@@ -124,13 +124,6 @@ void SceneView::updateMatrices() {
         float verticalFOV = 2.0f * atanf(tanf(fov * 0.5f) / m_aspect);
 
         m_projection = glm::perspective(verticalFOV, m_aspect, m_zNear, m_zFar);
-        const glm::mat4 projectionBiasMatrix(
-            1.0,  0.0, 0.0, 0.0,
-            0.0, -1.0, 0.0, 0.0,
-            0.0,  0.0, 1.0, 0.0,
-            0.0,  0.0, 0.0, 1.0);
-        m_projection = projectionBiasMatrix * m_projection;
-
         uniforms->projection = m_projection;
         m_projectionOutdated = false;
     }

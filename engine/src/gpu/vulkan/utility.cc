@@ -143,7 +143,7 @@ void VulkanUtil::setImageLayout(
         1, &barrier);
 }
 
-/** Set the layout of the first mip of the first layer an image.
+/** Set the layout of the first mip of the first layer of an image.
  * @param cmdBuf        Command buffer to use.
  * @param image         Image to set layout of.
  * @param subresources  Subresource range to set layout of.

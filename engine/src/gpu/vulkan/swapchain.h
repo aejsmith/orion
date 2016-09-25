@@ -23,6 +23,7 @@
 
 #include "utility.h"
 
+class VulkanCommandBuffer;
 class VulkanSurface;
 
 /** Class wrapping a Vulkan swap chain. */
@@ -33,15 +34,8 @@ public:
 
     void recreate();
 
-    /** @return             Current image details. */
-    VkImage currentImage() const { return m_images[m_currentImage]; }
-    /** @return             Presentation completion semaphore. */
-    VulkanSemaphore &presentCompleteSem() { return m_presentCompleteSem; }
-    /** @return             Rendering completion semaphore. */
-    VulkanSemaphore &renderCompleteSem() { return m_renderCompleteSem; }
-
     void startFrame();
-    void endFrame();
+    void endFrame(VulkanCommandBuffer *cmdBuf, VulkanFence *fence);
 private:
     std::vector<VkImage> m_images;      /**< Array of image handles. */
     uint32_t m_currentImage;            /**< Current image index. */

@@ -539,7 +539,13 @@ VulkanRasterizerState::VulkanRasterizerState(const GPURasterizerStateDesc &desc)
             break;
     }
 
-    m_createInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    /* Standard engine front face order is counter-clockwise. However, to
+     * compensate for the differences between GL and Vulkan clip spaces (Y is
+     * up in GL but down in Vulkan), we render upside down in Vulkan and flip
+     * at the end of the frame. As a side effect of that, we have to reverse
+     * the front face order. */
+    m_createInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+
     m_createInfo.lineWidth = 1.0f;
 }
 

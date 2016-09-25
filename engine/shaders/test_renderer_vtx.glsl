@@ -29,9 +29,9 @@ layout(location = 0) out vec4 vtxColour;
 #else
 
 const vec2 vertices[3] = vec2[] (
-    vec2(-0.3,  0.4),
-    vec2( 0.3,  0.4),
-    vec2( 0.0, -0.4)
+    vec2(-0.3, -0.4),
+    vec2( 0.3, -0.4),
+    vec2( 0.0,  0.4)
 );
 
 #endif

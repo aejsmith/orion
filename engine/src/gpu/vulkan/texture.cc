@@ -158,7 +158,7 @@ VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureImageRef
 
 /** Destroy the texture. */
 VulkanTexture::~VulkanTexture() {
-    manager()->invalidateFramebuffers(this, VK_NULL_HANDLE);
+    manager()->invalidateFramebuffers(this);
 
     vkDestroyImageView(manager()->device()->handle(), m_resourceView, nullptr);
     vkDestroyImage(manager()->device()->handle(), m_handle, nullptr);
@@ -506,23 +506,10 @@ void VulkanGPUManager::blit(
     VulkanCommandBuffer *primaryCmdBuf = currentFrame().primaryCmdBuf;
 
     /* Get the images. */
-    VkImage vkSource;
-    if (source) {
-        VulkanTexture *texture = static_cast<VulkanTexture *>(source.texture);
-        vkSource = texture->handle();
-        primaryCmdBuf->addReference(texture);
-    } else {
-        vkSource = m_swapchain->currentImage();
-    }
-
-    VkImage vkDest;
-    if (dest) {
-        VulkanTexture *texture = static_cast<VulkanTexture *>(dest.texture);
-        vkDest = texture->handle();
-        primaryCmdBuf->addReference(texture);
-    } else {
-        vkDest = m_swapchain->currentImage();
-    }
+    auto vkSource = static_cast<VulkanTexture *>((source) ? source.texture : m_surface->texture());
+    primaryCmdBuf->addReference(vkSource);
+    auto vkDest = static_cast<VulkanTexture *>((dest) ? dest.texture : m_surface->texture());
+    primaryCmdBuf->addReference(vkDest);
 
     /* Transition the source subresource to the transfer source layout. */
     VkImageSubresourceRange srcSubresource = {};
@@ -533,7 +520,7 @@ void VulkanGPUManager::blit(
     srcSubresource.layerCount = 1;
     VulkanUtil::setImageLayout(
         primaryCmdBuf,
-        vkSource,
+        vkSource->handle(),
         srcSubresource,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
@@ -547,7 +534,7 @@ void VulkanGPUManager::blit(
     dstSubresource.layerCount = 1;
     VulkanUtil::setImageLayout(
         primaryCmdBuf,
-        vkDest,
+        vkDest->handle(),
         dstSubresource,
         (isWholeDestSubresource) ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
@@ -555,9 +542,9 @@ void VulkanGPUManager::blit(
     /* Perform the blit. */
     vkCmdBlitImage(
         primaryCmdBuf->handle(),
-        vkSource,
+        vkSource->handle(),
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        vkDest,
+        vkDest->handle(),
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         1, &imageBlit,
         VK_FILTER_NEAREST);
@@ -565,13 +552,13 @@ void VulkanGPUManager::blit(
     /* Transition the images back to shader read only. */
     VulkanUtil::setImageLayout(
         primaryCmdBuf,
-        vkSource,
+        vkSource->handle(),
         srcSubresource,
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     VulkanUtil::setImageLayout(
         primaryCmdBuf,
-        vkDest,
+        vkDest->handle(),
         dstSubresource,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);

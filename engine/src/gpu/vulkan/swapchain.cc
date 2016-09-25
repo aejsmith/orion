@@ -48,10 +48,6 @@ void VulkanSwapchain::recreate() {
     VkResult result;
     uint32_t count;
 
-    /* Invalidate framebuffers referring to the old images. */
-    for (VkImage image : m_images)
-        manager()->invalidateFramebuffers(nullptr, image);
-
     VulkanDevice *device = manager()->device();
     VulkanSurface *surface = manager()->surface();
 
@@ -61,7 +57,7 @@ void VulkanSwapchain::recreate() {
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     createInfo.surface = surface->handle();
     createInfo.imageArrayLayers = 1;
-    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    createInfo.imageUsage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
     createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     createInfo.clipped = VK_TRUE;
@@ -195,10 +191,79 @@ void VulkanSwapchain::startFrame() {
 /**
  * End the current frame.
  *
- * Executes an image memory barrier on the current image, transitioning it to
- * the correct layout for presentation, and presents it to the window system.
+ * Transfers from the backbuffer to the current swapchain image, submits the
+ * command buffer, and then presents the frame.
+ *
+ * @param cmdBuf        Command buffer to submit.
+ * @param fence         Fence to signal when the command buffer has finished.
  */
-void VulkanSwapchain::endFrame() {
+void VulkanSwapchain::endFrame(VulkanCommandBuffer *cmdBuf, VulkanFence *fence) {
+    auto texture = static_cast<VulkanTexture *>(manager()->surface()->texture());
+
+    /* Blit to the swapchain image, flipping it in the process. */
+    int32_t width = texture->width();
+    int32_t height = texture->height();
+    VkImageBlit imageBlit = {};
+    imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    imageBlit.srcSubresource.layerCount = 1;
+    imageBlit.srcOffsets[0] = { 0, 0, 0 };
+    imageBlit.srcOffsets[1] = { width, height, 1 };
+    imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    imageBlit.dstSubresource.layerCount = 1;
+    imageBlit.dstOffsets[0] = { 0, height, 0 };
+    imageBlit.dstOffsets[1] = { width, 0, 1 };
+
+    /* Transition the surface image to the transfer source layout and the
+     * swapchain image to transfer destination. */
+    VulkanUtil::setImageLayout(
+        cmdBuf,
+        texture->handle(),
+        VK_IMAGE_ASPECT_COLOR_BIT,
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    VulkanUtil::setImageLayout(
+        cmdBuf,
+        m_images[m_currentImage],
+        VK_IMAGE_ASPECT_COLOR_BIT,
+        VK_IMAGE_LAYOUT_UNDEFINED,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+    /* Perform the blit. */
+    vkCmdBlitImage(
+        cmdBuf->handle(),
+        texture->handle(),
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        m_images[m_currentImage],
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        1, &imageBlit,
+        VK_FILTER_NEAREST);
+
+    /* Transition the surface image back to shader read only and the swapchain
+     * image to present source. */
+    VulkanUtil::setImageLayout(
+        cmdBuf,
+        texture->handle(),
+        VK_IMAGE_ASPECT_COLOR_BIT,
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    VulkanUtil::setImageLayout(
+        cmdBuf,
+        m_images[m_currentImage],
+        VK_IMAGE_ASPECT_COLOR_BIT,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+
+    /* Submit the command buffer. Need to wait until presentation is completed
+     * before executing, and need to signal the semaphore that the present will
+     * wait on after execution. */
+    cmdBuf->end();
+    manager()->queue()->submit(
+        cmdBuf,
+        &m_presentCompleteSem,
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        &m_renderCompleteSem,
+        fence);
+
     /* Present the image. */
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

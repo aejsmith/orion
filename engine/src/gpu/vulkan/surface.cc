@@ -49,8 +49,8 @@ VulkanSurface::VulkanSurface(VulkanGPUManager *manager, const EngineConfiguratio
     VulkanHandle(manager)
 {}
 
-/** Initialise the surface. */
-void VulkanSurface::init() {
+/** Create the surface. */
+void VulkanSurface::create() {
     SDL_SysWMinfo wmInfo;
     SDL_VERSION(&wmInfo.version);
     if (!SDL_GetWindowWMInfo(m_sdlWindow, &wmInfo))
@@ -80,12 +80,12 @@ void VulkanSurface::init() {
         fatal("Failed to create Vulkan surface: %d", result);
 }
 
-/** Choose the surface format to use based on the chosen physical device.
- * @param device        Created Vulkan device.
- * @param features      Feature information. */
-void VulkanSurface::chooseFormat(VulkanDevice *device, const VulkanFeatures &features) {
+/** Choose the surface format to use based on the chosen physical device. */
+void VulkanSurface::chooseFormat() {
     VkResult result;
     uint32_t count;
+
+    VulkanDevice *device = manager()->device();
 
     result = vkGetPhysicalDeviceSurfaceFormatsKHR(device->physicalHandle(), m_handle, &count, nullptr);
     if (result != VK_SUCCESS) {
@@ -118,7 +118,7 @@ void VulkanSurface::chooseFormat(VulkanDevice *device, const VulkanFeatures &fea
 
     /* Now we need to convert this back to a generic pixel format definition. */
     for (int i = 0; i < PixelFormat::kNumFormats; i++) {
-        if (features.formats[i].format == m_surfaceFormat.format) {
+        if (manager()->features().formats[i].format == m_surfaceFormat.format) {
             m_format = static_cast<PixelFormat::Impl>(i);
             return;
         }
@@ -127,8 +127,22 @@ void VulkanSurface::chooseFormat(VulkanDevice *device, const VulkanFeatures &fea
     fatal("Could not match Vulkan surface format to PixelFormat");
 }
 
+/** Finalise the surface. */
+void VulkanSurface::finalise() {
+    /* Create our backing texture. */
+    GPUTextureDesc desc;
+    desc.type = GPUTexture::kTexture2D;
+    desc.width = width();
+    desc.height = height();
+    desc.mips = 1;
+    desc.flags = GPUTexture::kRenderTarget;
+    desc.format = m_format;
+    m_texture = manager()->createTexture(desc);
+}
+
 /** Destroy the surface. */
 void VulkanSurface::destroy() {
+    m_texture = nullptr;
     vkDestroySurfaceKHR(manager()->instance(), m_handle, nullptr);
 }
 

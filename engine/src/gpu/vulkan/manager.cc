@@ -240,7 +240,7 @@ VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&w
     #endif
 
     /* Now we can create the surface. */
-    m_surface->init();
+    m_surface->create();
 
     /* Get a list of physical devices. */
     uint32_t deviceCount = 0;
@@ -283,18 +283,23 @@ VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&w
     /* Initialise other feature information. */
     initFeatures();
 
-    /* Choose the surface format to use based on the device we chose. */
-    m_surface->chooseFormat(m_device, m_features);
-
     /* Create other global objects. */
     m_queue = new VulkanQueue(this, m_device->queueFamily(), 0);
     m_commandPool = new VulkanCommandPool(this);
     m_descriptorPool = new VulkanDescriptorPool(this);
     m_memoryManager = new VulkanMemoryManager(this);
+
+    /* Choose a surface format and create a swapchain. */
+    m_surface->chooseFormat();
     m_swapchain = new VulkanSwapchain(this);
 
     /* Begin the first frame. */
     startFrame();
+
+    /* Finally create our backing texture for the main window. This must be done
+     * after beginning the first frame as it needs a staging command buffer when
+     * setting up the texture. */
+    m_surface->finalise();
 }
 
 /** Shut down the Vulkan GPU manager. */
@@ -304,7 +309,7 @@ VulkanGPUManager::~VulkanGPUManager() {
     cleanupFrames(true);
 
     /* Delete all framebuffer objects. */
-    invalidateFramebuffers(nullptr, VK_NULL_HANDLE);
+    invalidateFramebuffers(nullptr);
 
     /* Destroy all cached state objects. */
     destroyStates();
@@ -314,11 +319,12 @@ VulkanGPUManager::~VulkanGPUManager() {
     delete m_descriptorPool;
     delete m_commandPool;
     delete m_queue;
-    delete m_device;
 
     /* Freed by the engine, but we need to destroy the surface prior to the
      * instance to avoid validation errors. */
     m_surface->destroy();
+
+    delete m_device;
 
     #if ORION_VULKAN_VALIDATION
         /** Destroy the debug report callback. */
@@ -387,16 +393,6 @@ void VulkanGPUManager::startFrame() {
 
     /* Acquire a new image from the swap chain. */
     m_swapchain->startFrame();
-
-    /* Set the swapchain image layout to shader read-only because that is what
-     * everything else expects the "default" layout of an image to be. TODO: We
-     * can avoid this by treating the main window specially. */
-    VulkanUtil::setImageLayout(
-        frame.primaryCmdBuf,
-        m_swapchain->currentImage(),
-        VK_IMAGE_ASPECT_COLOR_BIT,
-        VK_IMAGE_LAYOUT_UNDEFINED,
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 /** Clean up completed frames.
@@ -426,32 +422,11 @@ void VulkanGPUManager::cleanupFrames(bool shutdown) {
 void VulkanGPUManager::endFrame() {
     VulkanFrame &completedFrame = currentFrame();
 
-    /* Set the swapchain image layout to present source. */
-    VulkanUtil::setImageLayout(
-        completedFrame.primaryCmdBuf,
-        m_swapchain->currentImage(),
-        VK_IMAGE_ASPECT_COLOR_BIT,
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-
     /* Perform any host to device transfers pending. */
     m_memoryManager->flushStagingCmdBuf();
 
-    /* Submit the primary command buffer. Need to wait until presentation is
-     * completed before executing, and need to signal the semaphore that the
-     * present will wait on after execution. Also signal the frame fence when
-     * it has completed. */
-// TODO: Do I need a semaphore between staging and primary?
-    completedFrame.primaryCmdBuf->end();
-    m_queue->submit(
-        completedFrame.primaryCmdBuf,
-        &m_swapchain->presentCompleteSem(),
-        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-        &m_swapchain->renderCompleteSem(),
-        &completedFrame.fence);
-
-    /* Present the frame. */
-    m_swapchain->endFrame();
+    /* Submit and present the frame. */
+    m_swapchain->endFrame(completedFrame.primaryCmdBuf, &completedFrame.fence);
 
     /* Release all state. Probably a bit unnecessary because these have probably
      * been used for rendering and therefore have been referenced in a command

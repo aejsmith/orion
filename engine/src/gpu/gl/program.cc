@@ -33,22 +33,6 @@
 
 #include "core/string.h"
 
-/** Custom implementation of SPIRV-Cross' CompileGLSL. */
-class OrionCompilerGLSL : public spirv_cross::CompilerGLSL {
-public:
-    using CompilerGLSL::CompilerGLSL;
-protected:
-    /** Perform fixups before a return. */
-    void emit_fixup() override {
-        CompilerGLSL::emit_fixup();
-
-        /* We follow Vulkan conventions where clip space Y points down the
-         * screen. Convert this back for GL. */
-        if (execution.model == spv::ExecutionModelVertex)
-            statement("gl_Position.y = -gl_Position.y;");
-    }
-};
-
 /** Initialize the program.
  * @param stage         Stage that the program is for.
  * @param program       Linked program object.
@@ -93,7 +77,7 @@ void GLProgram::setResourceLayout(const GPUResourceSetLayoutArray &layouts) {
 /** Get and fix up resources from a SPIR-V shader.
  * @param compiler      Cross compiler.
  * @return              Generated resource list. */
-static GLProgram::ResourceList getResources(OrionCompilerGLSL &compiler) {
+static GLProgram::ResourceList getResources(spirv_cross::CompilerGLSL &compiler) {
     GLProgram::ResourceList resources;
 
     spirv_cross::ShaderResources spvResources = compiler.get_shader_resources();
@@ -126,10 +110,10 @@ static GLProgram::ResourceList getResources(OrionCompilerGLSL &compiler) {
  * @param stage         Stage that the program is for.
  * @param name          Name of the shader.
  * @return              Generated source string. */
-static std::string generateSource(OrionCompilerGLSL &compiler, unsigned stage, const std::string &name) {
+static std::string generateSource(spirv_cross::CompilerGLSL &compiler, unsigned stage, const std::string &name) {
     GLFeatures &features = g_opengl->features;
 
-    OrionCompilerGLSL::Options options;
+    spirv_cross::CompilerGLSL::Options options;
     options.version = (features.versionMajor * 100) + (features.versionMinor * 10);
     options.es = false;
     options.vulkan_semantics = false;
@@ -187,7 +171,7 @@ GPUProgramPtr GLGPUManager::createProgram(
     const std::vector<uint32_t> &spirv,
     const std::string &name)
 {
-    OrionCompilerGLSL compiler(spirv);
+    spirv_cross::CompilerGLSL compiler(spirv);
 
     /* See resource.cc for a description of how we handle resource bindings.
      * Here we record the resource set binding information in the SPIR-V shader

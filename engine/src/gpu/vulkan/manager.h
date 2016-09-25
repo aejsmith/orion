@@ -194,7 +194,7 @@ public:
     /** @return             Data for the current frame. */
     VulkanFrame &currentFrame() { return m_frames.back(); }
 
-    void invalidateFramebuffers(const VulkanTexture *texture, VkImage swapImage);
+    void invalidateFramebuffers(const VulkanTexture *texture);
 private:
     void initFeatures();
 
