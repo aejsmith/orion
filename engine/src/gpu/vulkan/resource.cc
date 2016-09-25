@@ -114,7 +114,8 @@ VulkanDescriptorPool::~VulkanDescriptorPool() {
 VulkanResourceSet::VulkanResourceSet(VulkanGPUManager *manager, GPUResourceSetLayout *layout) :
     GPUResourceSet(layout),
     VulkanObject(manager),
-    m_dirtySlots(m_slots.size(), true)
+    m_dirtySlots(m_slots.size(), true),
+    m_bufferBindings(m_slots.size(), 0)
 {}
 
 /** Destroy the resource set. */
@@ -181,8 +182,25 @@ VkDescriptorSet VulkanResourceSet::prepareForDraw(VulkanCommandBuffer *cmdBuf) {
     bool needUpdate = false;
     bool needNew = false;
     if (m_current) {
-        for (bool dirtySlot : m_dirtySlots) {
-            if (dirtySlot)
+        for (size_t i = 0; i < m_slots.size(); i++) {
+            const Slot &slot = m_slots[i];
+
+            /* If this resource slot is a buffer, we need to check if we have
+             * reallocated the buffer since we bound it, in which case we do
+             * need to update the descriptor. */
+            switch (slot.desc.type) {
+                case GPUResourceType::kUniformBuffer:
+                    if (!m_dirtySlots[i] && slot.object) {
+                        VulkanBuffer *buffer = static_cast<VulkanBuffer *>(slot.object.get());
+                        m_dirtySlots[i] = m_bufferBindings[i] != buffer->generation();
+                    }
+
+                    break;
+                default:
+                    break;
+            }
+
+            if (m_dirtySlots[i])
                 needUpdate = true;
         }
 

@@ -31,6 +31,7 @@ VulkanBuffer::VulkanBuffer(VulkanGPUManager *manager, Type type, Usage usage, si
     GPUBuffer(type, usage, size),
     VulkanObject(manager),
     m_allocation(nullptr),
+    m_generation(0),
     m_mapSize(0)
 {
     /* Allocate the buffer. */
@@ -79,6 +80,8 @@ void VulkanBuffer::reallocate() {
 
     /* Allocate a buffer. */
     m_allocation = manager()->memoryManager()->allocateBuffer(m_size, usageFlag, memoryFlags);
+
+    m_generation++;
 }
 
 /** Map the buffer.

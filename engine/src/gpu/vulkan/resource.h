@@ -82,4 +82,6 @@ private:
 
     /** Currently dirty slots. */
     std::vector<bool> m_dirtySlots;
+    /** Currently bound generation numbers for buffer resources. */
+    std::vector<uint32_t> m_bufferBindings;
 };

@@ -34,11 +34,26 @@ public:
 
     /** @return             Memory allocation currently backing this buffer. */
     VulkanMemoryManager::BufferMemory *allocation() const { return m_allocation; }
+    /** @return             Generation number for tracking reallocations. */
+    uint32_t generation() const { return m_generation; }
 private:
     void reallocate();
 
     /** Memory allocation backing this buffer. */
     VulkanMemoryManager::BufferMemory *m_allocation;
+
+    /**
+     * Generation number.
+     *
+     * This is used to keep track of when a buffer is reallocated. Each time a
+     * reallocation occurs this number is increased. The reason we do this
+     * instead of just using the allocation handle pointer is that theoretically
+     * it is possible for one handle to be freed then another to be allocated at
+     * the same address. We could add a reference to the handle when we're using
+     * it for tracking but that would possibly prevent the allocation from being
+     * freed.
+     */
+    uint32_t m_generation;
 
     size_t m_mapOffset;             /**< Current mapping offset. */
     size_t m_mapSize;               /**< Current mapping size. */
