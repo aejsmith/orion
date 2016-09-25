@@ -1,6 +1,6 @@
 # Orion
 
-Orion is a hobby 3D game engine project. It currently supports Linux and Mac OS X (Windows support is planned).
+Orion is a hobby 3D game engine project. It currently supports Linux (Windows support is planned).
 
 ## License
 
@@ -26,4 +26,13 @@ You can then build by running SCons:
 
 And finally run with:
 
-    $ build/orion
+    $ build/release/orion
+
+A number of options can be passed to SCons to configure the build, which will be saved until the next time they are specified. The following options are supported:
+
+* `BUILD`: Either `debug` or `release`. The built program will be in `build/$BUILD`. Debug builds disable optimisation and include many more checks.
+* `GPU_API`: Either `gl` or `vulkan`. Selects the GPU backend to use.
+
+Example:
+
+    $ scons BUILD=debug GPU_API=vulkan
