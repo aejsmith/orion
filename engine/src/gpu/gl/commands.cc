@@ -326,7 +326,7 @@ void GLGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexDat
             mode,
             indices->count(),
             GLUtil::convertIndexType(indices->type()),
-            reinterpret_cast<void *>(indices->offset()));
+            reinterpret_cast<void *>(indices->offset() * indices->elementSize()));
     } else {
         glDrawArrays(mode, 0, vertices->count());
     }

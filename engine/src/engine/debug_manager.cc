@@ -392,7 +392,7 @@ void DebugOverlay::render(bool first) {
             drawList.addDrawCalls(geometry, m_material, nullptr, Pass::Type::kBasic);
             drawList.draw();
 
-            indexBufferOffset += cmd->ElemCount * sizeof(ImDrawIdx);
+            indexBufferOffset += cmd->ElemCount;
         }
     }
 
