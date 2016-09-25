@@ -146,6 +146,14 @@ public:
 
     /** @return             Render target descriptor. */
     const GPURenderTargetDesc &targets() const { return m_targets; }
+
+    /** @return             Current target size. */
+    glm::ivec2 size() const {
+        const GPUTexture *texture = (m_targets.colour.size())
+            ? m_targets.colour[0].texture
+            : m_targets.depthStencil.texture;
+        return glm::ivec2(texture->width(), texture->height());
+    }
 private:
     /** Render target descriptor. */
     GPURenderTargetDesc m_targets;

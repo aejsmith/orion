@@ -68,8 +68,13 @@ void VulkanGPUManager::setViewport(const IntRect &viewport) {
 
     check(frame.renderPass);
 
-    if (frame.viewport != viewport) {
-        frame.viewport = viewport;
+    /* Our viewport origin conventions match, but in Vulkan we render upside
+     * down to compensate for clip space differences, so we must flip. */
+    IntRect fixedViewport = viewport;
+    fixedViewport.y = frame.framebuffer->size().y - (viewport.y + viewport.height);
+
+    if (frame.viewport != fixedViewport) {
+        frame.viewport = fixedViewport;
         frame.viewportDirty = true;
     }
 }
@@ -82,9 +87,13 @@ void VulkanGPUManager::setScissor(bool enable, const IntRect &scissor) {
 
     check(frame.renderPass);
 
-    if (frame.scissorEnabled != enable || frame.scissor != scissor) {
+    /* Same as above. */
+    IntRect fixedScissor = scissor;
+    fixedScissor.y = frame.framebuffer->size().y - (scissor.y + scissor.height);
+
+    if (frame.scissorEnabled != enable || frame.scissor != fixedScissor) {
         frame.scissorEnabled = enable;
-        frame.scissor = scissor;
+        frame.scissor = fixedScissor;
         frame.scissorDirty = true;
     }
 }
