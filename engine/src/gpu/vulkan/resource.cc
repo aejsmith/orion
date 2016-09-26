@@ -336,20 +336,12 @@ VkDescriptorSet VulkanResourceSet::prepareForDraw(VulkanCommandBuffer *cmdBuf) {
 
         switch (slot.desc.type) {
             case GPUResourceType::kUniformBuffer:
-            {
-                /* Buffers and their allocations have separate lifetimes.
-                 * Reference both. */
-                VulkanBuffer *buffer = static_cast<VulkanBuffer *>(slot.object.get());
-                cmdBuf->addReference(buffer);
-                cmdBuf->addReference(buffer->allocation());
+                cmdBuf->addReference(static_cast<VulkanBuffer *>(slot.object.get()));
                 break;
-            }
-
             case GPUResourceType::kTexture:
-                cmdBuf->addReference(slot.object);
+                cmdBuf->addReference(static_cast<VulkanTexture *>(slot.object.get()));
                 cmdBuf->addReference(slot.sampler);
                 break;
-
             default:
                 unreachable();
         }

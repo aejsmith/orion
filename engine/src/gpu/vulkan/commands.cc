@@ -199,14 +199,11 @@ void VulkanGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUInde
         std::vector<VkBuffer> vertexBuffers(vertices->buffers().size());
         std::vector<VkDeviceSize> vertexBufferOffsets(vertices->buffers().size());
         for (size_t i = 0; i < vertices->buffers().size(); i++) {
-            VulkanBuffer *buffer = static_cast<VulkanBuffer *>(vertices->buffers()[i].get());
+            auto buffer = static_cast<VulkanBuffer *>(vertices->buffers()[i].get());
             vertexBuffers[i] = buffer->allocation()->buffer();
             vertexBufferOffsets[i] = buffer->allocation()->offset();
 
-            // FIXME: Put both these calls into a helper on VulkanBuffer, it's an
-            // implementation detail.
             cmdBuf->addReference(buffer);
-            cmdBuf->addReference(buffer->allocation());
         }
 
         vkCmdBindVertexBuffers(
@@ -229,7 +226,7 @@ void VulkanGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUInde
                 break;
         }
 
-        VulkanBuffer *buffer = static_cast<VulkanBuffer *>(indices->buffer());
+        auto buffer = static_cast<VulkanBuffer *>(indices->buffer());
         vkCmdBindIndexBuffer(
             cmdBuf->handle(),
             buffer->allocation()->buffer(),
@@ -237,7 +234,6 @@ void VulkanGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUInde
             indexType);
 
         cmdBuf->addReference(buffer);
-        cmdBuf->addReference(buffer->allocation());
     }
 
     /* Perform the draw! */

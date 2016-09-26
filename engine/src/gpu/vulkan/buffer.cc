@@ -140,11 +140,7 @@ void VulkanBuffer::unmap() {
             m_allocation->buffer(),
             1, &bufferCopy);
 
-        /* Our memory allocation lifetime is not tied directly to our own
-         * lifetime due to invalidation, so we must reference both ourself and
-         * our allocation in the command buffer. */
         stagingCmdBuf->addReference(this);
-        stagingCmdBuf->addReference(m_allocation);
     }
 
     m_mapSize = 0;

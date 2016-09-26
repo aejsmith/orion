@@ -53,6 +53,7 @@ public:
     void end();
 
     void addReference(Refcounted *object);
+    void addReference(GPUBuffer *buffer);
 private:
     /** State of the command buffer. */
     enum class State {

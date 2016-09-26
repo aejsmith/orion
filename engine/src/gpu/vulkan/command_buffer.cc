@@ -146,3 +146,19 @@ void VulkanCommandBuffer::end() {
 void VulkanCommandBuffer::addReference(Refcounted *object) {
     m_references.emplace_back(object);
 }
+
+/**
+ * Add a buffer reference.
+ *
+ * Special case of addReference() to add a reference for a buffer, as buffers
+ * have special behaviour (their current allocations must also be referenced).
+ *
+ * @param buffer        Buffer to reference.
+ */
+void VulkanCommandBuffer::addReference(GPUBuffer *buffer) {
+    /* Buffer memory allocation lifetime is not tied directly to the buffer
+     * object lifetime due to invalidation, so we must reference both the buffer
+     * and its current allocation. */
+    addReference(static_cast<Refcounted *>(buffer));
+    addReference(static_cast<VulkanBuffer *>(buffer)->allocation());
+}
