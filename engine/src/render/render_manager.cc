@@ -203,12 +203,13 @@ void RenderManager::allocRenderTargets(RenderPath path, glm::ivec2 size) {
             rt.screenBufferSize.x, rt.screenBufferSize.y, size.x, size.y);
 
         /* Allocate the buffers. */
-        GPUTextureDesc desc;
-        desc.type = GPUTexture::kTexture2D;
-        desc.width = rt.screenBufferSize.x;
-        desc.height = rt.screenBufferSize.y;
-        desc.mips = 1;
-        desc.flags = GPUTexture::kRenderTarget;
+        auto desc = GPUTextureDesc().
+            setType(GPUTexture::kTexture2D).
+            setWidth(rt.screenBufferSize.x).
+            setHeight(rt.screenBufferSize.y).
+            setMips(1).
+            setFlags(GPUTexture::kRenderTarget);
+
         desc.format = kScreenColourBufferFormat;
         rt.colourBuffer = g_gpuManager->createTexture(desc);
         desc.format = kScreenDepthBufferFormat;
@@ -233,12 +234,13 @@ void RenderManager::allocRenderTargets(RenderPath path, glm::ivec2 size) {
             rt.deferredBufferSize.x, rt.deferredBufferSize.y, size.x, size.y);
 
         /* Allocate the buffers. See render/defs.h for layout information. */
-        GPUTextureDesc desc;
-        desc.type = GPUTexture::kTexture2D;
-        desc.width = rt.deferredBufferSize.x;
-        desc.height = rt.deferredBufferSize.y;
-        desc.mips = 1;
-        desc.flags = GPUTexture::kRenderTarget;
+        auto desc = GPUTextureDesc().
+            setType(GPUTexture::kTexture2D).
+            setWidth(rt.deferredBufferSize.x).
+            setHeight(rt.deferredBufferSize.y).
+            setMips(1).
+            setFlags(GPUTexture::kRenderTarget);
+
         desc.format = kDeferredBufferAFormat;
         rt.deferredBufferA = g_gpuManager->createTexture(desc);
         desc.format = kDeferredBufferBFormat;

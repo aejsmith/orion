@@ -98,10 +98,12 @@ void TextureBase::setAddressMode(SamplerAddressMode mode) {
 
 /** Recreate the texture sampler state. */
 void TextureBase::updateSamplerState() {
-    GPUSamplerStateDesc desc;
-    desc.filterMode = m_filterMode;
-    desc.maxAnisotropy = m_anisotropy;
-    desc.addressU = desc.addressV = desc.addressW = m_addressMode;
+    auto desc = GPUSamplerStateDesc().
+        setFilterMode(m_filterMode).
+        setMaxAnisotropy(m_anisotropy).
+        setAddressU(m_addressMode).
+        setAddressV(m_addressMode).
+        setAddressW(m_addressMode);
     m_sampler = g_gpuManager->getSamplerState(desc);
 }
 
@@ -213,13 +215,13 @@ Texture2D::Texture2D(
     :
     m_renderTexture(nullptr)
 {
-    GPUTextureDesc desc;
-    desc.type = GPUTexture::kTexture2D;
-    desc.width = width;
-    desc.height = height;
-    desc.format = format;
-    desc.mips = mips;
-    desc.flags = flags;
+    auto desc = GPUTextureDesc().
+        setType(GPUTexture::kTexture2D).
+        setWidth(width).
+        setHeight(height).
+        setFormat(format).
+        setMips(mips).
+        setFlags(flags);
 
     m_gpu = g_gpuManager->createTexture(desc);
 
@@ -336,13 +338,13 @@ RenderTexture *Texture2D::renderTexture() {
  * @param flags         GPU texture creation flags.
  */
 TextureCube::TextureCube(uint32_t size, PixelFormat format, unsigned mips, uint32_t flags) {
-    GPUTextureDesc desc;
-    desc.type = GPUTexture::kTextureCube;
-    desc.width = size;
-    desc.height = size;
-    desc.format = format;
-    desc.mips = mips;
-    desc.flags = flags;
+    auto desc = GPUTextureDesc().
+        setType(GPUTexture::kTextureCube).
+        setWidth(size).
+        setHeight(size).
+        setFormat(format).
+        setMips(mips).
+        setFlags(flags);
 
     m_gpu = g_gpuManager->createTexture(desc);
 }

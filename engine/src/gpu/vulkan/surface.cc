@@ -130,13 +130,13 @@ void VulkanSurface::chooseFormat() {
 /** Finalise the surface. */
 void VulkanSurface::finalise() {
     /* Create our backing texture. */
-    GPUTextureDesc desc;
-    desc.type = GPUTexture::kTexture2D;
-    desc.width = width();
-    desc.height = height();
-    desc.mips = 1;
-    desc.flags = GPUTexture::kRenderTarget;
-    desc.format = m_format;
+    auto desc = GPUTextureDesc().
+        setType(GPUTexture::kTexture2D).
+        setWidth(width()).
+        setHeight(height()).
+        setMips(1).
+        setFlags(GPUTexture::kRenderTarget).
+        setFormat(m_format);
     m_texture = manager()->createTexture(desc);
 }
 

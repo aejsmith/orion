@@ -105,11 +105,7 @@ void SceneRenderer::addLight(SceneLight *light) {
         state.shadowMap = light->allocShadowMap();
 
         /* Update the shadow map resource binding. */
-        GPUSamplerStateDesc samplerDesc;
-        samplerDesc.filterMode = SamplerFilterMode::kNearest;
-        samplerDesc.maxAnisotropy = 1;
-        samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
-        GPUSamplerStatePtr sampler = g_gpuManager->getSamplerState(samplerDesc);
+        GPUSamplerStatePtr sampler = g_gpuManager->getSamplerState(GPUSamplerStateDesc());
         state.resources->bindTexture(ResourceSlots::kShadowMap, state.shadowMap, sampler);
 
         /* Now find all shadow casting entities which are affected by this light. */
@@ -396,11 +392,7 @@ void SceneRenderer::setViewResources(SceneView *view, RenderPath path) {
     if (path == RenderPath::kDeferred) {
         const RenderManager::RenderTargets &targets = g_renderManager->renderTargets();
 
-        GPUSamplerStateDesc samplerDesc;
-        samplerDesc.filterMode = SamplerFilterMode::kNearest;
-        samplerDesc.maxAnisotropy = 1;
-        samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
-        GPUSamplerStatePtr sampler = g_gpuManager->getSamplerState(samplerDesc);
+        GPUSamplerStatePtr sampler = g_gpuManager->getSamplerState(GPUSamplerStateDesc());
 
         resources->bindTexture(ResourceSlots::kDeferredBufferA, targets.deferredBufferA, sampler);
         resources->bindTexture(ResourceSlots::kDeferredBufferB, targets.deferredBufferB, sampler);

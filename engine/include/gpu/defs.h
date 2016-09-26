@@ -168,6 +168,16 @@ enum class SamplerFilterMode {
 };
 
 /**
+ * Miscellaneous helpers.
+ */
+
+/** Macro to define a function to set a descriptor parameter.
+ * @param func          Name for the function.
+ * @param type          Type of the parameter.
+ * @param name          Name of the parameter. */
+#define SET_DESC_PARAMETER(func, type, name) \
+    auto &func(type name) { this->name = name; return *this; }
+/**
  * Resource base class.
  */
 

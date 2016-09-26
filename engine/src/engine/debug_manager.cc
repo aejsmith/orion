@@ -202,13 +202,12 @@ void DebugOverlay::initResources() {
     unsigned char *pixels;
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-    GPUTextureDesc textureDesc;
-    textureDesc.type = GPUTexture::kTexture2D;
-    textureDesc.width = width;
-    textureDesc.height = height;
-    textureDesc.format = PixelFormat::kR8G8B8A8;
-    textureDesc.mips = 1;
-    textureDesc.flags = 0;
+    auto textureDesc = GPUTextureDesc().
+        setType(GPUTexture::kTexture2D).
+        setWidth(width).
+        setHeight(height).
+        setFormat(PixelFormat::kR8G8B8A8).
+        setMips(1);
     m_fontTexture = g_gpuManager->createTexture(textureDesc);
     m_fontTexture->update(
         IntRect(0, 0, width, height),
@@ -217,10 +216,9 @@ void DebugOverlay::initResources() {
     io.Fonts->ClearTexData();
 
     /* Create the texture sampler. */
-    GPUSamplerStateDesc samplerDesc;
-    samplerDesc.filterMode = SamplerFilterMode::kBilinear;
-    samplerDesc.maxAnisotropy = 1;
-    samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
+    auto samplerDesc = GPUSamplerStateDesc().
+        setFilterMode(SamplerFilterMode::kBilinear).
+        setMaxAnisotropy(1);
     m_sampler = g_gpuManager->getSamplerState(samplerDesc);
 
     /* Add the overlay to the main window. */
@@ -342,10 +340,10 @@ void DebugOverlay::render(bool first) {
 
         /* Generate vertex data. */
         GPUBufferArray vertexBuffers(1);
-        GPUBufferDesc vertexBufferDesc;
-        vertexBufferDesc.type = GPUBuffer::kVertexBuffer;
-        vertexBufferDesc.usage = GPUBuffer::kTransientUsage;
-        vertexBufferDesc.size = cmdList->VtxBuffer.size() * sizeof(ImDrawVert);
+        auto vertexBufferDesc = GPUBufferDesc().
+            setType(GPUBuffer::kVertexBuffer).
+            setUsage(GPUBuffer::kTransientUsage).
+            setSize(cmdList->VtxBuffer.size() * sizeof(ImDrawVert));
         vertexBuffers[0] = g_gpuManager->createBuffer(vertexBufferDesc);
         vertexBuffers[0]->write(0, vertexBufferDesc.size, &cmdList->VtxBuffer.front());
         GPUVertexDataPtr vertexData = g_gpuManager->createVertexData(
@@ -354,10 +352,10 @@ void DebugOverlay::render(bool first) {
             std::move(vertexBuffers));
 
         /* Generate index buffer. */
-        GPUBufferDesc indexBufferDesc;
-        indexBufferDesc.type = GPUBuffer::kIndexBuffer;
-        indexBufferDesc.usage = GPUBuffer::kTransientUsage;
-        indexBufferDesc.size = cmdList->IdxBuffer.size() * sizeof(ImDrawIdx);
+        auto indexBufferDesc = GPUBufferDesc().
+            setType(GPUBuffer::kIndexBuffer).
+            setUsage(GPUBuffer::kTransientUsage).
+            setSize(cmdList->IdxBuffer.size() * sizeof(ImDrawIdx));
         GPUBufferPtr indexBuffer = g_gpuManager->createBuffer(indexBufferDesc);
         indexBuffer->write(0, indexBufferDesc.size, &cmdList->IdxBuffer.front());
 

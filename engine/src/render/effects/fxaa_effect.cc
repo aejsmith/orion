@@ -35,10 +35,9 @@ FXAAEffect::FXAAEffect() {
  * @return              Whether the effect was performed. */
 bool FXAAEffect::render(GPUTexture *source, GPUTexture *dest) {
     /* Use bilinear filtering. */
-    GPUSamplerStateDesc samplerDesc;
-    samplerDesc.filterMode = SamplerFilterMode::kBilinear;
-    samplerDesc.maxAnisotropy = 1;
-    samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
+    auto samplerDesc = GPUSamplerStateDesc().
+        setFilterMode(SamplerFilterMode::kBilinear).
+        setMaxAnisotropy(1);
     GPUSamplerStatePtr samplerState = g_gpuManager->getSamplerState(samplerDesc);
 
     blit(source, dest, m_material, 0, samplerState);

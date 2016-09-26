@@ -51,6 +51,16 @@ struct GPUBlendStateDesc {
     BlendFactor sourceFactor;       /**< Source factor. */
     BlendFactor destFactor;         /**< Destination factor. */
 
+    GPUBlendStateDesc() :
+        func(BlendFunc::kAdd),
+        sourceFactor(BlendFactor::kOne),
+        destFactor(BlendFactor::kZero)
+    {}
+
+    SET_DESC_PARAMETER(setFunc, BlendFunc, func);
+    SET_DESC_PARAMETER(setSourceFactor, BlendFactor, sourceFactor);
+    SET_DESC_PARAMETER(setDestFactor, BlendFactor, destFactor);
+
     /** Compare this descriptor with another. */
     bool operator ==(const GPUBlendStateDesc &other) const {
         return func == other.func && sourceFactor == other.sourceFactor && destFactor == other.destFactor;
@@ -76,6 +86,14 @@ struct GPUDepthStencilStateDesc {
     ComparisonFunc depthFunc;       /**< Depth comparison function. */
     bool depthWrite;                /**< Whether to enable depth buffer writes. */
 
+    GPUDepthStencilStateDesc() :
+        depthFunc(ComparisonFunc::kLessOrEqual),
+        depthWrite(true)
+    {}
+
+    SET_DESC_PARAMETER(setDepthFunc, ComparisonFunc, depthFunc);
+    SET_DESC_PARAMETER(setDepthWrite, bool, depthWrite);
+
     /** Compare this descriptor with another. */
     bool operator ==(const GPUDepthStencilStateDesc &other) const {
         return depthFunc == other.depthFunc && depthWrite == other.depthWrite;
@@ -99,6 +117,14 @@ using GPUDepthStencilStatePtr = GPUObjectPtr<GPUDepthStencilState>;
 struct GPURasterizerStateDesc {
     CullMode cullMode;              /**< Face culling mode. */
     bool depthClamp;                /**< Whether to enable depth clamping. */
+
+    GPURasterizerStateDesc() :
+        cullMode(CullMode::kBack),
+        depthClamp(false)
+    {}
+
+    SET_DESC_PARAMETER(setCullMode, CullMode, cullMode);
+    SET_DESC_PARAMETER(setDepthClamp, bool, depthClamp);
 
     /** Compare this descriptor with another. */
     bool operator ==(const GPURasterizerStateDesc &other) const {
@@ -126,6 +152,20 @@ struct GPUSamplerStateDesc {
     SamplerAddressMode addressU;    /**< Addressing mode in U direction. */
     SamplerAddressMode addressV;    /**< Addressing mode in V direction. */
     SamplerAddressMode addressW;    /**< Addressing mode in W direction. */
+
+    GPUSamplerStateDesc() :
+        filterMode(SamplerFilterMode::kNearest),
+        maxAnisotropy(1),
+        addressU(SamplerAddressMode::kClamp),
+        addressV(SamplerAddressMode::kClamp),
+        addressW(SamplerAddressMode::kClamp)
+    {}
+
+    SET_DESC_PARAMETER(setFilterMode, SamplerFilterMode, filterMode);
+    SET_DESC_PARAMETER(setMaxAnisotropy, unsigned, maxAnisotropy);
+    SET_DESC_PARAMETER(setAddressU, SamplerAddressMode, addressU);
+    SET_DESC_PARAMETER(setAddressV, SamplerAddressMode, addressV);
+    SET_DESC_PARAMETER(setAddressW, SamplerAddressMode, addressW);
 
     /** Compare this descriptor with another. */
     bool operator ==(const GPUSamplerStateDesc &other) const {

@@ -131,4 +131,10 @@ struct GPUBufferDesc {
     GPUBuffer::Type type;           /**< Type of the buffer */
     GPUBuffer::Usage usage;         /**< Buffer usage hint. */
     size_t size;                    /**< Buffer size. */
+
+    GPUBufferDesc() {}
+
+    SET_DESC_PARAMETER(setType, GPUBuffer::Type, type);
+    SET_DESC_PARAMETER(setUsage, GPUBuffer::Usage, usage);
+    SET_DESC_PARAMETER(setSize, size_t, size);
 };

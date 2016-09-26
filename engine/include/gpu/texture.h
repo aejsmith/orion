@@ -123,7 +123,20 @@ struct GPUTextureDesc {
     PixelFormat format;             /**< Pixel format. */
     unsigned mips;                  /**< Number of mip levels (0 for full pyramid). */
     uint32_t flags;                 /**< Behaviour flags for the texture. */
-public:
+
+    GPUTextureDesc() :
+        mips(0),
+        flags(0)
+    {}
+
+    SET_DESC_PARAMETER(setType, GPUTexture::Type, type);
+    SET_DESC_PARAMETER(setWidth, uint32_t, width);
+    SET_DESC_PARAMETER(setHeight, uint32_t, height);
+    SET_DESC_PARAMETER(setDepth, uint32_t, depth);
+    SET_DESC_PARAMETER(setFormat, PixelFormat, format);
+    SET_DESC_PARAMETER(setMips, unsigned, mips);
+    SET_DESC_PARAMETER(setFlags, uint32_t, flags);
+
     /** Compare this descriptor with another. */
     bool operator ==(const GPUTextureDesc &other) const {
         return

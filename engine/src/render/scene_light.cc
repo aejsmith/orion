@@ -151,22 +151,25 @@ void SceneLight::volumeGeometry(Geometry &geometry) const {
 /** Allocate a shadow map for this light.
  * @return              Pointer to allocated shadow map. */
 GPUTexture *SceneLight::allocShadowMap() const {
-    GPUTextureDesc desc;
-    desc.width = desc.height = g_renderManager->shadowMapResolution();
-    desc.mips = 1;
-    desc.flags = GPUTexture::kRenderTarget;
-    desc.format = kShadowMapFormat;
-
+    GPUTexture::Type type;
     switch (m_type) {
         case kSpotLight:
-            desc.type = GPUTexture::kTexture2D;
+            type = GPUTexture::kTexture2D;
             break;
         case kPointLight:
-            desc.type = GPUTexture::kTextureCube;
+            type = GPUTexture::kTextureCube;
             break;
         default:
             fatal("TODO");
     }
+
+    auto desc = GPUTextureDesc().
+        setType(type).
+        setWidth(g_renderManager->shadowMapResolution()).
+        setHeight(g_renderManager->shadowMapResolution()).
+        setMips(1).
+        setFlags(GPUTexture::kRenderTarget).
+        setFormat(kShadowMapFormat);
 
     return g_renderManager->allocTempRenderTarget(desc);
 }

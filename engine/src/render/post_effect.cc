@@ -59,11 +59,7 @@ void PostEffect::blit(
     GPUResourceSetPtr resources = g_gpuManager->createResourceSet(
         g_renderManager->resources().postEffectResourceSetLayout);
 
-    GPUSamplerStateDesc samplerDesc;
-    samplerDesc.filterMode = SamplerFilterMode::kNearest;
-    samplerDesc.maxAnisotropy = 1;
-    samplerDesc.addressU = samplerDesc.addressV = samplerDesc.addressW = SamplerAddressMode::kClamp;
-    GPUSamplerStatePtr defaultSampler = g_gpuManager->getSamplerState(samplerDesc);
+    GPUSamplerStatePtr defaultSampler = g_gpuManager->getSamplerState(GPUSamplerStateDesc());
 
     /* Bind resources. */
     resources->bindTexture(ResourceSlots::kDepthBuffer, targets.depthBuffer, defaultSampler);
@@ -170,13 +166,13 @@ GPUTexture *PostEffectChain::render(const glm::ivec2 &size) const {
         GPU_DEBUG_GROUP("%s", effect->metaClass().name());
 
         if (!dest || dest == targets.colourBuffer) {
-            GPUTextureDesc textureDesc;
-            textureDesc.type = GPUTexture::kTexture2D;
-            textureDesc.width = size.x;
-            textureDesc.height = size.y;
-            textureDesc.mips = 1;
-            textureDesc.flags = GPUTexture::kRenderTarget;
-            textureDesc.format = targets.colourBuffer->format();
+            auto textureDesc = GPUTextureDesc().
+                setType(GPUTexture::kTexture2D).
+                setWidth(size.x).
+                setHeight(size.y).
+                setMips(1).
+                setFlags(GPUTexture::kRenderTarget).
+                setFormat(targets.colourBuffer->format());
 
             dest = g_renderManager->allocTempRenderTarget(textureDesc);
         }
