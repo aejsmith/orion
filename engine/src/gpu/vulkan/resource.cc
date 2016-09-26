@@ -292,6 +292,8 @@ VkDescriptorSet VulkanResourceSet::prepareForDraw(VulkanCommandBuffer *cmdBuf) {
 
                         write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
                         write.pBufferInfo = &bufferInfo;
+
+                        m_bufferBindings[i] = buffer->generation();
                         break;
                     }
 
