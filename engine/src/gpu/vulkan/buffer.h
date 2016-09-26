@@ -27,7 +27,6 @@
 class VulkanBuffer : public GPUBuffer, public VulkanObject {
 public:
     VulkanBuffer(VulkanGPUManager *manager, Type type, Usage usage, size_t size);
-    ~VulkanBuffer();
 
     void *map(size_t offset, size_t size, uint32_t flags, uint32_t access) override;
     void unmap() override;
@@ -36,6 +35,8 @@ public:
     VulkanMemoryManager::BufferMemory *allocation() const { return m_allocation; }
     /** @return             Generation number for tracking reallocations. */
     uint32_t generation() const { return m_generation; }
+protected:
+    ~VulkanBuffer();
 private:
     void reallocate();
 

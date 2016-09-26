@@ -31,6 +31,7 @@ class VulkanResourceSetLayout :
     public VulkanHandle<VkDescriptorSetLayout> {
 public:
     VulkanResourceSetLayout(VulkanGPUManager *manager, GPUResourceSetLayoutDesc &&desc);
+protected:
     ~VulkanResourceSetLayout();
 };
 
@@ -63,10 +64,11 @@ public:
 class VulkanResourceSet : public GPUResourceSet, public VulkanObject {
 public:
     VulkanResourceSet(VulkanGPUManager *manager, GPUResourceSetLayout *layout);
-    ~VulkanResourceSet();
 
     VkDescriptorSet prepareForDraw(VulkanCommandBuffer *cmdBuf);
 protected:
+    ~VulkanResourceSet();
+
     void updateSlot(size_t index) override;
 private:
     /** Descriptor set. */

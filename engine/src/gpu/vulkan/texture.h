@@ -29,14 +29,14 @@ public:
     VulkanTexture(VulkanGPUManager *manager, const GPUTextureDesc &desc);
     VulkanTexture(VulkanGPUManager *manager, const GPUTextureImageRef &image);
 
-    ~VulkanTexture();
-
     void update(const IntRect &area, const void *data, unsigned mip, unsigned layer) override;
     void update(const IntBox &area, const void *data, unsigned mip) override;
     void generateMipmap() override;
 
     /** @return             Image view for binding the texture in a resource set. */
     VkImageView resourceView() const { return m_resourceView; }
+protected:
+    ~VulkanTexture();
 private:
     /** Memory allocation backing this image. */
     VulkanMemoryManager::ImageMemory *m_allocation;
@@ -49,5 +49,6 @@ private:
 class VulkanSamplerState : public GPUSamplerState, public VulkanHandle<VkSampler> {
 public:
     VulkanSamplerState(VulkanGPUManager *manager, const GPUSamplerStateDesc &desc);
+protected:
     ~VulkanSamplerState();
 };

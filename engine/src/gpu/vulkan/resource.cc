@@ -191,7 +191,7 @@ VkDescriptorSet VulkanResourceSet::prepareForDraw(VulkanCommandBuffer *cmdBuf) {
             switch (slot.desc.type) {
                 case GPUResourceType::kUniformBuffer:
                     if (!m_dirtySlots[i] && slot.object) {
-                        VulkanBuffer *buffer = static_cast<VulkanBuffer *>(slot.object.get());
+                        auto buffer = static_cast<VulkanBuffer *>(slot.object.get());
                         m_dirtySlots[i] = m_bufferBindings[i] != buffer->generation();
                     }
 
@@ -281,7 +281,7 @@ VkDescriptorSet VulkanResourceSet::prepareForDraw(VulkanCommandBuffer *cmdBuf) {
                 switch (slot.desc.type) {
                     case GPUResourceType::kUniformBuffer:
                     {
-                        VulkanBuffer *buffer = static_cast<VulkanBuffer *>(slot.object.get());
+                        auto buffer = static_cast<VulkanBuffer *>(slot.object.get());
                         VulkanMemoryManager::BufferMemory *allocation = buffer->allocation();
 
                         bufferInfos.emplace_back();
@@ -297,8 +297,8 @@ VkDescriptorSet VulkanResourceSet::prepareForDraw(VulkanCommandBuffer *cmdBuf) {
 
                     case GPUResourceType::kTexture:
                     {
-                        VulkanTexture *texture = static_cast<VulkanTexture *>(slot.object.get());
-                        VulkanSamplerState *sampler = static_cast<VulkanSamplerState *>(slot.sampler.get());
+                        auto texture = static_cast<VulkanTexture *>(slot.object.get());
+                        auto sampler = static_cast<VulkanSamplerState *>(slot.sampler.get());
 
                         imageInfos.emplace_back();
                         auto &imageInfo = imageInfos.back();

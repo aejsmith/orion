@@ -69,7 +69,6 @@ public:
     };
 
     VulkanPipeline(VulkanGPUManager *manager, GPUPipelineDesc &&desc);
-    ~VulkanPipeline();
 
     VkPipeline lookup(const VulkanFrame &frame, PrimitiveType primType, const GPUVertexData *vertices);
 
@@ -77,6 +76,8 @@ public:
 
     /** @return         Handle to the pipeline layout. */
     VkPipelineLayout layout() const { return m_layout; }
+protected:
+    ~VulkanPipeline();
 private:
     VkPipelineLayout m_layout;          /**< Pipeline layout. */
 

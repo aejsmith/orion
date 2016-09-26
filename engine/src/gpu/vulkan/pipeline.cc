@@ -49,7 +49,7 @@ VulkanPipeline::VulkanPipeline(VulkanGPUManager *manager, GPUPipelineDesc &&desc
         if (!m_programs[i])
             continue;
 
-        VulkanProgram *program = static_cast<VulkanProgram *>(m_programs[i].get());
+        auto program = static_cast<VulkanProgram *>(m_programs[i].get());
 
         m_stageInfos.emplace_back();
         auto &stageInfo = m_stageInfos.back();
