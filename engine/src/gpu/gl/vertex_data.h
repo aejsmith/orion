@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -26,7 +26,7 @@
 /** OpenGL vertex data implementation. */
 class GLVertexData : public GPUVertexData {
 public:
-    GLVertexData(size_t count, GPUVertexDataLayout *layout, GPUBufferArray &&buffers);
+    explicit GLVertexData(GPUVertexDataDesc &&desc);
     ~GLVertexData();
 
     void bind(GPUBuffer *indices);

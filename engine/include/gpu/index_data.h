@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -22,6 +22,8 @@
 #pragma once
 
 #include "gpu/buffer.h"
+
+struct GPUIndexDataDesc;
 
 /**
  * Class which collects index data.
@@ -64,7 +66,7 @@ public:
         }
     }
 protected:
-    GPUIndexData(GPUBuffer *buffer, Type type, size_t count, size_t offset);
+    explicit GPUIndexData(GPUIndexDataDesc &&desc);
     ~GPUIndexData() {}
 
     GPUBufferPtr m_buffer;          /**< Buffer containing index data. */
@@ -78,3 +80,20 @@ protected:
 
 /** Type of a reference to GPUIndexData */
 using GPUIndexDataPtr = GPUObjectPtr<GPUIndexData>;
+
+/** Descriptor for a GPU index data object. */
+struct GPUIndexDataDesc {
+    GPUBufferPtr buffer;            /**< Buffer containing index data. */
+    GPUIndexData::Type type;        /**< Type of index elements. */
+    size_t count;                   /**< Number of indices. */
+    size_t offset;                  /**< First index position to use. */
+
+    GPUIndexDataDesc() :
+        offset(0)
+    {}
+
+    SET_DESC_PARAMETER(setBuffer, GPUBuffer *, buffer);
+    SET_DESC_PARAMETER(setType, GPUIndexData::Type, type);
+    SET_DESC_PARAMETER(setCount, size_t, count);
+    SET_DESC_PARAMETER(setOffset, size_t, offset);
+};

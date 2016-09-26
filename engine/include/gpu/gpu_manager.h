@@ -61,11 +61,7 @@ public:
      * @return              Pointer to created buffer. */
     virtual GPUBufferPtr createBuffer(const GPUBufferDesc &desc) = 0;
 
-    virtual GPUIndexDataPtr createIndexData(
-        GPUBuffer *buffer,
-        GPUIndexData::Type type,
-        size_t count,
-        size_t offset = 0);
+    virtual GPUIndexDataPtr createIndexData(GPUIndexDataDesc &&desc);
 
     /** Create a pipeline object.
      * @param desc          Parameters for the pipeline.
@@ -86,10 +82,7 @@ public:
     virtual GPUTexturePtr createTextureView(const GPUTextureImageRef &image) = 0;
 
     virtual GPUVertexDataLayoutPtr createVertexDataLayout(GPUVertexDataLayoutDesc &&desc);
-    virtual GPUVertexDataPtr createVertexData(
-        size_t count,
-        GPUVertexDataLayout *layout,
-        GPUBufferArray &&buffers);
+    virtual GPUVertexDataPtr createVertexData(GPUVertexDataDesc &&desc);
 
     /**
      * State object methods.

@@ -37,11 +37,9 @@
 #include "vertex_data.h"
 
 /** Initialize the vertex data object.
- * @param count         Total number of vertices.
- * @param layout        Vertex data layout.
- * @param buffers       Array of buffers for each binding in the layout. */
-GLVertexData::GLVertexData(size_t count, GPUVertexDataLayout *layout, GPUBufferArray &&buffers) :
-    GPUVertexData(count, layout, std::move(buffers)),
+ * @param desc          Descriptor for the vertex data object. */
+GLVertexData::GLVertexData(GPUVertexDataDesc &&desc) :
+    GPUVertexData(std::move(desc)),
     m_boundIndices(nullptr)
 {
     glGenVertexArrays(1, &m_array);
@@ -98,8 +96,8 @@ void GLVertexData::bind(GPUBuffer *indices) {
 }
 
 /** Create a vertex data object.
- * @see             GPUVertexData::GPUVertexData().
- * @return          Pointer to created vertex data object. */
-GPUVertexDataPtr GLGPUManager::createVertexData(size_t count, GPUVertexDataLayout *layout, GPUBufferArray &&buffers) {
-    return new GLVertexData(count, layout, std::move(buffers));
+ * @param desc          Descriptor for the vertex data object.
+ * @return              Pointer to created vertex data object. */
+GPUVertexDataPtr GLGPUManager::createVertexData(GPUVertexDataDesc &&desc) {
+    return new GLVertexData(std::move(desc));
 }

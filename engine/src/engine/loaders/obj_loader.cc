@@ -168,12 +168,11 @@ AssetPtr OBJLoader::load() {
     MeshPtr mesh(new Mesh());
 
     /* Create the vertex buffer. */
-    GPUBufferArray buffers(1);
-    buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, m_vertices);
-    mesh->sharedVertices = g_gpuManager->createVertexData(
-        m_vertices.size(),
-        g_renderManager->resources().simpleVertexDataLayout,
-        std::move(buffers));
+    auto vertexDataDesc = GPUVertexDataDesc().
+        setCount(m_vertices.size()).
+        setLayout(g_renderManager->resources().simpleVertexDataLayout);
+    vertexDataDesc.buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, m_vertices);
+    mesh->sharedVertices = g_gpuManager->createVertexData(std::move(vertexDataDesc));
 
     /* Register all submeshes. */
     for (const SubMeshDesc &desc : m_subMeshes) {
@@ -184,10 +183,11 @@ AssetPtr OBJLoader::load() {
         subMesh->material = mesh->addMaterial(desc.material);
 
         /* Create an index buffer. */
-        subMesh->indices = g_gpuManager->createIndexData(
-            RenderUtil::buildGPUBuffer(GPUBuffer::kIndexBuffer, desc.indices),
-            GPUIndexData::kUnsignedShortType,
-            desc.indices.size());
+        auto indexDataDesc = GPUIndexDataDesc().
+            setBuffer(RenderUtil::buildGPUBuffer(GPUBuffer::kIndexBuffer, desc.indices)).
+            setType(GPUIndexData::kUnsignedShortType).
+            setCount(desc.indices.size());
+        subMesh->indices = g_gpuManager->createIndexData(std::move(indexDataDesc));
 
         subMesh->boundingBox = desc.boundingBox;
 

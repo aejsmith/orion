@@ -117,10 +117,7 @@ public:
     GPUPipelinePtr createPipeline(GPUPipelineDesc &&desc) override;
     GPUTexturePtr createTexture(const GPUTextureDesc &desc) override;
     GPUTexturePtr createTextureView(const GPUTextureImageRef &image) override;
-    GPUVertexDataPtr createVertexData(
-        size_t count,
-        GPUVertexDataLayout *layout,
-        GPUBufferArray &&buffers) override;
+    GPUVertexDataPtr createVertexData(GPUVertexDataDesc &&desc) override;
 
     GPUBlendStatePtr createBlendState(const GPUBlendStateDesc &desc) override;
     GPUDepthStencilStatePtr createDepthStencilState(const GPUDepthStencilStateDesc &desc) override;

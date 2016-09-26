@@ -41,12 +41,11 @@ void RenderUtil::makeQuad(GPUVertexDataPtr &vertices) {
     vb.emplace_back(glm::vec3(-1.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 1.0f));
     vb.emplace_back(glm::vec3(-1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f));
 
-    GPUBufferArray buffers(1);
-    buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
-    vertices = g_gpuManager->createVertexData(
-        vb.size(),
-        g_renderManager->resources().simpleVertexDataLayout,
-        std::move(buffers));
+    auto vertexDataDesc = GPUVertexDataDesc().
+        setCount(vb.size()).
+        setLayout(g_renderManager->resources().simpleVertexDataLayout);
+    vertexDataDesc.buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
+    vertices = g_gpuManager->createVertexData(std::move(vertexDataDesc));
 }
 
 /**
@@ -79,12 +78,11 @@ void RenderUtil::makeSphere(unsigned rings, unsigned sides, GPUVertexDataPtr &ve
         }
     }
 
-    GPUBufferArray buffers(1);
-    buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
-    vertices = g_gpuManager->createVertexData(
-        vb.size(),
-        g_renderManager->resources().simpleVertexDataLayout,
-        std::move(buffers));
+    auto vertexDataDesc = GPUVertexDataDesc().
+        setCount(vb.size()).
+        setLayout(g_renderManager->resources().simpleVertexDataLayout);
+    vertexDataDesc.buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
+    vertices = g_gpuManager->createVertexData(std::move(vertexDataDesc));
 
     std::vector<uint16_t> ib;
     ib.reserve(rings * sides * 6);
@@ -100,10 +98,11 @@ void RenderUtil::makeSphere(unsigned rings, unsigned sides, GPUVertexDataPtr &ve
         }
     }
 
-    indices = g_gpuManager->createIndexData(
-        RenderUtil::buildGPUBuffer(GPUBuffer::kIndexBuffer, ib),
-        GPUIndexData::kUnsignedShortType,
-        ib.size());
+    auto indexDataDesc = GPUIndexDataDesc().
+        setBuffer(RenderUtil::buildGPUBuffer(GPUBuffer::kIndexBuffer, ib)).
+        setType(GPUIndexData::kUnsignedShortType).
+        setCount(ib.size());
+    indices = g_gpuManager->createIndexData(std::move(indexDataDesc));
 }
 
 /**
@@ -132,12 +131,11 @@ void RenderUtil::makeCone(unsigned baseVertices, GPUVertexDataPtr &vertices, GPU
         vb.emplace_back(glm::vec3(x, y, z), glm::vec3(0.0f), glm::vec2(0.0f));
     }
 
-    GPUBufferArray buffers(1);
-    buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
-    vertices = g_gpuManager->createVertexData(
-        vb.size(),
-        g_renderManager->resources().simpleVertexDataLayout,
-        std::move(buffers));
+    auto vertexDataDesc = GPUVertexDataDesc().
+        setCount(vb.size()).
+        setLayout(g_renderManager->resources().simpleVertexDataLayout);
+    vertexDataDesc.buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
+    vertices = g_gpuManager->createVertexData(std::move(vertexDataDesc));
 
     std::vector<uint16_t> ib;
     ib.reserve((3 * baseVertices) + (3 * (baseVertices - 2)));
@@ -154,8 +152,9 @@ void RenderUtil::makeCone(unsigned baseVertices, GPUVertexDataPtr &vertices, GPU
         ib.emplace_back(i + 2);
     }
 
-    indices = g_gpuManager->createIndexData(
-        RenderUtil::buildGPUBuffer(GPUBuffer::kIndexBuffer, ib),
-        GPUIndexData::kUnsignedShortType,
-        ib.size());
+    auto indexDataDesc = GPUIndexDataDesc().
+        setBuffer(RenderUtil::buildGPUBuffer(GPUBuffer::kIndexBuffer, ib)).
+        setType(GPUIndexData::kUnsignedShortType).
+        setCount(ib.size());
+    indices = g_gpuManager->createIndexData(std::move(indexDataDesc));
 }

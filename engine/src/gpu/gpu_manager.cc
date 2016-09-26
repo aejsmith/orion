@@ -95,18 +95,10 @@ GPUSamplerStatePtr GPUManager::getSamplerState(const GPUSamplerStateDesc &desc) 
  */
 
 /** Create an index data object.
- * @param buffer        Buffer holding the index data.
- * @param type          Type of index elements.
- * @param count         Number of indices.
- * @param offset        Offset of the indices in the buffer.
+ * @param desc          Descriptor for the index data object.
  * @return              Pointer to created index data object. */
-GPUIndexDataPtr GPUManager::createIndexData(
-    GPUBuffer *buffer,
-    GPUIndexData::Type type,
-    size_t count,
-    size_t offset)
-{
-    return new GPUIndexData(buffer, type, count, offset);
+GPUIndexDataPtr GPUManager::createIndexData(GPUIndexDataDesc &&desc) {
+    return new GPUIndexData(std::move(desc));
 }
 
 /** Create a render pass object.
@@ -124,16 +116,10 @@ GPUVertexDataLayoutPtr GPUManager::createVertexDataLayout(GPUVertexDataLayoutDes
 }
 
 /** Create a vertex data object.
- * @param count         Total number of vertices.
- * @param layout        Vertex data layout.
- * @param buffers       Array of buffers for each binding in the layout.
+ * @param desc          Descriptor for the vertex data object.
  * @return              Pointer to created vertex data object. */
-GPUVertexDataPtr GPUManager::createVertexData(
-    size_t count,
-    GPUVertexDataLayout *layout,
-    GPUBufferArray &&buffers)
-{
-    return new GPUVertexData(count, layout, std::move(buffers));
+GPUVertexDataPtr GPUManager::createVertexData(GPUVertexDataDesc &&desc) {
+    return new GPUVertexData(std::move(desc));
 }
 
 /** Create a blend state object.

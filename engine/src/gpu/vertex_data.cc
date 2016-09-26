@@ -109,15 +109,13 @@ GPUVertexDataLayout::GPUVertexDataLayout(GPUVertexDataLayoutDesc &&desc) :
 }
 
 /** Initialize the vertex data object.
- * @param count         Total number of vertices.
- * @param layout        Vertex data layout.
- * @param buffers       Array of buffers for each binding in the layout. */
-GPUVertexData::GPUVertexData(size_t count, GPUVertexDataLayout *layout, GPUBufferArray &&buffers) :
-    m_count(count),
-    m_layout(layout),
-    m_buffers(std::move(buffers))
+ * @param desc          Descriptor for the vertex data object. */
+GPUVertexData::GPUVertexData(GPUVertexDataDesc &&desc) :
+    m_count(desc.count),
+    m_layout(std::move(desc.layout)),
+    m_buffers(std::move(desc.buffers))
 {
-    check(count);
+    check(m_count);
 
     size_t expectedSize = m_layout->desc().bindings.size();
     checkMsg(

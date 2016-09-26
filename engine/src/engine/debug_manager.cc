@@ -345,17 +345,16 @@ void DebugOverlay::render(bool first) {
         const ImDrawList *cmdList = drawData->CmdLists[i];
 
         /* Generate vertex data. */
-        GPUBufferArray vertexBuffers(1);
+        auto vertexDataDesc = GPUVertexDataDesc().
+            setCount(cmdList->VtxBuffer.size()).
+            setLayout(m_vertexDataLayout);
         auto vertexBufferDesc = GPUBufferDesc().
             setType(GPUBuffer::kVertexBuffer).
             setUsage(GPUBuffer::kTransientUsage).
             setSize(cmdList->VtxBuffer.size() * sizeof(ImDrawVert));
-        vertexBuffers[0] = g_gpuManager->createBuffer(vertexBufferDesc);
-        vertexBuffers[0]->write(0, vertexBufferDesc.size, &cmdList->VtxBuffer.front());
-        GPUVertexDataPtr vertexData = g_gpuManager->createVertexData(
-            cmdList->VtxBuffer.size(),
-            m_vertexDataLayout,
-            std::move(vertexBuffers));
+        vertexDataDesc.buffers[0] = g_gpuManager->createBuffer(vertexBufferDesc);
+        vertexDataDesc.buffers[0]->write(0, vertexBufferDesc.size, &cmdList->VtxBuffer.front());
+        GPUVertexDataPtr vertexData = g_gpuManager->createVertexData(std::move(vertexDataDesc));
 
         /* Generate index buffer. */
         auto indexBufferDesc = GPUBufferDesc().
@@ -371,11 +370,12 @@ void DebugOverlay::render(bool first) {
             m_material->setGPUTexture("debugTexture", texture, m_sampler);
 
             /* Create index data. */
-            GPUIndexDataPtr indexData = g_gpuManager->createIndexData(
-                indexBuffer,
-                GPUIndexData::kUnsignedShortType,
-                cmd->ElemCount,
-                indexBufferOffset);
+            auto indexDataDesc = GPUIndexDataDesc().
+                setBuffer(indexBuffer).
+                setType(GPUIndexData::kUnsignedShortType).
+                setCount(cmd->ElemCount).
+                setOffset(indexBufferOffset);
+            GPUIndexDataPtr indexData = g_gpuManager->createIndexData(std::move(indexDataDesc));
 
             /* Configure scissor test for clipping. */
             const IntRect &viewport = pixelViewport();

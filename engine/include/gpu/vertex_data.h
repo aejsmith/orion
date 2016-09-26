@@ -204,6 +204,20 @@ protected:
 /** Type of a pointer to a GPU vertex data layout object. */
 using GPUVertexDataLayoutPtr = GPUObjectPtr<GPUVertexDataLayout>;
 
+/** Descriptor for a vertex data object. */
+struct GPUVertexDataDesc {
+    size_t count;                           /**< Vertex count. */
+    GPUVertexDataLayoutPtr layout;          /**< Vertex data layout. */
+    GPUBufferArray buffers;                 /**< Vector of vertex buffers. */
+
+    GPUVertexDataDesc &setCount(size_t count) { this->count = count; return *this; }
+    GPUVertexDataDesc &setLayout(GPUVertexDataLayout *layout) {
+        this->layout = layout;
+        this->buffers.resize(layout->desc().bindings.size());
+        return *this;
+    }
+};
+
 /**
  * Class which collects vertex data information.
  *
@@ -223,7 +237,7 @@ public:
     /** @return             GPU buffer array. */
     const GPUBufferArray &buffers() const { return m_buffers; }
 protected:
-    GPUVertexData(size_t count, GPUVertexDataLayout *layout, GPUBufferArray &&buffers);
+    explicit GPUVertexData(GPUVertexDataDesc &&desc);
     ~GPUVertexData() {}
 
     size_t m_count;                         /**< Vertex count. */

@@ -81,16 +81,14 @@ void PrimitiveRenderer::draw(SceneView *view) {
                 continue;
 
             /* Generate vertex data. */
-            GPUBufferArray buffers(1);
-            buffers[0] = RenderUtil::buildGPUBuffer(
+            auto vertexDataDesc = GPUVertexDataDesc().
+                setCount(data.vertices.size()).
+                setLayout(g_renderManager->resources().simpleVertexDataLayout);
+            vertexDataDesc.buffers[0] = RenderUtil::buildGPUBuffer(
                 GPUBuffer::kVertexBuffer,
                 data.vertices,
                 GPUBuffer::kTransientUsage);
-
-            data.gpu = g_gpuManager->createVertexData(
-                data.vertices.size(),
-                g_renderManager->resources().simpleVertexDataLayout,
-                std::move(buffers));
+            data.gpu = g_gpuManager->createVertexData(std::move(vertexDataDesc));
 
             /* No longer require CPU-side data. */
             data.vertices.clear();

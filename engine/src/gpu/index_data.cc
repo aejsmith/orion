@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -22,16 +22,13 @@
 #include "gpu/index_data.h"
 
 /** Initialize the index data object.
- * @param buffer        Buffer holding the index data.
- * @param type          Type of index elements.
- * @param count         Number of indices.
- * @param offset        Offset of the indices in the buffer. */
-GPUIndexData::GPUIndexData(GPUBuffer *buffer, Type type, size_t count, size_t offset) :
-    m_buffer(buffer),
-    m_type(type),
-    m_count(count),
-    m_offset(offset)
+ * @param desc          Descriptor for the index data object. */
+GPUIndexData::GPUIndexData(GPUIndexDataDesc &&desc) :
+    m_buffer(std::move(desc.buffer)),
+    m_type(desc.type),
+    m_count(desc.count),
+    m_offset(desc.offset)
 {
-    check(buffer->type() == GPUBuffer::kIndexBuffer);
-    check(offset + (elementSize() * count) <= buffer->size());
+    check(m_buffer->type() == GPUBuffer::kIndexBuffer);
+    check((m_offset + m_count) * elementSize() <= m_buffer->size());
 }

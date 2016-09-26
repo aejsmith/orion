@@ -60,7 +60,7 @@ TestRenderer::TestRenderer() :
     passDesc.colourAttachments[0].loadOp = GPURenderLoadOp::kClear;
     m_renderPass = g_gpuManager->createRenderPass(std::move(passDesc));
 
-    /* Create a vertex data layout. */
+    /* Create vertex data. */
     #if TEST_VBO
         GPUVertexDataLayoutDesc vertexLayoutDesc(1, 2);
         vertexLayoutDesc.bindings[0].stride = sizeof(Vertex);
@@ -76,6 +76,7 @@ TestRenderer::TestRenderer() :
         vertexLayoutDesc.attributes[1].components = 4;
         vertexLayoutDesc.attributes[1].binding = 0;
         vertexLayoutDesc.attributes[1].offset = offsetof(Vertex, colour);
+        GPUVertexDataLayoutPtr vertexLayout = g_gpuManager->createVertexDataLayout(std::move(vertexLayoutDesc));
 
         const std::vector<Vertex> vertices = {
             { glm::vec2(-0.3f,  0.4f), glm::vec2(), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f) },
@@ -83,16 +84,18 @@ TestRenderer::TestRenderer() :
             { glm::vec2( 0.0f, -0.4f), glm::vec2(), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f) },
         };
 
-        GPUBufferArray vertexBuffers(1);
-        vertexBuffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vertices);
+        auto vertexDataDesc = GPUVertexDataDesc().
+            setCount(3).
+            setLayout(std::move(vertexLayout));
+        vertexDataDesc.buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vertices);
     #else
-        GPUVertexDataLayoutDesc vertexLayoutDesc;
-        GPUBufferArray vertexBuffers;
+        GPUVertexDataLayoutPtr vertexLayout = g_gpuManager->createVertexDataLayout(GPUVertexDataLayout());
+        auto vertexDataDesc = GPUVertexDataDesc().
+            setCount(3).
+            setLayout(std::move(vertexLayout));
     #endif
 
-    /* Create vertex data. */
-    GPUVertexDataLayoutPtr vertexLayout = g_gpuManager->createVertexDataLayout(std::move(vertexLayoutDesc));
-    m_vertices = g_gpuManager->createVertexData(3, vertexLayout, std::move(vertexBuffers));
+    m_vertices = g_gpuManager->createVertexData(std::move(vertexDataDesc));
 }
 
 /** Destroy the test renderer. */
