@@ -76,7 +76,7 @@ struct Vertex {
 
 /** Initialise the layer. */
 RenderTestLayer::RenderTestLayer() :
-    RenderLayer(kDebugOverlayPriority)
+    RenderLayer(kDebugOverlayPriority - 1)
 {
     setRenderTarget(g_mainWindow);
     registerRenderLayer();
