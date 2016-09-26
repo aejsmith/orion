@@ -101,14 +101,9 @@ public:
     virtual GPUResourceSetPtr createResourceSet(GPUResourceSetLayout *layout);
 
     /** Create a GPU program from a SPIR-V binary.
-     * @param stage         Stage that the program is for.
-     * @param spirv         SPIR-V binary for the shader.
-     * @param name          Name of the shader for debugging purposes.
-     * @return              Pointer to created shader on success, null on error. */
-    virtual GPUProgramPtr createProgram(
-        unsigned stage,
-        const std::vector<uint32_t> &spirv,
-        const std::string &name) = 0;
+     * @param desc          Descriptor for the program.
+     * @return              Pointer to created program. */
+    virtual GPUProgramPtr createProgram(GPUProgramDesc &&desc) = 0;
 
     /**
      * Frame methods.

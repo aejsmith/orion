@@ -41,7 +41,7 @@ public:
     /** List of resources used by the shader. */
     using ResourceList = std::list<Resource>;
 
-    GLProgram(unsigned stage, GLuint program, ResourceList &&resources);
+    explicit GLProgram(GPUProgramDesc &&desc);
     ~GLProgram();
 
     /** @return             GL program object ID. */

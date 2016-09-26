@@ -33,47 +33,6 @@
 
 #include "core/string.h"
 
-/** Initialize the program.
- * @param stage         Stage that the program is for.
- * @param program       Linked program object.
- * @param resources     Resource binding information. */
-GLProgram::GLProgram(unsigned stage, GLuint program, ResourceList &&resources) :
-    GPUProgram(stage),
-    m_program(program),
-    m_resources(std::move(resources))
-{}
-
-/** Destroy the program. */
-GLProgram::~GLProgram() {
-    glDeleteProgram(m_program);
-}
-
-/** Update resource bindings in the program.
- * @param layouts       Layout set that the program is being used with. */
-void GLProgram::setResourceLayout(const GPUResourceSetLayoutArray &layouts) {
-    /* We've already validated the layout compatiblity with the shader when we
-     * created the pipeline. No need to check again here. */
-    for (Resource &resource : m_resources) {
-        GLResourceSetLayout *layout = static_cast<GLResourceSetLayout *>(layouts[resource.set].get());
-        unsigned binding = layout->mapSlot(resource.set, resource.slot);
-
-        if (binding != resource.current) {
-            switch (resource.type) {
-                case GPUResourceType::kUniformBuffer:
-                    glUniformBlockBinding(m_program, resource.location, binding);
-                    break;
-                case GPUResourceType::kTexture:
-                    glProgramUniform1i(m_program, resource.location, binding);
-                    break;
-                default:
-                    check(false);
-            }
-
-            resource.current = binding;
-        }
-    }
-}
-
 /** Get and fix up resources from a SPIR-V shader.
  * @param compiler      Cross compiler.
  * @return              Generated resource list. */
@@ -161,34 +120,27 @@ static std::string generateSource(spirv_cross::CompilerGLSL &compiler, unsigned 
     return source;
 }
 
-/** Create a GPU program from a SPIR-V binary.
- * @param stage         Stage that the program is for.
- * @param spirv         SPIR-V binary for the shader.
- * @param name          Name of the program for debugging purposes.
- * @return              Pointer to created shader on success, null on error. */
-GPUProgramPtr GLGPUManager::createProgram(
-    unsigned stage,
-    const std::vector<uint32_t> &spirv,
-    const std::string &name)
+/** Initialize the program.
+ * @param desc          Descriptor for the program. */
+GLProgram::GLProgram(GPUProgramDesc &&desc) :
+    GPUProgram(desc.stage)
 {
-    spirv_cross::CompilerGLSL compiler(spirv);
+    spirv_cross::CompilerGLSL compiler(desc.spirv);
 
     /* See resource.cc for a description of how we handle resource bindings.
      * Here we record the resource set binding information in the SPIR-V shader
      * and remove it before translating back to GLSL. */
-    GLProgram::ResourceList resources = getResources(compiler);
+    m_resources = getResources(compiler);
 
     /* Translate the SPIR-V back to GLSL. Hopefully future GL versions will
      * gain support for consuming SPIR-V directly. We would still need to do
      * the resource remapping, though. */
-    std::string source = generateSource(compiler, stage, name);
+    std::string source = generateSource(compiler, desc.stage, desc.name);
 
     /* Compile the shader. */
-    GLuint shader = glCreateShader(GLUtil::convertShaderStage(stage));
-    if (!shader) {
-        logError("GL: Failed to create shader object");
-        return nullptr;
-    }
+    GLuint shader = glCreateShader(GLUtil::convertShaderStage(desc.stage));
+    if (!shader)
+        fatal("Failed to create GL shader object");
 
     const GLchar *string = source.c_str();
     glShaderSource(shader, 1, &string, nullptr);
@@ -203,53 +155,49 @@ GPUProgramPtr GLGPUManager::createProgram(
         glGetShaderInfoLog(shader, result, &result, log.get());
         glDeleteShader(shader);
 
-        logError("GL: Failed to compile shader");
         logInfo("GL: Compiler log:\n%s", log.get());
-        return nullptr;
+        fatal("Failed to compile GL shader");
     }
 
-    GLuint program = glCreateProgram();
-    if (!program) {
-        logError("GL: Failed to create program object");
-        return nullptr;
-    }
+    m_program = glCreateProgram();
+    if (!m_program)
+        fatal("Failed to create GL program object");
 
     /* Mark it as separable and link it. */
-    glProgramParameteri(program, GL_PROGRAM_SEPARABLE, GL_TRUE);
-    glAttachShader(program, shader);
-    glLinkProgram(program);
+    glProgramParameteri(m_program, GL_PROGRAM_SEPARABLE, GL_TRUE);
+    glAttachShader(m_program, shader);
+    glLinkProgram(m_program);
 
     /* Keep around the shader object if enabled. This means that the shader
      * objects will show up in OpenGL Profiler and allow their source to be
      * examined easily. */
     #if !ORION_GL_KEEP_SHADER_OBJECTS
-        glDetachShader(program, shader);
+        glDetachShader(m_program, shader);
         glDeleteShader(shader);
     #endif
 
     /* Check whether the linking succeeded. */
-    glGetProgramiv(program, GL_LINK_STATUS, &result);
+    glGetProgramiv(m_program, GL_LINK_STATUS, &result);
     if (result != GL_TRUE) {
-        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &result);
+        glGetProgramiv(m_program, GL_INFO_LOG_LENGTH, &result);
         std::unique_ptr<char[]> log(new char[result]);
-        glGetProgramInfoLog(program, result, &result, log.get());
-        glDeleteProgram(program);
+        glGetProgramInfoLog(m_program, result, &result, log.get());
+        glDeleteProgram(m_program);
 
-        logError("GL: Failed to link program");
         logInfo("GL: Linker log:\n%s", log.get());
-        return nullptr;
+        fatal("Failed to link GL program");
     }
 
     /* Get uniform locations for the resources from the linked program. These
      * may not be active if they are not used, so remove missing resources from
      * the list. */
-    for (auto resource = resources.begin(); resource != resources.end(); ) {
+    for (auto resource = m_resources.begin(); resource != m_resources.end(); ) {
         switch (resource->type) {
             case GPUResourceType::kUniformBuffer:
             {
-                GLuint ret = glGetUniformBlockIndex(program, resource->name.c_str());
+                GLuint ret = glGetUniformBlockIndex(m_program, resource->name.c_str());
                 if (ret == GL_INVALID_INDEX) {
-                    resources.erase(resource++);
+                    m_resources.erase(resource++);
                     continue;
                 }
 
@@ -259,9 +207,9 @@ GPUProgramPtr GLGPUManager::createProgram(
 
             case GPUResourceType::kTexture:
             {
-                GLint ret = glGetUniformLocation(program, resource->name.c_str());
+                GLint ret = glGetUniformLocation(m_program, resource->name.c_str());
                 if (ret < 0) {
-                    resources.erase(resource++);
+                    m_resources.erase(resource++);
                     continue;
                 }
 
@@ -275,6 +223,42 @@ GPUProgramPtr GLGPUManager::createProgram(
 
         ++resource;
     }
+}
 
-    return new GLProgram(stage, program, std::move(resources));
+/** Destroy the program. */
+GLProgram::~GLProgram() {
+    glDeleteProgram(m_program);
+}
+
+/** Update resource bindings in the program.
+ * @param layouts       Layout set that the program is being used with. */
+void GLProgram::setResourceLayout(const GPUResourceSetLayoutArray &layouts) {
+    /* We've already validated the layout compatiblity with the shader when we
+     * created the pipeline. No need to check again here. */
+    for (Resource &resource : m_resources) {
+        GLResourceSetLayout *layout = static_cast<GLResourceSetLayout *>(layouts[resource.set].get());
+        unsigned binding = layout->mapSlot(resource.set, resource.slot);
+
+        if (binding != resource.current) {
+            switch (resource.type) {
+                case GPUResourceType::kUniformBuffer:
+                    glUniformBlockBinding(m_program, resource.location, binding);
+                    break;
+                case GPUResourceType::kTexture:
+                    glProgramUniform1i(m_program, resource.location, binding);
+                    break;
+                default:
+                    check(false);
+            }
+
+            resource.current = binding;
+        }
+    }
+}
+
+/** Create a GPU program from a SPIR-V binary.
+ * @param desc          Descriptor for the program.
+ * @return              Pointer to created shader on success. */
+GPUProgramPtr GLGPUManager::createProgram(GPUProgramDesc &&desc) {
+    return new GLProgram(std::move(desc));
 }

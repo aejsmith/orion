@@ -24,23 +24,16 @@
 
 /** Initialise a Vulkan program from a SPIR-V binary.
  * @param manager       Manager that owns this program.
- * @param stage         Stage that the program is for.
- * @param spirv         SPIR-V binary for the shader.
- * @param name          Name of the program for debugging purposes. */
-VulkanProgram::VulkanProgram(
-    VulkanGPUManager *manager,
-    unsigned stage,
-    const std::vector<uint32_t> &spirv,
-    const std::string &name)
-    :
-    GPUProgram(stage),
+ * @param desc          Descriptor for the program. */
+VulkanProgram::VulkanProgram(VulkanGPUManager *manager, GPUProgramDesc &&desc) :
+    GPUProgram(desc.stage),
     VulkanHandle(manager)
 {
     /* TODO: Object names. */
     VkShaderModuleCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    createInfo.codeSize = spirv.size() * sizeof(spirv[0]);
-    createInfo.pCode = &spirv[0];
+    createInfo.codeSize = desc.spirv.size() * sizeof(desc.spirv[0]);
+    createInfo.pCode = &desc.spirv[0];
 
     checkVk(vkCreateShaderModule(
         manager->device()->handle(),
@@ -55,14 +48,8 @@ VulkanProgram::~VulkanProgram() {
 }
 
 /** Create a GPU program from a SPIR-V binary.
- * @param stage         Stage that the program is for.
- * @param spirv         SPIR-V binary for the shader.
- * @param name          Name of the program for debugging purposes.
- * @return              Pointer to created shader on success, null on error. */
-GPUProgramPtr VulkanGPUManager::createProgram(
-    unsigned stage,
-    const std::vector<uint32_t> &spirv,
-    const std::string &name)
-{
-    return new VulkanProgram(this, stage, spirv, name);
+ * @param desc          Descriptor for the program.
+ * @return              Pointer to created shader. */
+GPUProgramPtr VulkanGPUManager::createProgram(GPUProgramDesc &&desc) {
+    return new VulkanProgram(this, std::move(desc));
 }

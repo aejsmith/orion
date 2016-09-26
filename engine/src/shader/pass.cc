@@ -105,27 +105,29 @@ void Pass::setDrawState(SceneLight *light) const {
 /** Compile a single variation.
  * @param options       Shader compiler options.
  * @param parent        Parent shader.
- * @return              Pointer to compiled program, null on failure. */
+ * @return              Pointer to compiled program. */
 static GPUProgramPtr compileVariation(const ShaderCompiler::Options &options, Shader *parent) {
+    GPUProgramDesc desc;
+    desc.stage = options.stage;
+
     /* Compile the shader. */
-    std::vector<uint32_t> spirv;
-    if (!ShaderCompiler::compile(options, spirv))
+    if (!ShaderCompiler::compile(options, desc.spirv))
         return nullptr;
 
     /* Create a name string. */
-    std::string name = parent->path();
-    name += " (";
+    desc.name = parent->path();
+    desc.name += " (";
     bool first = true;
     for (const std::string &keyword : options.keywords) {
         if (!first)
-            name += ", ";
+            desc.name += ", ";
         first = false;
-        name += keyword;
+        desc.name += keyword;
     }
-    name += ")";
+    desc.name += ")";
 
     /* Create a GPU program. */
-    return g_gpuManager->createProgram(options.stage, spirv, name);
+    return g_gpuManager->createProgram(std::move(desc));
 }
 
 /** Add a GPU shader to the pass.
@@ -158,17 +160,12 @@ bool Pass::loadStage(unsigned stage, const Path &path, const ShaderKeywordSet &k
                 if (j)
                     variationOptions.keywords.insert(shadowVariation);
 
-                GPUProgramPtr &program = m_variations[(i * 2) + j].programs[stage];
-                program = compileVariation(variationOptions, m_parent);
-                if (!program)
-                    return false;
+                m_variations[(i * 2) + j].programs[stage] =
+                    compileVariation(variationOptions, m_parent);
             }
         }
     } else {
-        GPUProgramPtr &program = m_variations[0].programs[stage];
-        program = compileVariation(options, m_parent);
-        if (!program)
-            return false;
+        m_variations[0].programs[stage] = compileVariation(options, m_parent);
     }
 
     return true;

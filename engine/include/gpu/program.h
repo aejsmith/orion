@@ -24,6 +24,14 @@
 #include "gpu/defs.h"
 
 #include <array>
+#include <vector>
+
+/** Descriptor for a GPU program. */
+struct GPUProgramDesc {
+    unsigned stage;                     /**< Type of the program. */
+    std::vector<uint32_t> spirv;        /**< SPIR-V binary. */
+    std::string name;                   /**< Name of the program. */
+};
 
 /** GPU program class. */
 class GPUProgram : public GPUObject {

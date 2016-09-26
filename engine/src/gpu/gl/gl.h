@@ -125,7 +125,7 @@ public:
     GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) override;
 
     GPUResourceSetLayoutPtr createResourceSetLayout(GPUResourceSetLayoutDesc &&desc) override;
-    GPUProgramPtr createProgram(unsigned stage, const std::vector<uint32_t> &spirv, const std::string &name) override;
+    GPUProgramPtr createProgram(GPUProgramDesc &&desc) override;
 
     void endFrame() override;
 

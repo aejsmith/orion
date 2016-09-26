@@ -26,11 +26,7 @@
 /** Vulkan GPU program implementation. */
 class VulkanProgram : public GPUProgram, public VulkanHandle<VkShaderModule> {
 public:
-    VulkanProgram(
-        VulkanGPUManager *manager,
-        unsigned stage,
-        const std::vector<uint32_t> &spirv,
-        const std::string &name);
+    VulkanProgram(VulkanGPUManager *manager, GPUProgramDesc &&desc);
 protected:
     ~VulkanProgram();
 };
