@@ -13,7 +13,6 @@ objects = map(env.Object, [
     'scene_light.cc',
     'scene_renderer.cc',
     'scene_view.cc',
-    'test_renderer.cc',
     'utility.cc',
 ])
 

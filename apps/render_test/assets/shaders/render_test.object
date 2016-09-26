@@ -8,20 +8,20 @@
             {
                 "type": "kBasic",
                 "vertex": {
-                    "source": "engine/shaders/test_renderer_vtx.glsl"
+                    "source": "apps/render_test/shaders/render_test_vtx.glsl"
                 },
                 "fragment": {
-                    "source": "engine/shaders/test_renderer_frag.glsl"
+                    "source": "apps/render_test/shaders/render_test_frag.glsl"
                 }
             },
             {
                 "type": "kBasic",
                 "vertex": {
-                    "source": "engine/shaders/test_renderer_vtx.glsl",
+                    "source": "apps/render_test/shaders/render_test_vtx.glsl",
                     "keywords": ["VBO"]
                 },
                 "fragment": {
-                    "source": "engine/shaders/test_renderer_frag.glsl",
+                    "source": "apps/render_test/shaders/render_test_frag.glsl",
                     "keywords": ["VBO"]
                 }
             }

@@ -16,16 +16,47 @@
 
 /**
  * @file
- * @brief               Test renderer.
+ * @brief               Rendering test.
  */
 
 #include "engine/asset_manager.h"
+#include "engine/game.h"
+#include "engine/render_target.h"
 #include "engine/window.h"
 
 #include "gpu/gpu_manager.h"
 
-#include "render/test_renderer.h"
 #include "render/utility.h"
+
+#include "shader/material.h"
+
+/** Rendering test layer. */
+class RenderTestLayer : public RenderLayer {
+public:
+    RenderTestLayer();
+    ~RenderTestLayer();
+protected:
+    void render(bool first) override;
+private:
+    MaterialPtr m_material;
+    GPURenderPassPtr m_renderPass;
+    GPUVertexDataPtr m_vertices;
+};
+
+/** Game class. */
+class RenderTest : public Game {
+public:
+    CLASS();
+
+    RenderTest() {}
+
+    void engineConfiguration(EngineConfiguration &config) override;
+    void init() override;
+private:
+    std::unique_ptr<RenderTestLayer> m_layer;
+};
+
+#include "render_test.obj.cc"
 
 /** Set to 1 to enable use of VBOs, 0 to use only shader constants. */
 #define TEST_VBO        1
@@ -43,15 +74,15 @@ struct Vertex {
     glm::vec4 colour;
 };
 
-/** Initialise the test renderer. */
-TestRenderer::TestRenderer() :
+/** Initialise the layer. */
+RenderTestLayer::RenderTestLayer() :
     RenderLayer(kDebugOverlayPriority)
 {
     setRenderTarget(g_mainWindow);
     registerRenderLayer();
 
     /* Load the shader. */
-    ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/internal/test_renderer");
+    ShaderPtr shader = g_assetManager->load<Shader>("game/shaders/render_test");
     m_material = new Material(shader);
 
     /* Create a render pass. */
@@ -79,9 +110,9 @@ TestRenderer::TestRenderer() :
         GPUVertexDataLayoutPtr vertexLayout = g_gpuManager->createVertexDataLayout(std::move(vertexLayoutDesc));
 
         const std::vector<Vertex> vertices = {
-            { glm::vec2(-0.3f,  0.4f), glm::vec2(), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f) },
-            { glm::vec2( 0.3f,  0.4f), glm::vec2(), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f) },
-            { glm::vec2( 0.0f, -0.4f), glm::vec2(), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f) },
+            { glm::vec2(-0.3f, -0.4f), glm::vec2(), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f) },
+            { glm::vec2( 0.3f, -0.4f), glm::vec2(), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f) },
+            { glm::vec2( 0.0f,  0.4f), glm::vec2(), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f) },
         };
 
         auto vertexDataDesc = GPUVertexDataDesc().
@@ -89,7 +120,7 @@ TestRenderer::TestRenderer() :
             setLayout(std::move(vertexLayout));
         vertexDataDesc.buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vertices);
     #else
-        GPUVertexDataLayoutPtr vertexLayout = g_gpuManager->createVertexDataLayout(GPUVertexDataLayout());
+        GPUVertexDataLayoutPtr vertexLayout = g_gpuManager->createVertexDataLayout(GPUVertexDataLayoutDesc());
         auto vertexDataDesc = GPUVertexDataDesc().
             setCount(3).
             setLayout(std::move(vertexLayout));
@@ -99,13 +130,13 @@ TestRenderer::TestRenderer() :
 }
 
 /** Destroy the test renderer. */
-TestRenderer::~TestRenderer() {
+RenderTestLayer::~RenderTestLayer() {
     unregisterRenderLayer();
 }
 
 /** Render the scene.
  * @param first         Whether this is the first layer on the render target. */
-void TestRenderer::render(bool first) {
+void RenderTestLayer::render(bool first) {
     GPURenderPassInstanceDesc instanceDesc(m_renderPass);
     renderTarget()->getRenderTargetDesc(instanceDesc.targets);
     instanceDesc.clearColours[0] = glm::vec4(0.0, 0.0, 0.5, 1.0);
@@ -118,4 +149,19 @@ void TestRenderer::render(bool first) {
     g_gpuManager->draw(PrimitiveType::kTriangleList, m_vertices, nullptr);
 
     g_gpuManager->endRenderPass();
+}
+
+/** Get the engine configuration.
+ * @param config        Engine configuration to fill in. */
+void RenderTest::engineConfiguration(EngineConfiguration &config) {
+    config.title = "Render Test";
+    config.displayWidth = 1440;
+    config.displayHeight = 900;
+    config.displayFullscreen = false;
+    config.displayVsync = false;
+}
+
+/** Initialize the game world. */
+void RenderTest::init() {
+    m_layer.reset(new RenderTestLayer);
 }

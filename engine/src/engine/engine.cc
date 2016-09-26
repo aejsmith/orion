@@ -190,7 +190,8 @@ void Engine::tick() {
     if (m_lastTick && tick != m_lastTick) {
         /* Update the world. */
         float dt = static_cast<float>(tick - m_lastTick) / 1000.0f;
-        m_world->tick(dt);
+        if (m_world)
+            m_world->tick(dt);
     }
 
     m_lastTick = tick;

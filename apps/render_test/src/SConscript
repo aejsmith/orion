@@ -1,0 +1,11 @@
+Import('env')
+
+map(env.ObjgenSource, [
+    'render_test.cc',
+])
+
+objects = map(env.Object, [
+    'render_test.cc',
+])
+
+Return('objects')

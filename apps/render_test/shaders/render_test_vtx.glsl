@@ -16,21 +16,31 @@
 
 /**
  * @file
- * @brief               Test renderer fragment shader.
+ * @brief               Rendering test vertex shader.
  */
 
 #ifdef VBO
 
-layout(location = 0) in vec4 vtxColour;
+layout(location = kPositionSemantic) in vec2 attribPosition;
+layout(location = kDiffuseSemantic) in vec4 attribColour;
+
+layout(location = 0) out vec4 vtxColour;
+
+#else
+
+const vec2 vertices[3] = vec2[] (
+    vec2(-0.3, -0.4),
+    vec2( 0.3, -0.4),
+    vec2( 0.0,  0.4)
+);
 
 #endif
 
-layout(location = 0) out vec4 fragColour;
-
 void main() {
     #ifdef VBO
-        fragColour = vtxColour;
+        vtxColour = attribColour;
+        gl_Position = vec4(attribPosition, 0.0, 1.0);
     #else
-        fragColour = vec4(1.0);
+        gl_Position = vec4(vertices[gl_VertexIndex], 0.0, 1.0);
     #endif
 }
