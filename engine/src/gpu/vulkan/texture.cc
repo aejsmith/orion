@@ -141,7 +141,7 @@ VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureDesc &de
             unreachable();
     }
 
-    checkVk(vkCreateImageView(manager->device()->handle(), &viewCreateInfo, nullptr, &m_resourceView));
+    checkVk(vkCreateImageView(device, &viewCreateInfo, nullptr, &m_resourceView));
 }
 
 /** Initialize a new texture view.
@@ -152,8 +152,38 @@ VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureImageRef
     GPUTexture(image),
     VulkanHandle(manager)
 {
-    // mutable format bit
-    fatal("TODO: Vulkan texture view");
+    auto source = static_cast<VulkanTexture *>(m_source.get());
+
+    m_handle = source->handle();
+
+    VkImageViewCreateInfo viewCreateInfo = {};
+    viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewCreateInfo.image = m_handle;
+    viewCreateInfo.format = manager->features().formats[m_format].format;
+    viewCreateInfo.subresourceRange.aspectMask = (PixelFormat::isDepth(m_format))
+        ? VK_IMAGE_ASPECT_DEPTH_BIT
+        : VK_IMAGE_ASPECT_COLOR_BIT;
+    viewCreateInfo.subresourceRange.baseMipLevel = image.mip;
+    viewCreateInfo.subresourceRange.levelCount = 1;
+    viewCreateInfo.subresourceRange.baseArrayLayer = image.layer;
+    viewCreateInfo.subresourceRange.layerCount = 1;
+    viewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_R;
+    viewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_G;
+    viewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_B;
+    viewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_A;
+
+    switch (m_type) {
+        case kTexture2D:
+            viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            break;
+        case kTexture2DArray:
+            viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+            break;
+        default:
+            unreachable();
+    }
+
+    checkVk(vkCreateImageView(manager->device()->handle(), &viewCreateInfo, nullptr, &m_resourceView));
 }
 
 /** Destroy the texture. */
@@ -161,8 +191,11 @@ VulkanTexture::~VulkanTexture() {
     manager()->invalidateFramebuffers(this);
 
     vkDestroyImageView(manager()->device()->handle(), m_resourceView, nullptr);
-    vkDestroyImage(manager()->device()->handle(), m_handle, nullptr);
-    manager()->memoryManager()->freeResource(m_allocation);
+
+    if (!isView()) {
+        vkDestroyImage(manager()->device()->handle(), m_handle, nullptr);
+        manager()->memoryManager()->freeResource(m_allocation);
+    }
 }
 
 /** Calculate the size of a mip level.
@@ -184,6 +217,7 @@ static inline void calcMipDimensions(unsigned mip, int &width, int &height) {
  * @param layer         Array layer/cube face.
  * @param mip           Mipmap level. */
 void VulkanTexture::update(const IntRect &area, const void *data, unsigned mip, unsigned layer) {
+    check(!isView());
     check(m_type == kTexture2D || m_type == kTexture2DArray || m_type == kTextureCube);
     check(mip < m_mips);
     check(layer < m_depth);
@@ -268,6 +302,7 @@ void VulkanTexture::update(const IntBox &area, const void *data, unsigned mip) {
 
 /** Generate mipmap images. */
 void VulkanTexture::generateMipmap() {
+    check(!isView());
     check(m_flags & kAutoMipmap);
     check(!PixelFormat::isDepth(m_format));
     check(m_type != kTexture3D);

@@ -92,6 +92,8 @@ public:
     unsigned mips() const { return m_mips; }
     /** @return             Texture behaviour flags. */
     uint32_t flags() const { return m_flags; }
+    /** @return             Whether the texture is a texture view. */
+    bool isView() const { return m_source; }
 protected:
     explicit GPUTexture(const GPUTextureDesc &desc);
     explicit GPUTexture(const GPUTextureImageRef &image);
@@ -104,6 +106,9 @@ protected:
     PixelFormat m_format;           /**< Pixel format. */
     unsigned m_mips;                /**< Number of mip levels. */
     uint32_t m_flags;               /**< Behaviour flags for the texture. */
+
+    /** For texture views, the source texture. */
+    GPUObjectPtr<GPUTexture> m_source;
 };
 
 /** Type of a pointer to a texture. */

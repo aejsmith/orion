@@ -71,7 +71,8 @@ GPUTexture::GPUTexture(const GPUTextureImageRef &image) :
     m_depth(1),
     m_format(image.texture->m_format),
     m_mips(1),
-    m_flags(0)
+    m_flags(0),
+    m_source(image.texture)
 {
     checkMsg(
         image.texture->m_type == kTextureCube || image.texture->m_type == kTexture2DArray,
