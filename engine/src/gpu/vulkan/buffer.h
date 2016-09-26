@@ -26,7 +26,7 @@
 /** Vulkan GPU buffer implementation. */
 class VulkanBuffer : public GPUBuffer, public VulkanObject {
 public:
-    VulkanBuffer(VulkanGPUManager *manager, Type type, Usage usage, size_t size);
+    VulkanBuffer(VulkanGPUManager *manager, const GPUBufferDesc &desc);
 
     void *map(size_t offset, size_t size, uint32_t flags, uint32_t access) override;
     void unmap() override;

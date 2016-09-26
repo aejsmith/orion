@@ -24,11 +24,9 @@
 
 /** Create a new buffer.
  * @param manager       Manager which owns the buffer.
- * @param type          Type of the buffer.
- * @param usage         Usage hint.
- * @param size          Buffer size. */
-VulkanBuffer::VulkanBuffer(VulkanGPUManager *manager, Type type, Usage usage, size_t size) :
-    GPUBuffer(type, usage, size),
+ * @param desc          Descriptor for the buffer. */
+VulkanBuffer::VulkanBuffer(VulkanGPUManager *manager, const GPUBufferDesc &desc) :
+    GPUBuffer(desc),
     VulkanObject(manager),
     m_allocation(nullptr),
     m_generation(0),
@@ -147,10 +145,8 @@ void VulkanBuffer::unmap() {
 }
 
 /** Create a GPU buffer.
- * @param type          Type of the buffer.
- * @param usage         Usage hint.
- * @param size          Buffer size.
+ * @param desc          Descriptor for the buffer.
  * @return              Pointer to created buffer. */
-GPUBufferPtr VulkanGPUManager::createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) {
-    return new VulkanBuffer(this, type, usage, size);
+GPUBufferPtr VulkanGPUManager::createBuffer(const GPUBufferDesc &desc) {
+    return new VulkanBuffer(this, desc);
 }

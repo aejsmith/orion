@@ -121,7 +121,7 @@ public:
      * GPUManager interface.
      */
 
-    GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) override;
+    GPUBufferPtr createBuffer(const GPUBufferDesc &desc) override;
     GPUPipelinePtr createPipeline(GPUPipelineDesc &&desc) override;
     GPURenderPassPtr createRenderPass(GPURenderPassDesc &&desc) override;
     GPUTexturePtr createTexture(const GPUTextureDesc &desc) override;

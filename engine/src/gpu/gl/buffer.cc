@@ -23,19 +23,17 @@
 #include "gl.h"
 
 /** Initialize a new GL buffer.
- * @param type          Type of the buffer.
- * @param usage         Usage hint.
- * @param size          Buffer size. */
-GLBuffer::GLBuffer(Type type, Usage usage, size_t size) :
-    GPUBuffer(type, usage, size),
-    m_glTarget(GLUtil::convertBufferType(type)),
-    m_glUsage(GLUtil::convertBufferUsage(usage))
+ * @param desc          Descriptor for the buffer. */
+GLBuffer::GLBuffer(const GPUBufferDesc &desc) :
+    GPUBuffer(desc),
+    m_glTarget(GLUtil::convertBufferType(m_type)),
+    m_glUsage(GLUtil::convertBufferUsage(m_usage))
 {
     glGenBuffers(1, &m_buffer);
 
     /* Create an initial data store. */
     g_opengl->state.bindBuffer(m_glTarget, m_buffer);
-    glBufferData(m_glTarget, size, nullptr, m_glUsage);
+    glBufferData(m_glTarget, m_size, nullptr, m_glUsage);
 }
 
 /** Destroy the buffer. */
@@ -118,8 +116,8 @@ void GLBuffer::write(size_t offset, size_t size, const void *buf, uint32_t flags
 }
 
 /** Create a GPU buffer.
- * @see                 GPUBuffer::GPUBuffer().
+ * @param desc          Descriptor for the buffer..
  * @return              Pointer to created vertex buffer. */
-GPUBufferPtr GLGPUManager::createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) {
-    return new GLBuffer(type, usage, size);
+GPUBufferPtr GLGPUManager::createBuffer(const GPUBufferDesc &desc) {
+    return new GLBuffer(desc);
 }

@@ -22,13 +22,11 @@
 #include "gpu/buffer.h"
 
 /** Construct the GPU buffer.
- * @param type          Type of the buffer.
- * @param usage         Usage hint.
- * @param size          Buffer size. */
-GPUBuffer::GPUBuffer(Type type, Usage usage, size_t size) :
-    m_type(type),
-    m_usage(usage),
-    m_size(size)
+ * @param desc          Descriptor for the buffer. */
+GPUBuffer::GPUBuffer(const GPUBufferDesc &desc) :
+    m_type(desc.type),
+    m_usage(desc.usage),
+    m_size(desc.size)
 {}
 
 /**

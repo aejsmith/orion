@@ -26,7 +26,7 @@
 /** OpenGL GPU buffer implementation. */
 class GLBuffer : public GPUBuffer {
 public:
-    GLBuffer(Type type, Usage usage, size_t size);
+    explicit GLBuffer(const GPUBufferDesc &desc);
     ~GLBuffer();
 
     void *map(size_t offset, size_t size, uint32_t flags, uint32_t access) override;

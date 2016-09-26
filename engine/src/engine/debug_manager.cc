@@ -341,25 +341,25 @@ void DebugOverlay::render(bool first) {
         const ImDrawList *cmdList = drawData->CmdLists[i];
 
         /* Generate vertex data. */
-        size_t vertexBufferSize = cmdList->VtxBuffer.size() * sizeof(ImDrawVert);
         GPUBufferArray vertexBuffers(1);
-        vertexBuffers[0] = g_gpuManager->createBuffer(
-            GPUBuffer::kVertexBuffer,
-            GPUBuffer::kTransientUsage,
-            vertexBufferSize);
-        vertexBuffers[0]->write(0, vertexBufferSize, &cmdList->VtxBuffer.front());
+        GPUBufferDesc vertexBufferDesc;
+        vertexBufferDesc.type = GPUBuffer::kVertexBuffer;
+        vertexBufferDesc.usage = GPUBuffer::kTransientUsage;
+        vertexBufferDesc.size = cmdList->VtxBuffer.size() * sizeof(ImDrawVert);
+        vertexBuffers[0] = g_gpuManager->createBuffer(vertexBufferDesc);
+        vertexBuffers[0]->write(0, vertexBufferDesc.size, &cmdList->VtxBuffer.front());
         GPUVertexDataPtr vertexData = g_gpuManager->createVertexData(
             cmdList->VtxBuffer.size(),
             m_vertexDataLayout,
             std::move(vertexBuffers));
 
         /* Generate index buffer. */
-        size_t indexBufferSize = cmdList->IdxBuffer.size() * sizeof(ImDrawIdx);
-        GPUBufferPtr indexBuffer = g_gpuManager->createBuffer(
-            GPUBuffer::kIndexBuffer,
-            GPUBuffer::kTransientUsage,
-            indexBufferSize);
-        indexBuffer->write(0, indexBufferSize, &cmdList->IdxBuffer.front());
+        GPUBufferDesc indexBufferDesc;
+        indexBufferDesc.type = GPUBuffer::kIndexBuffer;
+        indexBufferDesc.usage = GPUBuffer::kTransientUsage;
+        indexBufferDesc.size = cmdList->IdxBuffer.size() * sizeof(ImDrawIdx);
+        GPUBufferPtr indexBuffer = g_gpuManager->createBuffer(indexBufferDesc);
+        indexBuffer->write(0, indexBufferDesc.size, &cmdList->IdxBuffer.front());
 
         size_t indexBufferOffset = 0;
         for (const ImDrawCmd *cmd = cmdList->CmdBuffer.begin(); cmd != cmdList->CmdBuffer.end(); cmd++) {

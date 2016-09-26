@@ -129,10 +129,11 @@ UniformBufferBase::UniformBufferBase(const UniformStruct &ustruct, GPUBuffer::Us
     m_uniformStruct(ustruct),
     m_dirty(true)
 {
-    m_gpu = g_gpuManager->createBuffer(
-        GPUBuffer::kUniformBuffer,
-        usage,
-        m_uniformStruct.size());
+    GPUBufferDesc desc;
+    desc.type = GPUBuffer::kUniformBuffer;
+    desc.usage = usage;
+    desc.size = m_uniformStruct.size();
+    m_gpu = g_gpuManager->createBuffer(desc);
 
     m_shadowBuffer = new char[m_uniformStruct.size()];
     memset(m_shadowBuffer, 0, m_uniformStruct.size());

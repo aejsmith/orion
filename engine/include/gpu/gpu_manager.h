@@ -57,9 +57,9 @@ public:
      */
 
     /** Create a GPU buffer.
-     * @see                 GPUBuffer::GPUBuffer().
+     * @param desc          Descriptor for the buffer.
      * @return              Pointer to created buffer. */
-    virtual GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) = 0;
+    virtual GPUBufferPtr createBuffer(const GPUBufferDesc &desc) = 0;
 
     virtual GPUIndexDataPtr createIndexData(
         GPUBuffer *buffer,

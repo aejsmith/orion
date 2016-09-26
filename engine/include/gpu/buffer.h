@@ -25,6 +25,8 @@
 
 #include <vector>
 
+struct GPUBufferDesc;
+
 /**
  * Class for storing data on the GPU.
  *
@@ -108,7 +110,7 @@ public:
     /** @return             Total buffer size. */
     size_t size() const { return m_size; }
 protected:
-    GPUBuffer(Type type, Usage usage, size_t size);
+    explicit GPUBuffer(const GPUBufferDesc &desc);
 
     /** Destroy the buffer. */
     ~GPUBuffer() {}
@@ -123,3 +125,10 @@ using GPUBufferPtr = GPUObjectPtr<GPUBuffer>;
 
 /** Type of a GPU buffer array. */
 using GPUBufferArray = std::vector<GPUBufferPtr>;
+
+/** Descriptor for a GPU buffer. */
+struct GPUBufferDesc {
+    GPUBuffer::Type type;           /**< Type of the buffer */
+    GPUBuffer::Usage usage;         /**< Buffer usage hint. */
+    size_t size;                    /**< Buffer size. */
+};

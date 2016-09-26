@@ -113,7 +113,7 @@ public:
      * GPU interface methods.
      */
 
-    GPUBufferPtr createBuffer(GPUBuffer::Type type, GPUBuffer::Usage usage, size_t size) override;
+    GPUBufferPtr createBuffer(const GPUBufferDesc &desc) override;
     GPUPipelinePtr createPipeline(GPUPipelineDesc &&desc) override;
     GPUTexturePtr createTexture(const GPUTextureDesc &desc) override;
     GPUTexturePtr createTextureView(const GPUTextureImageRef &image) override;

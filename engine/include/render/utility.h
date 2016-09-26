@@ -35,9 +35,12 @@ namespace RenderUtil {
         const std::vector<ElementType> &data,
         GPUBuffer::Usage usage = GPUBuffer::kStaticUsage)
     {
-        size_t size = data.size() * sizeof(ElementType);
-        GPUBufferPtr buffer = g_gpuManager->createBuffer(type, usage, size);
-        buffer->write(0, size, &data[0]);
+        GPUBufferDesc desc;
+        desc.type = type;
+        desc.usage = usage;
+        desc.size = data.size() * sizeof(ElementType);
+        GPUBufferPtr buffer = g_gpuManager->createBuffer(desc);
+        buffer->write(0, desc.size, &data[0]);
         return buffer;
     }
 
