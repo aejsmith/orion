@@ -1,6 +1,14 @@
+import sys
+import util
+
 Import('env')
 
-objects = map(env.Object, [
+if sys.platform.startswith('linux'):
+    objects = SConscript(dirs = ['linux'])
+else:
+    util.StopError('Unsupported platform')
+
+objects += map(env.Object, [
     'filesystem.cc',
 ])
 

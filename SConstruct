@@ -8,8 +8,9 @@ import util
 # Configurable build options.
 opts = Variables('.options.cache')
 opts.AddVariables(
-    ('GPU_API', 'GPU API to use (gl, vulkan)', 'gl'),
+    ('APP', 'Application to build (cubes)', 'cubes'),
     ('BUILD', 'Build type to perform (debug, release)', 'release'),
+    ('GPU_API', 'GPU API to use (gl, vulkan)', 'gl'),
 )
 
 env = Environment(ENV = os.environ, variables = opts)

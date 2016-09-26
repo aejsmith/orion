@@ -1,4 +1,5 @@
 import os
+import util
 
 Import('env')
 
@@ -21,6 +22,9 @@ objects += SConscript(dirs = [
     'math',
 ])
 
-objects += SConscript(dirs = [os.name])
+if os.name == 'posix':
+    objects += SConscript(dirs = ['posix'])
+else:
+    util.StopError('Unsupported platform')
 
 Return('objects')

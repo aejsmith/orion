@@ -27,7 +27,7 @@
 
 #include "input/input_handler.h"
 
-class TestGame;
+class CubesGame;
 
 /** Behaviour class which takes input and translates it to player movement. */
 class PlayerController : public Behaviour, public InputHandler {
@@ -49,7 +49,7 @@ protected:
 
     void makeCube(uint32_t modifiers);
 private:
-    TestGame *m_game;               /**< Game class. */
+    CubesGame *m_game;              /**< Game class. */
     glm::vec3 m_direction;          /**< Current movement direction. */
     bool m_firingCubes;             /**< Whether cubes are being fired. */
     float m_sinceLastCube;          /**< Time since last cube. */

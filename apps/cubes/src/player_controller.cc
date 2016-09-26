@@ -20,7 +20,7 @@
  */
 
 #include "player_controller.h"
-#include "test_game.h"
+#include "cubes_game.h"
 
 #include "input/input_manager.h"
 
@@ -37,7 +37,7 @@ static const glm::vec3 kInitialCubeVelocity(0.0f, 0.0f, -15.0f);
 
 /** Initialise the player controller. */
 PlayerController::PlayerController() :
-    m_game(static_cast<TestGame *>(g_engine->game())),
+    m_game(static_cast<CubesGame *>(g_engine->game())),
     m_direction(0.0f),
     m_firingCubes(false),
     m_sinceLastCube(0.0f)

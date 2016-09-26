@@ -24,12 +24,13 @@ You can then build by running SCons:
 
     $ scons
 
-And finally run with:
+And finally run the test game (Cubes) with:
 
-    $ build/release/orion
+    $ build/release/cubes
 
 A number of options can be passed to SCons to configure the build, which will be saved until the next time they are specified. The following options are supported:
 
+* `APP`: Selects the application to build, look in the apps directory for what's available. Defaults to `cubes` (the test game).
 * `BUILD`: Either `debug` or `release`. The built program will be in `build/$BUILD`. Debug builds disable optimisation and include many more checks.
 * `GPU_API`: Either `gl` or `vulkan`. Selects the GPU backend to use.
 

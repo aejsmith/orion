@@ -19,8 +19,8 @@
  * @brief               Test game.
  */
 
+#include "cubes_game.h"
 #include "player_controller.h"
-#include "test_game.h"
 
 #include "core/object.h"
 #include "core/string.h"
@@ -52,14 +52,14 @@
 #include "render/vertex.h"
 
 /** Construct the game class. */
-TestGame::TestGame() :
+CubesGame::CubesGame() :
     m_numCubes(0),
     m_numLights(0)
 {}
 
 /** Get the engine configuration.
  * @param config        Engine configuration to fill in. */
-void TestGame::engineConfiguration(EngineConfiguration &config) {
+void CubesGame::engineConfiguration(EngineConfiguration &config) {
     config.title = "Cubes";
     config.displayWidth = 1440;
     config.displayHeight = 900;
@@ -68,7 +68,7 @@ void TestGame::engineConfiguration(EngineConfiguration &config) {
 }
 
 /** Initialize the game world. */
-void TestGame::init() {
+void CubesGame::init() {
     /* Load assets we need to create new cubes. */
     m_cubeMaterial = g_assetManager->load<Material>("game/materials/companion_cube");
     m_cubeMesh = g_assetManager->load<Mesh>("game/models/companion_cube");
@@ -93,7 +93,7 @@ void TestGame::init() {
 }
 
 /** Called at the start of the frame. */
-void TestGame::startFrame() {
+void CubesGame::startFrame() {
     // TODO: This is best being handled generically, i.e. some renderer stats.
     g_debugManager->writeText(String::format("Cubes: %u\n", m_numCubes));
     g_debugManager->writeText(String::format("Lights: %u\n", m_numLights));
@@ -103,7 +103,7 @@ void TestGame::startFrame() {
  * @param withLights    Whether to attach lights to the cube.
  * @return              Pointer to created cube entity. Entity is not initially
  *                      active. */
-Entity *TestGame::makeCube(bool withLights) {
+Entity *CubesGame::makeCube(bool withLights) {
     unsigned cubeNum = m_numCubes++;
 
     Entity *entity = m_world->createEntity(String::format("cube_%u", cubeNum));

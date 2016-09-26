@@ -134,9 +134,7 @@ protected:
 extern Filesystem *g_filesystem;
 
 namespace Platform {
-
-/** Initialize the platform filesystem interface.
- * @return              Pointer to Filesystem object. */
-extern Filesystem *createFilesystem();
-
+    /** Initialize the platform filesystem interface.
+     * @return              Pointer to Filesystem object. */
+    extern Filesystem *createFilesystem();
 }

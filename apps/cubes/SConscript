@@ -1,0 +1,2 @@
+objects = SConscript(dirs = ['src'])
+Return('objects')

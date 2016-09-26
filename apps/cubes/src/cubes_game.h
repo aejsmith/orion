@@ -34,11 +34,11 @@
 #include "shader/material.h"
 
 /** Game class. */
-class TestGame : public Game {
+class CubesGame : public Game {
 public:
     CLASS();
 
-    TestGame();
+    CubesGame();
 
     void engineConfiguration(EngineConfiguration &config) override;
     void init() override;

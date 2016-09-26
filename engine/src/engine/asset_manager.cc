@@ -32,6 +32,7 @@
  */
 
 #include "core/filesystem.h"
+#include "core/platform.h"
 #include "core/json_serialiser.h"
 
 #include "engine/asset_loader.h"
@@ -61,7 +62,8 @@ public:
 AssetManager::AssetManager() {
     /* Register asset search paths. */
     m_searchPaths.insert(std::make_pair("engine", "engine/assets"));
-    m_searchPaths.insert(std::make_pair("game", "game/assets"));
+    std::string gamePath = String::format("apps/%s/assets", Platform::getProgramName().c_str());
+    m_searchPaths.insert(std::make_pair("game", gamePath));
 
     g_debugManager->registerWindow(std::make_unique<AssetExplorerWindow>());
 }

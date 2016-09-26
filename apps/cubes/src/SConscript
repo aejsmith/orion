@@ -2,12 +2,12 @@ Import('env')
 
 objects = map(env.ObjgenHeader, [
     'player_controller.h',
-    'test_game.h',
+    'cubes_game.h',
 ])
 
 objects += map(env.Object, [
     'player_controller.cc',
-    'test_game.cc',
+    'cubes_game.cc',
 ])
 
 Return('objects')

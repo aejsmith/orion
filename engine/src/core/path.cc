@@ -158,7 +158,7 @@ Path Path::fileName() const {
  * Return the base file name of the path.
  *
  * Returns the base file name of the path. This is the string returned by
- * file_name() with any extension stripped off. File names with only one '.'
+ * fileName() with any extension stripped off. File names with only one '.'
  * at the start are treated as having no extension.
  *
  * @return              Base file name.

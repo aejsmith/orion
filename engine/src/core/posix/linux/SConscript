@@ -1,0 +1,7 @@
+Import('env')
+
+objects = map(env.Object, [
+    'platform.cc',
+])
+
+Return('objects')
