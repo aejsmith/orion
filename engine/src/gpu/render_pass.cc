@@ -60,6 +60,9 @@ void GPURenderPass::validateInstance(const GPURenderPassInstanceDesc &instanceDe
         check(m_desc.colourAttachments[0].format == g_mainWindow->format());
         check(!m_desc.depthStencilAttachment);
 
+        check(targets.colour[0].mip == 0);
+        check(targets.colour[0].layer == 0);
+
         width = g_mainWindow->width();
         height = g_mainWindow->height();
     } else {
