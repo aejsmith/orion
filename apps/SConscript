@@ -4,5 +4,4 @@ Import('env', 'engine')
 
 app = env['APP']
 objects = SConscript(dirs = [app])
-Depends(objects, engine)
 env.Program(os.path.join('..', app), engine + objects, LINK = '$CXX')
