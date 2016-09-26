@@ -95,10 +95,10 @@ public:
      * State object methods.
      */
 
-    GPUBlendStatePtr getBlendState(const GPUBlendStateDesc &desc);
-    GPUDepthStencilStatePtr getDepthStencilState(const GPUDepthStencilStateDesc &desc);
-    GPURasterizerStatePtr getRasterizerState(const GPURasterizerStateDesc &desc);
-    GPUSamplerStatePtr getSamplerState(const GPUSamplerStateDesc &desc);
+    GPUBlendStatePtr getBlendState(const GPUBlendStateDesc &desc = GPUBlendStateDesc());
+    GPUDepthStencilStatePtr getDepthStencilState(const GPUDepthStencilStateDesc &desc = GPUDepthStencilStateDesc());
+    GPURasterizerStatePtr getRasterizerState(const GPURasterizerStateDesc &desc = GPURasterizerStateDesc());
+    GPUSamplerStatePtr getSamplerState(const GPUSamplerStateDesc &desc = GPUSamplerStateDesc());
 
     /**
      * Shader methods.
@@ -217,29 +217,26 @@ public:
     virtual void draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) = 0;
 
     /**
-     * Constant state methods.
-     *
-     * These methods are used to set GPU state to constant values known at
-     * compile time. They are a shortcut which avoids a hash lookup for a
-     * matching state object at every call. They should only be used within
-     * a render pass.
+     * State setting helper functions.
      */
 
-    template <
-        BlendFunc func = BlendFunc::kAdd,
-        BlendFactor sourceFactor = BlendFactor::kOne,
-        BlendFactor destFactor = BlendFactor::kZero>
-    void setBlendState();
+    /** Set the blend state.
+     * @param desc          Descriptor for the blend state to set. */
+    void setBlendState(const GPUBlendStateDesc &desc = GPUBlendStateDesc()) {
+        setBlendState(getBlendState(desc));
+    }
 
-    template <
-        ComparisonFunc depthFunc = ComparisonFunc::kLessOrEqual,
-        bool depthWrite = true>
-    void setDepthStencilState();
+    /** Set the depth/stencil state.
+     * @param desc          Descriptor for the depth/stencil state to set. */
+    void setDepthStencilState(const GPUDepthStencilStateDesc &desc = GPUDepthStencilStateDesc()) {
+        setDepthStencilState(getDepthStencilState(desc));
+    }
 
-    template <
-        CullMode cullMode = CullMode::kBack,
-        bool depthClamp = false>
-    void setRasterizerState();
+    /** Set the rasterizer state.
+     * @param desc          Descriptor for the rasterizer state to set. */
+    void setRasterizerState(const GPURasterizerStateDesc &desc = GPURasterizerStateDesc()) {
+        setRasterizerState(getRasterizerState(desc));
+    }
 
     /**
      * Debug methods.
@@ -288,8 +285,6 @@ private:
 };
 
 extern GPUManager *g_gpuManager;
-
-#include "gpu/const_state.h"
 
 #ifdef ORION_BUILD_DEBUG
 

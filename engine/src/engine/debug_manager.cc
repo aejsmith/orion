@@ -331,9 +331,15 @@ void DebugOverlay::render(bool first) {
         (first) ? GPURenderLoadOp::kClear : GPURenderLoadOp::kLoad,
         glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
-    g_gpuManager->setBlendState<BlendFunc::kAdd, BlendFactor::kSourceAlpha, BlendFactor::kOneMinusSourceAlpha>();
-    g_gpuManager->setDepthStencilState<ComparisonFunc::kAlways, false>();
-    g_gpuManager->setRasterizerState<CullMode::kDisabled>();
+    g_gpuManager->setBlendState(GPUBlendStateDesc().
+        setFunc(BlendFunc::kAdd).
+        setSourceFactor(BlendFactor::kSourceAlpha).
+        setDestFactor(BlendFactor::kOneMinusSourceAlpha));
+    g_gpuManager->setDepthStencilState(GPUDepthStencilStateDesc().
+        setDepthFunc(ComparisonFunc::kAlways).
+        setDepthWrite(false));
+    g_gpuManager->setRasterizerState(GPURasterizerStateDesc().
+        setCullMode(CullMode::kDisabled));
 
     for (int i = 0; i < drawData->CmdListsCount; i++) {
         const ImDrawList *cmdList = drawData->CmdLists[i];
@@ -600,8 +606,13 @@ void DebugManager::writeText(const std::string &text, const glm::vec4 &colour) {
 void DebugManager::renderView(SceneView *view) {
     PrimitiveRenderer renderer;
 
-    g_gpuManager->setBlendState<BlendFunc::kAdd, BlendFactor::kSourceAlpha, BlendFactor::kOneMinusSourceAlpha>();
-    g_gpuManager->setDepthStencilState<ComparisonFunc::kAlways, false>();
+    g_gpuManager->setBlendState(GPUBlendStateDesc().
+        setFunc(BlendFunc::kAdd).
+        setSourceFactor(BlendFactor::kSourceAlpha).
+        setDestFactor(BlendFactor::kOneMinusSourceAlpha));
+    g_gpuManager->setDepthStencilState(GPUDepthStencilStateDesc().
+        setDepthFunc(ComparisonFunc::kAlways).
+        setDepthWrite(false));
 
     /* Add all lines. */
     renderer.begin(PrimitiveType::kLineList, m_primitiveMaterial);

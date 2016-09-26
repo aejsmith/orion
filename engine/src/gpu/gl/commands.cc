@@ -156,9 +156,9 @@ void GLGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
      * clearing as we need depth writes enabled for the clears below (the depth
      * mask affects glClearBuffer*). */
     setViewport(desc.renderArea);
-    GPUManager::setBlendState<>();
-    GPUManager::setDepthStencilState<>();
-    GPUManager::setRasterizerState<>();
+    GPUManager::setBlendState();
+    GPUManager::setDepthStencilState();
+    GPUManager::setRasterizerState();
 
     const GPURenderPassDesc &passDesc = desc.pass->desc();
 

@@ -351,9 +351,9 @@ void VulkanGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
     frame.viewportDirty = true;
     setScissor(false, IntRect());
     frame.scissorDirty = true;
-    GPUManager::setBlendState<>();
-    GPUManager::setDepthStencilState<>();
-    GPUManager::setRasterizerState<>();
+    GPUManager::setBlendState();
+    GPUManager::setDepthStencilState();
+    GPUManager::setRasterizerState();
 }
 
 /** End the current render pass. */

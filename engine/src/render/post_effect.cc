@@ -59,7 +59,7 @@ void PostEffect::blit(
     GPUResourceSetPtr resources = g_gpuManager->createResourceSet(
         g_renderManager->resources().postEffectResourceSetLayout);
 
-    GPUSamplerStatePtr defaultSampler = g_gpuManager->getSamplerState(GPUSamplerStateDesc());
+    GPUSamplerStatePtr defaultSampler = g_gpuManager->getSamplerState();
 
     /* Bind resources. */
     resources->bindTexture(ResourceSlots::kDepthBuffer, targets.depthBuffer, defaultSampler);
@@ -77,8 +77,10 @@ void PostEffect::blit(
 
     /* Disable blending and depth testing/writes. TODO: Blending should come
      * from Pass properties. */
-    g_gpuManager->setDepthStencilState<ComparisonFunc::kAlways, false>();
-    g_gpuManager->setBlendState<>();
+    g_gpuManager->setBlendState();
+    g_gpuManager->setDepthStencilState(GPUDepthStencilStateDesc().
+        setDepthFunc(ComparisonFunc::kAlways).
+        setDepthWrite(false));
 
     /* Set up a draw call. */
     DrawList drawList;
