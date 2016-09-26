@@ -69,7 +69,7 @@ struct GPURenderPassDesc {
 
     /** Initialise the descriptor.
      * @param numColour     Number of colour attachments. */
-    GPURenderPassDesc(size_t numColour = 0) :
+    explicit GPURenderPassDesc(size_t numColour = 0) :
         colourAttachments(numColour)
     {}
 };
@@ -123,7 +123,7 @@ struct GPURenderTargetDesc {
 
     /** Initialise the descriptor.
      * @param numColour     Number of colour targets. */
-    GPURenderTargetDesc(size_t numColour = 0) :
+    explicit GPURenderTargetDesc(size_t numColour = 0) :
         colour(numColour)
     {}
 
@@ -190,7 +190,7 @@ struct GPURenderPassInstanceDesc {
 
     /** Initialise the descriptor (pre-allocates vectors with correct size).
      * @param inPass        Pass the instance is for. */
-    GPURenderPassInstanceDesc(const GPURenderPass *inPass) :
+    explicit GPURenderPassInstanceDesc(const GPURenderPass *inPass) :
         pass(inPass),
         targets(inPass->desc().colourAttachments.size()),
         clearColours(inPass->desc().colourAttachments.size())

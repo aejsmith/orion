@@ -151,13 +151,10 @@ struct GPUVertexDataLayoutDesc {
     /** Vertex attribute descriptions. */
     std::vector<VertexAttribute> attributes;
 
-    /** Initialise an empty vertex data layout. */
-    GPUVertexDataLayoutDesc() {}
-
     /** Initialise with pre-allocated arrays.
      * @param numBindings   Number of bindings.
      * @param numAttributes Number of attributes. */
-    GPUVertexDataLayoutDesc(size_t numBindings, size_t numAttributes) :
+    explicit GPUVertexDataLayoutDesc(size_t numBindings = 0, size_t numAttributes = 0) :
         bindings(numBindings),
         attributes(numAttributes)
     {}

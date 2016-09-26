@@ -43,12 +43,9 @@ struct GPUResourceSetLayoutDesc {
     /** Array of slot descriptors. */
     std::vector<Slot> slots;
 
-    /** Initialise an empty layout. */
-    GPUResourceSetLayoutDesc() {}
-
     /** Initialise with pre-allocated arrays.
      * @param numSlots      Number of slots to allocate. */
-    GPUResourceSetLayoutDesc(size_t numSlots) :
+    explicit GPUResourceSetLayoutDesc(size_t numSlots = 0) :
         slots(numSlots)
     {}
 };

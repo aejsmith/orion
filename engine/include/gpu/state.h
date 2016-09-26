@@ -35,8 +35,8 @@ public:
     /** @return             Descriptor used to create the state object. */
     const Desc &desc() const { return m_desc; }
 protected:
-    GPUState(const Desc &desc) : m_desc(desc) {}
-    GPUState(Desc &&desc) : m_desc(std::move(desc)) {}
+    explicit GPUState(const Desc &desc) : m_desc(desc) {}
+    explicit GPUState(Desc &&desc) : m_desc(std::move(desc)) {}
     ~GPUState() {}
 
     Desc m_desc;                    /**< State descriptor. */
