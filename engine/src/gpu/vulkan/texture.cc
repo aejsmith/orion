@@ -22,6 +22,8 @@
 #include "manager.h"
 #include "texture.h"
 
+#include "gpu/utility.h"
+
 /** Initialize a new texture.
  * @param manager       Manager that owns this texture.
  * @param desc          Texture descriptor. */
@@ -198,19 +200,6 @@ VulkanTexture::~VulkanTexture() {
     }
 }
 
-/** Calculate the size of a mip level.
- * @param mip           Mip level.
- * @param width         Base level width, set to mip level width.
- * @param height        Base level height, set to mip level height. */
-static inline void calcMipDimensions(unsigned mip, int &width, int &height) {
-    for (unsigned i = 0; i < mip; i++) {
-        if (width > 1)
-            width >>= 1;
-        if (height > 1)
-            height >>= 1;
-    }
-}
-
 /** Update 2D texture area.
  * @param area          Area to update (2D rectangle).
  * @param data          Data to update with.
@@ -224,23 +213,26 @@ void VulkanTexture::update(const IntRect &area, const void *data, unsigned mip, 
     check(area.width >= 0 && area.height >= 0);
     check(!PixelFormat::isDepth(m_format));
 
-    if (!area.width || !area.height)
+    auto areaWidth = static_cast<uint32_t>(area.width);
+    auto areaHeight = static_cast<uint32_t>(area.height);
+
+    if (!areaWidth || !areaHeight)
         return;
 
     /* Get mip level size. */
-    int mipWidth = m_width;
-    int mipHeight = m_height;
-    calcMipDimensions(mip, mipWidth, mipHeight);
+    uint32_t mipWidth = m_width;
+    uint32_t mipHeight = m_height;
+    GPUUtil::calcMipDimensions(mip, mipWidth, mipHeight);
 
-    check(area.width <= mipWidth && area.height <= mipHeight);
+    check(areaWidth <= mipWidth && areaHeight <= mipHeight);
 
-    bool isWholeSubresource = area.width == mipWidth && area.height == mipHeight;
+    bool isWholeSubresource = areaWidth == mipWidth && areaHeight == mipHeight;
 
     auto memoryManager = manager()->memoryManager();
     auto stagingCmdBuf = memoryManager->getStagingCmdBuf();
 
     /* Allocate a staging buffer large enough and copy to it. */
-    VkDeviceSize dataSize = area.width * area.height * PixelFormat::bytesPerPixel(m_format);
+    VkDeviceSize dataSize = areaWidth * areaHeight * PixelFormat::bytesPerPixel(m_format);
     VulkanMemoryManager::StagingMemory *staging = memoryManager->allocateStagingMemory(dataSize);
     memcpy(staging->map(), data, dataSize);
 
@@ -268,8 +260,8 @@ void VulkanTexture::update(const IntRect &area, const void *data, unsigned mip, 
     region.imageSubresource.layerCount = 1;
     region.imageOffset.x = area.x;
     region.imageOffset.y = area.y;
-    region.imageExtent.width = area.width;
-    region.imageExtent.height = area.height;
+    region.imageExtent.width = areaWidth;
+    region.imageExtent.height = areaHeight;
     vkCmdCopyBufferToImage(
         stagingCmdBuf->handle(),
         staging->buffer(),
@@ -531,12 +523,12 @@ void VulkanGPUManager::blit(
 
     /* Determine if we're overwriting the whole destination, in which case we
      * can ignore the existing image content. */
-    int mipWidth = (dest) ? dest.texture->width() : m_surface->width();
-    int mipHeight = (dest) ? dest.texture->height() : m_surface->height();
-    calcMipDimensions(dest.mip, mipWidth, mipHeight);
+    uint32_t mipWidth = (dest) ? dest.texture->width() : m_surface->width();
+    uint32_t mipHeight = (dest) ? dest.texture->height() : m_surface->height();
+    GPUUtil::calcMipDimensions(dest.mip, mipWidth, mipHeight);
     bool isWholeDestSubresource =
         destPos.x == 0 && destPos.y == 0 &&
-        size.x == mipWidth && size.y == mipHeight;
+        static_cast<uint32_t>(size.x) == mipWidth && static_cast<uint32_t>(size.y) == mipHeight;
 
     VulkanCommandBuffer *primaryCmdBuf = currentFrame().primaryCmdBuf;
 
