@@ -402,8 +402,18 @@ void VulkanGPUManager::cleanupFrames(bool shutdown) {
     for (auto i = m_frames.begin(); i != m_frames.end(); ) {
         VulkanFrame &frame = *i;
 
-        /* Check whether the frame has completed. */
-        bool completed = shutdown || frame.fence.getStatus();
+        /* Check whether the frame has completed. We're about to start a new
+         * frame, so if the current frame count is on the limit of how many we
+         * can have pending, we must wait for the oldest one to finish. */
+        bool completed = shutdown;
+        if (!completed) {
+            if (m_frames.size() >= kNumPendingFrames) {
+                frame.fence.wait();
+                completed = true;
+            } else {
+                completed = frame.fence.getStatus();
+            }
+        }
 
         /* Perform cleanup work on the frame. */
         m_commandPool->cleanupFrame(frame, completed);
@@ -439,7 +449,7 @@ void VulkanGPUManager::endFrame() {
     for (size_t i = 0; i < completedFrame.resourceSets.size(); i++)
         completedFrame.resourceSets[i] = nullptr;
 
-    /* Clean up completed frames. */
+    /* Clean up completed frames and wait for pending frames. */
     cleanupFrames(false);
 
     /* Prepare state for the next frame. */

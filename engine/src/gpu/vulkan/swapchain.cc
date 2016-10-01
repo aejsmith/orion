@@ -32,8 +32,7 @@ static const uint32_t kNumSwapchainImages = 3;
 VulkanSwapchain::VulkanSwapchain(VulkanGPUManager *manager) :
     VulkanHandle(manager),
     m_currentImage(UINT32_MAX),
-    m_presentCompleteSem(manager),
-    m_renderCompleteSem(manager)
+    m_currentSem(0)
 {
     recreate();
 }
@@ -158,9 +157,16 @@ void VulkanSwapchain::recreate() {
     result = vkGetSwapchainImagesKHR(device->handle(), m_handle, &count, nullptr);
     if (result != VK_SUCCESS)
         fatal("Failed to get Vulkan swap chain images (1): %d", result);
-    check(count);
 
     m_images.resize(count);
+    m_presentCompleteSems.clear();
+    m_renderCompleteSems.clear();
+
+    for (uint32_t i = 0; i < count; i++) {
+        m_presentCompleteSems.emplace_back(new VulkanSemaphore(manager()));
+        m_renderCompleteSems.emplace_back(new VulkanSemaphore(manager()));
+    }
+
     result = vkGetSwapchainImagesKHR(device->handle(), m_handle, &count, &m_images[0]);
     if (result != VK_SUCCESS)
         fatal("Failed to get Vulkan swap chain images (2): %d", result);
@@ -179,11 +185,12 @@ void VulkanSwapchain::startFrame() {
     /* Get the next image from the presentation engine. This will wait
      * indefinitely until an image is available. The image however may not
      * actually be usable for rendering until the semaphore is signalled. */
+    m_currentSem = (m_currentSem + 1) % m_images.size();
     checkVk(vkAcquireNextImageKHR(
         manager()->device()->handle(),
         m_handle,
         UINT64_MAX,
-        m_presentCompleteSem.handle(),
+        m_presentCompleteSems[m_currentSem]->handle(),
         VK_NULL_HANDLE,
         &m_currentImage));
 }
@@ -259,16 +266,16 @@ void VulkanSwapchain::endFrame(VulkanCommandBuffer *cmdBuf, VulkanFence *fence) 
     cmdBuf->end();
     manager()->queue()->submit(
         cmdBuf,
-        &m_presentCompleteSem,
-        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-        &m_renderCompleteSem,
+        m_presentCompleteSems[m_currentSem].get(),
+        VK_PIPELINE_STAGE_TRANSFER_BIT,
+        m_renderCompleteSems[m_currentSem].get(),
         fence);
 
     /* Present the image. */
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.waitSemaphoreCount = 1;
-    VkSemaphore semaphore = m_renderCompleteSem.handle();
+    VkSemaphore semaphore = m_renderCompleteSems[m_currentSem]->handle();
     presentInfo.pWaitSemaphores = &semaphore;
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &m_handle;

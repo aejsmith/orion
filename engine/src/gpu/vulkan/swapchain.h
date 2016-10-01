@@ -39,6 +39,7 @@ public:
 private:
     std::vector<VkImage> m_images;      /**< Array of image handles. */
     uint32_t m_currentImage;            /**< Current image index. */
+    uint32_t m_currentSem;              /**< Current semaphore index. */
 
     /**
      * Semaphore signalled when presentation is complete.
@@ -48,7 +49,7 @@ private:
      * usable. This semaphore must be waited on before a new frame's command
      * buffer starts executing.
      */
-    VulkanSemaphore m_presentCompleteSem;
+    std::vector<std::unique_ptr<VulkanSemaphore>> m_presentCompleteSems;
 
     /**
      * Semaphore signalled when rendering is complete.
@@ -57,5 +58,5 @@ private:
      * after the frame's command buffer is completed to indicate that the
      * frame can be presented.
      */
-    VulkanSemaphore m_renderCompleteSem;
+    std::vector<std::unique_ptr<VulkanSemaphore>> m_renderCompleteSems;
 };

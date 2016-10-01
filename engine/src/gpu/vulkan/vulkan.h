@@ -32,6 +32,14 @@
 
 #include "gpu/gpu_manager.h"
 
+/**
+ * Maximum number of frames in progress at a time.
+ *
+ * This is currently set to 2 so that we can work on one frame while the
+ * previous one finishes on the GPU.
+ */
+static const uint32_t kNumPendingFrames = 2;
+
 /** Macro to check the result of Vulkan API calls. */
 #define checkVk(call) \
     { \

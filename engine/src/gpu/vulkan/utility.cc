@@ -51,7 +51,24 @@ bool VulkanFence::getStatus() const {
         case VK_NOT_READY:
             return false;
         default:
-            unreachable();
+            checkVk(result);
+            return false;
+    }
+}
+
+/** Wait for the fence.
+ * @param timeout       Wait timeout (defaults to indefinite).
+ * @return              Whether the fence was signalled within the timeout. */
+bool VulkanFence::wait(uint64_t timeout) const {
+    VkResult result = vkWaitForFences(manager()->device()->handle(), 1, &m_handle, true, timeout);
+    switch (result) {
+        case VK_SUCCESS:
+            return true;
+        case VK_TIMEOUT:
+            return false;
+        default:
+            checkVk(result);
+            return false;
     }
 }
 
@@ -90,6 +107,9 @@ void VulkanUtil::setImageLayout(
     barrier.image = image;
     barrier.subresourceRange = subresources;
 
+    VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+
     switch (oldLayout) {
         case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
             barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
@@ -108,6 +128,11 @@ void VulkanUtil::setImageLayout(
             break;
         case VK_IMAGE_LAYOUT_PREINITIALIZED:
             barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+            break;
+        case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+            barrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+            srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             break;
         default:
             break;
@@ -129,14 +154,21 @@ void VulkanUtil::setImageLayout(
         case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
             barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
             break;
+        case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+            barrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+            srcStageMask = (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+                ? VK_PIPELINE_STAGE_TRANSFER_BIT
+                : VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+            break;
         default:
             break;
     }
 
     vkCmdPipelineBarrier(
         cmdBuf->handle(),
-        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+        srcStageMask,
+        dstStageMask,
         0,
         0, nullptr,
         0, nullptr,

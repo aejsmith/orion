@@ -30,6 +30,7 @@ public:
     ~VulkanFence();
 
     bool getStatus() const;
+    bool wait(uint64_t timeout = UINT64_MAX) const;
 };
 
 /** Class wrapping a Vulkan semaphore. */
