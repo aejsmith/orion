@@ -28,23 +28,27 @@
 VulkanBuffer::VulkanBuffer(VulkanGPUManager *manager, const GPUBufferDesc &desc) :
     GPUBuffer(desc),
     VulkanObject(manager),
-    m_allocation(nullptr),
     m_generation(0),
+    m_dynamicCount(1),
+    m_dynamicIndex(0),
     m_mapSize(0)
 {
+    /* See description of m_dynamicCount. */
+    if (m_type == kUniformBuffer && m_usage == kDynamicUsage)
+        m_dynamicCount = kNumPendingFrames;
+
     /* Allocate the buffer. */
     reallocate();
 }
 
 /** Destroy the buffer. */
 VulkanBuffer::~VulkanBuffer() {
-    manager()->memoryManager()->freeResource(m_allocation);
+    manager()->memoryManager()->freeBuffers(m_allocations);
 }
 
 /** (Re)allocate the buffer. */
 void VulkanBuffer::reallocate() {
-    if (m_allocation)
-        manager()->memoryManager()->freeResource(m_allocation);
+    manager()->memoryManager()->freeBuffers(m_allocations);
 
     /* Determine Vulkan usage flag. */
     VkBufferUsageFlags usageFlag;
@@ -76,10 +80,14 @@ void VulkanBuffer::reallocate() {
             unreachable();
     }
 
-    /* Allocate a buffer. */
-    m_allocation = manager()->memoryManager()->allocateBuffer(m_size, usageFlag, memoryFlags);
+    m_allocations = manager()->memoryManager()->allocateBuffers(
+        m_size,
+        m_dynamicCount,
+        usageFlag,
+        memoryFlags);
 
     m_generation++;
+    m_dynamicIndex = 0;
 }
 
 /** Map the buffer.
@@ -108,10 +116,24 @@ void *VulkanBuffer::map(size_t offset, size_t size, uint32_t flags, uint32_t acc
 
         /* We're invalidating the whole buffer, so re-allocate it if it is in
          * use, to save us having to synchronise. */
-        if (m_allocation->isInUse())
-            reallocate();
+        if (allocation()->isInUse()) {
+            if (m_dynamicCount > 1) {
+                /* Advance to the next allocation. */
+                m_dynamicIndex = (m_dynamicIndex + 1) % m_dynamicCount;
 
-        ret = m_allocation->map() + offset;
+                /* If the next allocation is still in use, bump up the count
+                 * and reallocate. */
+                if (allocation()->isInUse()) {
+                    m_dynamicCount++;
+                    reallocate();
+                    logDebug("VulkanBuffer: Bumped allocation count to %zu", m_dynamicCount);
+                }
+            } else {
+                reallocate();
+            }
+        }
+
+        ret = allocation()->map() + offset;
     }
 
     m_mapOffset = offset;
@@ -128,14 +150,14 @@ void VulkanBuffer::unmap() {
         /* Upload the staging buffer. */
         VkBufferCopy bufferCopy = {};
         bufferCopy.srcOffset = 0;
-        bufferCopy.dstOffset = m_allocation->offset() + m_mapOffset;
+        bufferCopy.dstOffset = allocation()->offset() + m_mapOffset;
         bufferCopy.size = m_mapSize;
 
         VulkanCommandBuffer *stagingCmdBuf = manager()->memoryManager()->getStagingCmdBuf();
         vkCmdCopyBuffer(
             stagingCmdBuf->handle(),
             m_mapStaging->buffer(),
-            m_allocation->buffer(),
+            allocation()->buffer(),
             1, &bufferCopy);
 
         stagingCmdBuf->addReference(this);

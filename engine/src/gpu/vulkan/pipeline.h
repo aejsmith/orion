@@ -70,7 +70,7 @@ public:
 
     VulkanPipeline(VulkanGPUManager *manager, GPUPipelineDesc &&desc);
 
-    VkPipeline lookup(const VulkanFrame &frame, PrimitiveType primType, const GPUVertexData *vertices);
+    void bind(VulkanFrame &frame, PrimitiveType primType, const GPUVertexData *vertices);
 
     bool isCompatibleForSet(VulkanPipeline *other, size_t set) const;
 
@@ -79,6 +79,12 @@ public:
 protected:
     ~VulkanPipeline();
 private:
+    VkPipeline create(
+        const VulkanFrame &frame,
+        PrimitiveType primType,
+        const GPUVertexData *vertices,
+        StateKey &&key);
+
     VkPipelineLayout m_layout;          /**< Pipeline layout. */
 
     /** Pre-created stage information. */

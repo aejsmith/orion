@@ -167,12 +167,21 @@ public:
     explicit VulkanMemoryManager(VulkanGPUManager *manager);
     ~VulkanMemoryManager();
 
-    BufferMemory *allocateBuffer(
+    std::vector<BufferMemory *> allocateBuffers(
         VkDeviceSize size,
+        size_t count,
         VkBufferUsageFlags usage,
         VkMemoryPropertyFlags memoryFlags);
     ImageMemory *allocateImage(VkMemoryRequirements &requirements);
     void freeResource(ResourceMemory *memory);
+
+    /** Free buffer allocations returned from allocateBuffers().
+     * @param memory        Allocations to free. */
+    void freeBuffers(std::vector<BufferMemory *> &memory) {
+        for (auto handle : memory)
+            freeResource(handle);
+        memory.clear();
+    }
 
     StagingMemory *allocateStagingMemory(VkDeviceSize size);
 
@@ -210,7 +219,7 @@ private:
     uint32_t selectMemoryType(VkMemoryPropertyFlags flags, uint32_t typeBits = 0xffffffff) const;
 
     Pool *createPool(VkDeviceSize size, uint32_t memoryType);
-    bool allocatePoolEntry(Pool *pool, VkDeviceSize size, VkDeviceSize alignment, PoolReference &reference);
+    std::vector<PoolReference> allocatePoolEntries(Pool *pool, VkDeviceSize size, size_t count, VkDeviceSize alignment);
     void freePoolEntry(const PoolReference &reference);
 
     void releaseResource(ResourceMemory *handle);

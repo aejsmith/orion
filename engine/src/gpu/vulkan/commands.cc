@@ -128,14 +128,7 @@ void VulkanGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUInde
     }
 
     /* Get and bind a pipeline matching the current state. */
-    VkPipeline pipeline = frame.boundPipeline->lookup(frame, type, vertices);
-    if (pipeline != frame.boundPipelineObject) {
-        vkCmdBindPipeline(cmdBuf->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-        frame.boundPipelineObject = pipeline;
-
-        /* Reference the object (will already have been done if already bound). */
-        cmdBuf->addReference(frame.boundPipeline);
-    }
+    frame.boundPipeline->bind(frame, type, vertices);
 
     /* Set viewport state. */
     if (frame.viewportDirty) {
@@ -178,20 +171,7 @@ void VulkanGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUInde
         if (!resourceLayout[i] || !frame.resourceSets[i])
             continue;
 
-        VkDescriptorSet descriptorSet = frame.resourceSets[i]->prepareForDraw(cmdBuf);
-        if (descriptorSet != frame.boundDescriptorSets[i]) {
-            /* TODO: Maybe could bundle these up? It doesn't allow us to pass
-             * in a sparse set of bindings though. */
-            vkCmdBindDescriptorSets(
-                cmdBuf->handle(),
-                VK_PIPELINE_BIND_POINT_GRAPHICS,
-                frame.boundPipeline->layout(),
-                i,
-                1, &descriptorSet,
-                0, nullptr);
-
-            frame.boundDescriptorSets[i] = descriptorSet;
-        }
+        frame.resourceSets[i]->bind(frame, i);
     }
 
     /* Bind vertex buffers. */

@@ -22,14 +22,6 @@
 #include "manager.h"
 #include "memory_manager.h"
 
-/* Set to 1 to enable debug messages. */
-#define MEMORY_DEBUG 0
-#if MEMORY_DEBUG
-#   define logMemoryDebug(fmt...) logDebug(fmt)
-#else
-#   define logMemoryDebug(fmt...)
-#endif
-
 /** Initialise the memory manager.
  * @param manager       Manager that the memory manager is for. */
 VulkanMemoryManager::VulkanMemoryManager(VulkanGPUManager *manager) :
@@ -162,74 +154,86 @@ VulkanMemoryManager::Pool *VulkanMemoryManager::createPool(VkDeviceSize size, ui
     return pool;
 }
 
-/** Allocate an entry from a pool.
+/** Allocate entries from a pool.
  * @param pool          Pool to allocate from.
  * @param size          Allocation size.
+ * @param count         Number of allocations to make.
  * @param alignment     Required alignment.
- * @param reference     Where to store pool entry reference. The entry is not
- *                      marked as allocated on success, a ResourceMemory object
- *                      should be allocated for it and set.
- * @return              Whether an entry was successfully allocated. */
-bool VulkanMemoryManager::allocatePoolEntry(
+ * @return              Array of allocated entry references, empty if could not
+ *                      allocate. Each entry should have a handle allocated for
+ *                      it and set by the caller. */
+std::vector<VulkanMemoryManager::PoolReference> VulkanMemoryManager::allocatePoolEntries(
     Pool *pool,
     VkDeviceSize size,
-    VkDeviceSize alignment,
-    PoolReference &reference)
+    size_t count,
+    VkDeviceSize alignment)
 {
-    /* Look for a free entry. */
-    for (auto free = pool->freeEntries.begin(); free != pool->freeEntries.end(); ++free) {
-        /* The free list entry is an iterator referring to the main entry
-         * list. This allows us to quickly modify that list. */
-        std::list<PoolEntry>::iterator entry = *free;
+    std::vector<PoolReference> references;
+    references.reserve(count);
 
-        check(!entry->child);
+    for (size_t i = 0; i < count; i++) {
+        for (auto free = pool->freeEntries.begin(); free != pool->freeEntries.end(); ++free) {
+            /* The free list entry is an iterator referring to the main entry
+             * list. This allows us to quickly modify that list. */
+            std::list<PoolEntry>::iterator entry = *free;
 
-        /* See if this entry can satisfy the alignment constraints. */
-        VkDeviceSize alignedOffset = (alignment)
-            ? Math::roundUp(entry->offset, alignment)
-            : entry->offset;
-        VkDeviceSize diff = alignedOffset - entry->offset;
-        if (diff > entry->size || entry->size - diff < size)
-            continue;
+            check(!entry->child);
 
-        /* We can now remove this entry from the free list. Invalidates the
-         * iterator but we aren't going to continue. */
-        pool->freeEntries.erase(free);
+            /* See if this entry can satisfy the alignment constraints. */
+            VkDeviceSize alignedOffset = (alignment)
+                ? Math::roundUp(entry->offset, alignment)
+                : entry->offset;
+            VkDeviceSize diff = alignedOffset - entry->offset;
+            if (diff > entry->size || entry->size - diff < size)
+                continue;
 
-        /* If alignment caused a difference in the offset, we have to split
-         * the entry. */
-        if (diff) {
-            auto split = pool->entries.emplace(entry);
-            split->offset = entry->offset;
-            split->size = diff;
-            split->child = nullptr;
+            /* We can now remove this entry from the free list. Invalidates the
+             * iterator but we aren't going to continue. */
+            pool->freeEntries.erase(free);
 
-            /* This split is likely to be small as it was only created due
-             * to alignment. Push it back on the end of this list so that
-             * we vaguely try to keep larger entries towards the front. */
-            pool->freeEntries.push_back(split);
+            /* If alignment caused a difference in the offset, we have to split
+             * the entry. */
+            if (diff) {
+                auto split = pool->entries.emplace(entry);
+                split->offset = entry->offset;
+                split->size = diff;
+                split->child = nullptr;
 
-            entry->offset += diff;
-            entry->size -= diff;
+                /* This split is likely to be small as it was only created due
+                 * to alignment. Push it back on the end of this list so that
+                 * we vaguely try to keep larger entries towards the front. */
+                pool->freeEntries.push_back(split);
+
+                entry->offset += diff;
+                entry->size -= diff;
+            }
+
+            /* If the entry is bigger than requested, split it. */
+            if (entry->size > size) {
+                auto split = pool->entries.emplace(std::next(entry));
+                split->offset = entry->offset + size;
+                split->size = entry->size - size;
+                split->child = nullptr;
+
+                pool->freeEntries.push_front(split);
+
+                entry->size = size;
+            }
+
+            references.emplace_back(std::make_pair(pool, entry));
+            break;
         }
 
-        /* If the entry is bigger than requested, split it. */
-        if (entry->size > size) {
-            auto split = pool->entries.emplace(std::next(entry));
-            split->offset = entry->offset + size;
-            split->size = entry->size - size;
-            split->child = nullptr;
-
-            pool->freeEntries.push_front(split);
-
-            entry->size = size;
+        if (references.size() == i) {
+            /* Failed to allocate, free all we've done so far and give up. */
+            for (const auto &reference : references)
+                freePoolEntry(reference);
+            references.clear();
+            break;
         }
-
-        reference = std::make_pair(pool, entry);
-        return true;
     }
 
-    return false;
+    return references;
 }
 
 /** Free a pool entry.
@@ -240,10 +244,6 @@ void VulkanMemoryManager::freePoolEntry(const PoolReference &reference) {
 
     entry->child = nullptr;
 
-    logMemoryDebug(
-        "VulkanMemoryManager: Freed allocation from pool %p %" PRIu64 " %" PRIu64,
-        pool, entry->offset, entry->size);
-
     /* Check if we can merge this entry with the previous one. */
     if (entry != pool->entries.begin()) {
         auto prev = std::prev(entry);
@@ -253,10 +253,6 @@ void VulkanMemoryManager::freePoolEntry(const PoolReference &reference) {
             entry->size += prev->size;
             pool->freeEntries.remove(prev);
             pool->entries.erase(prev);
-
-            logMemoryDebug(
-                "VulkanMemoryManager: Merged with previous %" PRIu64 " %" PRIu64,
-                entry->offset, entry->size);
         }
     }
 
@@ -268,10 +264,6 @@ void VulkanMemoryManager::freePoolEntry(const PoolReference &reference) {
             entry->size += next->size;
             pool->freeEntries.remove(next);
             pool->entries.erase(next);
-
-            logMemoryDebug(
-                "VulkanMemoryManager: Merged with next %" PRIu64 " %" PRIu64,
-                entry->offset, entry->size);
         }
     }
 
@@ -288,14 +280,21 @@ void VulkanMemoryManager::freePoolEntry(const PoolReference &reference) {
  * given an offset within that. Therefore, the user of this suballocation must
  * use both the given buffer object and the offset to refer to it.
  *
- * @param size          Allocation size.
+ * If this function is asked to allocate multiple buffers, it is guaranteed that
+ * all of them will be in the same VkBuffer. This is used for dynamic uniform
+ * buffers, and allows them to entirely use dynamic offsets for descriptor
+ * bindings without ever having to change the descriptor.
+ *
+ * @param size          Buffer size.
+ * @param count         Number of allocations to make.
  * @param usage         Buffer usage flags.
  * @param memoryFlags   Requested memory property flags.
  *
  * @return              Handle to the allocated memory.
  */
-VulkanMemoryManager::BufferMemory *VulkanMemoryManager::allocateBuffer(
+std::vector<VulkanMemoryManager::BufferMemory *> VulkanMemoryManager::allocateBuffers(
     VkDeviceSize size,
+    size_t count,
     VkBufferUsageFlags usage,
     VkMemoryPropertyFlags memoryFlags)
 {
@@ -312,30 +311,26 @@ VulkanMemoryManager::BufferMemory *VulkanMemoryManager::allocateBuffer(
     /* Select the memory type that we should use. */
     uint32_t memoryType = selectMemoryType(memoryFlags);
 
-    PoolReference reference;
-    bool found = false;
+    std::vector<PoolReference> references;
 
     /* Look for an existing pool with free space that we can allocate from. */
     for (Pool *pool : m_bufferPools) {
         if (pool->memoryType != memoryType)
             continue;
 
-        found = allocatePoolEntry(pool, size, alignment, reference);
-        if (found) {
-            logMemoryDebug(
-                "VulkanMemoryManager: Allocated buffer from existing pool %p %" PRIu64 " %" PRIu64,
-                pool, reference.second->offset, reference.second->size);
+        references = allocatePoolEntries(pool, size, count, alignment);
+        if (!references.empty())
             break;
-        }
     }
 
     /* If nothing is found, create a new pool. */
-    if (!found) {
+    if (references.empty()) {
         /* In case the allocation size is larger than our standard pool size,
          * take the maximum. Note that vkAllocateMemory() is guaranteed to
          * return memory that can satisfy all alignment requirements of the
          * implementation. */
-        auto pool = createPool(std::max(kBufferPoolSize, size), memoryType);
+        VkDeviceSize totalSize = ((alignment) ? Math::roundUp(size, alignment) : size) * count;
+        auto pool = createPool(std::max(kBufferPoolSize, totalSize), memoryType);
 
         VkDevice device = manager()->device()->handle();
 
@@ -367,17 +362,19 @@ VulkanMemoryManager::BufferMemory *VulkanMemoryManager::allocateBuffer(
         m_bufferPools.push_back(pool);
 
         /* Allocate the entry. This should always succeed. */
-        found = allocatePoolEntry(pool, size, alignment, reference);
-        check(found);
-
-        logMemoryDebug(
-            "VulkanMemoryManager: Allocated new buffer pool %p %" PRIu64 " %" PRIu64,
-            pool, reference.second->offset, reference.second->size);
+        references = allocatePoolEntries(pool, size, count, alignment);
+        check(!references.empty());
     }
 
-    auto handle = new BufferMemory(reference);
-    reference.second->child = handle;
-    return handle;
+    std::vector<BufferMemory *> handles;
+    handles.reserve(count);
+    for (const auto &reference : references) {
+        auto handle = new BufferMemory(reference);
+        reference.second->child = handle;
+        handles.push_back(handle);
+    }
+
+    return handles;
 }
 
 /**
@@ -394,42 +391,33 @@ VulkanMemoryManager::ImageMemory *VulkanMemoryManager::allocateImage(VkMemoryReq
     /* Select a memory type. */
     uint32_t memoryType = selectMemoryType(0, requirements.memoryTypeBits);
 
-    PoolReference reference;
-    bool found = false;
+    std::vector<PoolReference> references;
 
     /* Look for an existing pool with free space that we can allocate from. */
     for (Pool *pool : m_imagePools) {
         if (pool->memoryType != memoryType)
             continue;
 
-        found = allocatePoolEntry(pool, requirements.size, requirements.alignment, reference);
-        if (found) {
-            logMemoryDebug(
-                "VulkanMemoryManager: Allocated image from existing pool %p %" PRIu64 " %" PRIu64,
-                pool, reference.second->offset, reference.second->size);
+        references = allocatePoolEntries(pool, requirements.size, 1, requirements.alignment);
+        if (!references.empty())
             break;
-        }
     }
 
 
     /* If nothing is found, create a new pool. */
-    if (!found) {
+    if (references.empty()) {
         /* In case the allocation size is larger than our standard pool size,
          * take the maximum. */
         auto pool = createPool(std::max(kImagePoolSize, requirements.size), memoryType);
         m_imagePools.push_back(pool);
 
         /* Allocate the entry. This should always succeed. */
-        found = allocatePoolEntry(pool, requirements.size, requirements.alignment, reference);
-        check(found);
-
-        logMemoryDebug(
-            "VulkanMemoryManager: Allocated new image pool %p %" PRIu64 " %" PRIu64,
-            pool, reference.second->offset, reference.second->size);
+        references = allocatePoolEntries(pool, requirements.size, 1, requirements.alignment);
+        check(!references.empty());
     }
 
-    auto handle = new ImageMemory(reference);
-    reference.second->child = handle;
+    auto handle = new ImageMemory(references[0]);
+    references[0].second->child = handle;
     return handle;
 }
 

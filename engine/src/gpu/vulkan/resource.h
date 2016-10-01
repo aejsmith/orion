@@ -65,7 +65,7 @@ class VulkanResourceSet : public GPUResourceSet, public VulkanObject {
 public:
     VulkanResourceSet(VulkanGPUManager *manager, GPUResourceSetLayout *layout);
 
-    VkDescriptorSet prepareForDraw(VulkanCommandBuffer *cmdBuf);
+    void bind(VulkanFrame &frame, size_t index);
 protected:
     ~VulkanResourceSet();
 
@@ -86,4 +86,6 @@ private:
     std::vector<bool> m_dirtySlots;
     /** Currently bound generation numbers for buffer resources. */
     std::vector<uint32_t> m_bufferBindings;
+    /** Currently bound offsets for dynamic uniform buffers. */
+    std::vector<uint32_t> m_bufferOffsets;
 };

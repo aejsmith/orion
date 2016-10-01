@@ -32,7 +32,7 @@ public:
     void unmap() override;
 
     /** @return             Memory allocation currently backing this buffer. */
-    VulkanMemoryManager::BufferMemory *allocation() const { return m_allocation; }
+    VulkanMemoryManager::BufferMemory *allocation() const { return m_allocations[m_dynamicIndex]; }
     /** @return             Generation number for tracking reallocations. */
     uint32_t generation() const { return m_generation; }
 protected:
@@ -40,8 +40,8 @@ protected:
 private:
     void reallocate();
 
-    /** Memory allocation backing this buffer. */
-    VulkanMemoryManager::BufferMemory *m_allocation;
+    /** Memory allocations backing this buffer. */
+    std::vector<VulkanMemoryManager::BufferMemory *> m_allocations;
 
     /**
      * Generation number.
@@ -55,6 +55,24 @@ private:
      * freed.
      */
     uint32_t m_generation;
+
+    /**
+     * Total number of dynamic allocations.
+     *
+     * Dynamic uniform buffers have this number of allocations created up front,
+     * and we cycle between each allocation when invalidating the old contents
+     * instead of creating a whole new allocation. We ask the memory manager to
+     * allocate all of these allocations on the same VkBuffer object. All of
+     * this allows us to use dynamic offsets for uniform buffer bindings and
+     * never have to change the descriptor because the buffer will always remain
+     * on the same VkBuffer. This value defaults to kNumPendingFrames which
+     * is sufficient for a buffer which is reallocated once per frame, but if we
+     * reallocate more frequently than this then we increase this value.
+     */
+    uint32_t m_dynamicCount;
+
+    /** Current dynamic buffer index (see m_dynamicCount). */
+    uint32_t m_dynamicIndex;
 
     size_t m_mapOffset;             /**< Current mapping offset. */
     size_t m_mapSize;               /**< Current mapping size. */

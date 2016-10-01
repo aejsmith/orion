@@ -49,7 +49,7 @@ VulkanResourceSetLayout::VulkanResourceSetLayout(VulkanGPUManager *manager, GPUR
 
         switch (slot.type) {
             case GPUResourceType::kUniformBuffer:
-                binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
                 break;
             case GPUResourceType::kTexture:
                 binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -88,7 +88,7 @@ VulkanDescriptorPool::VulkanDescriptorPool(VulkanGPUManager *manager) :
     // descriptors. Also, for multithreading we'll want per-thread pools.
 
     std::vector<VkDescriptorPoolSize> poolSizes(2);
-    poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
     poolSizes[0].descriptorCount = kMaxUniformBufferDescriptors;
     poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     poolSizes[1].descriptorCount = kMaxImageSamplerDescriptors;
@@ -114,8 +114,9 @@ VulkanDescriptorPool::~VulkanDescriptorPool() {
 VulkanResourceSet::VulkanResourceSet(VulkanGPUManager *manager, GPUResourceSetLayout *layout) :
     GPUResourceSet(layout),
     VulkanObject(manager),
-    m_dirtySlots(m_slots.size(), true),
-    m_bufferBindings(m_slots.size(), 0)
+    m_dirtySlots(m_slots.size(), false),
+    m_bufferBindings(m_slots.size(), 0),
+    m_bufferOffsets(m_slots.size(), 0)
 {}
 
 /** Destroy the resource set. */
@@ -160,39 +161,41 @@ void VulkanResourceSet::updateSlot(size_t index) {
 }
 
 /**
- * Perform pending updates.
+ * Bind the resource set.
  *
- * Apply pending updates before a draw using the resource set, and return the
- * Vulkan descriptor set handle that should be used for the draw. Since updating
- * may result in a new descriptor set being created if the previous one was in
- * use, this may return a different handle, in which case it must be rebound on
- * the command buffer.
+ * Apply pending updates before a draw using the resource set, then ensure that
+ * the correct underlying descriptor set object is bound. The frame's command
+ * buffer will have references to the underlying descriptor set object added,
+ * along with all resources bound in the resource set.
  *
- * The specified command buffer will have references to the underlying
- * descriptor set object added, along with all resources bound in the resource
- * set. The resource set will not be bound on the command buffer however, this
- * is done by the caller.
- *
- * @param cmdBuf        The command buffer that will use the resource set.
- *
- * @return              Descriptor set handle to use.
+ * @param frame         Current frame.
+ * @param index         Index that the set is bound at.
  */
-VkDescriptorSet VulkanResourceSet::prepareForDraw(VulkanCommandBuffer *cmdBuf) {
+void VulkanResourceSet::bind(VulkanFrame &frame, size_t index) {
+    VulkanCommandBuffer *cmdBuf = frame.primaryCmdBuf;
+
     /* Determine what we need to do, if anything. */
     bool needUpdate = false;
     bool needNew = false;
+    bool needRebind = false;
     if (m_current) {
         for (size_t i = 0; i < m_slots.size(); i++) {
             const Slot &slot = m_slots[i];
 
             /* If this resource slot is a buffer, we need to check if we have
              * reallocated the buffer since we bound it, in which case we do
-             * need to update the descriptor. */
+             * need to update the descriptor. We also need to check if the
+             * offset has changed for dynamic buffers, which requires us to
+             * rebind with a new dynamic offset even if currently bound. */
             switch (slot.desc.type) {
                 case GPUResourceType::kUniformBuffer:
-                    if (!m_dirtySlots[i] && slot.object) {
+                    if (slot.object) {
                         auto buffer = static_cast<VulkanBuffer *>(slot.object.get());
-                        m_dirtySlots[i] = m_bufferBindings[i] != buffer->generation();
+
+                        m_dirtySlots[i] = m_dirtySlots[i] || m_bufferBindings[i] != buffer->generation();
+
+                        if (buffer->usage() == GPUBuffer::kDynamicUsage)
+                            needRebind = needRebind || m_bufferOffsets[i] != buffer->allocation()->offset();
                     }
 
                     break;
@@ -232,28 +235,26 @@ VkDescriptorSet VulkanResourceSet::prepareForDraw(VulkanCommandBuffer *cmdBuf) {
 
         m_current = new DescriptorSet(manager(), static_cast<VulkanResourceSetLayout *>(m_layout.get()));
 
-        /* Copy unchanged descriptors. Note that if this is the first descriptor
-         * set we have created all dirty flags will be set to true by our
-         * constructor. */
-        for (size_t i = 0; i < m_slots.size(); i++) {
-            if (!m_dirtySlots[i]) {
-                const Slot &slot = m_slots[i];
+        if (prev) {
+            /* Copy unchanged descriptors. */
+            for (size_t i = 0; i < m_slots.size(); i++) {
+                if (!m_dirtySlots[i]) {
+                    const Slot &slot = m_slots[i];
 
-                if (!slot.object)
-                    continue;
+                    if (!slot.object)
+                        continue;
 
-                check(prev);
-
-                descriptorCopies.emplace_back();
-                auto &copy = descriptorCopies.back();
-                copy.sType = VK_STRUCTURE_TYPE_COPY_DESCRIPTOR_SET;
-                copy.srcSet = prev->handle();
-                copy.srcBinding = i;
-                copy.srcArrayElement = 0;
-                copy.dstSet = m_current->handle();
-                copy.dstBinding = i;
-                copy.dstArrayElement = 0;
-                copy.descriptorCount = 1;
+                    descriptorCopies.emplace_back();
+                    auto &copy = descriptorCopies.back();
+                    copy.sType = VK_STRUCTURE_TYPE_COPY_DESCRIPTOR_SET;
+                    copy.srcSet = prev->handle();
+                    copy.srcBinding = i;
+                    copy.srcArrayElement = 0;
+                    copy.dstSet = m_current->handle();
+                    copy.dstBinding = i;
+                    copy.dstArrayElement = 0;
+                    copy.descriptorCount = 1;
+                }
             }
         }
     }
@@ -287,10 +288,12 @@ VkDescriptorSet VulkanResourceSet::prepareForDraw(VulkanCommandBuffer *cmdBuf) {
                         bufferInfos.emplace_back();
                         auto &bufferInfo = bufferInfos.back();
                         bufferInfo.buffer = allocation->buffer();
-                        bufferInfo.offset = allocation->offset();
                         bufferInfo.range = buffer->size();
 
-                        write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                        /* Offset is always supplied at bind time. */
+                        bufferInfo.offset = 0;
+
+                        write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
                         write.pBufferInfo = &bufferInfo;
 
                         m_bufferBindings[i] = buffer->generation();
@@ -349,7 +352,30 @@ VkDescriptorSet VulkanResourceSet::prepareForDraw(VulkanCommandBuffer *cmdBuf) {
         }
     }
 
-    return m_current->handle();
+    VkDescriptorSet handle = m_current->handle();
+    needRebind = needRebind || frame.boundDescriptorSets[index] != handle;
+    if (needRebind) {
+        std::vector<uint32_t> dynamicOffsets;
+        for (size_t i = 0; i < m_slots.size(); i++) {
+            const Slot &slot = m_slots[i];
+
+            if (slot.desc.type == GPUResourceType::kUniformBuffer && slot.object) {
+                auto buffer = static_cast<VulkanBuffer *>(slot.object.get());
+                m_bufferOffsets[i] = buffer->allocation()->offset();
+                dynamicOffsets.push_back(m_bufferOffsets[i]);
+            }
+        }
+
+        vkCmdBindDescriptorSets(
+            cmdBuf->handle(),
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            frame.boundPipeline->layout(),
+            index,
+            1, &handle,
+            dynamicOffsets.size(), &dynamicOffsets[0]);
+
+        frame.boundDescriptorSets[index] = handle;
+    }
 }
 
 /** Create a resource set layout.

@@ -116,22 +116,39 @@ size_t hashValue(const VulkanPipeline::StateKey &key) {
     return hash;
 }
 
-/** Get a pipeline object for given rendering state.
+/** Bind a pipeline object for given rendering state.
  * @param frame         Frame data containing current state.
  * @param primType      Primitive type being rendered.
- * @param vertices      Vertex data.
- * @return              Matching pipeline object. */
-VkPipeline VulkanPipeline::lookup(
-    const VulkanFrame &frame,
-    PrimitiveType primType,
-    const GPUVertexData *vertices)
-{
+ * @param vertices      Vertex data. */
+void VulkanPipeline::bind(VulkanFrame &frame, PrimitiveType primType, const GPUVertexData *vertices) {
     /* Look to see if we have one already. */
     StateKey key(frame, primType, vertices);
     auto ret = m_pipelines.find(key);
-    if (ret != m_pipelines.end())
-        return ret->second;
+    VkPipeline pipeline = (ret != m_pipelines.end())
+        ? ret->second
+        : create(frame, primType, vertices, std::move(key));
 
+    if (pipeline != frame.boundPipelineObject) {
+        vkCmdBindPipeline(frame.primaryCmdBuf->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        frame.boundPipelineObject = pipeline;
+
+        /* Reference the object (will already have been done if already bound). */
+        frame.primaryCmdBuf->addReference(frame.boundPipeline);
+    }
+}
+
+/** Create a new pipeline object.
+ * @param frame         Frame data containing current state.
+ * @param primType      Primitive type being rendered.
+ * @param vertices      Vertex data.
+ * @param key           Pipeline state key.
+ * @return              Created pipeline. */
+VkPipeline VulkanPipeline::create(
+    const VulkanFrame &frame,
+    PrimitiveType primType,
+    const GPUVertexData *vertices,
+    StateKey &&key)
+{
     VkGraphicsPipelineCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     createInfo.layout = m_layout;
