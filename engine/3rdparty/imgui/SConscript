@@ -1,10 +1,24 @@
+import util
+
 Import('env')
 
+util.Copy(env, 'include/imgui.h', 'repo/imgui.h')
 env['CPPPATH'] += [Dir('include')]
 
+# We have our own imconfig.h so we have to copy here to ensure that our version
+# is included.
+map(lambda f: util.Copy(env, f, 'repo/%s' % (f)), [
+    'imgui.cpp',
+    'imgui_draw.cpp',
+    'imgui_internal.h',
+    'stb_rect_pack.h',
+    'stb_textedit.h',
+    'stb_truetype.h',
+])
+
 objects = map(env.Object, [
-    'repo/imgui.cpp',
-    'repo/imgui_draw.cpp',
+    'imgui.cpp',
+    'imgui_draw.cpp',
 ])
 
 Return('objects')

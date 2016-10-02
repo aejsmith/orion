@@ -1,5 +1,6 @@
 Import('env')
 
+VariantDir('include/glm', '#engine/3rdparty/glm/repo/glm')
 env['CPPPATH'] += [Dir('include')]
 
 objects = []

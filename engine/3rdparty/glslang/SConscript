@@ -2,6 +2,8 @@ import sys
 
 Import('env')
 
+VariantDir('include/glslang', '#engine/3rdparty/glslang/repo/glslang')
+VariantDir('include/SPIRV', '#engine/3rdparty/glslang/repo/SPIRV')
 env['CPPPATH'] += [Dir('include')]
 
 localEnv = env.Clone()

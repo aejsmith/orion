@@ -1,3 +1,4 @@
+import SCons.Defaults
 import SCons.Errors
 from SCons.Script import *
 
@@ -17,3 +18,10 @@ def StopError(str):
         Return()
     else:
         raise SCons.Errors.StopError(str)
+
+# Copy a file.
+def Copy(env, dest, src):
+    # This silences the output of the command as opposed to using Copy directly.
+    env.Command(
+        dest, src,
+        Action(lambda target, source, env: SCons.Defaults.copy_func(target[0], source[0]), None))

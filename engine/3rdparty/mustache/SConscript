@@ -1,5 +1,8 @@
+import util
+
 Import('env')
 
+util.Copy(env, 'include/mustache/mustache.hpp', 'repo/mustache.hpp')
 env['CPPPATH'] += [Dir('include')]
 
 objects = []

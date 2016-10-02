@@ -1,7 +1,16 @@
 import sys
+import util
 
 Import('env')
 
+map(lambda f: util.Copy(env, 'include/%s' % (f), 'repo/%s' % (f)), [
+    'spirv.hpp',
+    'spirv_common.hpp',
+    'spirv_cpp.hpp',
+    'spirv_cross.hpp',
+    'spirv_glsl.hpp',
+    'spirv_msl.hpp',
+])
 env['CPPPATH'] += [Dir('include')]
 
 objects = map(env.Object, [
