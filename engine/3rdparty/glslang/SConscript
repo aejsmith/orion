@@ -8,14 +8,15 @@ env['CPPPATH'] += [Dir('include')]
 
 localEnv = env.Clone()
 
-localEnv['CCFLAGS'] += [
-    '-Wno-reorder', '-Wno-logical-op-parentheses', '-Wno-unused-variable',
-    '-Wno-tautological-constant-out-of-range-compare', '-Wno-unknown-pragmas',
-]
+if env['PLATFORM'] == 'linux':
+    localEnv['CCFLAGS'] += [
+        '-Wno-reorder', '-Wno-logical-op-parentheses', '-Wno-unused-variable',
+        '-Wno-tautological-constant-out-of-range-compare', '-Wno-unknown-pragmas',
+    ]
 
 objects = []
 
-if sys.platform.startswith('win32'):
+if env['PLATFORM'] == 'win32':
     objects += map(localEnv.Object, [
         'repo/glslang/OSDependent/Windows/ossource.cpp',
     ])

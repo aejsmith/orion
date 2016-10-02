@@ -40,6 +40,11 @@
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
 
+#ifdef ORION_PLATFORM_WIN32
+    #include <windows.h>
+    #include <tchar.h>
+#endif
+
 #include "objgen.mustache.h"
 
 using Mustache = Kainjow::BasicMustache<std::string>;
@@ -479,7 +484,7 @@ bool ParsedProperty::handleAnnotation(const std::string &type, const rapidjson::
             this->getFunction = this->name;
             this->setFunction =
                 std::string("set") +
-                static_cast<char>(std::toupper(this->name[0])) +
+                static_cast<char>(toupper(this->name[0])) +
                 this->name.substr(1);
         }
     } else if (!this->getFunction.empty()) {
@@ -1118,7 +1123,16 @@ int main(int argc, char **argv) {
          * build tree is moved around, so if this becomes an issue in future
          * we could instead try to calculate a relative path between the output
          * directory and the source file. */
-        char *absoluteSourceFile = realpath(sourceFile, nullptr);
+        #ifdef ORION_PLATFORM_WIN32
+            char *absoluteSourceFile = static_cast<char *>(malloc(4096));
+            DWORD ret = GetFullPathName(sourceFile, 4096, absoluteSourceFile, nullptr);
+            if (!ret) {
+                free(absoluteSourceFile);
+                absoluteSourceFile = nullptr;
+            }
+        #else
+            char *absoluteSourceFile = realpath(sourceFile, nullptr);
+        #endif
         if (!absoluteSourceFile) {
             fprintf(
                 stderr,

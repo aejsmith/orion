@@ -26,7 +26,10 @@ Help(helptext)
 # Set up pretty build output.
 if not ARGUMENTS.get('V'):
     def compileString(msg, var):
-        return '\033[1;34m%8s\033[0m %s' % (msg, var)
+        if sys.platform.startswith('win32'):
+            return '%8s %s' % (msg, var)
+        else:
+            return '\033[1;34m%8s\033[0m %s' % (msg, var)
     env['ARCOMSTR']     = compileString('AR',     '$TARGET')
     env['CCCOMSTR']     = compileString('CC',     '$SOURCE')
     env['SHCCCOMSTR']   = compileString('CC',     '$SOURCE')
@@ -56,6 +59,7 @@ if not env['BUILD'] in build_types:
 
 if sys.platform.startswith('linux'):
     env['PLATFORM'] = 'linux'
+    env['CPPDEFINES'] = {'ORION_PLATFORM_LINUX': None}
 
     platform_build_types = {
         'debug': {
@@ -80,6 +84,7 @@ if sys.platform.startswith('linux'):
     env['LINKFLAGS'] += ['-pthread']
 elif sys.platform.startswith('win32'):
     env['PLATFORM'] = 'win32'
+    env['CPPDEFINES'] = {'ORION_PLATFORM_WIN32': None}
 
     platform_build_types = {
         'debug': {
@@ -95,7 +100,7 @@ else:
     util.StopError("Unsupported platform.")
 
 env['CCFLAGS'] += platform_build_types[env['BUILD']]['CCFLAGS']
-env['CPPDEFINES'] = build_types[env['BUILD']]['CPPDEFINES']
+env['CPPDEFINES'].update(build_types[env['BUILD']]['CPPDEFINES'])
 env['CPPPATH'] = []
 env['LIBS'] = []
 

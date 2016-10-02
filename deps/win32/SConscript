@@ -1,1 +1,3 @@
 Import('env')
+
+env['LLVM_DIR'] = Dir('llvm-3.9.0')

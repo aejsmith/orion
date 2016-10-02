@@ -1,4 +1,5 @@
 import os
+import util
 import SCons.Scanner.C
 from subprocess import Popen, PIPE
 
@@ -6,18 +7,18 @@ Import('env')
 
 localEnv = env.Clone()
 
-if os.uname()[0] == 'Darwin':
-    # We have to use Xcode's supplied libclang as the MacPorts one does not
-    # work correctly. However, Xcode does not ship the headers for it, so rely
-    # on the external ones still.
-    localEnv.ParseConfig('llvm-config --cflags')
-    xcodePath = Popen(['xcode-select', '--print-path'], stdout=PIPE).communicate()[0].strip()
-    libPath = xcodePath + '/Toolchains/XcodeDefault.xctoolchain/usr/lib'
-    localEnv['LIBPATH'] = [libPath]
-    localEnv['LINKFLAGS'] = ['-rpath', libPath]
+if env['PLATFORM'] == 'win32':
+    localEnv['CPPPATH'].append([env['LLVM_DIR'].Dir('include')])
+    localEnv['LIBPATH'] = [env['LLVM_DIR'].Dir('lib')]
+    localEnv['LIBS'] = ['libclang']
+
+    # No getopt on Windows, pull in an implementation of it.
+    localEnv['CPPPATH'].append(Dir('../../3rdparty/misc/getopt'))
+    extra_sources = ['../../3rdparty/misc/getopt/getopt.c']
 else:
     localEnv.ParseConfig('llvm-config --cflags --ldflags')
-localEnv['LIBS'] = ['clang']
+    localEnv['LIBS'] = ['clang']
+    extra_sources = []
 
 # Compile the Mustache template into the objgen binary so we don't have to find
 # it at runtime.
@@ -46,12 +47,24 @@ def genMustacheHeader(target, source, env):
         targetFile.write(';\n')
 localEnv.Command('objgen.mustache.h', 'objgen.mustache', Action(genMustacheHeader, '$GENCOMSTR'))
 
-env['OBJGEN'] = localEnv.Program('objgen', ['main.cc'])
+env['OBJGEN'] = localEnv.Program('objgen', ['main.cc'] + extra_sources)
 
-# libclang doesn't add the compiler's built-in include directory to the default
-# path. Therefore we must get this manually and pass it to objgen.
-incdir = Popen([env['CC'], '-print-file-name=include'], stdout=PIPE).communicate()[0].strip()
-env['CPPSYSINCFLAG'] = '-I%s' % (incdir)
+if env['PLATFORM'] == 'win32':
+    libclang = util.Copy(env, 'libclang.dll', env['LLVM_DIR'].File('lib/libclang.dll'))
+    Depends(env['OBJGEN'], libclang)
+
+if env['PLATFORM'] == 'win32':
+    # SCons will give us MSVC-style arguments, but objgen takes GCC-style.
+    env['OBJGENDEFPREFIX'] = '-D'
+    env['OBJGENINCPREFIX'] = '-I'
+    env['OBJGENFLAGS'] = \
+        '${_defines(OBJGENDEFPREFIX, CPPDEFINES, CPPDEFSUFFIX, __env__)} ' + \
+        '$( ${_concat(OBJGENINCPREFIX, CPPPATH, INCSUFFIX, __env__, RDirs, TARGET, SOURCE)} $)'
+else:
+    # libclang doesn't add the compiler's built-in include directory to the default
+    # path. Therefore we must get this manually and pass it to objgen.
+    incdir = Popen([env['CC'], '-print-file-name=include'], stdout=PIPE).communicate()[0].strip()
+    env['OBJGENFLAGS'] = '$_CPPDEFFLAGS -I%s $_CPPINCFLAGS' % (incdir)
 
 #
 # Define builders to run objgen.
@@ -67,7 +80,7 @@ def objgenEmitter(target, source, env):
     return (target, source)
 
 env['BUILDERS']['_ObjgenHeader'] = Builder(
-    action = Action('$OBJGEN $_CPPDEFFLAGS $CPPSYSINCFLAG $_CPPINCFLAGS -e $SOURCE $TARGET', '$OBJGENCOMSTR'),
+    action = Action('$OBJGEN $OBJGENFLAGS -e $SOURCE $TARGET', '$OBJGENCOMSTR'),
     emitter = objgenEmitter,
     suffix = '.obj.cc',
     src_suffix = '.h',

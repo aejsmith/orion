@@ -22,6 +22,6 @@ def StopError(str):
 # Copy a file.
 def Copy(env, dest, src):
     # This silences the output of the command as opposed to using Copy directly.
-    env.Command(
+    return env.Command(
         dest, src,
         Action(lambda target, source, env: SCons.Defaults.copy_func(target[0], source[0]), None))
