@@ -31,6 +31,7 @@ public:
     bool loadData() override;
 private:
     /** TGA image file header. */
+    #pragma pack(push, 1)
     struct Header {
         uint8_t idLength;
         uint8_t colourMapType;
@@ -44,7 +45,8 @@ private:
         uint16_t height;
         uint8_t depth;
         uint8_t imageDescriptor;
-    } PACKED;
+    };
+    #pragma pack(pop)
 };
 
 IMPLEMENT_ASSET_LOADER(TGALoader, "tga");

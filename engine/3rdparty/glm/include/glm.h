@@ -27,6 +27,11 @@
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 
+/* MSVC chokes on this (check if it's fixed if we update GLM). */
+#include <glm/detail/setup.hpp>
+#undef GLM_CONSTEXPR_CTOR
+#define GLM_CONSTEXPR_CTOR
+
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/matrix_inverse.hpp>

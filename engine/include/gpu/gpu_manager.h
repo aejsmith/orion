@@ -293,13 +293,13 @@ public:
 
 /** Begin a scoped debug group.
  * @param fmt           Format string and arguments for group name. */
-#define GPU_DEBUG_GROUP(fmt...) \
-    GPUDebugGroup debugGroup_ ## __LINE__ (String::format(fmt));
+#define GPU_DEBUG_GROUP(...) \
+    GPUDebugGroup debugGroup_ ## __LINE__ (String::format(__VA_ARGS__));
 
 /** Begin a debug group.
  * @param fmt           Format string and arguments for group name. */
-#define GPU_BEGIN_DEBUG_GROUP(fmt...) \
-    g_gpuManager->beginDebugGroup(String::format(fmt));
+#define GPU_BEGIN_DEBUG_GROUP(...) \
+    g_gpuManager->beginDebugGroup(String::format(__VA_ARGS__));
 
 /** End a debug group. */
 #define GPU_END_DEBUG_GROUP() \
@@ -307,8 +307,8 @@ public:
 
 #else /* ORION_BUILD_DEBUG */
 
-#define GPU_DEBUG_GROUP(fmt...) do {} while(0)
-#define GPU_BEGIN_DEBUG_GROUP(fmt...) do {} while(0)
+#define GPU_DEBUG_GROUP(...) do {} while(0)
+#define GPU_BEGIN_DEBUG_GROUP(...) do {} while(0)
 #define GPU_END_DEBUG_GROUP() do {} while(0)
 
 #endif /* ORION_BUILD_DEBUG */

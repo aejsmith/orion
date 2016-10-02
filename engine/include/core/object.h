@@ -24,6 +24,7 @@
 #include "core/hash_table.h"
 #include "core/refcounted.h"
 
+#include <functional>
 #include <type_traits>
 #include <vector>
 
@@ -286,8 +287,10 @@ protected:
      * template parameter type. This is thoroughly evil, I love it! Remember to
      * modify allocate() when adding new compiler support.
      */
-    #ifdef __GNUC__
+    #if defined(__GNUC__)
         #define LOOKUP_FUNCTION_SIGNATURE __PRETTY_FUNCTION__
+    #elif defined(_MSC_VER)
+        #define LOOKUP_FUNCTION_SIGNATURE __FUNCSIG__
     #else
         #error "Unsupported compiler"
     #endif

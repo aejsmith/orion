@@ -78,6 +78,19 @@ if sys.platform.startswith('linux'):
         '-Wsign-promo', '-std=c++14'
     ]
     env['LINKFLAGS'] += ['-pthread']
+elif sys.platform.startswith('win32'):
+    env['PLATFORM'] = 'win32'
+
+    platform_build_types = {
+        'debug': {
+            'CCFLAGS': ['/Od', '/Z7'],
+        },
+        'release': {
+            'CCFLAGS': ['/O2'],
+        }
+    }
+
+    env['CCFLAGS'] += ['/W2', '/EHsc']
 else:
     util.StopError("Unsupported platform.")
 

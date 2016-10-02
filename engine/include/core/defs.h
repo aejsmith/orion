@@ -40,15 +40,20 @@
  * Compiler definitions.
  */
 
-#ifdef __GNUC__
-    #define PACKED        __attribute__((packed))
-    #define ALIGNED(a)    __attribute__((aligned(a)))
+#if defined(__GNUC__)
     #define NORETURN      __attribute__((noreturn))
     #define FORCEINLINE   __attribute__((always_inline))
     #define NOINLINE      __attribute__((noinline))
     #define likely(x)     __builtin_expect(!!(x), 1)
     #define unlikely(x)   __builtin_expect(!!(x), 0)
     #define unreachable() do { check(false); __builtin_unreachable(); } while(0)
+#elif defined(_MSC_VER)
+    #define NORETURN      __declspec(noreturn)
+    #define FORCEINLINE   __forceinline
+    #define NOINLINE      __declspec(noinline)
+    #define likely(x)     (x)
+    #define unlikely(x)   (x)
+    #define unreachable() abort()
 #else
     #error "Compiler is not supported"
 #endif
@@ -82,7 +87,7 @@ extern const char *g_versionTimestamp;
  * Error handling definitions.
  */
 
-extern void __fatal(const char *file, int line, const char *fmt, ...) NORETURN;
+NORETURN extern void __fatal(const char *file, int line, const char *fmt, ...);
 
 /**
  * Signal that an unrecoverable error has occurred.

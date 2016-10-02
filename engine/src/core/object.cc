@@ -59,13 +59,18 @@ MetaType::MetaType(const char *name, size_t size, uint32_t traits, const MetaTyp
  * @param parent        Parent type (for pointers).
  * @return              Pointer to allocated meta-type. */
 const MetaType *MetaType::allocate(const char *signature, size_t size, uint32_t traits, const MetaType *parent) {
-    /* Derive the type name from the function signature (see LookupImpl).
-     * Currently works for GCC/clang only, object.h will error if the compiler
-     * is not recognised to remind that support needs to be added here. */
-    std::string name(signature);
-    size_t start = name.rfind("LookupT = ") + 10;
-    size_t end = name.rfind(", LookupEnable") - start;
-    name = name.substr(start, end);
+    /* Derive the type name from the function signature (see LookupImpl). */
+    #if defined(__GNUC__)
+        std::string name(signature);
+        size_t start = name.rfind("LookupT = ") + 10;
+        size_t end = name.rfind(", LookupEnable") - start;
+        name = name.substr(start, end);
+    #elif defined(_MSC_VER)
+        std::string name(signature);
+        fatal("Implement this '%s'", signature);
+    #else
+        #error "Unsupported compiler"
+    #endif
 
     return new MetaType(strdup(name.c_str()), size, traits, parent);
 }
