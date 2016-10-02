@@ -15,6 +15,7 @@ opts.AddVariables(
 
 env = Environment(ENV = os.environ, variables = opts)
 opts.Save('.options.cache', env)
+Export('env')
 
 helptext = \
     'The following build options can be set on the command line. These will be saved\n' + \
@@ -43,51 +44,56 @@ if not ARGUMENTS.get('V'):
 
 build_types = {
     'debug': {
-        'CCFLAGS': ['-g'],
         'CPPDEFINES': {'ORION_BUILD_DEBUG': None},
     },
     'release': {
-        'CCFLAGS': ['-O2'],
         'CPPDEFINES': {},
     }
 }
 
 if not env['BUILD'] in build_types:
-    util.StopError("Invalid build type '%s'" % (env['BUILD']))
+    util.StopError("Invalid build type '%s'." % (env['BUILD']))
 
-env['CC'] = 'clang'
-env['CXX'] = 'clang++'
+if sys.platform.startswith('linux'):
+    env['PLATFORM'] = 'linux'
 
-env['CCFLAGS'] += build_types[env['BUILD']]['CCFLAGS']
-env['CCFLAGS'] += [
-    '-Wall', '-Wextra', '-Wno-variadic-macros', '-Wno-unused-parameter',
-    '-Wwrite-strings', '-Wmissing-declarations', '-Wredundant-decls',
-    '-Wno-format', '-Wno-unused-function', '-Wno-comment',
-    '-Wno-unused-private-field',
-]
+    platform_build_types = {
+        'debug': {
+            'CCFLAGS': ['-g'],
+        },
+        'release': {
+            'CCFLAGS': ['-O2'],
+        }
+    }
 
-env['CXXFLAGS'] += [
-    '-Wsign-promo', '-std=c++14'
-]
+    env['CC'] = 'clang'
+    env['CXX'] = 'clang++'
+    env['CCFLAGS'] += [
+        '-Wall', '-Wextra', '-Wno-variadic-macros', '-Wno-unused-parameter',
+        '-Wwrite-strings', '-Wmissing-declarations', '-Wredundant-decls',
+        '-Wno-format', '-Wno-unused-function', '-Wno-comment',
+        '-Wno-unused-private-field',
+    ]
+    env['CXXFLAGS'] += [
+        '-Wsign-promo', '-std=c++14'
+    ]
+    env['LINKFLAGS'] += ['-pthread']
+else:
+    util.StopError("Unsupported platform.")
 
+env['CCFLAGS'] += platform_build_types[env['BUILD']]['CCFLAGS']
 env['CPPDEFINES'] = build_types[env['BUILD']]['CPPDEFINES']
 env['CPPPATH'] = []
 env['LIBS'] = []
 
 #########################
-# Platform dependencies #
+# External dependencies #
 #########################
 
-if sys.platform.startswith('darwin'):
-    env['CXXFLAGS'] += ['-stdlib=libc++']
-    env['LINKFLAGS'] += ['-stdlib=libc++']
-    env['CPPPATH'] += ['/opt/local/include']
-elif sys.platform.startswith('linux'):
-    env['LINKFLAGS'] += ['-pthread']
+SConscript(dirs = [os.path.join('deps', env['PLATFORM'])])
 
 ##############
 # Main build #
 ##############
 
-Export('env')
 SConscript('SConscript', variant_dir = os.path.join('build', env['BUILD']))

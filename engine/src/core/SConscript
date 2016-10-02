@@ -1,6 +1,3 @@
-import os
-import util
-
 Import('env')
 
 objects = map(env.Object, [
@@ -22,9 +19,7 @@ objects += SConscript(dirs = [
     'math',
 ])
 
-if os.name == 'posix':
+if env['PLATFORM'] in ['linux']:
     objects += SConscript(dirs = ['posix'])
-else:
-    util.StopError('Unsupported platform')
 
 Return('objects')

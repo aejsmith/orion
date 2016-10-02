@@ -1,0 +1,5 @@
+Import('env')
+
+env.ParseConfig('sdl2-config --cflags --libs')
+env.ParseConfig('pkg-config --cflags --libs freetype2')
+env.ParseConfig('pkg-config --cflags --libs bullet')
