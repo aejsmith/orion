@@ -98,7 +98,7 @@ MetaClass::MetaClass(
     const PropertyArray &properties)
     :
     MetaType(name, size, traits | MetaType::kIsObject, parent),
-    m_constructor(std::move(constructor)),
+    m_constructor(constructor),
     m_properties(properties)
 {
     auto ret = metaClassMap().insert(std::make_pair(name, this));
