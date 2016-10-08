@@ -249,7 +249,7 @@ bool OBJLoader::addFace(const std::vector<std::string> &tokens) {
 
     /* Each face gives 3 or 4 vertices as a set of indices into the sets of
      * vertex elements that have been declared. */
-    uint16_t indices[numVertices];
+    std::vector<uint16_t> indices(numVertices);
     for (size_t i = 0; i < numVertices; i++) {
         std::vector<std::string> subTokens;
         String::tokenize(tokens[i + 1], subTokens, "/", false);

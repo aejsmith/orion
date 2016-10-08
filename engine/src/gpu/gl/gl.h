@@ -176,7 +176,7 @@ private:
     void initFeatures();
     void initPixelFormats();
 
-    static GLEWAPIENTRY void debugCallback(
+    static void GLEWAPIENTRY debugCallback(
         GLenum source,
         GLenum type,
         GLuint id,

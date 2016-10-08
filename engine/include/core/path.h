@@ -95,7 +95,7 @@ public:
     const char *c_str() const { return m_path.c_str(); }
 
     size_t components() const;
-    Path subset(size_t index, size_t count = -1ul) const;
+    Path subset(size_t index, size_t count = std::numeric_limits<size_t>::max()) const;
 
     /**
      * Modifiers.

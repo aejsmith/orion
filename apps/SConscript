@@ -4,4 +4,7 @@ Import('env', 'engine')
 
 app = env['APP']
 objects = SConscript(dirs = [app])
-env.Program(os.path.join('..', app), engine + objects, LINK = '$CXX')
+if env['PLATFORM'] == 'win32':
+    env.Program(os.path.join('..', app), engine + objects)
+else:
+    env.Program(os.path.join('..', app), engine + objects, LINK = '$CXX')

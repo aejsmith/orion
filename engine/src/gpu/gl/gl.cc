@@ -278,7 +278,7 @@ static const char *kDebugMessageFilters[] = {
  * @param length        Length of the message.
  * @param message       Message text.
  * @param param         User-defined parameter (unused). */
-GLEWAPIENTRY void GLGPUManager::debugCallback(
+void GLEWAPIENTRY GLGPUManager::debugCallback(
     GLenum source,
     GLenum type,
     GLuint id,

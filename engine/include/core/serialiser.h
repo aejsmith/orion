@@ -30,8 +30,10 @@
 #include "core/object.h"
 
 namespace Detail {
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wundefined-inline"
+    #ifdef __clang__
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wundefined-inline"
+    #endif
 
     /** Helper to identify a type which has a serialise method. */
     template <typename T>
@@ -67,7 +69,9 @@ namespace Detail {
         static constexpr bool value = decltype(test<T>(0))::value;
     };
 
-    #pragma clang diagnostic pop
+    #ifdef __clang__
+        #pragma clang diagnostic pop
+    #endif
 }
 
 /**

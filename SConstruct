@@ -64,9 +64,11 @@ if sys.platform.startswith('linux'):
     platform_build_types = {
         'debug': {
             'CCFLAGS': ['-g'],
+            'LINKFLAGS': [],
         },
         'release': {
             'CCFLAGS': ['-O2'],
+            'LINKFLAGS': [],
         }
     }
 
@@ -89,19 +91,24 @@ elif sys.platform.startswith('win32'):
     platform_build_types = {
         'debug': {
             'CCFLAGS': ['/Od', '/Z7'],
+            'LINKFLAGS': ['/DEBUG'],
         },
         'release': {
             'CCFLAGS': ['/O2'],
+            'LINKFLAGS': [],
         }
     }
 
-    env['CCFLAGS'] += ['/W2', '/EHsc']
+    env['CCFLAGS'] += ['/W2', '/EHsc', '/MT']
+    env['LINKFLAGS'] += ['/SUBSYSTEM:CONSOLE']
 else:
     util.StopError("Unsupported platform.")
 
 env['CCFLAGS'] += platform_build_types[env['BUILD']]['CCFLAGS']
+env['LINKFLAGS'] += platform_build_types[env['BUILD']]['LINKFLAGS']
 env['CPPDEFINES'].update(build_types[env['BUILD']]['CPPDEFINES'])
 env['CPPPATH'] = []
+env['LIBPATH'] = []
 env['LIBS'] = []
 
 #########################
