@@ -1,3 +1,29 @@
+import os
+
 Import('env')
 
+# SDL.
+env['SDL_DIR'] = Dir('sdl-2.0.4')
+env['CPPPATH'].append([env['SDL_DIR'].Dir('include')])
+env['LIBPATH'] += [env['SDL_DIR'].Dir('lib')]
+env['LIBS'] += ['SDL2', 'SDL2main']
+
+# FreeType.
+env['FREETYPE_DIR'] = Dir('freetype-2.7')
+env['CPPPATH'].append([env['FREETYPE_DIR'].Dir('include')])
+env['LIBPATH'] += [env['FREETYPE_DIR'].Dir('lib')]
+env['LIBS'] += ['freetype27MT']
+
+# GLEW.
+env['GLEW_DIR'] = Dir('glew-2.0.0')
+env['CPPPATH'].append([env['GLEW_DIR'].Dir('include')])
+env['LIBPATH'] += [env['GLEW_DIR'].Dir('lib')]
+
+# Bullet.
+env['BULLET_DIR'] = Dir('bullet-2.83.7')
+env['CPPPATH'].append([env['BULLET_DIR'].Dir('include')])
+env['LIBPATH'] += [env['BULLET_DIR'].Dir('lib')]
+env['LIBS'] += ['LinearMath', 'BulletCollision', 'BulletDynamics']
+
+# LLVM, used only for objgen.
 env['LLVM_DIR'] = Dir('llvm-3.9.0')
