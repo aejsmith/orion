@@ -1,24 +1,32 @@
 # Orion
 
-Orion is a hobby 3D game engine project. It currently supports Linux (Windows support is planned).
+Orion is a hobby 3D game engine project. It currently supports Linux and Windows (64-bit).
 
 ## License
 
 Orion is licensed under the ISC license, see [license.txt](https://github.com/aejsmith/orion/blob/master/documentation/license.txt) for details.
 
-## Building
+## Prerequisites
 
-After cloning the repository you first need to clone submodules containing some external libraries:
+### Linux
 
-    $ git submodule update --init
-
-You must also install the following requirements:
+You must also install the following requirements (including their development packages):
 
 * SCons
 * LLVM/clang
 * SDL (2.x)
 * freetype2
 * Bullet (2.x)
+
+### Windows
+
+Building on Windows requires Visual Studio (only 2015 has been tested) and SCons to be installed. All other library dependencies are pre-built and included in the repository. SCons needs to be added to your PATH.
+
+## Building
+
+After cloning the repository you first need to clone submodules containing some external libraries:
+
+    $ git submodule update --init
 
 You can then build by running SCons:
 
