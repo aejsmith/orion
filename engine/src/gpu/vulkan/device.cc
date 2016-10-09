@@ -43,8 +43,9 @@ VulkanDevice::~VulkanDevice() {
 
 /** Identify the device.
  * @param surface       Surface the device needs to support.
+ * @param features      Features structure to fill in.
  * @return              Whether the device is suitable. */
-bool VulkanDevice::identify(VulkanSurface *surface) {
+bool VulkanDevice::identify(VulkanSurface *surface, VulkanFeatures &features) {
     VkResult result;
     uint32_t count;
 
@@ -97,6 +98,15 @@ bool VulkanDevice::identify(VulkanSurface *surface) {
             return false;
         }
     }
+
+    /* Enable debug marker extension if present. */
+    #if ORION_BUILD_DEBUG
+        auto markerExtension = availableExtensions.find(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+        if (markerExtension != availableExtensions.end()) {
+            m_extensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+            features.debugMarker = true;
+        }
+    #endif
 
     /* Find suitable queue families. We need to support both graphics operations
      * and presentation to our surface. */
@@ -174,4 +184,7 @@ void VulkanDevice::init() {
     VkResult result = vkCreateDevice(m_physicalHandle, &deviceCreateInfo, nullptr, &m_handle);
     if (result != VK_SUCCESS)
         fatal("Failed to create Vulkan device: %d", result);
+
+    /* Get device extension function pointers. */
+    m_functions.init(m_handle, manager()->features());
 }

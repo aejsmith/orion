@@ -235,17 +235,18 @@ void VulkanGPUManager::beginDebugGroup(const std::string &str) {
         VkDebugMarkerMarkerInfoEXT markerInfo = {};
         markerInfo.sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT;
         markerInfo.pMarkerName = str.c_str();
+        markerInfo.color[1] = 0.5f;
         markerInfo.color[2] = 1.0f;
         markerInfo.color[3] = 1.0f;
 
-        m_functions.CmdDebugMarkerBeginEXT(currentFrame().primaryCmdBuf->handle(), &markerInfo);
+        m_device->functions().CmdDebugMarkerBeginEXT(currentFrame().primaryCmdBuf->handle(), &markerInfo);
     }
 }
 
 /** End the current debug group. */
 void VulkanGPUManager::endDebugGroup() {
     if (m_features.debugMarker)
-        m_functions.CmdDebugMarkerEndEXT(currentFrame().primaryCmdBuf->handle());
+        m_device->functions().CmdDebugMarkerEndEXT(currentFrame().primaryCmdBuf->handle());
 }
 
 #endif

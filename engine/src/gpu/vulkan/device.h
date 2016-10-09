@@ -25,13 +25,15 @@
 
 class VulkanSurface;
 
+struct VulkanFeatures;
+
 /** Class wrapping a logical device. */
 class VulkanDevice : public VulkanHandle<VkDevice> {
 public:
     VulkanDevice(VulkanGPUManager *manager, VkPhysicalDevice physicalDevice);
     ~VulkanDevice();
 
-    bool identify(VulkanSurface *surface);
+    bool identify(VulkanSurface *surface, VulkanFeatures &features);
     bool isBetterThan(const VulkanDevice *other) const;
     void init();
 
@@ -40,6 +42,8 @@ public:
     /** @return             Physical device handle. */
     VkPhysicalDevice physicalHandle() const { return m_physicalHandle; }
 
+    /** @return             Device extension function table. */
+    const VulkanDeviceFunctions &functions() const { return m_functions; }
     /** @return             Device properties. */
     const VkPhysicalDeviceProperties &properties() const { return m_properties; }
     /** @return             Device limits. */
@@ -47,6 +51,7 @@ public:
 private:
     uint32_t m_queueFamily;                 /**< Queue family to use. */
     VkPhysicalDevice m_physicalHandle;      /**< Physical device handle. */
+    VulkanDeviceFunctions m_functions;      /**< Extension function pointer table. */
 
     /** Physical device properties. */
     VkPhysicalDeviceProperties m_properties;

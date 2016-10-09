@@ -32,19 +32,21 @@
 #endif
 
 #if ORION_BUILD_DEBUG
-    #define ENUMERATE_VK_INSTANCE_DEBUG_MARKER_FUNCTIONS(macro, features) \
+    #define ENUMERATE_VK_DEVICE_DEBUG_MARKER_FUNCTIONS(macro, features) \
         macro(DebugMarkerSetObjectTagEXT, features.debugMarker) \
         macro(DebugMarkerSetObjectNameEXT, features.debugMarker) \
         macro(CmdDebugMarkerBeginEXT, features.debugMarker) \
         macro(CmdDebugMarkerEndEXT, features.debugMarker) \
         macro(CmdDebugMarkerInsertEXT, features.debugMarker)
 #else
-    #define ENUMERATE_VK_INSTANCE_DEBUG_MARKER_FUNCTIONS(macro, features)
+    #define ENUMERATE_VK_DEVICE_DEBUG_MARKER_FUNCTIONS(macro, features)
 #endif
 
 #define ENUMERATE_VK_INSTANCE_FUNCTIONS(macro, features) \
-    ENUMERATE_VK_INSTANCE_DEBUG_REPORT_FUNCTIONS(macro, features) \
-    ENUMERATE_VK_INSTANCE_DEBUG_MARKER_FUNCTIONS(macro, features)
+    ENUMERATE_VK_INSTANCE_DEBUG_REPORT_FUNCTIONS(macro, features)
+
+#define ENUMERATE_VK_DEVICE_FUNCTIONS(macro, features) \
+    ENUMERATE_VK_DEVICE_DEBUG_MARKER_FUNCTIONS(macro, features)
 
 struct VulkanFeatures;
 
@@ -54,5 +56,14 @@ struct VulkanInstanceFunctions {
     ENUMERATE_VK_INSTANCE_FUNCTIONS(DECLARE_VK_FUNCTION, bad);
     #undef DECLARE_VK_FUNCTION
 
-    void init(VkInstance instance, VulkanFeatures &features);
+    void init(VkInstance instance, const VulkanFeatures &features);
+};
+
+/** Structure containing instance extension function pointers. */
+struct VulkanDeviceFunctions {
+    #define DECLARE_VK_FUNCTION(name, cond) PFN_vk##name name;
+    ENUMERATE_VK_DEVICE_FUNCTIONS(DECLARE_VK_FUNCTION, bad);
+    #undef DECLARE_VK_FUNCTION
+
+    void init(VkDevice instance, const VulkanFeatures &features);
 };

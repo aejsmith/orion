@@ -115,15 +115,6 @@ static void enableInstanceExtensions(
             features.validation = true;
         }
     #endif
-
-    /* Enable debug marker extension if present. */
-    #if ORION_BUILD_DEBUG
-        auto markerExtension = availableExtensions.find(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
-        if (markerExtension != availableExtensions.end()) {
-            extensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
-            features.debugMarker = true;
-        }
-    #endif
 }
 
 #if ORION_VULKAN_VALIDATION
@@ -222,7 +213,7 @@ VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&w
     if (result != VK_SUCCESS)
         fatal("Failed to create Vulkan instance: %d", result);
 
-    /* Get extension function pointers. */
+    /* Get instance extension function pointers. */
     m_functions.init(m_instance, m_features);
 
     /* Register a debug report callback. */
@@ -257,16 +248,18 @@ VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&w
         fatal("Failed to enumerate Vulkan physical devices (2): %d", result);
 
     /* From the devices which suit our needs, identify the best. */
-    std::vector<std::unique_ptr<VulkanDevice>> devices(deviceCount);
+    std::vector<std::pair<std::unique_ptr<VulkanDevice>, VulkanFeatures>> devices(deviceCount);
     uint32_t bestDevice = UINT32_MAX;
     for (uint32_t i = 0; i < physicalDevices.size(); i++) {
         logInfo("  Device %u:", i);
+
         std::unique_ptr<VulkanDevice> device = std::make_unique<VulkanDevice>(this, physicalDevices[i]);
-        if (device->identify(m_surface)) {
-            if (bestDevice == UINT32_MAX || device->isBetterThan(devices[i].get()))
+        devices[i].second = m_features;
+        if (device->identify(m_surface, devices[i].second)) {
+            if (bestDevice == UINT32_MAX || device->isBetterThan(devices[bestDevice].first.get()))
                 bestDevice = i;
 
-            devices[i] = std::move(device);
+            devices[i].first = std::move(device);
         }
     }
 
@@ -274,7 +267,8 @@ VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&w
         fatal("No suitable Vulkan physical device found");
 
     logInfo("  Using device %u", bestDevice);
-    m_device = devices[bestDevice].release();
+    m_device = devices[bestDevice].first.release();
+    m_features = devices[bestDevice].second;
     devices.clear();
 
     /* Create the logical device. */

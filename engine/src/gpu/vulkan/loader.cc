@@ -24,7 +24,7 @@
 /** Get all required instance function pointers.
  * @param instance      Vulkan instance.
  * @param features      Features structure detailing enabled extensions. */
-void VulkanInstanceFunctions::init(VkInstance instance, VulkanFeatures &features) {
+void VulkanInstanceFunctions::init(VkInstance instance, const VulkanFeatures &features) {
     #define GET_VK_FUNCTION(name, cond) \
         if (cond) { \
             name = reinterpret_cast<PFN_vk##name>(vkGetInstanceProcAddr(instance, "vk" #name)); \
@@ -33,6 +33,22 @@ void VulkanInstanceFunctions::init(VkInstance instance, VulkanFeatures &features
         }
 
     ENUMERATE_VK_INSTANCE_FUNCTIONS(GET_VK_FUNCTION, features);
+
+    #undef GET_VK_FUNCTION
+}
+
+/** Get all required device function pointers.
+ * @param device        Vulkan device handle.
+ * @param features      Features structure detailing enabled extensions. */
+void VulkanDeviceFunctions::init(VkDevice device, const VulkanFeatures &features) {
+    #define GET_VK_FUNCTION(name, cond) \
+        if (cond) { \
+            name = reinterpret_cast<PFN_vk##name>(vkGetDeviceProcAddr(device, "vk" #name)); \
+            if (!name) \
+                fatal("Vulkan instance function 'vk" #name "' not found"); \
+        }
+
+    ENUMERATE_VK_DEVICE_FUNCTIONS(GET_VK_FUNCTION, features);
 
     #undef GET_VK_FUNCTION
 }
