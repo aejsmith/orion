@@ -21,5 +21,7 @@ objects += SConscript(dirs = [
 
 if env['PLATFORM'] in ['linux']:
     objects += SConscript(dirs = ['posix'])
+else:
+    objects += SConscript(dirs = [env['PLATFORM']])
 
 Return('objects')

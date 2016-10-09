@@ -21,6 +21,13 @@
 
 #include "core/path.h"
 
+/** Platform path separator. */
+#ifdef ORION_PLATFORM_WIN32
+    static const char kPlatformPathSeparator = '\\';
+#else
+    static const char kPlatformPathSeparator = '/';
+#endif
+
 /* @return              Number of components in the path. */
 size_t Path::components() const {
     /* We always have at least one component. Each '/' adds another. */
@@ -59,11 +66,19 @@ Path Path::subset(size_t index, size_t count) const {
 
             /* Don't allow it to overflow. */
             if (index + count > index && current == index + count)
-                return Path(m_path.substr(start, pos - start), true);
+                return Path(m_path.substr(start, pos - start), kNormalized);
         }
     }
 
-    return (current >= index) ? Path(m_path.substr(start), true) : Path();
+    return (current >= index) ? Path(m_path.substr(start), kNormalized) : Path();
+}
+
+/** Convert to a platform-specific path.
+ * @return              Platform-specific path. */
+std::string Path::toPlatform() const {
+    std::string ret = m_path;
+    std::replace(ret.begin(), ret.end(), '/', kPlatformPathSeparator);
+    return ret;
 }
 
 /** Append a path, adding a separator between them.
@@ -101,17 +116,25 @@ bool Path::isRoot() const {
 
 /** @return             Whether the path refers to the absolute FS root. */
 bool Path::isAbsoluteRoot() const {
-    return m_path.length() == 1 && m_path[0] == '/';
+    #ifdef ORION_PLATFORM_WIN32
+        return m_path.length() == 3 && m_path[1] == ':' && m_path[2] == '/';
+    #else
+        return m_path.length() == 1 && m_path[0] == '/';
+    #endif
 }
 
 /** @return             Whether the path is a relative path. */
 bool Path::isRelative() const {
-    return m_path[0] != '/';
+    return !isAbsolute();
 }
 
 /** @return             Whether the path is an absolute path. */
 bool Path::isAbsolute() const {
-    return m_path[0] == '/';
+    #ifdef ORION_PLATFORM_WIN32
+        return m_path.length() >= 3 && m_path[1] == ':' && m_path[2] == '/';
+    #else
+        return m_path[0] == '/';
+    #endif
 }
 
 /**
@@ -129,9 +152,9 @@ Path Path::directoryName() const {
     if (pos == std::string::npos) {
         return Path();
     } else if (pos == 0) {
-        return Path("/", true);
+        return Path("/", kNormalized);
     } else {
-        return Path(m_path.substr(0, pos), true);
+        return Path(m_path.substr(0, pos), kNormalized);
     }
 }
 
@@ -150,7 +173,7 @@ Path Path::fileName() const {
     if (pos == std::string::npos || (pos == 0 && m_path.length() == 1)) {
         return *this;
     } else {
-        return Path(m_path.substr(pos + 1), true);
+        return Path(m_path.substr(pos + 1), kNormalized);
     }
 }
 
@@ -196,9 +219,10 @@ std::string Path::extension(bool keepDot) const {
  *
  * @param path          Path to normalize.
  * @param length        Length of path.
+ * @param state         Current normalization state of the string.
  * @param output        String to output normalized path to.
  */
-void Path::normalize(const char *path, size_t length, std::string &output) {
+void Path::normalize(const char *path, size_t length, NormalizationState state, std::string &output) {
     if (length == 0 || (length == 1 && path[0] == '.')) {
         output = '.';
         return;
@@ -211,6 +235,12 @@ void Path::normalize(const char *path, size_t length, std::string &output) {
 
     for (size_t pos = 0; pos < length; pos++) {
         char ch = path[pos];
+
+        if (state == kUnnormalizedPlatform) {
+            /* Convert platform-specific path separators. */
+            if (ch == kPlatformPathSeparator)
+                ch = '/';
+        }
 
         if (ch == '/') {
             if (seenDot) {

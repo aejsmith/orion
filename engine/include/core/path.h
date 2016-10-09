@@ -34,6 +34,16 @@
  */
 class Path {
 public:
+    /** Normalization state. */
+    enum NormalizationState {
+        /** Already normalized. */
+        kNormalized,
+        /** Unnormalized. */
+        kUnnormalized,
+        /** Unnormalized, in platform-specific format (i.e. different separators). */
+        kUnnormalizedPlatform,
+    };
+
     /**
      * Initializers.
      */
@@ -51,23 +61,23 @@ public:
 
     /** Convert a string to a path.
      * @param path          String to convert.
-     * @param normalized    Whether the string is already normalized. */
-    Path(const std::string &path, bool normalized = false) {
-        if (normalized) {
+     * @param state         Normalization state of the input path. */
+    Path(const std::string &path, NormalizationState state = kUnnormalized) {
+        if (state == kNormalized) {
             m_path = path;
         } else {
-            normalize(path.c_str(), path.length(), m_path);
+            normalize(path.c_str(), path.length(), state, m_path);
         }
     }
 
     /** Convert a string to a path.
      * @param path          String to convert.
-     * @param normalized    Whether the string is already normalized. */
-    Path(const char *path, bool normalized = false) {
-        if (normalized) {
+     * @param state         Normalization state of the input path. */
+    Path(const char *path, NormalizationState state = kUnnormalized) {
+        if (state == kNormalized) {
             m_path = path;
         } else {
-            normalize(path, strlen(path), m_path);
+            normalize(path, strlen(path), state, m_path);
         }
     }
 
@@ -96,6 +106,8 @@ public:
 
     size_t components() const;
     Path subset(size_t index, size_t count = std::numeric_limits<size_t>::max()) const;
+
+    std::string toPlatform() const;
 
     /**
      * Modifiers.
@@ -157,7 +169,7 @@ public:
         return hashValue(path.m_path);
     }
 private:
-    static void normalize(const char *path, size_t length, std::string &output);
+    static void normalize(const char *path, size_t length, NormalizationState state, std::string &output);
 private:
     std::string m_path;     /**< Path string. */
 };

@@ -1,0 +1,8 @@
+Import('env')
+
+objects = map(env.Object, [
+    'filesystem.cc',
+    'platform.cc',
+])
+
+Return('objects')

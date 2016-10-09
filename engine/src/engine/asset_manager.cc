@@ -63,6 +63,7 @@ AssetManager::AssetManager() {
     /* Register asset search paths. */
     m_searchPaths.insert(std::make_pair("engine", "engine/assets"));
     std::string gamePath = String::format("apps/%s/assets", Platform::getProgramName().c_str());
+    logDebug("Game asset path is '%s'", gamePath.c_str());
     m_searchPaths.insert(std::make_pair("game", gamePath));
 
     g_debugManager->registerWindow(std::make_unique<AssetExplorerWindow>());

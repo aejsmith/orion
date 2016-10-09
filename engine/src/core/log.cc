@@ -67,7 +67,7 @@ void LogManager::write(LogLevel level, const char *file, int line, const char *f
     char timeString[20];
     strftime(timeString, 20, "%Y-%m-%d %H:%M:%S", &local);
 
-    Path path(file);
+    Path path(file, Path::kUnnormalizedPlatform);
     Path fileName = path.fileName();
     std::string fileDetails = String::format("%s:%d", fileName.c_str(), line);
 
