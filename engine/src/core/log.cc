@@ -52,7 +52,7 @@ void LogManager::write(LogLevel level, const char *file, int line, const char *f
     va_list args;
 
     va_start(args, fmt);
-    std::string msg = String::format(fmt, args);
+    std::string msg = String::vformat(fmt, args);
     va_end(args);
 
     // TODO: Hide this in platform library.

@@ -41,7 +41,7 @@ void __fatal(const char *file, int line, const char *fmt, ...) {
     va_list args;
 
     va_start(args, fmt);
-    std::string str = std::string("Fatal Error: ") + String::format(fmt, args);
+    std::string str = std::string("Fatal Error: ") + String::vformat(fmt, args);
     va_end(args);
 
     if (g_logManager) {

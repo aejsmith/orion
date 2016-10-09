@@ -42,6 +42,6 @@ namespace String {
         }
     }
 
-    extern std::string format(const char *fmt, va_list args);
+    extern std::string vformat(const char *fmt, va_list args);
     extern std::string format(const char *fmt, ...);
 }

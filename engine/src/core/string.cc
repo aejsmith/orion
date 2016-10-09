@@ -27,7 +27,7 @@
  * @param fmt           Format string.
  * @param args          Values to substitute into string.
  * @return              Formatted string. */
-std::string String::format(const char *fmt, va_list args) {
+std::string String::vformat(const char *fmt, va_list args) {
     char buf[8192];
     vsnprintf(buf, 8192, fmt, args);
     return std::string(buf);
