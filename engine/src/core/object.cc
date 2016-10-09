@@ -63,11 +63,13 @@ const MetaType *MetaType::allocate(const char *signature, size_t size, uint32_t 
     #if defined(__GNUC__)
         std::string name(signature);
         size_t start = name.rfind("LookupT = ") + 10;
-        size_t end = name.rfind(", LookupEnable") - start;
-        name = name.substr(start, end);
+        size_t len = name.rfind(", LookupEnable") - start;
+        name = name.substr(start, len);
     #elif defined(_MSC_VER)
         std::string name(signature);
-        fatal("Implement this '%s'", signature);
+        size_t start = name.rfind("LookupImpl<") + 11;
+        size_t len = name.rfind(",void") - start;
+        name = name.substr(start, len);
     #else
         #error "Unsupported compiler"
     #endif
