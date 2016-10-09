@@ -2,26 +2,29 @@ import os
 
 Import('env')
 
+env['ENGINE_DLLS'] = []
+
 # SDL.
 env['SDL_DIR'] = Dir('sdl-2.0.4')
-env['CPPPATH'].append([env['SDL_DIR'].Dir('include')])
+env['CPPPATH'] += [env['SDL_DIR'].Dir('include')]
 env['LIBPATH'] += [env['SDL_DIR'].Dir('lib')]
 env['LIBS'] += ['SDL2', 'SDL2main']
+env['ENGINE_DLLS'] += [env['SDL_DIR'].File('lib/SDL2.dll')]
 
 # FreeType.
 env['FREETYPE_DIR'] = Dir('freetype-2.7')
-env['CPPPATH'].append([env['FREETYPE_DIR'].Dir('include')])
+env['CPPPATH'] += [env['FREETYPE_DIR'].Dir('include')]
 env['LIBPATH'] += [env['FREETYPE_DIR'].Dir('lib')]
 env['LIBS'] += ['freetype27MT']
 
 # GLEW.
 env['GLEW_DIR'] = Dir('glew-2.0.0')
-env['CPPPATH'].append([env['GLEW_DIR'].Dir('include')])
+env['CPPPATH'] += [env['GLEW_DIR'].Dir('include')]
 env['LIBPATH'] += [env['GLEW_DIR'].Dir('lib')]
 
 # Bullet.
 env['BULLET_DIR'] = Dir('bullet-2.83.7')
-env['CPPPATH'].append([env['BULLET_DIR'].Dir('include')])
+env['CPPPATH'] += [env['BULLET_DIR'].Dir('include')]
 env['LIBPATH'] += [env['BULLET_DIR'].Dir('lib')]
 env['LIBS'] += ['LinearMath', 'BulletCollision', 'BulletDynamics']
 

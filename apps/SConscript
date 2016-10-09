@@ -1,10 +1,16 @@
 import os
+import util
 
 Import('env', 'engine')
 
 app = env['APP']
-objects = SConscript(dirs = [app])
+objects = engine + SConscript(dirs = [app])
+path = os.path.join('..', app)
+
 if env['PLATFORM'] == 'win32':
-    env.Program(os.path.join('..', app), engine + objects)
+    app = env.Program(path, objects)
+    for dll in env['ENGINE_DLLS']:
+        copy = util.Copy(env, os.path.join('..', os.path.basename(str(dll))), dll)
+        Depends(app, copy)
 else:
-    env.Program(os.path.join('..', app), engine + objects, LINK = '$CXX')
+    env.Program(path, objects, LINK = '$CXX')
