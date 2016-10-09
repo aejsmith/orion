@@ -17,10 +17,14 @@ You must also install the following requirements (including their development pa
 * SDL (2.x)
 * freetype2
 * Bullet (2.x)
+* GLEW (when building GL support)
+* Vulkan SDK (when building Vulkan support)
 
 ### Windows
 
 Building on Windows requires Visual Studio (only 2015 has been tested) and SCons to be installed. All other library dependencies are pre-built and included in the repository. SCons needs to be added to your PATH.
+
+To build Vulkan support, the LunarG Vulkan SDK must be installed.
 
 ## Building
 

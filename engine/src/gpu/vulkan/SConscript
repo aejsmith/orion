@@ -2,9 +2,12 @@ import os
 
 Import('env')
 
-env['LIBS'] += ['vulkan']
-
-if os.uname()[0] == 'Linux':
+if env['PLATFORM'] == 'win32':
+    env['LIBS'] += ['vulkan-1']
+    env['CPPPATH'] += ["${ENV['VULKAN_SDK']}\Include"]
+    env['LIBPATH'] += ["${ENV['VULKAN_SDK']}\Bin"]
+else:
+    env['LIBS'] += ['vulkan']
     env.ParseConfig('pkg-config --cflags --libs x11-xcb')
 
 objects = map(env.Object, [

@@ -21,13 +21,18 @@
 
 #include <SDL.h>
 
-#ifdef SDL_VIDEO_DRIVER_X11
+#if defined(SDL_VIDEO_DRIVER_X11)
     #define VK_USE_PLATFORM_XCB_KHR 1
 
     /* Avoid conflicts with our own Window type. */
     #define Window X11Window
 
     #include <X11/Xlib-xcb.h>
+#elif defined(SDL_VIDEO_DRIVER_WINDOWS)
+    #define VK_USE_PLATFORM_WIN32_KHR
+
+    #define NOMINMAX
+    #include <windows.h>
 #endif
 
 #include <SDL_syswm.h>
@@ -59,15 +64,26 @@ void VulkanSurface::create() {
     VkResult result;
 
     switch (wmInfo.subsystem) {
-        #ifdef SDL_VIDEO_DRIVER_X11
+        #if defined(SDL_VIDEO_DRIVER_X11)
             case SDL_SYSWM_X11:
             {
                 VkXcbSurfaceCreateInfoKHR createInfo = {};
                 createInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
-                createInfo.connection = XGetXCBConnection(wmInfo.info.x11.display);
+                createInfo.hinstance = XGetXCBConnection(wmInfo.info.x11.display);
                 createInfo.window = wmInfo.info.x11.window;
 
                 result = vkCreateXcbSurfaceKHR(manager()->instance(), &createInfo, nullptr, &m_handle);
+                break;
+            }
+        #elif defined(SDL_VIDEO_DRIVER_WINDOWS)
+            case SDL_SYSWM_WINDOWS:
+            {
+                VkWin32SurfaceCreateInfoKHR createInfo = {};
+                createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+                createInfo.hinstance = GetModuleHandle(nullptr);
+                createInfo.hwnd = wmInfo.info.win.window;
+
+                result = vkCreateWin32SurfaceKHR(manager()->instance(), &createInfo, nullptr, &m_handle);
                 break;
             }
         #endif
@@ -155,9 +171,14 @@ const char *VulkanSurface::getPlatformExtensionName() {
         fatal("Failed to get SDL WM info: %s", SDL_GetError());
 
     switch (wmInfo.subsystem) {
-        #ifdef SDL_VIDEO_DRIVER_X11
+        #if defined(SDL_VIDEO_DRIVER_X11)
             case SDL_SYSWM_X11:
                 return VK_KHR_XCB_SURFACE_EXTENSION_NAME;
+
+        #elif defined(SDL_VIDEO_DRIVER_WINDOWS)
+            case SDL_SYSWM_WINDOWS:
+                return VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
+
         #endif
 
         default:
