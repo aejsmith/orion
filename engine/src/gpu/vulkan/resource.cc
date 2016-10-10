@@ -326,10 +326,12 @@ void VulkanResourceSet::bind(VulkanFrame &frame, size_t index) {
     }
 
     /* Apply the updates. */
-    vkUpdateDescriptorSets(
-        manager()->device()->handle(),
-        descriptorWrites.size(), &descriptorWrites[0],
-        descriptorCopies.size(), &descriptorCopies[0]);
+    if (descriptorWrites.size() || descriptorCopies.size()) {
+        vkUpdateDescriptorSets(
+            manager()->device()->handle(),
+            descriptorWrites.size(), &descriptorWrites[0],
+            descriptorCopies.size(), &descriptorCopies[0]);
+    }
 
     /* The command buffer will be using this resource set, reference it. */
     cmdBuf->addReference(m_current);
