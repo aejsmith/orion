@@ -69,7 +69,7 @@ void VulkanSurface::create() {
             {
                 VkXcbSurfaceCreateInfoKHR createInfo = {};
                 createInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
-                createInfo.hinstance = XGetXCBConnection(wmInfo.info.x11.display);
+                createInfo.connection = XGetXCBConnection(wmInfo.info.x11.display);
                 createInfo.window = wmInfo.info.x11.window;
 
                 result = vkCreateXcbSurfaceKHR(manager()->instance(), &createInfo, nullptr, &m_handle);
