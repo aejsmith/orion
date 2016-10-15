@@ -108,7 +108,7 @@ class ObjgenSourceScanner:
         return self
 
 env['BUILDERS']['ObjgenSource'] = Builder(
-    action = Action('$OBJGEN $_CPPDEFFLAGS $CPPSYSINCFLAG $_CPPINCFLAGS -e -s $SOURCE $TARGET', '$OBJGENCOMSTR'),
+    action = Action('$OBJGEN $OBJGENFLAGS -e -s $SOURCE $TARGET', '$OBJGENCOMSTR'),
     emitter = objgenEmitter,
     suffix = '.obj.cc',
     src_suffix = '.cc',

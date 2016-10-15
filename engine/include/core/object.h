@@ -43,25 +43,19 @@ class Serialiser;
     #define META_ATTRIBUTE(type, ...)
 #endif
 
-/** Macro to define the class construction function, only in generated code. */
-#ifdef ORION_OBJGEN_OUTPUT
-    #define DECLARE_CLASS_CONSTRUCT() static Object *classConstruct()
-#else
-    #define DECLARE_CLASS_CONSTRUCT()
-#endif
-
 /** Helper for CLASS() and base Object definition. */
 #define DECLARE_STATIC_METACLASS(...) \
-    static const META_ATTRIBUTE("class", __VA_ARGS__) MetaClass staticMetaClass; \
-    DECLARE_CLASS_CONSTRUCT()
+        static const META_ATTRIBUTE("class", __VA_ARGS__) MetaClass staticMetaClass; \
+    private: \
+        static Object *classConstruct(); \
+    public:
 
 /**
  * Metadata annotation for Object-derived classes.
  *
  * This macro must be placed on every class which derives from Object (directly
  * or indirectly) in order to add and generate definitions for type metadata.
- * It is expected to be placed in the public section of the class, and does not
- * alter visibility in any way.
+ * It is expected to be placed in the public section of the class.
  *
  * Any header or source file using this macro must have code generated for it
  * using objgen. Source files should include the objgen output manually after
