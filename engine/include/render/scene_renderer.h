@@ -69,7 +69,7 @@ private:
     void renderForward();
     void renderDebug();
 
-    void setViewResources(SceneView *view, RenderPath path);
+    void setViewResources(GPUCommandList *cmdList, SceneView *view, RenderPath path);
 private:
     Scene *m_scene;                 /**< Scene being rendered. */
     SceneView *m_view;              /**< View into the scene to render from. */

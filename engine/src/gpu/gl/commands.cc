@@ -124,12 +124,17 @@ void GLGPUManager::blit(
  */
 
 /** Begin a render pass.
- * @param desc          Descriptor for the render pass instance. */
-void GLGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
-    check(!m_currentRenderPass);
+ * @param desc          Descriptor for the render pass instance.
+ * @return              Command list to record pass into. */
+GPUCommandList *GLGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
+    GPURenderPassInstance *instance = desc.pass->createInstance(desc);
+    return new GPUGenericCommandList(instance);
+}
 
-    /* Validate render pass state. */
-    desc.pass->validateInstance(desc);
+/** Submit a render pass.
+ * @param cmdList       Command list for the pass. */
+void GLGPUManager::submitRenderPass(GPUCommandList *cmdList) {
+    const GPURenderPassInstanceDesc &desc = cmdList->passInstance()->desc();
 
     m_currentRenderPass = desc.pass;
     m_currentRenderArea = desc.renderArea;
@@ -152,14 +157,6 @@ void GLGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
         : createFBO(desc.targets);
     this->state.bindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-    /* Set up default state for the pass. It's important to do this before
-     * clearing as we need depth writes enabled for the clears below (the depth
-     * mask affects glClearBuffer*). */
-    setViewport(desc.renderArea);
-    GPUManager::setBlendState();
-    GPUManager::setDepthStencilState();
-    GPUManager::setRasterizerState();
-
     const GPURenderPassDesc &passDesc = desc.pass->desc();
 
     /* We want to only clear the specified render area. Use scissor to do this. */
@@ -168,8 +165,14 @@ void GLGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
         desc.renderArea.y != 0 ||
         desc.renderArea.width < m_currentRTSize.x ||
         desc.renderArea.height < m_currentRTSize.y;
-    auto configureScissor =
-        [&] () {
+    auto configureClearState =
+        [&] (bool isDepth) {
+            setViewport(desc.renderArea);
+
+            /* Need depth writes on to clear a depth buffer. */
+            if (isDepth)
+                setDepthStencilState(getDepthStencilState());
+
             if (needScissor) {
                 setScissor(true, desc.renderArea);
             } else {
@@ -182,7 +185,7 @@ void GLGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
         const GPURenderAttachmentDesc &attachment = passDesc.colourAttachments[i];
 
         if (attachment.loadOp == GPURenderLoadOp::kClear) {
-            configureScissor();
+            configureClearState(false);
             glClearBufferfv(GL_COLOR, i, reinterpret_cast<const GLfloat *>(&desc.clearColours[i]));
         }
     }
@@ -192,7 +195,7 @@ void GLGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
         const GPURenderAttachmentDesc &attachment = passDesc.depthStencilAttachment;
 
         if (attachment.loadOp == GPURenderLoadOp::kClear || attachment.stencilLoadOp == GPURenderLoadOp::kClear)
-            configureScissor();
+            configureClearState(attachment.loadOp == GPURenderLoadOp::kClear);
 
         if (attachment.loadOp == GPURenderLoadOp::kClear && attachment.stencilLoadOp == GPURenderLoadOp::kClear) {
             glClearBufferfi(GL_DEPTH_STENCIL, 0, desc.clearDepth, desc.clearStencil);
@@ -203,13 +206,10 @@ void GLGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
         }
     }
 
-    /* Reset scissor state. */
-    setScissor(false, IntRect());
-}
+    /* Execute the command list. */
+    auto genericCmdList = static_cast<GPUGenericCommandList *>(cmdList);
+    genericCmdList->execute(this);
 
-/** End the current render pass. */
-void GLGPUManager::endRenderPass() {
-    check(m_currentRenderPass);
     m_currentRenderPass = nullptr;
 }
 

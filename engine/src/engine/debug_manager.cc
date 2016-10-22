@@ -327,45 +327,45 @@ void DebugOverlay::render(bool first) {
     if (!drawData)
         return;
 
-    beginLayerRenderPass(
+    GPUCommandList *cmdList = beginLayerRenderPass(
         (first) ? GPURenderLoadOp::kClear : GPURenderLoadOp::kLoad,
         glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
-    g_gpuManager->setBlendState(GPUBlendStateDesc().
+    cmdList->setBlendState(GPUBlendStateDesc().
         setFunc(BlendFunc::kAdd).
         setSourceFactor(BlendFactor::kSourceAlpha).
         setDestFactor(BlendFactor::kOneMinusSourceAlpha));
-    g_gpuManager->setDepthStencilState(GPUDepthStencilStateDesc().
+    cmdList->setDepthStencilState(GPUDepthStencilStateDesc().
         setDepthFunc(ComparisonFunc::kAlways).
         setDepthWrite(false));
-    g_gpuManager->setRasterizerState(GPURasterizerStateDesc().
+    cmdList->setRasterizerState(GPURasterizerStateDesc().
         setCullMode(CullMode::kDisabled));
 
     for (int i = 0; i < drawData->CmdListsCount; i++) {
-        const ImDrawList *cmdList = drawData->CmdLists[i];
+        const ImDrawList *imCmdList = drawData->CmdLists[i];
 
         /* Generate vertex data. */
         auto vertexDataDesc = GPUVertexDataDesc().
-            setCount(cmdList->VtxBuffer.size()).
+            setCount(imCmdList->VtxBuffer.size()).
             setLayout(m_vertexDataLayout);
         auto vertexBufferDesc = GPUBufferDesc().
             setType(GPUBuffer::kVertexBuffer).
             setUsage(GPUBuffer::kTransientUsage).
-            setSize(cmdList->VtxBuffer.size() * sizeof(ImDrawVert));
+            setSize(imCmdList->VtxBuffer.size() * sizeof(ImDrawVert));
         vertexDataDesc.buffers[0] = g_gpuManager->createBuffer(vertexBufferDesc);
-        vertexDataDesc.buffers[0]->write(0, vertexBufferDesc.size, &cmdList->VtxBuffer.front());
+        vertexDataDesc.buffers[0]->write(0, vertexBufferDesc.size, &imCmdList->VtxBuffer.front());
         GPUVertexDataPtr vertexData = g_gpuManager->createVertexData(std::move(vertexDataDesc));
 
         /* Generate index buffer. */
         auto indexBufferDesc = GPUBufferDesc().
             setType(GPUBuffer::kIndexBuffer).
             setUsage(GPUBuffer::kTransientUsage).
-            setSize(cmdList->IdxBuffer.size() * sizeof(ImDrawIdx));
+            setSize(imCmdList->IdxBuffer.size() * sizeof(ImDrawIdx));
         GPUBufferPtr indexBuffer = g_gpuManager->createBuffer(indexBufferDesc);
-        indexBuffer->write(0, indexBufferDesc.size, &cmdList->IdxBuffer.front());
+        indexBuffer->write(0, indexBufferDesc.size, &imCmdList->IdxBuffer.front());
 
         size_t indexBufferOffset = 0;
-        for (const ImDrawCmd *cmd = cmdList->CmdBuffer.begin(); cmd != cmdList->CmdBuffer.end(); cmd++) {
+        for (const ImDrawCmd *cmd = imCmdList->CmdBuffer.begin(); cmd != imCmdList->CmdBuffer.end(); cmd++) {
             GPUTexture *texture = reinterpret_cast<GPUTexture *>(cmd->TextureId);
             m_material->setGPUTexture("debugTexture", texture, m_sampler);
 
@@ -379,7 +379,7 @@ void DebugOverlay::render(bool first) {
 
             /* Configure scissor test for clipping. */
             const IntRect &viewport = pixelViewport();
-            g_gpuManager->setScissor(
+            cmdList->setScissor(
                 true,
                 IntRect(
                     viewport.x + cmd->ClipRect.x,
@@ -394,13 +394,13 @@ void DebugOverlay::render(bool first) {
             geometry.primitiveType = PrimitiveType::kTriangleList;
             DrawList drawList;
             drawList.addDrawCalls(geometry, m_material, nullptr, Pass::Type::kBasic);
-            drawList.draw();
+            drawList.draw(cmdList);
 
             indexBufferOffset += cmd->ElemCount;
         }
     }
 
-    g_gpuManager->endRenderPass();
+    g_gpuManager->submitRenderPass(cmdList);
 
     /* Release any texture references held. */
     m_textures.clear();
@@ -601,16 +601,17 @@ void DebugManager::writeText(const std::string &text, const glm::vec4 &colour) {
  * Renders all debug primitives added for the frame and the current view into
  * the current render target. GPU state is modified.
  *
+ * @param cmdList       GPU command list.
  * @param view          View to render for.
  */
-void DebugManager::renderView(SceneView *view) {
+void DebugManager::renderView(GPUCommandList *cmdList, SceneView *view) {
     PrimitiveRenderer renderer;
 
-    g_gpuManager->setBlendState(GPUBlendStateDesc().
+    cmdList->setBlendState(GPUBlendStateDesc().
         setFunc(BlendFunc::kAdd).
         setSourceFactor(BlendFactor::kSourceAlpha).
         setDestFactor(BlendFactor::kOneMinusSourceAlpha));
-    g_gpuManager->setDepthStencilState(GPUDepthStencilStateDesc().
+    cmdList->setDepthStencilState(GPUDepthStencilStateDesc().
         setDepthFunc(ComparisonFunc::kAlways).
         setDepthWrite(false));
 
@@ -626,7 +627,7 @@ void DebugManager::renderView(SceneView *view) {
     }
 
     /* Draw them. */
-    renderer.draw(view);
+    renderer.draw(cmdList, view);
 
     /* Clear out per-view primitives. */
     m_perViewLines.clear();

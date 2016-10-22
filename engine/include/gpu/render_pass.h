@@ -31,6 +31,8 @@
 #include "gpu/state.h"
 #include "gpu/texture.h"
 
+class GPURenderPassInstance;
+
 struct GPURenderPassInstanceDesc;
 
 /** Possible ways to treat existing attachment contents at start of pass. */
@@ -86,19 +88,13 @@ struct GPURenderPassDesc {
  */
 class GPURenderPass : public GPUState<GPURenderPassDesc> {
 public:
-    void validateInstance(const GPURenderPassInstanceDesc &instanceDesc) const;
+    GPURenderPassInstance *createInstance(const GPURenderPassInstanceDesc &instanceDesc) const;
 protected:
     explicit GPURenderPass(GPURenderPassDesc &&desc);
 
     /* For default creation method in GPUManager. */
     friend class GPUManager;
 };
-
-#ifndef ORION_BUILD_DEBUG
-
-inline void GPURenderPass::validateInstance(const GPURenderPassInstanceDesc &instanceDesc) const {}
-
-#endif
 
 /** Type of a reference to GPURenderPass. */
 using GPURenderPassPtr = GPUObjectPtr<GPURenderPass>;
@@ -195,4 +191,17 @@ struct GPURenderPassInstanceDesc {
         targets(inPass->desc().colourAttachments.size()),
         clearColours(inPass->desc().colourAttachments.size())
     {}
+};
+
+/** Render pass instance object. */
+class GPURenderPassInstance : Noncopyable {
+public:
+    /** @return             Descriptor used to create the instance. */
+    const GPURenderPassInstanceDesc &desc() const { return m_desc; }
+private:
+    explicit GPURenderPassInstance(const GPURenderPassInstanceDesc &desc) : m_desc(desc) {}
+
+    GPURenderPassInstanceDesc m_desc;
+
+    friend class GPURenderPass;
 };

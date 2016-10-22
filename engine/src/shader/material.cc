@@ -149,12 +149,13 @@ void Material::deserialise(Serialiser &serialiser) {
     }
 }
 
-/** Set shader-wide draw state for the material. */
-void Material::setDrawState() const {
+/** Set shader-wide draw state for the material.
+ * @param cmdList       GPU command list. */
+void Material::setDrawState(GPUCommandList *cmdList) const {
     if (m_uniforms)
         m_uniforms->flush();
 
-    g_gpuManager->bindResourceSet(ResourceSets::kMaterialResources, m_resources);
+    cmdList->bindResourceSet(ResourceSets::kMaterialResources, m_resources);
 }
 
 /** Get a parameter value.

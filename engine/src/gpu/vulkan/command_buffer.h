@@ -37,7 +37,7 @@ public:
     explicit VulkanCommandPool(VulkanGPUManager *manager);
     ~VulkanCommandPool();
 
-    VulkanCommandBuffer *allocateTransient();
+    VulkanCommandBuffer *allocateTransient(VkCommandBufferLevel level);
 
     void cleanupFrame(VulkanFrame &frame, bool completed);
 private:
@@ -49,7 +49,9 @@ private:
 /** Class wrapping a command buffer. */
 class VulkanCommandBuffer : public VulkanHandle<VkCommandBuffer> {
 public:
-    void begin(VkCommandBufferUsageFlagBits usage);
+    void begin(
+        VkCommandBufferUsageFlags usage,
+        const VkCommandBufferInheritanceInfo *inheritance = nullptr);
     void end();
 
     void addReference(Refcounted *object);
@@ -63,7 +65,7 @@ private:
         kSubmitted,                     /**< Submitted. */
     };
 
-    VulkanCommandBuffer(VulkanCommandPool *pool, bool transient);
+    VulkanCommandBuffer(VulkanCommandPool *pool, VkCommandBufferLevel level, bool transient);
     ~VulkanCommandBuffer();
 
     VulkanCommandPool *m_pool;          /**< Pool that the buffer belongs to. */
@@ -79,6 +81,7 @@ private:
      */
     std::list<ReferencePtr<Refcounted>> m_references;
 
+    friend class VulkanCommandList;
     friend class VulkanCommandPool;
     friend class VulkanQueue;
 };

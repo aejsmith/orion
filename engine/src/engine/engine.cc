@@ -65,6 +65,8 @@ Engine::Engine() :
                 gameClass = &metaClass;
             }
         });
+    if (!gameClass)
+        fatal("Failed to find game class");
     m_game = static_cast<Game *>(gameClass->construct());
     m_game->engineConfiguration(m_config);
 

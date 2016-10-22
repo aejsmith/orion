@@ -60,9 +60,6 @@ void SceneRenderer::render() {
     /* Find all visible entities and add them to all appropriate draw lists. */
     m_scene->visitVisibleEntities(m_view, [this] (SceneEntity *e) { addEntity(e); });
 
-    /* Set view resources once per frame. */
-    setViewResources(m_view, m_path);
-
     /* Render everything. */
     renderDeferred();
     renderForward();
@@ -160,9 +157,6 @@ void SceneRenderer::renderShadowMaps() {
 
         GPU_DEBUG_GROUP("Light '%s'", state.light->name.c_str());
 
-        /* Bind light resources. */
-        g_gpuManager->bindResourceSet(ResourceSets::kLightResources, state.resources);
-
         /* Need to do a rendering pass for each view. */
         unsigned numShadowViews = state.light->numShadowViews();
         for (unsigned i = 0; i < numShadowViews; i++) {
@@ -170,26 +164,23 @@ void SceneRenderer::renderShadowMaps() {
 
             SceneView *shadowView = state.light->shadowView(i);
 
-            /* Set view resources. */
-            setViewResources(shadowView, RenderPath::kForward);
-
             /* Begin a shadow pass. */
             GPURenderPassInstanceDesc passDesc(g_renderManager->resources().sceneShadowMapPass);
             passDesc.targets.depthStencil.texture = state.shadowMap;
             passDesc.targets.depthStencil.layer = i;
             passDesc.clearDepth = 1.0;
             passDesc.renderArea = shadowView->viewport();
-            g_gpuManager->beginRenderPass(passDesc);
+            GPUCommandList *cmdList = g_gpuManager->beginRenderPass(passDesc);
 
-            /* Disable blending, enable depth testing/writing. */
-            g_gpuManager->setBlendState();
-            g_gpuManager->setDepthStencilState();
-            g_gpuManager->setRasterizerState();
+            /* Bind resources. */
+            cmdList->bindResourceSet(ResourceSets::kLightResources, state.resources);
+            setViewResources(cmdList, shadowView, RenderPath::kForward);
 
-            /* Render the shadow map. */
-            state.shadowMapDrawLists[i].draw();
+            /* Render the shadow map. Default state is what we want here:
+             * blending disabled, depth test/write enabled. */
+            state.shadowMapDrawLists[i].draw(cmdList);
 
-            g_gpuManager->endRenderPass();
+            g_gpuManager->submitRenderPass(cmdList);
         }
     }
 }
@@ -217,17 +208,16 @@ void SceneRenderer::renderDeferred() {
         deferredPassDesc.clearDepth = 1.0;
         deferredPassDesc.clearStencil = 0;
         deferredPassDesc.renderArea = m_view->viewport();
-        g_gpuManager->beginRenderPass(deferredPassDesc);
+        GPUCommandList *cmdList = g_gpuManager->beginRenderPass(deferredPassDesc);
 
-        /* Disable blending, enable depth testing/writing. FIXME: State push/pop. */
-        g_gpuManager->setBlendState();
-        g_gpuManager->setDepthStencilState();
-        g_gpuManager->setRasterizerState();
+        /* Set view resources. */
+        setViewResources(cmdList, m_view, RenderPath::kDeferred);
 
-        /* Render everything to the G-Buffer. */
-        m_deferredDrawList.draw();
+        /* Render everything to the G-Buffer. Default state is what we want,
+         * blending disabled, depth test/write enabled. */
+        m_deferredDrawList.draw(cmdList);
 
-        g_gpuManager->endRenderPass();
+        g_gpuManager->submitRenderPass(cmdList);
 
         /* Make a copy of the depth buffer. We need to do this as we want to
          * keep the same depth buffer while rendering light volumes, but the
@@ -253,15 +243,18 @@ void SceneRenderer::renderDeferred() {
         lightPassDesc.clearDepth = 1.0;
         lightPassDesc.clearStencil = 0;
         lightPassDesc.renderArea = m_view->viewport();
-        g_gpuManager->beginRenderPass(lightPassDesc);
+        GPUCommandList *cmdList = g_gpuManager->beginRenderPass(lightPassDesc);
+
+        /* Set view resources. */
+        setViewResources(cmdList, m_view, RenderPath::kDeferred);
 
         /* Render light volumes. */
-        g_gpuManager->setBlendState(GPUBlendStateDesc().
+        cmdList->setBlendState(GPUBlendStateDesc().
             setFunc(BlendFunc::kAdd).
             setSourceFactor(BlendFactor::kOne).
             setDestFactor(BlendFactor::kOne));
         for (LightRenderState &lightState : m_lights) {
-            GPU_DEBUG_GROUP("Light '%s'", lightState.light->name.c_str());
+            GPU_CMD_DEBUG_GROUP(cmdList, "Light '%s'", lightState.light->name.c_str());
 
             /* Set up rasterizer/depth testing state. No depth writes here, the
              * light volumes should not affect our depth buffer. FIXME: If Pass ever
@@ -272,10 +265,10 @@ void SceneRenderer::renderDeferred() {
                 case SceneLight::kDirectionalLight:
                     /* These are rendered as full-screen quads and should have their
                      * front faces unconditionally rendered. */
-                    g_gpuManager->setDepthStencilState(GPUDepthStencilStateDesc().
+                    cmdList->setDepthStencilState(GPUDepthStencilStateDesc().
                         setDepthFunc(ComparisonFunc::kAlways).
                         setDepthWrite(false));
-                    g_gpuManager->setRasterizerState();
+                    cmdList->setRasterizerState();
                     break;
                 default:
                     /* For others we want to render their back faces, so that they
@@ -284,17 +277,17 @@ void SceneRenderer::renderDeferred() {
                      * of the light volume so that only pixels in front of it are
                      * touched. Additionally, enable depth clamping so that the
                      * light volume is not clipped. */
-                    g_gpuManager->setDepthStencilState(GPUDepthStencilStateDesc().
+                    cmdList->setDepthStencilState(GPUDepthStencilStateDesc().
                         setDepthFunc(ComparisonFunc::kGreaterOrEqual).
                         setDepthWrite(false));
-                    g_gpuManager->setRasterizerState(GPURasterizerStateDesc().
+                    cmdList->setRasterizerState(GPURasterizerStateDesc().
                         setCullMode(CullMode::kFront).
                         setDepthClamp(true));
                     break;
             }
 
             /* Set light rendering state. */
-            g_gpuManager->bindResourceSet(ResourceSets::kLightResources, lightState.resources);
+            cmdList->bindResourceSet(ResourceSets::kLightResources, lightState.resources);
 
             /* Draw the light volume. The light volume pass is defined as a forward
              * pass as this is needed for per-light type shader variations to be
@@ -307,10 +300,10 @@ void SceneRenderer::renderDeferred() {
                 g_renderManager->resources().deferredLightMaterial,
                 nullptr,
                 Pass::Type::kForward);
-            list.draw(lightState.light);
+            list.draw(cmdList, lightState.light);
         }
 
-        g_gpuManager->endRenderPass();
+        g_gpuManager->submitRenderPass(cmdList);
     }
 }
 
@@ -333,18 +326,14 @@ void SceneRenderer::renderForward() {
     passDesc.clearDepth = 1.0;
     passDesc.clearStencil = 0;
     passDesc.renderArea = m_view->viewport();
-    g_gpuManager->beginRenderPass(passDesc);
+    GPUCommandList *cmdList = g_gpuManager->beginRenderPass(passDesc);
 
-    /* For entities with basic materials and for the first light, we don't want
-     * blending. Depth buffer writes should be on. FIXME: These should be
-     * defaults for the GPU interface here and when this is called this should
-     * be expected to be the current state. */
-    g_gpuManager->setBlendState();
-    g_gpuManager->setDepthStencilState();
-    g_gpuManager->setRasterizerState();
+    /* Set view resources. */
+    setViewResources(cmdList, m_view, RenderPath::kForward);
 
     /* Now render lit entities for each light to accumulate all lighting
-     * contributions. */
+     * contributions. For the first light, we leave state as default as we don't
+     * want blending, and depth buffer writes should be on. */
     for (LightRenderState &lightState : m_lights) {
         if (lightState.drawList.empty())
             continue;
@@ -352,18 +341,18 @@ void SceneRenderer::renderForward() {
         GPU_DEBUG_GROUP("Light '%s'", lightState.light->name.c_str());
 
         /* Set light rendering state. */
-        g_gpuManager->bindResourceSet(ResourceSets::kLightResources, lightState.resources);
+        cmdList->bindResourceSet(ResourceSets::kLightResources, lightState.resources);
 
         /* Draw all entities. */
-        lightState.drawList.draw(lightState.light);
+        lightState.drawList.draw(cmdList, lightState.light);
 
         /* After the first iteration, we want to blend the remaining lights, and
          * we can turn depth writes off. */
-        g_gpuManager->setBlendState(GPUBlendStateDesc().
+        cmdList->setBlendState(GPUBlendStateDesc().
             setFunc(BlendFunc::kAdd).
             setSourceFactor(BlendFactor::kOne).
             setDestFactor(BlendFactor::kOne));
-        g_gpuManager->setDepthStencilState(GPUDepthStencilStateDesc().
+        cmdList->setDepthStencilState(GPUDepthStencilStateDesc().
             setDepthFunc(ComparisonFunc::kEqual).
             setDepthWrite(false));
     }
@@ -371,10 +360,12 @@ void SceneRenderer::renderForward() {
     {
         /* Render all entities with basic materials. */
         GPU_DEBUG_GROUP("Unlit");
-        m_basicDrawList.draw();
+        cmdList->setBlendState();
+        cmdList->setDepthStencilState();
+        m_basicDrawList.draw(cmdList);
     }
 
-    g_gpuManager->endRenderPass();
+    g_gpuManager->submitRenderPass(cmdList);
 }
 
 /** Render debug primitives. */
@@ -388,17 +379,19 @@ void SceneRenderer::renderDebug() {
     passDesc.targets.colour[0].texture = targets.colourBuffer;
     passDesc.targets.depthStencil.texture = targets.depthBuffer;
     passDesc.renderArea = m_view->viewport();
-    g_gpuManager->beginRenderPass(passDesc);
+    GPUCommandList *cmdList = g_gpuManager->beginRenderPass(passDesc);
+
+    setViewResources(cmdList, m_view, RenderPath::kForward);
 
     /* Draw debug primitives onto the view. */
-    g_debugManager->renderView(m_view);
+    g_debugManager->renderView(cmdList, m_view);
 
-    g_gpuManager->endRenderPass();
+    g_gpuManager->submitRenderPass(cmdList);
 
 }
 
 /** Update and set the view resources. */
-void SceneRenderer::setViewResources(SceneView *view, RenderPath path) {
+void SceneRenderer::setViewResources(GPUCommandList *cmdList, SceneView *view, RenderPath path) {
     /* Flush uniform changes and get the resources. */
     GPUResourceSet *resources = view->resourcesForDraw();
 
@@ -414,5 +407,5 @@ void SceneRenderer::setViewResources(SceneView *view, RenderPath path) {
         resources->bindTexture(ResourceSlots::kDeferredBufferD, targets.deferredBufferD, sampler);
     }
 
-    g_gpuManager->bindResourceSet(ResourceSets::kViewResources, resources);
+    cmdList->bindResourceSet(ResourceSets::kViewResources, resources);
 }

@@ -19,6 +19,7 @@
  * @brief               Vulkan pipeline implementation.
  */
 
+#include "commands.h"
 #include "manager.h"
 #include "pipeline.h"
 
@@ -78,20 +79,20 @@ VulkanPipeline::~VulkanPipeline() {
 }
 
 /** Construct a state key given rendering state.
- * @param frame         Frame data containing current state.
+ * @param state         Current command state.
  * @param primType      Primitive type being rendered.
  * @param vertices      Vertex data. */
 VulkanPipeline::StateKey::StateKey(
-    const VulkanFrame &frame,
+    const VulkanCommandState &state,
     PrimitiveType primType,
     const GPUVertexData *vertices)
     :
     vertexDataLayout(vertices->layout()->desc()),
     primitiveType(primType),
-    renderPass(frame.renderPass),
-    rasterizerState(frame.rasterizerState),
-    depthStencilState(frame.depthStencilState),
-    blendState(frame.blendState)
+    renderPass(state.renderPass),
+    rasterizerState(state.pending.rasterizerState),
+    depthStencilState(state.pending.depthStencilState),
+    blendState(state.pending.blendState)
 {}
 
 /** Compare this key with another. */
@@ -117,34 +118,34 @@ size_t hashValue(const VulkanPipeline::StateKey &key) {
 }
 
 /** Bind a pipeline object for given rendering state.
- * @param frame         Frame data containing current state.
+ * @param state         Current command state.
  * @param primType      Primitive type being rendered.
  * @param vertices      Vertex data. */
-void VulkanPipeline::bind(VulkanFrame &frame, PrimitiveType primType, const GPUVertexData *vertices) {
+void VulkanPipeline::bind(VulkanCommandState &state, PrimitiveType primType, const GPUVertexData *vertices) {
     /* Look to see if we have one already. */
-    StateKey key(frame, primType, vertices);
+    StateKey key(state, primType, vertices);
     auto ret = m_pipelines.find(key);
     VkPipeline pipeline = (ret != m_pipelines.end())
         ? ret->second
-        : create(frame, primType, vertices, std::move(key));
+        : create(state, primType, vertices, std::move(key));
 
-    if (pipeline != frame.boundPipelineObject) {
-        vkCmdBindPipeline(frame.primaryCmdBuf->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-        frame.boundPipelineObject = pipeline;
+    if (pipeline != state.pipelineObject) {
+        vkCmdBindPipeline(state.cmdBuf->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        state.pipelineObject = pipeline;
 
         /* Reference the object (will already have been done if already bound). */
-        frame.primaryCmdBuf->addReference(frame.boundPipeline);
+        state.cmdBuf->addReference(state.pipeline);
     }
 }
 
 /** Create a new pipeline object.
- * @param frame         Frame data containing current state.
+ * @param state         Current command state.
  * @param primType      Primitive type being rendered.
  * @param vertices      Vertex data.
  * @param key           Pipeline state key.
  * @return              Created pipeline. */
 VkPipeline VulkanPipeline::create(
-    const VulkanFrame &frame,
+    const VulkanCommandState &state,
     PrimitiveType primType,
     const GPUVertexData *vertices,
     StateKey &&key)
@@ -152,7 +153,7 @@ VkPipeline VulkanPipeline::create(
     VkGraphicsPipelineCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     createInfo.layout = m_layout;
-    createInfo.renderPass = frame.renderPass->handle();
+    createInfo.renderPass = state.renderPass->handle();
     createInfo.subpass = 0;
 
     /* If we have not got any pipelines cached yet, we create this as the
@@ -211,7 +212,7 @@ VkPipeline VulkanPipeline::create(
     createInfo.pViewportState = &viewportStateInfo;
 
     /* Rasterizer state. */
-    auto rasterizerState = static_cast<const VulkanRasterizerState *>(frame.rasterizerState.get());
+    auto rasterizerState = static_cast<const VulkanRasterizerState *>(state.pending.rasterizerState.get());
     createInfo.pRasterizationState = &rasterizerState->createInfo();
 
     /* Multisample state. */
@@ -221,7 +222,7 @@ VkPipeline VulkanPipeline::create(
     createInfo.pMultisampleState = &multisampleStateInfo;
 
     /* Depth/stencil state. */
-    auto depthStencilState = static_cast<const VulkanDepthStencilState *>(frame.depthStencilState.get());
+    auto depthStencilState = static_cast<const VulkanDepthStencilState *>(state.pending.depthStencilState.get());
     createInfo.pDepthStencilState = &depthStencilState->createInfo();
 
     /* Blend state is a little awkward in that the spec requires that the
@@ -229,9 +230,9 @@ VkPipeline VulkanPipeline::create(
      * VulkanBlendState we maintain the state for the maximum number of
      * attachments. Therefore we copy the generated state structure here and
      * modify the count. */
-    auto blendState = static_cast<const VulkanBlendState *>(frame.blendState.get());
+    auto blendState = static_cast<const VulkanBlendState *>(state.pending.blendState.get());
     VkPipelineColorBlendStateCreateInfo blendStateInfo = blendState->createInfo();
-    blendStateInfo.attachmentCount = frame.renderPass->desc().colourAttachments.size();
+    blendStateInfo.attachmentCount = state.renderPass->desc().colourAttachments.size();
     createInfo.pColorBlendState = &blendStateInfo;
 
     /* Set up dynamic states. */

@@ -104,7 +104,7 @@ public:
 };
 
 /** OpenGL GPU interface implementation. */
-class GLGPUManager : public GPUManager {
+class GLGPUManager : public GPUManager, public GPUGenericCommandList::Context {
 public:
     GLGPUManager(const EngineConfiguration &config, Window *&window);
     ~GLGPUManager();
@@ -136,8 +136,12 @@ public:
         glm::ivec2 destPos,
         glm::ivec2 size) override;
 
-    void beginRenderPass(const GPURenderPassInstanceDesc &desc) override;
-    void endRenderPass() override;
+    GPUCommandList *beginRenderPass(const GPURenderPassInstanceDesc &desc) override;
+    void submitRenderPass(GPUCommandList *cmdList) override;
+
+    /**
+     * Command context interface.
+     */
 
     void bindPipeline(GPUPipeline *pipeline) override;
     void bindResourceSet(unsigned index, GPUResourceSet *resources) override;

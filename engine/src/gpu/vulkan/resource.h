@@ -65,7 +65,7 @@ class VulkanResourceSet : public GPUResourceSet, public VulkanObject {
 public:
     VulkanResourceSet(VulkanGPUManager *manager, GPUResourceSetLayout *layout);
 
-    void bind(VulkanFrame &frame, size_t index);
+    void bind(VulkanCommandState &state, size_t index);
 protected:
     ~VulkanResourceSet();
 

@@ -55,12 +55,14 @@ VulkanCommandPool::~VulkanCommandPool() {
  * of the next frame if the buffer was not submitted, otherwise as soon as the
  * submission completes).
  *
+ * @param level         Level for the command buffer.
+ *
  * @return              Allocated command buffer.
  */
-VulkanCommandBuffer *VulkanCommandPool::allocateTransient() {
+VulkanCommandBuffer *VulkanCommandPool::allocateTransient(VkCommandBufferLevel level) {
     auto &currentFrame = manager()->currentFrame();
 
-    VulkanCommandBuffer *buffer = new VulkanCommandBuffer(this, true);
+    VulkanCommandBuffer *buffer = new VulkanCommandBuffer(this, level, true);
     currentFrame.cmdBuffers.push_back(buffer);
     return buffer;
 }
@@ -87,8 +89,9 @@ void VulkanCommandPool::cleanupFrame(VulkanFrame &frame, bool completed) {
 
 /** Create a new command buffer.
  * @param pool          Pool the command buffer is being allocated from.
+ * @param level         Command buffer level.
  * @param transient     Whether the buffer is transient. */
-VulkanCommandBuffer::VulkanCommandBuffer(VulkanCommandPool *pool, bool transient) :
+VulkanCommandBuffer::VulkanCommandBuffer(VulkanCommandPool *pool, VkCommandBufferLevel level, bool transient) :
     VulkanHandle(pool->manager()),
     m_pool(pool),
     m_transient(transient),
@@ -97,11 +100,10 @@ VulkanCommandBuffer::VulkanCommandBuffer(VulkanCommandPool *pool, bool transient
     // TODO: Always transient for now. Fix in destructor as well.
     check(transient);
 
-    // TODO: Secondary command buffers.
     VkCommandBufferAllocateInfo allocateInfo = {};
     allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocateInfo.commandPool = m_pool->m_transientPool;
-    allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocateInfo.level = level;
     allocateInfo.commandBufferCount = 1;
 
     checkVk(vkAllocateCommandBuffers(manager()->device()->handle(), &allocateInfo, &m_handle));
@@ -114,13 +116,18 @@ VulkanCommandBuffer::~VulkanCommandBuffer() {
 }
 
 /** Begin recording a command buffer.
- * @param usage         Usage flags. */
-void VulkanCommandBuffer::begin(VkCommandBufferUsageFlagBits usage) {
+ * @param usage         Usage flags.
+ * @param inheritance   For a secondary command buffer, inheritance information. */
+void VulkanCommandBuffer::begin(
+    VkCommandBufferUsageFlags usage,
+    const VkCommandBufferInheritanceInfo *inheritance)
+{
     check(m_state == State::kAllocated);
 
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = usage;
+    beginInfo.pInheritanceInfo = inheritance;
 
     checkVk(vkBeginCommandBuffer(m_handle, &beginInfo));
     m_state = State::kRecording;

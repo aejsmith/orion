@@ -62,24 +62,25 @@ void DrawList::addDrawCalls(SceneEntity *entity, Pass::Type passType) {
 }
 
 /** Perform all draw calls in the list.
+ * @param cmdList       GPU command list.
  * @param light         Light being rendered with (can be null). */
-void DrawList::draw(SceneLight *light) const {
+void DrawList::draw(GPUCommandList *cmdList, SceneLight *light) const {
     /* TODO: Track current pass/material/etc, minimize the state changes. */
     for (const DrawCall &drawCall : m_drawCalls) {
         if (drawCall.entity) {
-            GPU_BEGIN_DEBUG_GROUP("%s", drawCall.entity->name.c_str());
-            g_gpuManager->bindResourceSet(ResourceSets::kEntityResources, drawCall.entity->resourcesForDraw());
+            GPU_CMD_BEGIN_DEBUG_GROUP(cmdList, "%s", drawCall.entity->name.c_str());
+            cmdList->bindResourceSet(ResourceSets::kEntityResources, drawCall.entity->resourcesForDraw());
         }
 
-        drawCall.material->setDrawState();
-        drawCall.pass->setDrawState(light);
+        drawCall.material->setDrawState(cmdList);
+        drawCall.pass->setDrawState(cmdList, light);
 
-        g_gpuManager->draw(
+        cmdList->draw(
             drawCall.geometry.primitiveType,
             drawCall.geometry.vertices,
             drawCall.geometry.indices);
 
         if (drawCall.entity)
-            GPU_END_DEBUG_GROUP();
+            GPU_CMD_END_DEBUG_GROUP(cmdList);
     }
 }

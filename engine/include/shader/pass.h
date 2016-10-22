@@ -30,6 +30,7 @@
 
 #include <vector>
 
+class GPUCommandList;
 class SceneLight;
 class Shader;
 
@@ -75,7 +76,7 @@ public:
 
     bool loadStage(unsigned stage, const Path &path, const ShaderKeywordSet &keywords);
 
-    void setDrawState(SceneLight *light) const;
+    void setDrawState(GPUCommandList *cmdList, SceneLight *light) const;
 private:
     /** Structure holding a shader variation. */
     struct Variation {

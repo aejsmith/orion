@@ -19,6 +19,7 @@
  * @brief               Vulkan render pass implementation.
  */
 
+#include "commands.h"
 #include "manager.h"
 #include "render_pass.h"
 
@@ -267,16 +268,13 @@ static void transitionRenderTarget(
 }
 
 /** Begin a render pass.
- * @param desc          Descriptor for the render pass instance. */
-void VulkanGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
-    VulkanFrame &frame = currentFrame();
-
-    check(!frame.renderPass);
-
+ * @param desc          Descriptor for the render pass instance.
+ * @return              Command list to record pass into. */
+GPUCommandList *VulkanGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
     auto pass = static_cast<const VulkanRenderPass *>(desc.pass);
 
-    /* Validate render pass state. */
-    pass->validateInstance(desc);
+    /* Validate render pass state and create an instance. */
+    GPURenderPassInstance *instance = pass->createInstance(desc);
 
     /* Look for an existing suitable framebuffer. */
     VulkanFramebuffer *framebuffer;
@@ -295,7 +293,17 @@ void VulkanGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
         framebuffer = ret->second;
     }
 
-    const GPURenderTargetDesc &targets = framebuffer->targets();
+    return new VulkanCommandList(this, instance, framebuffer);
+}
+
+/** Submit a render pass.
+ * @param cmdList       Command list for the pass. */
+void VulkanGPUManager::submitRenderPass(GPUCommandList *cmdList) {
+    VulkanFrame &frame = currentFrame();
+    auto vkCmdList = static_cast<VulkanCommandList *>(cmdList);
+    const VulkanCommandState &state = vkCmdList->cmdState();
+
+    const GPURenderTargetDesc &targets = state.framebuffer->targets();
 
     /* Transition the images to the right layout. */
     for (auto &imageRef : targets.colour)
@@ -306,6 +314,8 @@ void VulkanGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
     /* Prepare clear values. */
     std::vector<VkClearValue> clearValues;
     clearValues.reserve(targets.colour.size() + ((targets.depthStencil) ? 1 : 0));
+
+    const GPURenderPassInstanceDesc &desc = vkCmdList->passInstance()->desc();
 
     for (auto &clearColour : desc.clearColours) {
         VkClearValue clearValue;
@@ -323,11 +333,11 @@ void VulkanGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
         clearValues.push_back(clearValue);
     }
 
-    /* Begin the pass. */
+    /* Perform the pass. */
     VkRenderPassBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    beginInfo.renderPass = pass->handle();
-    beginInfo.framebuffer = framebuffer->handle();
+    beginInfo.renderPass = state.renderPass->handle();
+    beginInfo.framebuffer = state.framebuffer->handle();
     /* TODO: "There may be a performance cost for using a render area smaller
      * than the framebuffer, unless it matches the render area granularity for
      * the render pass". */
@@ -337,39 +347,19 @@ void VulkanGPUManager::beginRenderPass(const GPURenderPassInstanceDesc &desc) {
     beginInfo.renderArea.extent.height = desc.renderArea.height;
     beginInfo.clearValueCount = clearValues.size();
     beginInfo.pClearValues = &clearValues[0];
-
-    vkCmdBeginRenderPass(frame.primaryCmdBuf->handle(), &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-    frame.renderPass = pass;
-    frame.framebuffer = framebuffer;
-
-    /* Reference the render pass in the command buffer. */
-    frame.primaryCmdBuf->addReference(const_cast<VulkanRenderPass *>(pass));
-
-    /* Set up default state for the pass. */
-    setViewport(desc.renderArea);
-    frame.viewportDirty = true;
-    setScissor(false, IntRect());
-    frame.scissorDirty = true;
-    GPUManager::setBlendState();
-    GPUManager::setDepthStencilState();
-    GPUManager::setRasterizerState();
-}
-
-/** End the current render pass. */
-void VulkanGPUManager::endRenderPass() {
-    VulkanFrame &frame = currentFrame();
-    check(frame.renderPass);
-
-    /* End the pass. */
+    vkCmdBeginRenderPass(frame.primaryCmdBuf->handle(), &beginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
+    vkCmdList->submit(frame.primaryCmdBuf);
     vkCmdEndRenderPass(frame.primaryCmdBuf->handle());
 
     /* Transition the images back from their attachment layouts. */
-    const GPURenderTargetDesc &targets = frame.framebuffer->targets();
     for (auto &imageRef : targets.colour)
         transitionRenderTarget(frame.primaryCmdBuf, imageRef, false);
     if (targets.depthStencil)
         transitionRenderTarget(frame.primaryCmdBuf, targets.depthStencil, false);
 
-    frame.renderPass = nullptr;
+    /* Reference the render pass in the command buffer. */
+    frame.primaryCmdBuf->addReference(const_cast<VulkanRenderPass *>(state.renderPass));
+
+    /* Submitting the pass destroys its command list. */
+    delete cmdList;
 }

@@ -8,6 +8,7 @@ objects = SConscript(dirs = [env['GPU_API']])
 
 objects += map(env.Object, [
     'buffer.cc',
+    'command_list.cc',
     'gpu_manager.cc',
     'index_data.cc',
     'pipeline.cc',

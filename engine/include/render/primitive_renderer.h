@@ -28,6 +28,7 @@
 #include "render/draw_list.h"
 #include "render/vertex.h"
 
+class GPUCommandList;
 class Material;
 class SceneView;
 
@@ -59,7 +60,7 @@ public:
         doAddVertex(vertex);
     }
 
-    void draw(SceneView *view);
+    void draw(GPUCommandList *cmdList, SceneView *view);
 private:
     /** Key for a batch. */
     struct BatchKey {

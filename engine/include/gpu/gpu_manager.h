@@ -25,6 +25,7 @@
 #include "core/string.h"
 
 #include "gpu/buffer.h"
+#include "gpu/command_list.h"
 #include "gpu/index_data.h"
 #include "gpu/pipeline.h"
 #include "gpu/program.h"
@@ -137,94 +138,39 @@ public:
         glm::ivec2 size) = 0;
 
     /**
-     * Rendering methods.
+     * Render pass methods.
      */
 
     /**
      * Begin a render pass.
      *
      * Begins a new render pass instance. The render pass defines the targets
-     * that will be drawn to. All draw calls must take place within a render
-     * pass. Once the render pass is finished, it must be ended by calling
-     * endRenderPass().
+     * that will be drawn to. This will return a command list that can be used
+     * to record the commands for the render pass. Once all commands have been
+     * recorded, it can be submitted with submitRenderPass().
      *
-     * Beginning a render pass resets several pieces of state: the viewport
-     * will be set to the specified render area, the scissor test will be
-     * disabled, and the blend, depth/stencil and rasterizer states will be
-     * set to the default states.
+     * The command list returned will have the following default state set:
+     *
+     *  - Blend, depth/stencil and rasterizer states will be set to the default
+     *    states.
+     *  - Viewport will be set to the specified render area.
+     *  - Scissor test will be disabled.
+     *
+     * Note that it is possible to record multiple render passes in parallel
+     * by calling this function multiple times to get command lists for each,
+     * as no work is actually done until submitRenderPass(); this function just
+     * does preliminary setup and creates a command list.
      *
      * @param desc          Descriptor for the render pass instance.
-     */
-    virtual void beginRenderPass(const GPURenderPassInstanceDesc &desc) = 0;
-
-    /** End the current render pass. */
-    virtual void endRenderPass() = 0;
-
-    /** Bind a pipeline for rendering.
-     * @param pipeline      Pipeline to use. */
-    virtual void bindPipeline(GPUPipeline *pipeline) = 0;
-
-    /**
-     * Bind a resource set.
      *
-     * Binds the specified resource set to a set index for upcoming draws. Note
-     * that after binding a resource set with this function, it must not be
-     * changed for the remainder of the frame.
-     *
-     * @param index         Resource set index to bind to.
-     * @param resources     Resource set to bind.
+     * @return              Command list to record pass into.
      */
-    virtual void bindResourceSet(unsigned index, GPUResourceSet *resources) = 0;
+    virtual GPUCommandList *beginRenderPass(const GPURenderPassInstanceDesc &desc) = 0;
 
-    /** Set the blend state.
-     * @param state         Blend state to set. */
-    virtual void setBlendState(GPUBlendState *state) = 0;
-
-    /** Set the depth/stencil state.
-     * @param state         Depth/stencil state to set. */
-    virtual void setDepthStencilState(GPUDepthStencilState *state) = 0;
-
-    /** Set the rasterizer state.
-     * @param state         Rasterizer state to set. */
-    virtual void setRasterizerState(GPURasterizerState *state) = 0;
-
-    /** Set the viewport.
-     * @param viewport      Viewport rectangle in pixels. Must be <= size of
-     *                      the current render target. */
-    virtual void setViewport(const IntRect &viewport) = 0;
-
-    /** Set the scissor test parameters.
-     * @param enable        Whether to enable scissor testing.
-     * @param scissor       Scissor rectangle. */
-    virtual void setScissor(bool enable, const IntRect &scissor) = 0;
-
-    /** Draw primitives.
-     * @param type          Primitive type to render.
-     * @param vertices      Vertex data to use.
-     * @param indices       Index data to use (can be null). */
-    virtual void draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) = 0;
-
-    /**
-     * State setting helper functions.
-     */
-
-    /** Set the blend state.
-     * @param desc          Descriptor for the blend state to set. */
-    void setBlendState(const GPUBlendStateDesc &desc = GPUBlendStateDesc()) {
-        setBlendState(getBlendState(desc));
-    }
-
-    /** Set the depth/stencil state.
-     * @param desc          Descriptor for the depth/stencil state to set. */
-    void setDepthStencilState(const GPUDepthStencilStateDesc &desc = GPUDepthStencilStateDesc()) {
-        setDepthStencilState(getDepthStencilState(desc));
-    }
-
-    /** Set the rasterizer state.
-     * @param desc          Descriptor for the rasterizer state to set. */
-    void setRasterizerState(const GPURasterizerStateDesc &desc = GPURasterizerStateDesc()) {
-        setRasterizerState(getRasterizerState(desc));
-    }
+    /** Submit a render pass.
+     * @param cmdList       Command list for the pass (will be deleted and must
+     *                      not be used after this call). */
+    virtual void submitRenderPass(GPUCommandList *cmdList) = 0;
 
     /**
      * Debug methods.
@@ -280,23 +226,37 @@ extern GPUManager *g_gpuManager;
 class GPUDebugGroup {
 public:
     /** Begin a debug group.
+     * @param cmdList       GPU command list.
      * @param str           Group string. */
-    explicit GPUDebugGroup(const std::string &str) {
-        g_gpuManager->beginDebugGroup(str);
+    GPUDebugGroup(GPUCommandList *cmdList, const std::string &str) :
+        m_cmdList(cmdList)
+    {
+        if (cmdList) {
+            m_cmdList->beginDebugGroup(str);
+        } else {
+            g_gpuManager->beginDebugGroup(str);
+        }
     }
 
     /** End the debug group. */
     ~GPUDebugGroup() {
-        g_gpuManager->endDebugGroup();
+        if (m_cmdList) {
+            m_cmdList->endDebugGroup();
+        } else {
+            g_gpuManager->endDebugGroup();
+        }
     }
+private:
+    GPUCommandList *m_cmdList;
 };
 
 /** Begin a scoped debug group.
  * @param fmt           Format string and arguments for group name. */
 #define GPU_DEBUG_GROUP(...) \
-    GPUDebugGroup debugGroup_ ## __LINE__ (String::format(__VA_ARGS__));
+    GPUDebugGroup debugGroup_ ## __LINE__ (nullptr, String::format(__VA_ARGS__));
 
 /** Begin a debug group.
+ * @param cmdList       GPU command list.
  * @param fmt           Format string and arguments for group name. */
 #define GPU_BEGIN_DEBUG_GROUP(...) \
     g_gpuManager->beginDebugGroup(String::format(__VA_ARGS__));
@@ -305,10 +265,31 @@ public:
 #define GPU_END_DEBUG_GROUP() \
     g_gpuManager->endDebugGroup();
 
+/** Begin a scoped debug group on a command list.
+ * @param cmdList       GPU command list.
+ * @param fmt           Format string and arguments for group name. */
+#define GPU_CMD_DEBUG_GROUP(cmdList, ...) \
+    GPUDebugGroup debugGroup_ ## __LINE__ ((cmdList), String::format(__VA_ARGS__));
+
+/** Begin a debug group on a command list.
+ * @param cmdList       GPU command list.
+ * @param fmt           Format string and arguments for group name. */
+#define GPU_CMD_BEGIN_DEBUG_GROUP(cmdList, ...) \
+    (cmdList)->beginDebugGroup(String::format(__VA_ARGS__));
+
+/** End a debug group on a command list.
+ * @param cmdList       GPU command list. */
+#define GPU_CMD_END_DEBUG_GROUP(cmdList) \
+    (cmdList)->endDebugGroup();
+
 #else /* ORION_BUILD_DEBUG */
 
 #define GPU_DEBUG_GROUP(...) do {} while(0)
 #define GPU_BEGIN_DEBUG_GROUP(...) do {} while(0)
 #define GPU_END_DEBUG_GROUP() do {} while(0)
+
+#define GPU_CMD_DEBUG_GROUP(cmdList, ...) do {} while(0)
+#define GPU_CMD_BEGIN_DEBUG_GROUP(cmdList, ...) do {} while(0)
+#define GPU_CMD_END_DEBUG_GROUP(cmdList) do {} while(0)
 
 #endif /* ORION_BUILD_DEBUG */

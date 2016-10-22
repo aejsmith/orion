@@ -52,6 +52,12 @@ void PostEffect::blit(
 {
     const RenderManager::RenderTargets &targets = g_renderManager->renderTargets();
 
+    /* Begin a render pass. */
+    GPURenderPassInstanceDesc passDesc(g_renderManager->resources().postEffectBlitPass);
+    passDesc.targets.colour[0].texture = dest;
+    passDesc.renderArea = IntRect(0, 0, dest->width(), dest->height());
+    GPUCommandList *cmdList = g_gpuManager->beginRenderPass(passDesc);
+
     /* Create a resource set. This must be done every time as resource sets are
      * immutable between submission and the end of the frame, and we have
      * differing resources each time. TODO: Could keep just a few resource sets
@@ -67,18 +73,12 @@ void PostEffect::blit(
         ResourceSlots::kSourceTexture,
         source,
         (samplerState) ? samplerState : defaultSampler.get());
-    g_gpuManager->bindResourceSet(ResourceSets::kPostEffectResources, resources);
-
-    /* Begin a render pass. */
-    GPURenderPassInstanceDesc passDesc(g_renderManager->resources().postEffectBlitPass);
-    passDesc.targets.colour[0].texture = dest;
-    passDesc.renderArea = IntRect(0, 0, dest->width(), dest->height());
-    g_gpuManager->beginRenderPass(passDesc);
+    cmdList->bindResourceSet(ResourceSets::kPostEffectResources, resources);
 
     /* Disable blending and depth testing/writes. TODO: Blending should come
      * from Pass properties. */
-    g_gpuManager->setBlendState();
-    g_gpuManager->setDepthStencilState(GPUDepthStencilStateDesc().
+    cmdList->setBlendState();
+    cmdList->setDepthStencilState(GPUDepthStencilStateDesc().
         setDepthFunc(ComparisonFunc::kAlways).
         setDepthWrite(false));
 
@@ -96,9 +96,9 @@ void PostEffect::blit(
     }
 
     /* Draw it. */
-    drawList.draw();
+    drawList.draw(cmdList);
 
-    g_gpuManager->endRenderPass();
+    g_gpuManager->submitRenderPass(cmdList);
 }
 
 /** Initialise the post-processing effect chain. */

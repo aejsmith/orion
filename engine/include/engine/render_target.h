@@ -25,6 +25,7 @@
 
 #include <list>
 
+class GPUCommandList;
 class RenderTarget;
 
 /**
@@ -78,7 +79,7 @@ protected:
      */
     virtual void render(bool first) = 0;
 
-    void beginLayerRenderPass(GPURenderLoadOp loadOp, const glm::vec4 &clearColour = glm::vec4());
+    GPUCommandList *beginLayerRenderPass(GPURenderLoadOp loadOp, const glm::vec4 &clearColour = glm::vec4());
 
     #ifdef ORION_BUILD_DEBUG
     /** @return             Name of the layer (for debug purposes). */

@@ -137,14 +137,16 @@ void RenderLayer::unregisterRenderLayer() {
  * This function begins a new render pass to render to the render target for
  * this layer. The render pass will only have a colour target, no depth/stencil
  * target, therefore this pass should be used with depth/stencil testing and
- * writes disabled. GPUManager::endRenderPass() should be called at the end of
- * the pass.
+ * writes disabled. GPUManager::submitRenderPass() should be called at the end
+ * of the pass.
  *
  * @param loadOp        Load operation for the colour target.
  * @param clearColour   If loadOp is GPURenderLoadOp::kClear, the colour to
  *                      clear to.
+ *
+ * @return              GPU command list to draw with.
  */
-void RenderLayer::beginLayerRenderPass(GPURenderLoadOp loadOp, const glm::vec4 &clearColour) {
+GPUCommandList *RenderLayer::beginLayerRenderPass(GPURenderLoadOp loadOp, const glm::vec4 &clearColour) {
     if (!m_renderPass || m_renderPass->desc().colourAttachments[0].loadOp != loadOp) {
         /* Need to create a new render pass. */
         GPURenderPassDesc passDesc(1);
@@ -157,7 +159,7 @@ void RenderLayer::beginLayerRenderPass(GPURenderLoadOp loadOp, const glm::vec4 &
     m_renderTarget->getRenderTargetDesc(instanceDesc.targets);
     instanceDesc.clearColours[0] = clearColour;
     instanceDesc.renderArea = m_pixelViewport;
-    g_gpuManager->beginRenderPass(instanceDesc);
+    return g_gpuManager->beginRenderPass(instanceDesc);
 }
 
 /** Initialize the render target.

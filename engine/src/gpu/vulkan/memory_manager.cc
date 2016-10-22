@@ -519,7 +519,7 @@ void VulkanMemoryManager::cleanupFrame(VulkanFrame &frame, bool completed) {
  */
 VulkanCommandBuffer *VulkanMemoryManager::getStagingCmdBuf() {
     if (!m_stagingCmdBuf) {
-        m_stagingCmdBuf = manager()->commandPool()->allocateTransient();
+        m_stagingCmdBuf = manager()->commandPool()->allocateTransient(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
         m_stagingCmdBuf->begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
     }
 

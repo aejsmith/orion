@@ -30,6 +30,8 @@
 
 #include <list>
 
+class GPUCommandList;
+
 /**
  * Draw call structure.
  *
@@ -51,7 +53,7 @@ public:
     void addDrawCalls(const Geometry &geometry, Material *material, SceneEntity *entity, Pass::Type passType);
     void addDrawCalls(SceneEntity *entity, Pass::Type passType);
 
-    void draw(SceneLight *light = nullptr) const;
+    void draw(GPUCommandList *cmdList, SceneLight *light = nullptr) const;
 
     /** @return             Whether the draw list is empty. */
     bool empty() const { return m_drawCalls.empty(); }

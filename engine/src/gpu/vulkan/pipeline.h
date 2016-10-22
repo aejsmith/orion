@@ -25,7 +25,7 @@
 
 #include "core/hash_table.h"
 
-struct VulkanFrame;
+struct VulkanCommandState;
 
 /** Vulkan pipeline implementation. */
 class VulkanPipeline : public GPUPipeline, public VulkanObject {
@@ -61,7 +61,7 @@ public:
         /** Blend state (VkPipelineColorBlendStateCreateInfo). */
         const GPUBlendState *blendState;
 
-        StateKey(const VulkanFrame &frame, PrimitiveType primType, const GPUVertexData *vertices);
+        StateKey(const VulkanCommandState &state, PrimitiveType primType, const GPUVertexData *vertices);
 
         bool operator ==(const StateKey &other) const;
 
@@ -70,7 +70,7 @@ public:
 
     VulkanPipeline(VulkanGPUManager *manager, GPUPipelineDesc &&desc);
 
-    void bind(VulkanFrame &frame, PrimitiveType primType, const GPUVertexData *vertices);
+    void bind(VulkanCommandState &state, PrimitiveType primType, const GPUVertexData *vertices);
 
     bool isCompatibleForSet(VulkanPipeline *other, size_t set) const;
 
@@ -80,7 +80,7 @@ protected:
     ~VulkanPipeline();
 private:
     VkPipeline create(
-        const VulkanFrame &frame,
+        const VulkanCommandState &state,
         PrimitiveType primType,
         const GPUVertexData *vertices,
         StateKey &&key);

@@ -373,17 +373,8 @@ void VulkanGPUManager::startFrame() {
     VulkanFrame &frame = currentFrame();
 
     /* Allocate the primary command buffer. */
-    frame.primaryCmdBuf = m_commandPool->allocateTransient();
+    frame.primaryCmdBuf = m_commandPool->allocateTransient(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
     frame.primaryCmdBuf->begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-
-    /* Initialise state. */
-    frame.renderPass = nullptr;
-    frame.framebuffer = nullptr;
-    frame.boundPipelineObject = VK_NULL_HANDLE;
-    frame.viewportDirty = true;
-    frame.scissorDirty = true;
-    for (size_t i = 0; i < frame.boundDescriptorSets.size(); i++)
-        frame.boundDescriptorSets[i] = VK_NULL_HANDLE;
 
     /* Acquire a new image from the swap chain. */
     m_swapchain->startFrame();
@@ -431,17 +422,6 @@ void VulkanGPUManager::endFrame() {
 
     /* Submit and present the frame. */
     m_swapchain->endFrame(completedFrame.primaryCmdBuf, &completedFrame.fence);
-
-    /* Release all state. Probably a bit unnecessary because these have probably
-     * been used for rendering and therefore have been referenced in a command
-     * buffer anyway, but doesn't hurt to drop our references now. */
-    completedFrame.pipeline = nullptr;
-    completedFrame.boundPipeline = nullptr;
-    completedFrame.blendState = nullptr;
-    completedFrame.depthStencilState = nullptr;
-    completedFrame.rasterizerState = nullptr;
-    for (size_t i = 0; i < completedFrame.resourceSets.size(); i++)
-        completedFrame.resourceSets[i] = nullptr;
 
     /* Clean up completed frames and wait for pending frames. */
     cleanupFrames(false);

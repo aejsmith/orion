@@ -70,40 +70,6 @@ struct VulkanFrame {
     /** List of staging memory allocations for the frame. */
     std::list<VulkanMemoryManager::StagingMemory *> stagingAllocations;
 
-    /**
-     * Rendering state.
-     */
-
-    /** Pipeline bound with bindPipeline(). */
-    GPUObjectPtr<VulkanPipeline> pipeline;
-    /** Pipeline actually bound on the command buffer (not done until draw). */
-    GPUObjectPtr<VulkanPipeline> boundPipeline;
-    /** Underlying pipeline object bound on the command buffer. */
-    VkPipeline boundPipelineObject;
-
-    /** Resource sets. */
-    std::array<GPUObjectPtr<VulkanResourceSet>, ResourceSets::kNumResourceSets> resourceSets;
-    /** Descriptor sets actually bound on the command buffer. */
-    std::array<VkDescriptorSet, ResourceSets::kNumResourceSets> boundDescriptorSets;
-
-    /** State object bindings. */
-    GPUBlendStatePtr blendState;
-    GPUDepthStencilStatePtr depthStencilState;
-    GPURasterizerStatePtr rasterizerState;
-
-    /** Viewport. */
-    IntRect viewport;
-    bool viewportDirty;
-
-    /** Scissor state. */
-    bool scissorEnabled;
-    IntRect scissor;
-    bool scissorDirty;
-
-    /** Current render pass. */
-    const VulkanRenderPass *renderPass;
-    const VulkanFramebuffer *framebuffer;
-
     /** Initialise the frame.
      * @param manager       Manager that owns the frame. */
     explicit VulkanFrame(VulkanGPUManager *manager) :
@@ -146,18 +112,8 @@ public:
         glm::ivec2 destPos,
         glm::ivec2 size) override;
 
-    void beginRenderPass(const GPURenderPassInstanceDesc &desc) override;
-    void endRenderPass() override;
-
-    void bindPipeline(GPUPipeline *pipeline) override;
-    void bindResourceSet(unsigned index, GPUResourceSet *resources) override;
-    void setBlendState(GPUBlendState *state) override;
-    void setDepthStencilState(GPUDepthStencilState *state) override;
-    void setRasterizerState(GPURasterizerState *state) override;
-    void setViewport(const IntRect &viewport) override;
-    void setScissor(bool enable, const IntRect &scissor) override;
-
-    void draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) override;
+    GPUCommandList *beginRenderPass(const GPURenderPassInstanceDesc &desc) override;
+    void submitRenderPass(GPUCommandList *cmdList) override;
 
     #ifdef ORION_BUILD_DEBUG
     void beginDebugGroup(const std::string &str) override;

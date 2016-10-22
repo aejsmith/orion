@@ -27,6 +27,7 @@
 
 #include "shader/shader.h"
 
+class GPUCommandList;
 class UniformBufferBase;
 
 /**
@@ -44,7 +45,7 @@ public:
     /** @return             Shader for the material. */
     Shader *shader() const { return m_shader; }
 
-    void setDrawState() const;
+    void setDrawState(GPUCommandList *cmdList) const;
 
     /**
      * Parameter value access.

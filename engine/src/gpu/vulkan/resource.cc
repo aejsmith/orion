@@ -19,6 +19,7 @@
  * @brief               Vulkan resource set implementation.
  */
 
+#include "commands.h"
 #include "manager.h"
 #include "resource.h"
 
@@ -168,12 +169,10 @@ void VulkanResourceSet::updateSlot(size_t index) {
  * buffer will have references to the underlying descriptor set object added,
  * along with all resources bound in the resource set.
  *
- * @param frame         Current frame.
+ * @param state         Current command state.
  * @param index         Index that the set is bound at.
  */
-void VulkanResourceSet::bind(VulkanFrame &frame, size_t index) {
-    VulkanCommandBuffer *cmdBuf = frame.primaryCmdBuf;
-
+void VulkanResourceSet::bind(VulkanCommandState &state, size_t index) {
     /* Determine what we need to do, if anything. */
     bool needUpdate = false;
     bool needNew = false;
@@ -334,7 +333,7 @@ void VulkanResourceSet::bind(VulkanFrame &frame, size_t index) {
     }
 
     /* The command buffer will be using this resource set, reference it. */
-    cmdBuf->addReference(m_current);
+    state.cmdBuf->addReference(m_current);
 
     /* Furthermore, it may be using all resources bound in the set. */
     for (const Slot &slot : m_slots) {
@@ -343,11 +342,11 @@ void VulkanResourceSet::bind(VulkanFrame &frame, size_t index) {
 
         switch (slot.desc.type) {
             case GPUResourceType::kUniformBuffer:
-                cmdBuf->addReference(static_cast<VulkanBuffer *>(slot.object.get()));
+                state.cmdBuf->addReference(static_cast<VulkanBuffer *>(slot.object.get()));
                 break;
             case GPUResourceType::kTexture:
-                cmdBuf->addReference(static_cast<VulkanTexture *>(slot.object.get()));
-                cmdBuf->addReference(slot.sampler);
+                state.cmdBuf->addReference(static_cast<VulkanTexture *>(slot.object.get()));
+                state.cmdBuf->addReference(slot.sampler);
                 break;
             default:
                 unreachable();
@@ -355,7 +354,7 @@ void VulkanResourceSet::bind(VulkanFrame &frame, size_t index) {
     }
 
     VkDescriptorSet handle = m_current->handle();
-    needRebind = needRebind || frame.boundDescriptorSets[index] != handle;
+    needRebind = needRebind || state.descriptorSets[index] != handle;
     if (needRebind) {
         std::vector<uint32_t> dynamicOffsets;
         for (size_t i = 0; i < m_slots.size(); i++) {
@@ -369,14 +368,14 @@ void VulkanResourceSet::bind(VulkanFrame &frame, size_t index) {
         }
 
         vkCmdBindDescriptorSets(
-            cmdBuf->handle(),
+            state.cmdBuf->handle(),
             VK_PIPELINE_BIND_POINT_GRAPHICS,
-            frame.boundPipeline->layout(),
+            state.pipeline->layout(),
             index,
             1, &handle,
             dynamicOffsets.size(), &dynamicOffsets[0]);
 
-        frame.boundDescriptorSets[index] = handle;
+        state.descriptorSets[index] = handle;
     }
 }
 

@@ -81,11 +81,12 @@ Pass::~Pass() {}
  * material, therefore can be set once for all entities/materials being drawn
  * with this pass.
  *
+ * @param cmdList       GPU command list.
  * @param light         Light that the pass is being drawn with. This is used
  *                      to select which shader variations to use. It is ignored
  *                      for non-lit pass types.
  */
-void Pass::setDrawState(SceneLight *light) const {
+void Pass::setDrawState(GPUCommandList *cmdList, SceneLight *light) const {
     /* Find the variation to use. */
     size_t index;
     if (m_type == Type::kForward) {
@@ -99,7 +100,7 @@ void Pass::setDrawState(SceneLight *light) const {
     /* Bind the variation. */
     const Variation &variation = m_variations[index];
     check(variation.pipeline);
-    g_gpuManager->bindPipeline(variation.pipeline);
+    cmdList->bindPipeline(variation.pipeline);
 }
 
 /** Compile a single variation.

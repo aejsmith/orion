@@ -141,14 +141,14 @@ void RenderTestLayer::render(bool first) {
     renderTarget()->getRenderTargetDesc(instanceDesc.targets);
     instanceDesc.clearColours[0] = glm::vec4(0.0, 0.0, 0.5, 1.0);
     instanceDesc.renderArea = pixelViewport();
-    g_gpuManager->beginRenderPass(instanceDesc);
+    GPUCommandList *cmdList = g_gpuManager->beginRenderPass(instanceDesc);
 
-    m_material->setDrawState();
-    m_material->shader()->pass(Pass::Type::kBasic, kUsePass)->setDrawState(nullptr);
+    m_material->setDrawState(cmdList);
+    m_material->shader()->pass(Pass::Type::kBasic, kUsePass)->setDrawState(cmdList, nullptr);
 
-    g_gpuManager->draw(PrimitiveType::kTriangleList, m_vertices, nullptr);
+    cmdList->draw(PrimitiveType::kTriangleList, m_vertices, nullptr);
 
-    g_gpuManager->endRenderPass();
+    g_gpuManager->submitRenderPass(cmdList);
 }
 
 /** Get the engine configuration.

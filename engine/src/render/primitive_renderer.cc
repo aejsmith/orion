@@ -67,9 +67,10 @@ void PrimitiveRenderer::doAddVertex(const SimpleVertex &vertex) {
 }
 
 /** Draw all primitives that have been added.
+ * @param cmdList       GPU command list.
  * @param view          Optional view to render with. This must be given if
  *                      any shaders used require view uniforms. */
-void PrimitiveRenderer::draw(SceneView *view) {
+void PrimitiveRenderer::draw(GPUCommandList *cmdList, SceneView *view) {
     m_currentBatch = nullptr;
 
     if (m_drawList.empty()) {
@@ -103,8 +104,8 @@ void PrimitiveRenderer::draw(SceneView *view) {
     }
 
     if (view)
-        g_gpuManager->bindResourceSet(ResourceSets::kViewResources, view->resourcesForDraw());
+        cmdList->bindResourceSet(ResourceSets::kViewResources, view->resourcesForDraw());
 
     /* Render all batches. */
-    m_drawList.draw();
+    m_drawList.draw(cmdList);
 }
