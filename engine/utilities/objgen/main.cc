@@ -1126,7 +1126,7 @@ int main(int argc, char **argv) {
          * directory and the source file. */
         Path fullPath;
         if (!Filesystem::getFullPath(Path(sourceFile, Path::kUnnormalizedPlatform), fullPath)) {
-            fprintf(stderr, "%s: Failed to get absolute path of '%s': %s\n", argv[0], sourceFile);
+            fprintf(stderr, "%s: Failed to get absolute path of '%s'\n", argv[0], sourceFile);
             return EXIT_FAILURE;
         }
 
