@@ -33,7 +33,7 @@
 #include <set>
 
 /** Define to 1 to enable ARB_debug_output. */
-#define ORION_GL_DEBUG                  1
+#define ORION_GL_DEBUG                  ORION_BUILD_DEBUG
 
 /** Define to 1 to enable ARB_debug_output notification messages (excessive). */
 #define ORION_GL_DEBUG_NOTIFICATIONS    0
@@ -42,7 +42,7 @@
 #define ORION_GL_KEEP_SHADER_OBJECTS    0
 
 /** Define to 1 to validate programs on every draw. */
-#define ORION_GL_VALIDATE_PROGRAMS      0
+#define ORION_GL_VALIDATE_PROGRAMS      ORION_BUILD_DEBUG
 
 #include "state.h"
 

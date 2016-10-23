@@ -46,7 +46,7 @@ if not ARGUMENTS.get('V'):
 
 build_types = {
     'debug': {
-        'CPPDEFINES': {'ORION_BUILD_DEBUG': None},
+        'CPPDEFINES': {'ORION_BUILD_DEBUG': 1},
     },
     'release': {
         'CPPDEFINES': {},
@@ -58,7 +58,7 @@ if not env['BUILD'] in build_types:
 
 if sys.platform.startswith('linux'):
     env['PLATFORM'] = 'linux'
-    env['CPPDEFINES'] = {'ORION_PLATFORM_LINUX': None}
+    env['CPPDEFINES'] = {'ORION_PLATFORM_LINUX': 1}
 
     platform_build_types = {
         'debug': {
@@ -85,7 +85,7 @@ if sys.platform.startswith('linux'):
     env['LINKFLAGS'] += ['-pthread']
 elif sys.platform.startswith('win32'):
     env['PLATFORM'] = 'win32'
-    env['CPPDEFINES'] = {'ORION_PLATFORM_WIN32': None}
+    env['CPPDEFINES'] = {'ORION_PLATFORM_WIN32': 1}
 
     platform_build_types = {
         'debug': {
