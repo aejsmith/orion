@@ -60,7 +60,7 @@ unsigned VertexAttribute::glslIndex(Semantic semantic, unsigned index) {
             checkMsg(index < 2, "Exceeded maximum number of specular colour attributes");
             return 14 + index;
         default:
-            check(false);
+            unreachable();
     }
 }
 
