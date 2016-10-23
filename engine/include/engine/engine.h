@@ -118,3 +118,6 @@ private:
 };
 
 extern Engine *g_engine;
+
+extern const char *g_versionString;
+extern const char *g_versionTimestamp;

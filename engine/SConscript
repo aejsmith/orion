@@ -8,17 +8,42 @@ manager.baseEnv['CPPPATH'] += [Dir('include')]
 # Add all 3rd party library components.
 SConscript(dirs = ['3rdparty'])
 
-# Build utilities.
-SConscript(dirs = ['utilities'])
+################
+# Core library #
+################
 
 depends = [
     'external/sdl',
+    '3rdparty/glm',
+]
+
+env = manager.CreateEnvironment(depends = depends)
+Export('env')
+
+objects = SConscript(dirs = ['src/core'])
+
+manager.AddComponent(
+    name = 'engine/core',
+    depends = depends,
+    objects = objects)
+
+#############
+# Utilities #
+#############
+
+SConscript(dirs = ['utilities'])
+
+###############
+# Main engine #
+###############
+
+depends = [
     'external/bullet',
     'external/freetype',
-    '3rdparty/glm',
     '3rdparty/glslang',
     '3rdparty/imgui',
     '3rdparty/rapidjson',
+    'engine/core',
 ]
 
 if manager.baseEnv['GPU_API'] == 'gl':
@@ -36,6 +61,16 @@ manager.AddComponent(
     name = 'engine',
     depends = depends,
     objects = util.flatten(SConscript(dirs = [
-        'include',
-        'src',
+        'include/engine',
+        'include/graphics',
+        'include/physics',
+        'include/render',
+        'include/shader',
+        'src/engine',
+        'src/gpu',
+        'src/graphics',
+        'src/input',
+        'src/physics',
+        'src/render',
+        'src/shader',
     ])))

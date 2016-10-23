@@ -77,13 +77,6 @@
 #endif
 
 /**
- * Engine version definitions.
- */
-
-extern const char *g_versionString;
-extern const char *g_versionTimestamp;
-
-/**
  * Error handling definitions.
  */
 
