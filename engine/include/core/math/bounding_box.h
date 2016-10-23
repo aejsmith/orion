@@ -94,6 +94,4 @@ public:
     }
 
     BoundingBox transform(const glm::mat4 &matrix) const;
-
-    void debugDraw(const glm::vec4 &colour, bool perView = false) const;
 };

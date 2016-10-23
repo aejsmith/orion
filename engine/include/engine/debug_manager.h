@@ -45,6 +45,8 @@ public:
     void initResources();
 
     void drawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &colour, bool perView = false);
+    void draw(const BoundingBox &box, const glm::vec4 &colour, bool perView = false);
+    void draw(const Frustum &frustum, const glm::vec4 &colour, bool perView = false);
 
     void writeText(const std::string &text, const glm::vec4 &colour = glm::vec4(1.0));
 

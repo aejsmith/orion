@@ -580,6 +580,93 @@ void DebugManager::drawLine(const glm::vec3 &start, const glm::vec3 &end, const 
     }
 }
 
+/** Draw the bounding box in the world.
+ * @param box           Box to draw.
+ * @param colour        Colour to draw in.
+ * @param perView       Whether to draw for the whole frame or just the next
+ *                      view rendered. */
+void DebugManager::draw(const BoundingBox &box, const glm::vec4 &colour, bool perView) {
+    /* Calculate corners (left/right, bottom/top, back/front). */
+    glm::vec3 lbb(box.minimum.x, box.minimum.y, box.minimum.z);
+    glm::vec3 lbf(box.minimum.x, box.minimum.y, box.maximum.z);
+    glm::vec3 ltb(box.minimum.x, box.maximum.y, box.minimum.z);
+    glm::vec3 ltf(box.minimum.x, box.maximum.y, box.maximum.z);
+    glm::vec3 rbb(box.maximum.x, box.minimum.y, box.minimum.z);
+    glm::vec3 rbf(box.maximum.x, box.minimum.y, box.maximum.z);
+    glm::vec3 rtb(box.maximum.x, box.maximum.y, box.minimum.z);
+    glm::vec3 rtf(box.maximum.x, box.maximum.y, box.maximum.z);
+
+    /* Convert to lines. */
+    drawLine(lbb, rbb, colour, perView);
+    drawLine(rbb, rbf, colour, perView);
+    drawLine(rbf, lbf, colour, perView);
+    drawLine(lbf, lbb, colour, perView);
+    drawLine(ltb, rtb, colour, perView);
+    drawLine(rtb, rtf, colour, perView);
+    drawLine(rtf, ltf, colour, perView);
+    drawLine(ltf, ltb, colour, perView);
+    drawLine(lbb, ltb, colour, perView);
+    drawLine(rbb, rtb, colour, perView);
+    drawLine(rbf, rtf, colour, perView);
+    drawLine(lbf, ltf, colour, perView);
+}
+
+/** Draw a frustum in the world.
+ * @param frustum       Frustum to draw.
+ * @param colour        Colour to draw in.
+ * @param perView       Whether to draw for the whole frame or just the next
+ *                      view rendered. */
+void DebugManager::draw(const Frustum &frustum, const glm::vec4 &colour, bool perView) {
+    drawLine(
+        frustum.corner(Frustum::kFarBottomLeftCorner),
+        frustum.corner(Frustum::kFarBottomRightCorner),
+        colour, perView);
+    drawLine(
+        frustum.corner(Frustum::kFarBottomRightCorner),
+        frustum.corner(Frustum::kNearBottomRightCorner),
+        colour, perView);
+    drawLine(
+        frustum.corner(Frustum::kNearBottomRightCorner),
+        frustum.corner(Frustum::kNearBottomLeftCorner),
+        colour, perView);
+    drawLine(
+        frustum.corner(Frustum::kNearBottomLeftCorner),
+        frustum.corner(Frustum::kFarBottomLeftCorner),
+        colour, perView);
+    drawLine(
+        frustum.corner(Frustum::kFarTopLeftCorner),
+        frustum.corner(Frustum::kFarTopRightCorner),
+        colour, perView);
+    drawLine(
+        frustum.corner(Frustum::kFarTopRightCorner),
+        frustum.corner(Frustum::kNearTopRightCorner),
+        colour, perView);
+    drawLine(
+        frustum.corner(Frustum::kNearTopRightCorner),
+        frustum.corner(Frustum::kNearTopLeftCorner),
+        colour, perView);
+    drawLine(
+        frustum.corner(Frustum::kNearTopLeftCorner),
+        frustum.corner(Frustum::kFarTopLeftCorner),
+        colour, perView);
+    drawLine(
+        frustum.corner(Frustum::kFarBottomLeftCorner),
+        frustum.corner(Frustum::kFarTopLeftCorner),
+        colour, perView);
+    drawLine(
+        frustum.corner(Frustum::kFarBottomRightCorner),
+        frustum.corner(Frustum::kFarTopRightCorner),
+        colour, perView);
+    drawLine(
+        frustum.corner(Frustum::kNearBottomRightCorner),
+        frustum.corner(Frustum::kNearTopRightCorner),
+        colour, perView);
+    drawLine(
+        frustum.corner(Frustum::kNearBottomLeftCorner),
+        frustum.corner(Frustum::kNearTopLeftCorner),
+        colour, perView);
+}
+
 /**
  * Write text to the debug overlay.
  *

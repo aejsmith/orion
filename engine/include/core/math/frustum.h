@@ -84,8 +84,6 @@ public:
     }
 
     void update(const glm::mat4 &matrix, const glm::mat4 &inverse);
-
-    void debugDraw(const glm::vec4 &colour, bool perView = false) const;
 private:
     /** Planes of the frustum. */
     Plane m_planes[kNumPlanes];

@@ -21,8 +21,6 @@
 
 #include "core/math/frustum.h"
 
-#include "engine/debug_manager.h"
-
 /** Update the frustum based on the view-projection matrix.
  * @param matrix        View-projection matrix.
  * @param inverse       Inverse view-projection matrix. */
@@ -84,24 +82,4 @@ void Frustum::update(const glm::mat4 &matrix, const glm::mat4 &inverse) {
         glm::vec4 inverted = inverse * glm::vec4(corners[i], 1.0f);
         m_corners[i] = glm::vec3(inverted) / inverted.w;
     }
-}
-
-/** Draw the frustum through the debug renderer.
- * @param colour        Colour to draw in.
- * @param perView       Whether to draw for the whole frame or just the next
- *                      view rendered. */
-void Frustum::debugDraw(const glm::vec4 &colour, bool perView) const {
-    const glm::vec3 *c = m_corners;
-    g_debugManager->drawLine(c[kFarBottomLeftCorner], c[kFarBottomRightCorner], colour, perView);
-    g_debugManager->drawLine(c[kFarBottomRightCorner], c[kNearBottomRightCorner], colour, perView);
-    g_debugManager->drawLine(c[kNearBottomRightCorner], c[kNearBottomLeftCorner], colour, perView);
-    g_debugManager->drawLine(c[kNearBottomLeftCorner], c[kFarBottomLeftCorner], colour, perView);
-    g_debugManager->drawLine(c[kFarTopLeftCorner], c[kFarTopRightCorner], colour, perView);
-    g_debugManager->drawLine(c[kFarTopRightCorner], c[kNearTopRightCorner], colour, perView);
-    g_debugManager->drawLine(c[kNearTopRightCorner], c[kNearTopLeftCorner], colour, perView);
-    g_debugManager->drawLine(c[kNearTopLeftCorner], c[kFarTopLeftCorner], colour, perView);
-    g_debugManager->drawLine(c[kFarBottomLeftCorner], c[kFarTopLeftCorner], colour, perView);
-    g_debugManager->drawLine(c[kFarBottomRightCorner], c[kFarTopRightCorner], colour, perView);
-    g_debugManager->drawLine(c[kNearBottomRightCorner], c[kNearTopRightCorner], colour, perView);
-    g_debugManager->drawLine(c[kNearBottomLeftCorner], c[kNearTopLeftCorner], colour, perView);
 }
