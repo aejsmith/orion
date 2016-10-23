@@ -66,46 +66,48 @@ unsigned VertexAttribute::glslIndex(Semantic semantic, unsigned index) {
 
 /** Initialize a vertex data layout object.
  * @param desc          Layout descriptor. */
-GPUVertexDataLayout::GPUVertexDataLayout(GPUVertexDataLayoutDesc &&desc) :
-    GPUState(std::move(desc))
+GPUVertexDataLayout::GPUVertexDataLayout(const GPUVertexDataLayoutDesc &desc) :
+    GPUState(desc)
 {
-    for (size_t i = 0; i < m_desc.bindings.size(); i++) {
-        const VertexBinding &binding = m_desc.bindings[i];
-
-        checkMsg(
-            binding.stride,
-            "Binding %zu has zero stride", i);
-    }
-
-    for (size_t i = 0; i < m_desc.attributes.size(); i++) {
-        const VertexAttribute &attribute = m_desc.attributes[i];
-
-        /* Use the assertions in glslIndex() to validate the semantic/index. */
-        attribute.glslIndex();
-
-        checkMsg(
-            attribute.components,
-            "Attribute %zu has zero component count", i);
-        checkMsg(
-            attribute.components >= 1 && attribute.components <= 4,
-            "Attribute %zu vector component count %u unsupported", i, attribute.components);
-        checkMsg(
-            attribute.binding < m_desc.bindings.size(),
-            "Attribute %zu references unknown binding %u", i, attribute.binding);
-
-        checkMsg(
-            (attribute.offset + attribute.size()) <= m_desc.bindings[attribute.binding].stride,
-            "Attribute %zu position exceeds binding stride (offset: %u, size: %u, stride: %u)",
-            i, attribute.offset, attribute.size(), m_desc.bindings[attribute.binding].stride);
-
-        for (size_t j = 0; j < i; j++) {
-            const VertexAttribute &other = m_desc.attributes[j];
+    #ifdef ORION_BUILD_DEBUG
+        for (size_t i = 0; i < m_desc.bindings.size(); i++) {
+            const VertexBinding &binding = m_desc.bindings[i];
 
             checkMsg(
-                other.semantic != attribute.semantic || other.index != attribute.index,
-                "Attribute %zu is semantic duplicate of %u", i, j);
+                binding.stride,
+                "Binding %zu has zero stride", i);
         }
-    }
+
+        for (size_t i = 0; i < m_desc.attributes.size(); i++) {
+            const VertexAttribute &attribute = m_desc.attributes[i];
+
+            /* Use the assertions in glslIndex() to validate the semantic/index. */
+            attribute.glslIndex();
+
+            checkMsg(
+                attribute.components,
+                "Attribute %zu has zero component count", i);
+            checkMsg(
+                attribute.components >= 1 && attribute.components <= 4,
+                "Attribute %zu vector component count %u unsupported", i, attribute.components);
+            checkMsg(
+                attribute.binding < m_desc.bindings.size(),
+                "Attribute %zu references unknown binding %u", i, attribute.binding);
+
+            checkMsg(
+                (attribute.offset + attribute.size()) <= m_desc.bindings[attribute.binding].stride,
+                "Attribute %zu position exceeds binding stride (offset: %u, size: %u, stride: %u)",
+                i, attribute.offset, attribute.size(), m_desc.bindings[attribute.binding].stride);
+
+            for (size_t j = 0; j < i; j++) {
+                const VertexAttribute &other = m_desc.attributes[j];
+
+                checkMsg(
+                    other.semantic != attribute.semantic || other.index != attribute.index,
+                    "Attribute %zu is semantic duplicate of %u", i, j);
+            }
+        }
+    #endif
 }
 
 /** Initialize the vertex data object.
@@ -115,15 +117,17 @@ GPUVertexData::GPUVertexData(GPUVertexDataDesc &&desc) :
     m_layout(std::move(desc.layout)),
     m_buffers(std::move(desc.buffers))
 {
-    check(m_count);
+    #ifdef ORION_BUILD_DEBUG
+        check(m_count);
 
-    size_t expectedSize = m_layout->desc().bindings.size();
-    checkMsg(
-        m_buffers.size() == expectedSize,
-        "Buffer count mismatch (expected %zu, got %zu)", expectedSize, m_buffers.size());
+        size_t expectedSize = m_layout->desc().bindings.size();
+        checkMsg(
+            m_buffers.size() == expectedSize,
+            "Buffer count mismatch (expected %zu, got %zu)", expectedSize, m_buffers.size());
 
-    for (size_t i = 0; i < m_buffers.size(); i++) {
-        check(m_buffers[i]);
-        check(m_buffers[i]->type() == GPUBuffer::kVertexBuffer);
-    }
+        for (size_t i = 0; i < m_buffers.size(); i++) {
+            check(m_buffers[i]);
+            check(m_buffers[i]->type() == GPUBuffer::kVertexBuffer);
+        }
+    #endif
 }

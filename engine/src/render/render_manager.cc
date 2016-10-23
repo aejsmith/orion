@@ -68,7 +68,7 @@ void RenderManager::init() {
         desc.attributes[3].components = 4;
         desc.attributes[3].binding = 0;
         desc.attributes[3].offset = offsetof(SimpleVertex, r);
-        m_resources.simpleVertexDataLayout = g_gpuManager->createVertexDataLayout(std::move(desc));
+        m_resources.simpleVertexDataLayout = g_gpuManager->getVertexDataLayout(desc);
     }
 
     /* Create the standard resource set layouts. */

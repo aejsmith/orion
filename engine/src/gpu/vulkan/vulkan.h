@@ -38,7 +38,7 @@
  * This is currently set to 2 so that we can work on one frame while the
  * previous one finishes on the GPU.
  */
-static const uint32_t kNumPendingFrames = 2;
+static const uint32_t kNumPendingFrames = 3;
 
 /** Macro to check the result of Vulkan API calls. */
 #define checkVk(call) \

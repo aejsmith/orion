@@ -92,12 +92,12 @@ public:
     GPURenderPassPtr createRenderPass(GPURenderPassDesc &&desc) override;
     GPUTexturePtr createTexture(const GPUTextureDesc &desc) override;
     GPUTexturePtr createTextureView(const GPUTextureImageRef &image) override;
-    GPUVertexDataLayoutPtr createVertexDataLayout(GPUVertexDataLayoutDesc &&desc) override;
 
     GPUBlendStatePtr createBlendState(const GPUBlendStateDesc &desc) override;
     GPUDepthStencilStatePtr createDepthStencilState(const GPUDepthStencilStateDesc &desc) override;
     GPURasterizerStatePtr createRasterizerState(const GPURasterizerStateDesc &desc) override;
     GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc) override;
+    GPUVertexDataLayoutPtr createVertexDataLayout(const GPUVertexDataLayoutDesc &desc) override;
 
     GPUResourceSetLayoutPtr createResourceSetLayout(GPUResourceSetLayoutDesc &&desc) override;
     GPUResourceSetPtr createResourceSet(GPUResourceSetLayout *layout) override;

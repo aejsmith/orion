@@ -82,7 +82,6 @@ public:
     // TODO: GPUTextureImageRef doesn't expose all functionality but it works for now.
     virtual GPUTexturePtr createTextureView(const GPUTextureImageRef &image) = 0;
 
-    virtual GPUVertexDataLayoutPtr createVertexDataLayout(GPUVertexDataLayoutDesc &&desc);
     virtual GPUVertexDataPtr createVertexData(GPUVertexDataDesc &&desc);
 
     /**
@@ -93,6 +92,7 @@ public:
     GPUDepthStencilStatePtr getDepthStencilState(const GPUDepthStencilStateDesc &desc = GPUDepthStencilStateDesc());
     GPURasterizerStatePtr getRasterizerState(const GPURasterizerStateDesc &desc = GPURasterizerStateDesc());
     GPUSamplerStatePtr getSamplerState(const GPUSamplerStateDesc &desc = GPUSamplerStateDesc());
+    GPUVertexDataLayoutPtr getVertexDataLayout(const GPUVertexDataLayoutDesc &desc);
 
     /**
      * Shader methods.
@@ -210,12 +210,18 @@ protected:
      * @param desc          Descriptor for sampler state.
      * @return              Pointer to created sampler state object. */
     virtual GPUSamplerStatePtr createSamplerState(const GPUSamplerStateDesc &desc);
+
+    /** Create a vertex data layout object.
+     * @param desc          Descriptor for vertex data layout.
+     * @return              Pointer to created vertex data layout object. */
+    virtual GPUVertexDataLayoutPtr createVertexDataLayout(const GPUVertexDataLayoutDesc &desc);
 private:
     /** Hash tables of created state objects. */
     HashMap<GPUBlendStateDesc, GPUBlendStatePtr> m_blendStates;
     HashMap<GPUDepthStencilStateDesc, GPUDepthStencilStatePtr> m_depthStencilStates;
     HashMap<GPURasterizerStateDesc, GPURasterizerStatePtr> m_rasterizerStates;
     HashMap<GPUSamplerStateDesc, GPUSamplerStatePtr> m_samplerStates;
+    HashMap<GPUVertexDataLayoutDesc, GPUVertexDataLayoutPtr> m_vertexDataLayouts;
 };
 
 extern GPUManager *g_gpuManager;

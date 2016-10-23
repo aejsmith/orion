@@ -32,14 +32,6 @@ class VulkanPipeline : public GPUPipeline, public VulkanObject {
 public:
     /** Key from render state to a pipeline object. */
     struct StateKey {
-        /**
-         * Vertex data layout descriptor (VkPipelineVertexInputStateCreateInfo).
-         *
-         * We use the descriptor in the key because the GPU layer doesn't cache
-         * and merge identical layout objects. TODO: Maybe it should?
-         */
-        GPUVertexDataLayoutDesc vertexDataLayout;
-
         /** Primitive type (VkPipelineInputAssemblyStateCreateInfo). */
         PrimitiveType primitiveType;
 
@@ -60,6 +52,8 @@ public:
         const GPUDepthStencilState *depthStencilState;
         /** Blend state (VkPipelineColorBlendStateCreateInfo). */
         const GPUBlendState *blendState;
+        /** Vertex data layout descriptor (VkPipelineVertexInputStateCreateInfo). */
+        const GPUVertexDataLayout *vertexDataLayout;
 
         StateKey(const VulkanCommandState &state, PrimitiveType primType, const GPUVertexData *vertices);
 
@@ -108,7 +102,7 @@ private:
 /** Vulkan vertex data layout implementation. */
 class VulkanVertexDataLayout : public GPUVertexDataLayout {
 public:
-    VulkanVertexDataLayout(GPUVertexDataLayoutDesc &&desc);
+    explicit VulkanVertexDataLayout(const GPUVertexDataLayoutDesc &desc);
 
     /** @return             Creation information. */
     const VkPipelineVertexInputStateCreateInfo &createInfo() const { return m_createInfo; }
@@ -124,7 +118,7 @@ private:
 /** Vulkan blend state implementation. */
 class VulkanBlendState : public GPUBlendState {
 public:
-    VulkanBlendState(const GPUBlendStateDesc &desc);
+    explicit VulkanBlendState(const GPUBlendStateDesc &desc);
 
     /** @return             Creation information. */
     const VkPipelineColorBlendStateCreateInfo &createInfo() const { return m_createInfo; }
@@ -139,7 +133,7 @@ private:
 /** Vulkan depth/stencil state implementation. */
 class VulkanDepthStencilState : public GPUDepthStencilState {
 public:
-    VulkanDepthStencilState(const GPUDepthStencilStateDesc &desc);
+    explicit VulkanDepthStencilState(const GPUDepthStencilStateDesc &desc);
 
     /** @return             Creation information. */
     const VkPipelineDepthStencilStateCreateInfo &createInfo() const { return m_createInfo; }
@@ -153,7 +147,7 @@ private:
 /** Vulkan rasterizer state implementation. */
 class VulkanRasterizerState : public GPURasterizerState {
 public:
-    VulkanRasterizerState(const GPURasterizerStateDesc &desc);
+    explicit VulkanRasterizerState(const GPURasterizerStateDesc &desc);
 
     /** @return             Creation information. */
     const VkPipelineRasterizationStateCreateInfo &createInfo() const { return m_createInfo; }

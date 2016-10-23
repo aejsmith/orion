@@ -87,33 +87,33 @@ VulkanPipeline::StateKey::StateKey(
     PrimitiveType primType,
     const GPUVertexData *vertices)
     :
-    vertexDataLayout(vertices->layout()->desc()),
     primitiveType(primType),
     renderPass(state.renderPass),
     rasterizerState(state.pending.rasterizerState),
     depthStencilState(state.pending.depthStencilState),
-    blendState(state.pending.blendState)
+    blendState(state.pending.blendState),
+    vertexDataLayout(vertices->layout())
 {}
 
 /** Compare this key with another. */
 bool VulkanPipeline::StateKey::operator ==(const StateKey &other) const {
     return
-        vertexDataLayout == other.vertexDataLayout &&
         primitiveType == other.primitiveType &&
         renderPass == other.renderPass &&
         rasterizerState == other.rasterizerState &&
         depthStencilState == other.depthStencilState &&
-        blendState == other.blendState;
+        blendState == other.blendState &&
+        vertexDataLayout == other.vertexDataLayout;
 }
 
 /** Get a hash from a render pass compatibility key. */
 size_t hashValue(const VulkanPipeline::StateKey &key) {
-    size_t hash = hashValue(key.vertexDataLayout);
-    hash = hashCombine(hash, key.primitiveType);
+    size_t hash = hashValue(key.primitiveType);
     hash = hashCombine(hash, key.renderPass);
     hash = hashCombine(hash, key.rasterizerState);
     hash = hashCombine(hash, key.depthStencilState);
     hash = hashCombine(hash, key.blendState);
+    hash = hashCombine(hash, key.vertexDataLayout);
     return hash;
 }
 
@@ -363,8 +363,8 @@ static const VkFormat kAttributeFormats[VertexAttribute::kNumTypes][4][2] = {
 
 /** Initialise the vertex data layout.
  * @param desc          Layout descriptor. */
-VulkanVertexDataLayout::VulkanVertexDataLayout(GPUVertexDataLayoutDesc &&desc) :
-    GPUVertexDataLayout(std::move(desc)),
+VulkanVertexDataLayout::VulkanVertexDataLayout(const GPUVertexDataLayoutDesc &desc) :
+    GPUVertexDataLayout(desc),
     m_createInfo()
 {
     m_bindings.resize(m_desc.bindings.size());
@@ -402,8 +402,8 @@ VulkanVertexDataLayout::VulkanVertexDataLayout(GPUVertexDataLayoutDesc &&desc) :
 /** Create a vertex data layout object.
  * @param desc          Descriptor for vertex data layout.
  * @return              Pointer to created vertex data layout object. */
-GPUVertexDataLayoutPtr VulkanGPUManager::createVertexDataLayout(GPUVertexDataLayoutDesc &&desc) {
-    return new VulkanVertexDataLayout(std::move(desc));
+GPUVertexDataLayoutPtr VulkanGPUManager::createVertexDataLayout(const GPUVertexDataLayoutDesc &desc) {
+    return new VulkanVertexDataLayout(desc);
 }
 
 /** Initialise the blend state.

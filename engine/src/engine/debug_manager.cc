@@ -187,7 +187,7 @@ void DebugOverlay::initResources() {
     vertexDesc.attributes[2].components = 4;
     vertexDesc.attributes[2].binding = 0;
     vertexDesc.attributes[2].offset = offsetof(ImDrawVert, col);
-    m_vertexDataLayout = g_gpuManager->createVertexDataLayout(std::move(vertexDesc));
+    m_vertexDataLayout = g_gpuManager->getVertexDataLayout(vertexDesc);
 
     /* Load GUI shader. */
     ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/internal/debug_overlay");

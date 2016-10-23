@@ -192,7 +192,7 @@ struct GPUVertexDataLayoutDesc {
  */
 class GPUVertexDataLayout : public GPUState<GPUVertexDataLayoutDesc> {
 protected:
-    GPUVertexDataLayout(GPUVertexDataLayoutDesc &&desc);
+    explicit GPUVertexDataLayout(const GPUVertexDataLayoutDesc &desc);
 
     /* For default creation method in GPUManager. */
     friend class GPUManager;

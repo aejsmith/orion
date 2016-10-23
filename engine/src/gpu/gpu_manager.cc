@@ -36,6 +36,7 @@ void GPUManager::destroyStates() {
     m_depthStencilStates.clear();
     m_rasterizerStates.clear();
     m_samplerStates.clear();
+    m_vertexDataLayouts.clear();
 }
 
 /** Get a (potentially pre-existing) blend state object.
@@ -90,6 +91,19 @@ GPUSamplerStatePtr GPUManager::getSamplerState(const GPUSamplerStateDesc &desc) 
     return ret;
 }
 
+/** Get a (potentially pre-existing) vertex data layout object.
+ * @param desc          Descriptor for vertex data layout.
+ * @return              Pointer to created vertex data layout object. */
+GPUVertexDataLayoutPtr GPUManager::getVertexDataLayout(const GPUVertexDataLayoutDesc &desc) {
+    auto exist = m_vertexDataLayouts.find(desc);
+    if (exist != m_vertexDataLayouts.end())
+        return exist->second;
+
+    GPUVertexDataLayoutPtr ret = createVertexDataLayout(desc);
+    m_vertexDataLayouts.emplace(std::make_pair(desc, ret));
+    return ret;
+}
+
 /**
  * Default object creation methods.
  */
@@ -111,8 +125,8 @@ GPURenderPassPtr GPUManager::createRenderPass(GPURenderPassDesc &&desc) {
 /** Create a vertex data layout object.
  * @param desc          Descriptor for vertex data layout.
  * @return              Pointer to created vertex data layout object. */
-GPUVertexDataLayoutPtr GPUManager::createVertexDataLayout(GPUVertexDataLayoutDesc &&desc) {
-    return new GPUVertexDataLayout(std::move(desc));
+GPUVertexDataLayoutPtr GPUManager::createVertexDataLayout(const GPUVertexDataLayoutDesc &desc) {
+    return new GPUVertexDataLayout(desc);
 }
 
 /** Create a vertex data object.
