@@ -55,7 +55,7 @@ const MetaClass {{name}}::staticMetaClass(
     {{mangledName}}_propertyTable);
 
 {{#isConstructable}}
-Object *{{name}}::classConstruct() {
+ObjectPtr<Object> {{name}}::classConstruct() {
     return new {{name}};
 }
 

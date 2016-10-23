@@ -134,7 +134,7 @@ void Entity::deserialise(Serialiser &serialiser) {
     if (serialiser.beginArray("components")) {
         ComponentPtr component;
         while (serialiser.pop(component))
-            addComponent(component);
+            addComponent(std::move(component));
 
         serialiser.endArray();
     }
@@ -143,7 +143,7 @@ void Entity::deserialise(Serialiser &serialiser) {
     if (serialiser.beginArray("children")) {
         EntityPtr entity;
         while (serialiser.pop(entity))
-            addChild(entity);
+            addChild(std::move(entity));
 
         serialiser.endArray();
     }
@@ -209,13 +209,13 @@ Entity *Entity::createChild(std::string name) {
 
 /** Add a child entity to the list.
  * @param entity        Entity to add. */
-void Entity::addChild(Entity *entity) {
+void Entity::addChild(EntityPtr entity) {
     entity->m_world = m_world;
     entity->m_parent = this;
-    m_children.push_back(entity);
+    m_children.emplace_back(std::move(entity));
 
     /* Update the cached transform to incorporate our transformation. */
-    entity->transformed(kPositionChanged | kOrientationChanged | kScaleChanged);
+    m_children.back()->transformed(kPositionChanged | kOrientationChanged | kScaleChanged);
 }
 
 /**
@@ -233,9 +233,10 @@ Component *Entity::createComponent(const MetaClass &metaClass) {
         Component::staticMetaClass.isBaseOf(metaClass),
         "Specified class must be derived from Component");
 
-    Component *component = static_cast<Component *>(metaClass.construct());
-    addComponent(component);
-    return component;
+    ComponentPtr component = metaClass.construct().staticCast<Component>();
+    Component *ret = component.get();
+    addComponent(std::move(component));
+    return ret;
 }
 
 /**
@@ -266,7 +267,7 @@ Component *Entity::findComponent(const MetaClass &metaClass, bool exactClass) co
 
 /** Add a component to the entity (internal method).
  * @param component     Component to add. */
-void Entity::addComponent(Component *component) {
+void Entity::addComponent(ComponentPtr component) {
     /* This only checks for an exact match on class type, so for instance we
      * don't forbid multiple Behaviour-derived classes on the same object. */
     checkMsg(
@@ -275,12 +276,12 @@ void Entity::addComponent(Component *component) {
         component->metaClass().name(), this->name.c_str());
 
     component->m_entity = this;
-    m_components.push_back(component);
+    m_components.emplace_back(std::move(component));
 
     /* We do not need to activate the component at this point as the component
      * is initially inactive. We do however need to let it do anything it needs
      * to with the new transformation. */
-    component->transformed(kPositionChanged | kOrientationChanged | kScaleChanged);
+    m_components.back()->transformed(kPositionChanged | kOrientationChanged | kScaleChanged);
 }
 
 /** Remove a component from the entity (internal method).

@@ -173,9 +173,9 @@ protected:
 private:
     Entity();
 
-    void addChild(Entity *entity);
+    void addChild(ObjectPtr<Entity> entity);
 
-    void addComponent(Component *component);
+    void addComponent(ObjectPtr<Component> component);
     void removeComponent(Component *component);
 
     void transformed(unsigned changed);

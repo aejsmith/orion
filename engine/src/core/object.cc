@@ -142,7 +142,7 @@ bool MetaClass::isBaseOf(const MetaClass &other) const {
  *
  * @return              Pointer to constructed object.
  */
-Object *MetaClass::construct() const {
+ObjectPtr<Object> MetaClass::construct() const {
     checkMsg(
         m_traits & kIsPublicConstructable,
         "Attempt to construct object of class '%s' which is not publically constructable",
@@ -159,7 +159,7 @@ Object *MetaClass::construct() const {
  *
  * @return              Pointer to constructed object.
  */
-Object *MetaClass::constructPrivate() const {
+ObjectPtr<Object> MetaClass::constructPrivate() const {
     checkMsg(
         m_traits & kIsConstructable,
         "Attempt to construct object of class '%s' which is not constructable",

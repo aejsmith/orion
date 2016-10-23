@@ -67,7 +67,7 @@ Engine::Engine() :
         });
     if (!gameClass)
         fatal("Failed to find game class");
-    m_game = static_cast<Game *>(gameClass->construct());
+    m_game = gameClass->construct().staticCast<Game>();
     m_game->engineConfiguration(m_config);
 
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
