@@ -1072,13 +1072,11 @@ int main(int argc, char **argv) {
         if (clang_getDiagnosticSeverity(diag) >= CXDiagnostic_Error) {
             hadError = true;
 
-            if (!ignoreErrors) {
-                CXString diagString = clang_formatDiagnostic(
-                    diag,
-                    clang_defaultDiagnosticDisplayOptions());
-                fprintf(stderr, "%s\n", clang_getCString(diagString));
-                clang_disposeString(diagString);
-            }
+            CXString diagString = clang_formatDiagnostic(
+                diag,
+                clang_defaultDiagnosticDisplayOptions());
+            fprintf(stderr, "%s\n", clang_getCString(diagString));
+            clang_disposeString(diagString);
         }
 
         clang_disposeDiagnostic(diag);
@@ -1099,6 +1097,7 @@ int main(int argc, char **argv) {
     if (hadError) {
         if (!ignoreErrors)
             return EXIT_FAILURE;
+        fprintf(stderr, "%s: warning: Failed to generate, continuing upon request\n", outputFile);
     } else {
         /* Iterate over the AST. */
         CXCursor cursor = clang_getTranslationUnitCursor(unit);
