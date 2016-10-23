@@ -125,4 +125,10 @@ namespace Filesystem {
      * @param path          Path to set to.
      * @return              Whether successful. */
     extern bool setWorkingDirectory(const Path &path);
+
+    /** Get the full path name from a path.
+     * @param path          Path to get full path to.
+     * @param fullPath      Where to return corresponding absolute path string.
+     * @return              Whether successful. */
+    extern bool getFullPath(const Path &path, Path &fullPath);
 }

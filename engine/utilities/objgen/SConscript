@@ -9,6 +9,7 @@ env = manager.CreateEnvironment(depends = [
     'external/libclang',
     '3rdparty/mustache',
     '3rdparty/rapidjson',
+    'engine/core',
 ])
 
 if env['PLATFORM'] == 'win32':

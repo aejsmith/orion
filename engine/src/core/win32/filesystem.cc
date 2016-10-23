@@ -319,3 +319,18 @@ bool Filesystem::isType(const Path &path, FileType type) {
 bool Filesystem::setWorkingDirectory(const Path &path) {
     return SetCurrentDirectory(path.c_str());
 }
+
+/** Get the full path name from a path.
+ * @param path          Path to get full path to.
+ * @param fullPath      Where to return corresponding absolute path string.
+ * @return              Whether successful. */
+bool Filesystem::getFullPath(const Path &path, Path &fullPath) {
+    std::unique_ptr<char []> str(new char[4096]);
+    std::string platformPath = path.toPlatform();
+    DWORD ret = GetFullPathName(platformPath.c_str(), 4096, str.get(), nullptr);
+    if (!ret)
+        return false;
+
+    fullPath = Path(str.get(), Path::kUnnormalizedPlatform);
+    return true;
+}

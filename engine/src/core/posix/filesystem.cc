@@ -256,3 +256,17 @@ bool Filesystem::isType(const Path &path, FileType type) {
 bool Filesystem::setWorkingDirectory(const Path &path) {
     return chdir(path.c_str()) == 0;
 }
+
+/** Get the full path name from a path.
+ * @param path          Path to get full path to.
+ * @param fullPath      Where to return corresponding absolute path string.
+ * @return              Whether successful. */
+bool Filesystem::getFullPath(const Path &path, Path &fullPath) {
+    char *str = realpath(path.c_str(), nullptr);
+    if (!str)
+        return false;
+
+    fullPath = Path(str, Path::kNormalized);
+    free(str);
+    return true;
+}

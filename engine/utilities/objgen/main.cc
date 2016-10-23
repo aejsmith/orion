@@ -19,6 +19,8 @@
  * @brief               Object system metadata generator.
  */
 
+#include "core/filesystem.h"
+
 #include <fstream>
 #include <functional>
 #include <list>
@@ -1122,26 +1124,13 @@ int main(int argc, char **argv) {
          * build tree is moved around, so if this becomes an issue in future
          * we could instead try to calculate a relative path between the output
          * directory and the source file. */
-        #ifdef ORION_PLATFORM_WIN32
-            char *absoluteSourceFile = static_cast<char *>(malloc(4096));
-            DWORD ret = GetFullPathName(sourceFile, 4096, absoluteSourceFile, nullptr);
-            if (!ret) {
-                free(absoluteSourceFile);
-                absoluteSourceFile = nullptr;
-            }
-        #else
-            char *absoluteSourceFile = realpath(sourceFile, nullptr);
-        #endif
-        if (!absoluteSourceFile) {
-            fprintf(
-                stderr,
-                "%s: Failed to get absolute path of '%s': %s\n",
-                argv[0], sourceFile, strerror(errno));
+        Path fullPath;
+        if (!Filesystem::getFullPath(Path(sourceFile, Path::kUnnormalizedPlatform), fullPath)) {
+            fprintf(stderr, "%s: Failed to get absolute path of '%s': %s\n", argv[0], sourceFile);
             return EXIT_FAILURE;
         }
 
-        codeData.set("include", absoluteSourceFile);
-        free(absoluteSourceFile);
+        codeData.set("include", fullPath.toPlatform());
     }
 
     codeTemplate.render(codeData, outputStream);
