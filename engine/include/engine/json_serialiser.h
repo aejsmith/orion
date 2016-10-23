@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "core/serialiser.h"
+#include "engine/serialiser.h"
 
 /** Class implementing (de)serialisation using JSON. */
 class JSONSerialiser : public Serialiser {

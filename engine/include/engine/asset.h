@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "core/object.h"
+#include "engine/object.h"
 
 /**
  * Base class of all assets.

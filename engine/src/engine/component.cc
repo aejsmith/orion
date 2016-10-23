@@ -19,10 +19,9 @@
  * @brief               Component class.
  */
 
-#include "core/serialiser.h"
-
 #include "engine/component.h"
 #include "engine/entity.h"
+#include "engine/serialiser.h"
 
 /** Construct the component. */
 Component::Component() :

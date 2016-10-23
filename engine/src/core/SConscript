@@ -5,13 +5,10 @@ objects = map(env.Object, [
     'error.cc',
     'filesystem.cc',
     'hash.cc',
-    'json_serialiser.cc',
     'log.cc',
-    'object.cc',
     'path.cc',
     'pixel_format.cc',
     'refcounted.cc',
-    'serialiser.cc',
     'string.cc',
 ])
 

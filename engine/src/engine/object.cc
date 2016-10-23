@@ -33,8 +33,8 @@
  *  - A Variant class could be used instead of SerialisationBuffer?
  */
 
-#include "core/object.h"
-#include "core/serialiser.h"
+#include "engine/object.h"
+#include "engine/serialiser.h"
 
 #include <map>
 #include <new>

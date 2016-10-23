@@ -8,6 +8,7 @@ objects = map(env.ObjgenHeader, [
     'font.h',
     'game.h',
     'mesh.h',
+    'object.h',
     'texture.h',
     'world.h',
 ])

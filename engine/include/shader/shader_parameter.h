@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "core/object.h"
+#include "engine/object.h"
 
 class Texture2D;
 class TextureCube;

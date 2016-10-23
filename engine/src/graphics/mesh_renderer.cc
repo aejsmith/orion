@@ -19,8 +19,9 @@
  * @brief               Mesh renderer component.
  */
 
-#include "core/serialiser.h"
 #include "core/string.h"
+
+#include "engine/serialiser.h"
 
 #include "gpu/gpu_manager.h"
 

@@ -24,10 +24,9 @@
  *  - Disallow transformation of root entity.
  */
 
-#include "core/serialiser.h"
-
 #include "engine/component.h"
 #include "engine/entity.h"
+#include "engine/serialiser.h"
 #include "engine/world.h"
 
 /** Initialize a new entity. */

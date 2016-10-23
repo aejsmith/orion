@@ -21,8 +21,9 @@
 
 #pragma once
 
-#include "core/object.h"
 #include "core/path.h"
+
+#include "engine/object.h"
 
 #include "gpu/pipeline.h"
 

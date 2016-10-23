@@ -19,7 +19,7 @@
  * @brief               Object serialisation.
  */
 
-#include "core/serialiser.h"
+#include "engine/serialiser.h"
 
 /** Serialise an object to the current scope.
  * @param object        Object to serialise. */

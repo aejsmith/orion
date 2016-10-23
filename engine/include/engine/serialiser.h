@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include "core/object.h"
+#include "engine/object.h"
 
 namespace Detail {
     #ifdef __clang__

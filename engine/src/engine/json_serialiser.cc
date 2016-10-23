@@ -19,9 +19,8 @@
  * @brief               JSON serialisation class.
  */
 
-#include "core/json_serialiser.h"
-
 #include "engine/asset_manager.h"
+#include "engine/json_serialiser.h"
 
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>

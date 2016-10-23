@@ -33,12 +33,12 @@
 
 #include "core/filesystem.h"
 #include "core/platform.h"
-#include "core/json_serialiser.h"
 
 #include "engine/asset_loader.h"
 #include "engine/asset_manager.h"
 #include "engine/debug_manager.h"
 #include "engine/debug_window.h"
+#include "engine/json_serialiser.h"
 
 /** Global asset manager instance. */
 AssetManager *g_assetManager;

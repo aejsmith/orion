@@ -22,7 +22,6 @@
 #include "cubes_game.h"
 #include "player_controller.h"
 
-#include "core/object.h"
 #include "core/string.h"
 
 #include "engine/asset_manager.h"

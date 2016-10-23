@@ -19,7 +19,7 @@
  * @brief               Material class.
  */
 
-#include "core/serialiser.h"
+#include "engine/serialiser.h"
 
 #include "shader/material.h"
 
