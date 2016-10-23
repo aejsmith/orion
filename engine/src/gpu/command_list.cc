@@ -181,6 +181,8 @@ void GPUCommandList::setRasterizerState(const GPURasterizerStateDesc &desc) {
  *                      the current render target. */
 void GPUCommandList::setViewport(const IntRect &viewport) {
     if (m_state.viewport != viewport) {
+        check(m_passInstance->desc().renderArea.contains(viewport));
+
         m_state.viewport = viewport;
         m_dirtyState |= kViewportState;
     }
@@ -191,6 +193,8 @@ void GPUCommandList::setViewport(const IntRect &viewport) {
  * @param scissor       Scissor rectangle. */
 void GPUCommandList::setScissor(bool enable, const IntRect &scissor) {
     if (m_state.scissorEnabled != enable || m_state.scissor != scissor) {
+        check(!enable || m_passInstance->desc().renderArea.contains(scissor));
+
         m_state.scissorEnabled = enable;
         m_state.scissor = scissor;
         m_dirtyState |= kScissorState;

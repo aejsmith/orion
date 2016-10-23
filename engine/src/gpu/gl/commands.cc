@@ -216,8 +216,6 @@ void GLGPUManager::submitRenderPass(GPUCommandList *cmdList) {
 /** Bind a pipeline for rendering.
  * @param pipeline      Pipeline to use. */
 void GLGPUManager::bindPipeline(GPUPipeline *pipeline) {
-    check(m_currentRenderPass);
-
     GLPipeline *glPipeline = static_cast<GLPipeline *>(pipeline);
     glPipeline->bind();
 }
@@ -261,9 +259,6 @@ void GLGPUManager::bindResourceSet(unsigned index, GPUResourceSet *resources) {
 /** Set the viewport.
  * @param viewport      Viewport rectangle in pixels. */
 void GLGPUManager::setViewport(const IntRect &viewport) {
-    check(m_currentRenderPass);
-    check(m_currentRenderArea.contains(viewport));
-
     /* We have origin at top left, GL has it at bottom left. */
     IntRect fixedViewport = viewport;
     fixedViewport.y = m_currentRTSize.y - (viewport.y + viewport.height);
@@ -275,13 +270,9 @@ void GLGPUManager::setViewport(const IntRect &viewport) {
  * @param enable        Whether to enable scissor testing.
  * @param scissor       Scissor rectangle. */
 void GLGPUManager::setScissor(bool enable, const IntRect &scissor) {
-    check(m_currentRenderPass);
-
     this->state.enableScissorTest(enable);
 
     if (enable) {
-        check(m_currentRenderArea.contains(scissor));
-
         /* We have origin at top left, GL has it at bottom left. */
         IntRect fixedScissor = scissor;
         fixedScissor.y = m_currentRTSize.y - (scissor.y + scissor.height);
@@ -295,8 +286,6 @@ void GLGPUManager::setScissor(bool enable, const IntRect &scissor) {
  * @param _vertices     Vertex data to use.
  * @param indices       Index data to use (can be null). */
 void GLGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) {
-    check(m_currentRenderPass);
-
     GLVertexData *glVertices = static_cast<GLVertexData *>(vertices);
 
     /* Bind the VAO and the index buffer (if any). */
