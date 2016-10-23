@@ -128,7 +128,7 @@ void WorldExplorerWindow::displayOptions() {
 
             JSONSerialiser serialiser;
             std::vector<uint8_t> data = serialiser.serialise(g_engine->world());
-            std::unique_ptr<File> file(g_filesystem->openFile(
+            std::unique_ptr<File> file(Filesystem::openFile(
                 path,
                 File::kWrite | File::kCreate | File::kTruncate));
             if (file) {

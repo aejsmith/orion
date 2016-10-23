@@ -81,8 +81,13 @@ Engine::Engine() :
     g_logManager = new LogManager;
     logInfo("Orion revision %s built at %s", g_versionString, g_versionTimestamp);
 
-    /* Initialize platform systems. */
-    g_filesystem = Platform::createFilesystem();
+    /* Find the engine base directory and switch to it. */
+    char *platformBasePath = SDL_GetBasePath();
+    Path basePath(platformBasePath, Path::kUnnormalizedPlatform);
+    basePath /= "../..";
+    if (!Filesystem::setWorkingDirectory(basePath))
+        fatal("Failed to change to engine directory '%s'", basePath.c_str());
+    SDL_free(platformBasePath);
 
     /* Create the GPU manager and the main window. */
     g_gpuManager = GPUManager::create(m_config, g_mainWindow);
@@ -117,7 +122,6 @@ Engine::~Engine() {
     delete g_inputManager;
     delete g_gpuManager;
     delete g_mainWindow;
-    delete g_filesystem;
     delete g_logManager;
 
     SDL_Quit();

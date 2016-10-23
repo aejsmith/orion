@@ -90,51 +90,39 @@ protected:
 /**
  * Interface for accessing the filesystem.
  *
- * This class provides an interface to access the filesystem. We use a standard
- * path format across all platforms, using '/' as the path separator. Absolute
- * paths always begin with a '/' regardless of platform. On Windows, they have
- * the format /<drive letter>/<path>. The paths are translated by the platform
- * FS implementation. Relative paths are relative to the engine base directory.
- *
+ * These functions provides an interface to access the filesystem. We use a
+ * standard path format across all platforms, using '/' as the path separator.
  * Absolute paths always refer to the underlying system FS. However, relative
  * paths into the engine base directory can resolve into package files instead.
  * Whether a package file or the system FS is used is transparent to users of
  * this class.
  */
-class Filesystem : Noncopyable {
-public:
-    virtual ~Filesystem() {}
-
+namespace Filesystem {
     /** Open a file.
      * @param path          Path to file to open.
      * @param mode          Mode to open file with (combination of File::Mode
      *                      flags, defaults to kRead).
      * @return              Pointer to opened file, or null on failure. */
-    virtual File *openFile(const Path &path, unsigned mode = File::kRead) = 0;
+    extern File *openFile(const Path &path, unsigned mode = File::kRead);
 
     /** Open a directory.
      * @param path          Path to directory to open.
      * @return              Pointer to opened directory, or null on failure. */
-    virtual Directory *openDirectory(const Path &path) = 0;
+    extern Directory *openDirectory(const Path &path);
 
     /** Check if a path exists.
      * @param path          Path to check.
      * @return              Whether the path exists. */
-    virtual bool exists(const Path &path) = 0;
+    extern bool exists(const Path &path);
 
     /** Check if a path exists and is a certain type.
      * @param path          Path to check.
      * @param type          Type to check for.
      * @return              Whether the path exists and is the specified type. */
-    virtual bool isType(const Path &path, FileType type) = 0;
-protected:
-    Filesystem() {}
-};
+    extern bool isType(const Path &path, FileType type);
 
-extern Filesystem *g_filesystem;
-
-namespace Platform {
-    /** Initialize the platform filesystem interface.
-     * @return              Pointer to Filesystem object. */
-    extern Filesystem *createFilesystem();
+    /** Set the current working directory.
+     * @param path          Path to set to.
+     * @return              Whether successful. */
+    extern bool setWorkingDirectory(const Path &path);
 }

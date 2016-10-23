@@ -255,7 +255,7 @@ public:
             directoryName = Path(from).directoryName();
         Path fileName = directoryName / path;
 
-        std::unique_ptr<File> file(g_filesystem->openFile(fileName));
+        std::unique_ptr<File> file(Filesystem::openFile(fileName));
         if (!file)
             return makeErrorResult(String::format("failed to open '%s'", path));
 
@@ -355,7 +355,7 @@ bool ShaderCompiler::compile(const ShaderCompiler::Options &options, std::vector
                 strcmp(dumpEnv, dumpFileName.c_str()) == 0 ||
                 strcmp(dumpEnv, options.path.c_str()) == 0)
             {
-                std::unique_ptr<File> dumpFile(g_filesystem->openFile(
+                std::unique_ptr<File> dumpFile(Filesystem::openFile(
                     dumpFileName,
                     File::kWrite | File::kCreate | File::kTruncate));
                 if (dumpFile)

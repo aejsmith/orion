@@ -21,8 +21,6 @@
 
 #include "core/filesystem.h"
 
-#include <SDL.h>
-
 #define NOMINMAX
 #include <windows.h>
 
@@ -58,16 +56,6 @@ public:
 private:
     std::string m_path;             /**< Directory path. */
     HANDLE m_find;                  /**< Find handle. */
-};
-
-/** Win32 filesystem interface. */
-class Win32Filesystem : public Filesystem {
-public:
-    File *openFile(const Path &path, unsigned mode = File::kRead) override;
-    Directory *openDirectory(const Path &path) override;
-
-    bool exists(const Path &path) override;
-    bool isType(const Path &path, FileType type) override;
 };
 
 /** Initialize the file.
@@ -243,7 +231,7 @@ bool Win32Directory::next(Entry &entry) {
  * @param path          Path to file to open.
  * @param mode          Mode to open file with (combination of File::Mode flags).
  * @return              Pointer to opened file, or null on failure. */
-File *Win32Filesystem::openFile(const Path &path, unsigned mode) {
+File *Filesystem::openFile(const Path &path, unsigned mode) {
     std::string winPath = path.toPlatform();
 
     DWORD desiredAccess = 0;
@@ -283,7 +271,7 @@ File *Win32Filesystem::openFile(const Path &path, unsigned mode) {
 /** Open a directory.
  * @param path          Path to directory.
  * @return              Pointer to opened directory, or null on failure. */
-Directory *Win32Filesystem::openDirectory(const Path &path) {
+Directory *Filesystem::openDirectory(const Path &path) {
     if (!isType(path, FileType::kDirectory))
         return nullptr;
 
@@ -293,7 +281,7 @@ Directory *Win32Filesystem::openDirectory(const Path &path) {
 /** Check if a path exists.
  * @param path          Path to check.
  * @return              Whether the path exists. */
-bool Win32Filesystem::exists(const Path &path) {
+bool Filesystem::exists(const Path &path) {
     std::string winPath = path.toPlatform();
 
     WIN32_FIND_DATA findFileData;
@@ -308,7 +296,7 @@ bool Win32Filesystem::exists(const Path &path) {
  * @param path          Path to check.
  * @param type          Type to check for.
  * @return              Whether the path exists and is the specified type. */
-bool Win32Filesystem::isType(const Path &path, FileType type) {
+bool Filesystem::isType(const Path &path, FileType type) {
     std::string winPath = path.toPlatform();
 
     DWORD attributes = GetFileAttributes(winPath.c_str());
@@ -325,18 +313,9 @@ bool Win32Filesystem::isType(const Path &path, FileType type) {
     }
 }
 
-/** Initialize the platform filesystem interface.
- * @return              Pointer to Filesystem object. */
-Filesystem *Platform::createFilesystem() {
-    /* Switch to the engine base directory. SDL_GetBasePath returns the
-     * binary directory, the base directory is above that. */
-    char *basePath = SDL_GetBasePath();
-    std::string path(basePath);
-    SDL_free(basePath);
-    path += "..\\..";
-
-    if (!SetCurrentDirectory(path.c_str()))
-        fatal("Failed to change to engine directory '%s': 0x%x", path.c_str(), GetLastError());
-
-    return new Win32Filesystem;
+/** Set the current working directory.
+ * @param path          Path to set to.
+ * @return              Whether successful. */
+bool Filesystem::setWorkingDirectory(const Path &path) {
+    return SetCurrentDirectory(path.c_str());
 }

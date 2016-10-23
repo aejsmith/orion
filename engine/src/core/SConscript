@@ -3,7 +3,6 @@ Import('env')
 objects = map(env.Object, [
     'data_stream.cc',
     'error.cc',
-    'filesystem.cc',
     'hash.cc',
     'log.cc',
     'path.cc',

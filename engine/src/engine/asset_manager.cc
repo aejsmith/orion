@@ -103,7 +103,7 @@ AssetPtr AssetManager::load(const Path &path) {
     std::string assetName = fsPath.baseFileName();
 
     /* Open the directory. */
-    std::unique_ptr<Directory> directory(g_filesystem->openDirectory(directoryPath));
+    std::unique_ptr<Directory> directory(Filesystem::openDirectory(directoryPath));
     if (!directory) {
         logError("Could not find asset '%s'", path.c_str());
         return nullptr;
@@ -123,7 +123,7 @@ AssetPtr AssetManager::load(const Path &path) {
             Path filePath = directoryPath / entry.name;
 
             if (entryExt == "metadata") {
-                metadata.reset(g_filesystem->openFile(filePath));
+                metadata.reset(Filesystem::openFile(filePath));
                 if (!metadata) {
                     logError("Failed to open '%s'", filePath.c_str());
                     return nullptr;
@@ -134,7 +134,7 @@ AssetPtr AssetManager::load(const Path &path) {
                     return nullptr;
                 }
 
-                data.reset(g_filesystem->openFile(filePath));
+                data.reset(Filesystem::openFile(filePath));
                 if (!data) {
                     logError("Failed to open '%s'", filePath.c_str());
                     return nullptr;
