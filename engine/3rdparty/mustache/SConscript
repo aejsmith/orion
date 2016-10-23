@@ -1,9 +1,10 @@
 import util
 
-Import('env')
+Import('manager')
 
+env = manager.CreateEnvironment()
 util.Copy(env, 'include/mustache/mustache.hpp', 'repo/mustache.hpp')
-env['CPPPATH'] += [Dir('include')]
 
-objects = []
-Return('objects')
+manager.AddComponent(
+    name = '3rdparty/mustache',
+    include_path = Dir('include'))

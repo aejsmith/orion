@@ -1,2 +1,2 @@
-objects = SConscript(dirs = ['src'])
-Return('objects')
+target = SConscript(dirs = ['src'])
+Return('target')

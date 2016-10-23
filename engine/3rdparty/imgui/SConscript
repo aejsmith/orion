@@ -1,9 +1,13 @@
 import util
 
-Import('env')
+Import('manager')
+
+# We pull in glm via our overridden headers so depend on it.
+depends = ['3rdparty/glm']
+env = manager.CreateEnvironment(depends = depends)
 
 util.Copy(env, 'include/imgui.h', 'repo/imgui.h')
-env['CPPPATH'] += [Dir('include')]
+env['CPPPATH'].append(Dir('include'))
 
 # We have our own imconfig.h so we have to copy here to ensure that our version
 # is included.
@@ -16,9 +20,11 @@ map(lambda f: util.Copy(env, f, 'repo/%s' % (f)), [
     'stb_truetype.h',
 ])
 
-objects = map(env.Object, [
-    'imgui.cpp',
-    'imgui_draw.cpp',
-])
-
-Return('objects')
+manager.AddComponent(
+    name = '3rdparty/imgui',
+    depends = depends,
+    include_path = Dir('include'),
+    objects = map(env.Object, [
+        'imgui.cpp',
+        'imgui_draw.cpp',
+    ]))

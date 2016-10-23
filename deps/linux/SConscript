@@ -1,5 +1,47 @@
-Import('env')
+import os
 
-env.ParseConfig('sdl2-config --cflags --libs')
-env.ParseConfig('pkg-config --cflags --libs freetype2')
-env.ParseConfig('pkg-config --cflags --libs bullet')
+Import('manager')
+
+dummyEnv = Environment(ENV = os.environ)
+dummyEnv['CPPPATH'] = []
+dummyEnv['LIBPATH'] = []
+dummyEnv['LIBS'] = []
+
+def addExternalComponent(name, env):
+    manager.AddComponent(
+        name = name,
+        include_path = env['CPPPATH'],
+        lib_path = env['LIBPATH'],
+        libs = env['LIBS'])
+
+# SDL.
+sdlEnv = dummyEnv.Clone()
+sdlEnv.ParseConfig('sdl2-config --cflags --libs')
+addExternalComponent('external/sdl', sdlEnv)
+
+# FreeType.
+freetypeEnv = dummyEnv.Clone()
+freetypeEnv.ParseConfig('pkg-config --cflags --libs freetype2')
+addExternalComponent('external/freetype', freetypeEnv)
+
+# Bullet.
+bulletEnv = dummyEnv.Clone()
+bulletEnv.ParseConfig('pkg-config --cflags --libs bullet')
+addExternalComponent('external/bullet', bulletEnv)
+
+# GLEW.
+glewEnv = dummyEnv.Clone()
+glewEnv['LIBS'] = ['GL', 'GLEW']
+addExternalComponent('external/glew', glewEnv)
+
+# Vulkan SDK.
+vulkanEnv = dummyEnv.Clone()
+vulkanEnv['LIBS'] = ['vulkan']
+vulkanEnv.ParseConfig('pkg-config --cflags --libs x11-xcb')
+addExternalComponent('external/vulkan', vulkanEnv)
+
+# libclang.
+llvmEnv = dummyEnv.Clone()
+llvmEnv.ParseConfig('llvm-config --cflags --ldflags')
+llvmEnv['LIBS'] = ['clang']
+addExternalComponent('external/libclang', llvmEnv)

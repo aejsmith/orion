@@ -1,4 +1,6 @@
-Import('env')
+Import('manager')
+
+env = manager.CreateEnvironment(depends = ['engine'])
 
 objects = map(env.ObjgenHeader, [
     'player_controller.h',
@@ -10,4 +12,5 @@ objects += map(env.Object, [
     'cubes_game.cc',
 ])
 
-Return('objects')
+target = env.OrionApplication(name = 'cubes', sources = objects)
+Return('target')

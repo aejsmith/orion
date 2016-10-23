@@ -1,6 +1,6 @@
-Import('env')
+Import('manager')
 
-env['CPPPATH'] += [Dir('repo/include')]
+manager.AddComponent(
+    name = '3rdparty/rapidjson',
+    include_path = Dir('repo/include'))
 
-objects = []
-Return('objects')

@@ -1,22 +1,41 @@
 import util
 
-Import('env')
+Import('manager')
 
-env['CPPPATH'] += [Dir('include')]
+# Always have the engine include directory available.
+manager.baseEnv['CPPPATH'] += [Dir('include')]
 
-objects = []
-
-# 3rd party libraries' SConscripts must be included first so that include
-# paths are set correctly.
-objects += SConscript(dirs = ['3rdparty'])
+# Add all 3rd party library components.
+SConscript(dirs = ['3rdparty'])
 
 # Build utilities.
 SConscript(dirs = ['utilities'])
 
-# Build the engine.
-objects += util.flatten(SConscript(dirs = [
-    'include',
-    'src',
-]))
+depends = [
+    'external/sdl',
+    'external/bullet',
+    'external/freetype',
+    '3rdparty/glm',
+    '3rdparty/glslang',
+    '3rdparty/imgui',
+    '3rdparty/rapidjson',
+]
 
-Return('objects')
+if manager.baseEnv['GPU_API'] == 'gl':
+    depends += [
+        'external/glew',
+        '3rdparty/spirv-cross',
+    ]
+elif manager.baseEnv['GPU_API'] == 'vulkan':
+    depends += ['external/vulkan']
+
+env = manager.CreateEnvironment(depends = depends)
+Export('env')
+
+manager.AddComponent(
+    name = 'engine',
+    depends = depends,
+    objects = util.flatten(SConscript(dirs = [
+        'include',
+        'src',
+    ])))

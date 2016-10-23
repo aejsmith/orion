@@ -1,7 +1,8 @@
-import sys
 import util
 
-Import('env')
+Import('manager')
+
+env = manager.CreateEnvironment()
 
 map(lambda f: util.Copy(env, 'include/%s' % (f), 'repo/%s' % (f)), [
     'spirv.hpp',
@@ -11,11 +12,12 @@ map(lambda f: util.Copy(env, 'include/%s' % (f), 'repo/%s' % (f)), [
     'spirv_glsl.hpp',
     'spirv_msl.hpp',
 ])
-env['CPPPATH'] += [Dir('include')]
 
-objects = map(env.Object, [
-    'repo/spirv_cross.cpp',
-    'repo/spirv_glsl.cpp',
-])
+manager.AddComponent(
+    name = '3rdparty/spirv-cross',
+    include_path = Dir('include'),
+    objects = map(env.Object, [
+        'repo/spirv_cross.cpp',
+        'repo/spirv_glsl.cpp',
+    ]))
 
-Return('objects')

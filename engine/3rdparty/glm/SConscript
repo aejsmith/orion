@@ -1,7 +1,7 @@
-Import('env')
+Import('manager')
 
 VariantDir('include/glm', '#engine/3rdparty/glm/repo/glm')
-env['CPPPATH'] += [Dir('include')]
 
-objects = []
-Return('objects')
+manager.AddComponent(
+    name = '3rdparty/glm',
+    include_path = Dir('include'))

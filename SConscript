@@ -1,7 +1,8 @@
-Import('env')
+Import('manager')
 
 # Build the engine.
-engine = SConscript(dirs = ['engine'])
+SConscript(dirs = ['engine'])
 
 # Build applications.
-SConscript(dirs = ['apps'], exports = ['engine'])
+manager.baseEnv['APP_DIR'] = Dir('.')
+SConscript(dirs = ['apps'])

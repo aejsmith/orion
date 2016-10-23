@@ -1,11 +1,4 @@
-import os
-
 Import('env')
-
-if env['PLATFORM'] == 'win32':
-    env['LIBS'] += ['OpenGL32', 'glew32s']
-else:
-    env['LIBS'] += ['GL', 'GLEW']
 
 objects = map(env.Object, [
     'buffer.cc',

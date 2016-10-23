@@ -1,5 +1,4 @@
-# Build local libraries.
-objects = SConscript(dirs = [
+SConscript(dirs = [
     'glm',
     'glslang',
     'imgui',
@@ -7,5 +6,3 @@ objects = SConscript(dirs = [
     'rapidjson',
     'spirv-cross',
 ])
-
-Return('objects')

@@ -1,32 +1,47 @@
 import os
 
-Import('env')
-
-env['ENGINE_DLLS'] = []
+Import('manager')
 
 # SDL.
-env['SDL_DIR'] = Dir('sdl-2.0.4')
-env['CPPPATH'] += [env['SDL_DIR'].Dir('include')]
-env['LIBPATH'] += [env['SDL_DIR'].Dir('lib')]
-env['LIBS'] += ['SDL2', 'SDL2main']
-env['ENGINE_DLLS'] += [env['SDL_DIR'].File('lib/SDL2.dll')]
+manager.AddComponent(
+    name = 'external/sdl',
+    include_path = Dir('sdl-2.0.4/include'),
+    lib_path = Dir('sdl-2.0.4/lib'),
+    libs = ['SDL2', 'SDL2main'],
+    dlls = File('sdl-2.0.4/lib/SDL2.dll'))
 
 # FreeType.
-env['FREETYPE_DIR'] = Dir('freetype-2.7')
-env['CPPPATH'] += [env['FREETYPE_DIR'].Dir('include')]
-env['LIBPATH'] += [env['FREETYPE_DIR'].Dir('lib')]
-env['LIBS'] += ['freetype27MT']
-
-# GLEW.
-env['GLEW_DIR'] = Dir('glew-2.0.0')
-env['CPPPATH'] += [env['GLEW_DIR'].Dir('include')]
-env['LIBPATH'] += [env['GLEW_DIR'].Dir('lib')]
+manager.AddComponent(
+    name = 'external/freetype',
+    include_path = Dir('freetype-2.7/include'),
+    lib_path = Dir('freetype-2.7/lib'),
+    libs = ['freetype27MT'])
 
 # Bullet.
-env['BULLET_DIR'] = Dir('bullet-2.83.7')
-env['CPPPATH'] += [env['BULLET_DIR'].Dir('include')]
-env['LIBPATH'] += [env['BULLET_DIR'].Dir('lib')]
-env['LIBS'] += ['LinearMath', 'BulletCollision', 'BulletDynamics']
+manager.AddComponent(
+    name = 'external/bullet',
+    include_path = Dir('bullet-2.83.7/include'),
+    lib_path = Dir('bullet-2.83.7/lib'),
+    libs = ['LinearMath', 'BulletCollision', 'BulletDynamics'])
 
-# LLVM, used only for objgen.
-env['LLVM_DIR'] = Dir('llvm-3.9.0')
+# GLEW.
+manager.AddComponent(
+    name = 'external/glew',
+    include_path = Dir('glew-2.0.0/include'),
+    lib_path = Dir('glew-2.0.0/lib'),
+    libs = ['OpenGL32', 'glew32s'])
+
+# Vulkan SDK.
+manager.AddComponent(
+    name = 'external/vulkan',
+    include_path = "${ENV['VULKAN_SDK']}\Include",
+    lib_path = "${ENV['VULKAN_SDK']}\Bin",
+    libs = ['vulkan-1'])
+
+# libclang.
+manager.AddComponent(
+    name = 'external/libclang',
+    include_path = Dir('llvm-3.9.0/include'),
+    lib_path = Dir('llvm-3.9.0/lib'),
+    libs = ['libclang'],
+    dlls = File('llvm-3.9.0/lib/libclang.dll'))

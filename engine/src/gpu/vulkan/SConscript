@@ -1,14 +1,4 @@
-import os
-
 Import('env')
-
-if env['PLATFORM'] == 'win32':
-    env['LIBS'] += ['vulkan-1']
-    env['CPPPATH'] += ["${ENV['VULKAN_SDK']}\Include"]
-    env['LIBPATH'] += ["${ENV['VULKAN_SDK']}\Bin"]
-else:
-    env['LIBS'] += ['vulkan']
-    env.ParseConfig('pkg-config --cflags --libs x11-xcb')
 
 objects = map(env.Object, [
     'buffer.cc',

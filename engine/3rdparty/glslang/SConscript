@@ -1,15 +1,16 @@
 import sys
 
-Import('env')
+Import('manager')
+
+env = manager.CreateEnvironment()
 
 VariantDir('include/glslang', '#engine/3rdparty/glslang/repo/glslang')
 VariantDir('include/SPIRV', '#engine/3rdparty/glslang/repo/SPIRV')
-env['CPPPATH'] += [Dir('include')]
 
-localEnv = env.Clone()
+env['CPPPATH'].append(Dir('include'))
 
 if env['PLATFORM'] == 'linux':
-    localEnv['CCFLAGS'] += [
+    env['CCFLAGS'] += [
         '-Wno-reorder', '-Wno-logical-op-parentheses', '-Wno-unused-variable',
         '-Wno-tautological-constant-out-of-range-compare', '-Wno-unknown-pragmas',
     ]
@@ -17,15 +18,15 @@ if env['PLATFORM'] == 'linux':
 objects = []
 
 if env['PLATFORM'] == 'win32':
-    objects += map(localEnv.Object, [
+    objects += map(env.Object, [
         'repo/glslang/OSDependent/Windows/ossource.cpp',
     ])
 else:
-    objects += map(localEnv.Object, [
+    objects += map(env.Object, [
         'repo/glslang/OSDependent/Unix/ossource.cpp',
     ])
 
-objects += map(localEnv.Object, [
+objects += map(env.Object, [
     'repo/glslang/MachineIndependent/glslang_tab.cpp',
     'repo/glslang/MachineIndependent/Constant.cpp',
     'repo/glslang/MachineIndependent/InfoSink.cpp',
@@ -72,4 +73,7 @@ objects += map(localEnv.Object, [
     'repo/StandAlone/ResourceLimits.cpp',
 ])
 
-Return('objects')
+manager.AddComponent(
+    name = '3rdparty/glslang',
+    include_path = Dir('include'),
+    objects = objects)

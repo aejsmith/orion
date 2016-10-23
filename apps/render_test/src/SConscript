@@ -1,4 +1,6 @@
-Import('env')
+Import('manager')
+
+env = manager.CreateEnvironment(depends = ['engine'])
 
 map(env.ObjgenSource, [
     'render_test.cc',
@@ -8,4 +10,5 @@ objects = map(env.Object, [
     'render_test.cc',
 ])
 
-Return('objects')
+target = env.OrionApplication(name = 'render_test', sources = objects)
+Return('target')

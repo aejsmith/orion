@@ -107,7 +107,7 @@ RenderTestLayer::RenderTestLayer() :
         vertexLayoutDesc.attributes[1].components = 4;
         vertexLayoutDesc.attributes[1].binding = 0;
         vertexLayoutDesc.attributes[1].offset = offsetof(Vertex, colour);
-        GPUVertexDataLayoutPtr vertexLayout = g_gpuManager->createVertexDataLayout(std::move(vertexLayoutDesc));
+        GPUVertexDataLayoutPtr vertexLayout = g_gpuManager->getVertexDataLayout(vertexLayoutDesc);
 
         const std::vector<Vertex> vertices = {
             { glm::vec2(-0.3f, -0.4f), glm::vec2(), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f) },
