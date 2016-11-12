@@ -24,6 +24,7 @@
 #include "core/core.h"
 
 #include <algorithm>
+#include <atomic>
 #include <type_traits>
 
 /**
@@ -37,11 +38,6 @@
  *
  * The retain and release methods are marked const to allow for const pointers
  * to a reference counted object.
- *
- * TODO:
- *  - Threading: does this need to be atomic?
- *  - Inline release() for non-debug builds (currently out of line due to
- *    assertion).
  */
 class Refcounted {
 public:
@@ -49,9 +45,30 @@ public:
 
     /** Increase the object's reference count.
      * @return              New value of the reference count. */
-    int32_t retain() const { return ++m_refcount; }
+    int32_t retain() const {
+        return m_refcount.fetch_add(1, std::memory_order_relaxed) + 1;
+    }
 
-    int32_t release() const;
+    /**
+     * Decrease the object reference count.
+     *
+     * Decreases the object's reference count. If the reference count reaches 0,
+     * the released() method will be called. The reference count must not
+     * currently be 0.
+     *
+     * @return              New value of the reference count.
+     */
+    int32_t release() const {
+        check(m_refcount > 0);
+
+        int32_t ret = m_refcount.fetch_sub(1, std::memory_order_release) - 1;
+        if (ret == 0) {
+            std::atomic_thread_fence(std::memory_order_acquire);
+            const_cast<Refcounted *>(this)->released();
+        }
+
+        return ret;
+    }
 
     /** @return             Current reference count. */
     int32_t refcount() const { return m_refcount; }
@@ -60,7 +77,8 @@ protected:
 
     virtual void released();
 private:
-    mutable int32_t m_refcount;     /**< Object reference count. */
+    /** Object reference count. */
+    mutable std::atomic<int32_t> m_refcount;
 };
 
 /**

@@ -31,25 +31,6 @@ Refcounted::~Refcounted() {
     check(m_refcount == 0);
 }
 
-/**
- * Decrease the object reference count.
- *
- * Decreases the object's reference count. If the reference count reaches 0,
- * the released() method will be called. The reference count must not currently
- * be 0.
- *
- * @return              New value of the reference count.
- */
-int32_t Refcounted::release() const {
-    check(m_refcount > 0);
-
-    int32_t ret = --m_refcount;
-    if (ret == 0)
-        const_cast<Refcounted *>(this)->released();
-
-    return ret;
-}
-
 /** Called when the object is released. */
 void Refcounted::released() {
     delete this;
