@@ -30,8 +30,11 @@
 
 #include "render/defs.h"
 #include "render/geometry.h"
+#include "render/render_thread.h"
 
 #include "shader/material.h"
+
+class RenderThread;
 
 /** Manages global resources used throughout the renderer. */
 class RenderManager : Noncopyable {
@@ -111,6 +114,9 @@ public:
 
     void init();
 
+    /** @return             Rendering thread. */
+    RenderThread &renderThread() { return m_renderThread; }
+
     /**
      * Render target management.
      */
@@ -142,6 +148,8 @@ private:
         GPUTexturePtr texture;              /**< Texture. */
         bool allocated;                     /**< Whether the texture is in use. */
     };
+
+    RenderThread m_renderThread;            /**< Rendering thread. */
 
     /** Primary render targets. */
     RenderTargets m_renderTargets;

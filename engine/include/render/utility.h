@@ -24,6 +24,8 @@
 #include "gpu/gpu_manager.h"
 
 namespace RenderUtil {
+    extern bool isInRenderThread();
+
     /** Create a GPU buffer from an array of data.
      * @param type          Buffer type.
      * @param data          Array containing buffer data.

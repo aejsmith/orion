@@ -159,6 +159,9 @@ void Engine::run() {
 
         m_game->endFrame();
 
+        /* Submit the work to the render thread. */
+        g_renderManager->renderThread().submit();
+
         /* Update statistics. */
         m_frames++;
         uint32_t endTicks = SDL_GetTicks();

@@ -8,6 +8,7 @@ objects = map(env.Object, [
     'post_effect.cc',
     'primitive_renderer.cc',
     'render_manager.cc',
+    'render_thread.cc',
     'scene.cc',
     'scene_entity.cc',
     'scene_light.cc',
