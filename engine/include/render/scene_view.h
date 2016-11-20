@@ -23,7 +23,7 @@
 
 #include "gpu/resource.h"
 
-#include "shader/uniform_buffer.h"
+#include "render_core/uniform_buffer.h"
 
 class PostEffectChain;
 

@@ -29,8 +29,6 @@
 #include "engine/world_explorer.h"
 #include "engine/world.h"
 
-#include "graphics/mesh_renderer.h"
-
 /** Initialise the world explorer. */
 WorldExplorerWindow::WorldExplorerWindow() :
     DebugWindow("World Explorer"),

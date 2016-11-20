@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "shader/defs.h"
-#include "shader/uniform_buffer.h"
+#include "render_core/defs.h"
+#include "render_core/uniform_buffer.h"
 
 namespace ShaderCompiler {
     /** Details of a parameter definition to add to a shader. */

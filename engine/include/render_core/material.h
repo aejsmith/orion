@@ -25,7 +25,7 @@
 
 #include "gpu/resource.h"
 
-#include "shader/shader.h"
+#include "render_core/shader.h"
 
 class GPUCommandList;
 class UniformBufferBase;

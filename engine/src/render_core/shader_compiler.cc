@@ -47,8 +47,8 @@
 
 #include "gpu/vertex_data.h"
 
-#include "shader/resource.h"
-#include "shader/shader_compiler.h"
+#include "render_core/resource.h"
+#include "render_core/shader_compiler.h"
 
 /** Target GLSL version. */
 static const unsigned kTargetGLSLVersion = 450;

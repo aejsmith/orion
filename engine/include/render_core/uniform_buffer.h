@@ -23,7 +23,7 @@
 
 #include "gpu/gpu_manager.h"
 
-#include "shader/shader_parameter.h"
+#include "render_core/shader_parameter.h"
 
 #include <list>
 

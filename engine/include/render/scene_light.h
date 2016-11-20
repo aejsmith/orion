@@ -25,7 +25,7 @@
 
 #include "render/scene_view.h"
 
-#include "shader/uniform_buffer.h"
+#include "render_core/uniform_buffer.h"
 
 struct Geometry;
 

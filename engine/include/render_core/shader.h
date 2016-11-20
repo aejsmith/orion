@@ -25,9 +25,9 @@
 
 #include "gpu/resource.h"
 
-#include "shader/pass.h"
-#include "shader/resource.h"
-#include "shader/uniform_buffer.h"
+#include "render_core/pass.h"
+#include "render_core/resource.h"
+#include "render_core/uniform_buffer.h"
 
 #include <array>
 #include <map>

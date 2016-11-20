@@ -23,7 +23,7 @@
 
 #include "engine/font.h"
 
-#include "shader/material.h"
+#include "render_core/material.h"
 
 class DebugOverlay;
 class DebugWindow;

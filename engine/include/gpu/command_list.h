@@ -28,7 +28,7 @@
 #include "gpu/state.h"
 #include "gpu/vertex_data.h"
 
-#include "shader/resource.h"
+#include "render_core/resource.h"
 
 #include <list>
 

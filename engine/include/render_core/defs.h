@@ -16,7 +16,7 @@
 
 /**
  * @file
- * @brief               Shader system definitions.
+ * @brief               Core rendering definitions.
  */
 
 #pragma once

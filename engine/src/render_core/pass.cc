@@ -36,13 +36,12 @@
 
 #include "render/scene_light.h"
 
+#include "render_core/pass.h"
 #include "render_core/render_manager.h"
-
-#include "shader/pass.h"
-#include "shader/resource.h"
-#include "shader/shader.h"
-#include "shader/shader_compiler.h"
-#include "shader/uniform_buffer.h"
+#include "render_core/resource.h"
+#include "render_core/shader.h"
+#include "render_core/shader_compiler.h"
+#include "render_core/uniform_buffer.h"
 
 /** Array of pass variation strings, indexed by pass type. */
 static const char *passShaderVariations[Pass::kNumTypes] = {

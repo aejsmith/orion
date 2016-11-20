@@ -21,9 +21,9 @@
 
 #include "engine/serialiser.h"
 
-#include "shader/material.h"
-#include "shader/pass.h"
-#include "shader/shader.h"
+#include "render_core/material.h"
+#include "render_core/pass.h"
+#include "render_core/shader.h"
 
 /** Initialize the shader. */
 Shader::Shader() :

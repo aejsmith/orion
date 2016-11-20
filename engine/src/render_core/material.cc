@@ -21,7 +21,7 @@
 
 #include "engine/serialiser.h"
 
-#include "shader/material.h"
+#include "render_core/material.h"
 
 /** Private default constructor for deserialisation. */
 Material::Material() :

@@ -37,8 +37,6 @@
 
 #include "core/hash_table.h"
 
-#include "shader/resource.h"
-
 #include <list>
 
 /** Details of Vulkan features. */

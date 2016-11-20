@@ -24,7 +24,7 @@
  *    benefit that'll be.
  */
 
-#include "shader/uniform_buffer.h"
+#include "render_core/uniform_buffer.h"
 
 /** @return             List of globally declared uniform structures. */
 static UniformStruct::StructList &uniformStructList() {

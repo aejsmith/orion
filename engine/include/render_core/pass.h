@@ -27,7 +27,7 @@
 
 #include "gpu/pipeline.h"
 
-#include "shader/defs.h"
+#include "render_core/defs.h"
 
 #include <vector>
 

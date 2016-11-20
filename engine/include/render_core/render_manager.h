@@ -31,9 +31,8 @@
 #include "render/defs.h"
 
 #include "render_core/geometry.h"
+#include "render_core/material.h"
 #include "render_core/render_thread.h"
-
-#include "shader/material.h"
 
 class RenderThread;
 
