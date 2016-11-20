@@ -19,7 +19,7 @@
  * @brief               Rendering thread class.
  */
 
-#include "render/render_thread.h"
+#include "render_core/render_thread.h"
 
 /** Start the render thread. */
 RenderThread::RenderThread() :

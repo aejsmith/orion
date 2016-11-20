@@ -19,9 +19,9 @@
  * @brief               Rendering utility functions.
  */
 
-#include "render/render_manager.h"
-#include "render/utility.h"
-#include "render/vertex.h"
+#include "render_core/render_manager.h"
+#include "render_core/utility.h"
+#include "render_core/vertex.h"
 
 /** Check whether the current thread is the render thread.
  * @return              Whether the current thread is the render thread. */

@@ -72,5 +72,6 @@ manager.AddComponent(
         'src/input',
         'src/physics',
         'src/render',
+        'src/render_core',
         'src/shader',
     ])))

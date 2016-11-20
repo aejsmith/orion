@@ -31,9 +31,9 @@
 
 #include "gpu/gpu_manager.h"
 
-#include "render/render_manager.h"
-#include "render/utility.h"
-#include "render/vertex.h"
+#include "render_core/render_manager.h"
+#include "render_core/utility.h"
+#include "render_core/vertex.h"
 
 /** Wavefront .obj mesh loader. */
 class OBJLoader : public AssetLoader {

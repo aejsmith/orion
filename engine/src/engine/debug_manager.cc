@@ -33,7 +33,7 @@
 #include "input/input_handler.h"
 #include "input/input_manager.h"
 
-#include "render/primitive_renderer.h"
+#include "render_core/primitive_renderer.h"
 
 #include <SDL.h>
 

@@ -1,0 +1,11 @@
+Import('env')
+
+objects = map(env.Object, [
+    'draw_list.cc',
+    'primitive_renderer.cc',
+    'render_manager.cc',
+    'render_thread.cc',
+    'utility.cc',
+])
+
+Return('objects')

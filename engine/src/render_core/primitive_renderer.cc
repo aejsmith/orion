@@ -21,11 +21,12 @@
 
 #include "gpu/gpu_manager.h"
 
-#include "render/geometry.h"
-#include "render/primitive_renderer.h"
-#include "render/render_manager.h"
+#include "render_core/geometry.h"
+#include "render_core/primitive_renderer.h"
+#include "render_core/render_manager.h"
+#include "render_core/utility.h"
+
 #include "render/scene_view.h"
-#include "render/utility.h"
 
 /** Initialise the renderer. */
 PrimitiveRenderer::PrimitiveRenderer() :

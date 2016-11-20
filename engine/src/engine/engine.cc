@@ -36,7 +36,7 @@
 
 #include "physics/physics_manager.h"
 
-#include "render/render_manager.h"
+#include "render_core/render_manager.h"
 
 #include <SDL.h>
 

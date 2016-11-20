@@ -4,17 +4,12 @@ objects = map(env.Object, [
     #'effects/fxaa_effect.cc',
     #'effects/test_effect.cc',
 
-    'draw_list.cc',
     #'post_effect.cc',
-    'primitive_renderer.cc',
-    'render_manager.cc',
-    'render_thread.cc',
     #'scene.cc',
     #'scene_entity.cc',
     #'scene_light.cc',
     #'scene_renderer.cc',
     #'scene_view.cc',
-    'utility.cc',
 ])
 
 Return('objects')

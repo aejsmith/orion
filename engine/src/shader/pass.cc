@@ -34,8 +34,9 @@
 
 #include "gpu/gpu_manager.h"
 
-#include "render/render_manager.h"
 #include "render/scene_light.h"
+
+#include "render_core/render_manager.h"
 
 #include "shader/pass.h"
 #include "shader/resource.h"

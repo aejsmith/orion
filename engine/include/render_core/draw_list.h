@@ -23,8 +23,9 @@
 
 #include "gpu/resource.h"
 
-#include "render/geometry.h"
 #include "render/scene_entity.h"
+
+#include "render_core/geometry.h"
 
 #include "shader/pass.h"
 

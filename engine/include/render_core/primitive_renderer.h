@@ -25,8 +25,8 @@
 
 #include "gpu/vertex_data.h"
 
-#include "render/draw_list.h"
-#include "render/vertex.h"
+#include "render_core/draw_list.h"
+#include "render_core/vertex.h"
 
 class GPUCommandList;
 class Material;

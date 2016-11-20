@@ -29,8 +29,9 @@
 #include "gpu/texture.h"
 
 #include "render/defs.h"
-#include "render/geometry.h"
-#include "render/render_thread.h"
+
+#include "render_core/geometry.h"
+#include "render_core/render_thread.h"
 
 #include "shader/material.h"
 
