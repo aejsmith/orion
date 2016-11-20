@@ -1,9 +1,9 @@
 Import('env')
 
 objects = map(env.ObjgenHeader, [
-    'effects/fxaa_effect.h',
-    'effects/test_effect.h',
-    'post_effect.h',
+    #'effects/fxaa_effect.h',
+    #'effects/test_effect.h',
+    #'post_effect.h',
 ])
 
 Return('objects')

@@ -169,10 +169,10 @@ void RenderManager::init() {
     }
 
     /* Load the deferred light material. */
-    {
-        ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/internal/deferred_light");
-        m_resources.deferredLightMaterial = new Material(shader);
-    }
+    //{
+    //    ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/internal/deferred_light");
+    //    m_resources.deferredLightMaterial = new Material(shader);
+    //}
 }
 
 /**

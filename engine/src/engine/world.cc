@@ -24,13 +24,8 @@
 
 #include "physics/physics_world.h"
 
-#include "render/scene.h"
-
 /** Initialize the world. */
 World::World() {
-    /* Create the renderer's scene manager for the world. */
-    m_scene = new Scene(this);
-
     /* Create the physics world. */
     m_physics = new PhysicsWorld;
 
@@ -45,7 +40,6 @@ World::World() {
 World::~World() {
     m_root->destroy();
     delete m_physics;
-    delete m_scene;
 }
 
 /** Serialise the world.

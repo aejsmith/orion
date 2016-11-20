@@ -25,7 +25,6 @@
 #include "engine/entity.h"
 
 class PhysicsWorld;
-class Scene;
 
 /**
  * Class holding the game world.
@@ -44,8 +43,6 @@ public:
 
     void tick(float dt);
 
-    /** @return             Renderer's scene manager. */
-    Scene *scene() const { return m_scene; }
     /** @return             Physics world. */
     PhysicsWorld *physics() const { return m_physics; }
 
@@ -64,6 +61,5 @@ protected:
     void deserialise(Serialiser &serialiser) override;
 private:
     EntityPtr m_root;               /**< Root of the entity hierarchy. */
-    Scene *m_scene;                 /**< Scene manager. */
     PhysicsWorld *m_physics;        /**< Physics world. */
 };

@@ -557,8 +557,8 @@ DebugManager::~DebugManager() {
 /** Create resources for the debug manager. */
 void DebugManager::initResources() {
     /* Load debug primitive shader. */
-    ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/internal/debug_primitive");
-    m_primitiveMaterial = new Material(shader);
+    //ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/internal/debug_primitive");
+    //m_primitiveMaterial = new Material(shader);
 
     m_overlay->initResources();
 }

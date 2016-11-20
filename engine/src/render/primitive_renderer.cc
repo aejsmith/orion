@@ -103,8 +103,10 @@ void PrimitiveRenderer::draw(GPUCommandList *cmdList, SceneView *view) {
         }
     }
 
+    #if 0
     if (view)
         cmdList->bindResourceSet(ResourceSets::kViewResources, view->resourcesForDraw());
+    #endif
 
     /* Render all batches. */
     m_drawList.draw(cmdList);
