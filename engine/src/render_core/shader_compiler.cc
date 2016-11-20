@@ -47,7 +47,6 @@
 
 #include "gpu/vertex_data.h"
 
-#include "render_core/resource.h"
 #include "render_core/shader_compiler.h"
 
 /** Target GLSL version. */

@@ -26,9 +26,8 @@
 
 #include "gpu/gpu_manager.h"
 
+#include "render_core/material.h"
 #include "render_core/utility.h"
-
-#include "shader/material.h"
 
 /** Rendering test layer. */
 class RenderTestLayer : public RenderLayer {

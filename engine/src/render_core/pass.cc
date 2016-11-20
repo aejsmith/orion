@@ -38,7 +38,6 @@
 
 #include "render_core/pass.h"
 #include "render_core/render_manager.h"
-#include "render_core/resource.h"
 #include "render_core/shader.h"
 #include "render_core/shader_compiler.h"
 #include "render_core/uniform_buffer.h"

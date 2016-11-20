@@ -1,9 +1,9 @@
 Import('env')
 
 objects = map(env.ObjgenHeader, [
+    'defs.h',
     'material.h',
     'pass.h',
-    'resource.h',
     'shader.h',
     'shader_parameter.h',
 ])

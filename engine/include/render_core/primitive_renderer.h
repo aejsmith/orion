@@ -29,7 +29,6 @@
 
 class GPUCommandList;
 class Material;
-class SceneView;
 
 /**
  * API for simple primitive rendering.
