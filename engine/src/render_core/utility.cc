@@ -23,12 +23,6 @@
 #include "render_core/utility.h"
 #include "render_core/vertex.h"
 
-/** Check whether the current thread is the render thread.
- * @return              Whether the current thread is the render thread. */
-bool RenderUtil::isInRenderThread() {
-    return std::this_thread::get_id() == g_renderManager->renderThread().id();
-}
-
 /**
  * Create a quad.
  *

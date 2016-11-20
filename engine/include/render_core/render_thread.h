@@ -50,13 +50,15 @@
  */
 class RenderThread {
 public:
+    RenderThread();
+    ~RenderThread();
+
     template <typename T>
     void queueMessage(T &&function);
 
     void submit();
 
-    /** @return             ID of the render thread. */
-    std::thread::id id() const { return m_thread.get_id(); }
+    static bool isCurrent();
 private:
     /** Base message structure. */
     struct MessageBase {
@@ -100,9 +102,6 @@ private:
         size_t nextOffset;
     };
 
-    RenderThread();
-    ~RenderThread();
-
     void *allocateMessage(size_t size);
 
     void run();
@@ -112,7 +111,8 @@ private:
     /** Synchronisation state. */
     std::mutex m_lock;
     std::atomic<uint8_t> m_sync;
-    std::condition_variable m_conditions[2];
+    std::condition_variable m_renderCondition;
+    std::condition_variable m_gameCondition;
 
     /**
      * Message buffers being written by the game thread.
@@ -124,9 +124,9 @@ private:
      * does not otherwise touch this list.
      */
     std::list<MessageBuffer> m_messageBuffers;
-
-    friend class RenderManager;
 };
+
+extern RenderThread *g_renderThread;
 
 /**
  * Queue a message to the render thread.
@@ -152,4 +152,10 @@ inline void RenderThread::queueMessage(T &&function) {
      * inlined, this can allow the compiler to construct the lambda including
      * captured values in place and avoid copying. */
     new (buffer) Message<T>(std::move(function));
+}
+
+/** Check whether the current thread is the render thread.
+ * @return              Whether the current thread is the render thread. */
+inline bool RenderThread::isCurrent() {
+    return std::this_thread::get_id() == g_renderThread->m_thread.get_id();
 }

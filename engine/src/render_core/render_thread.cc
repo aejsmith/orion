@@ -21,6 +21,9 @@
 
 #include "render_core/render_thread.h"
 
+/** Global render thread instance. */
+RenderThread *g_renderThread;
+
 /** Start the render thread. */
 RenderThread::RenderThread() :
     m_sync(0)
@@ -34,7 +37,7 @@ RenderThread::~RenderThread() {
     /* This tells run() to exit. */
     std::unique_lock<std::mutex> lock(m_lock);
     m_sync = 2;
-    m_conditions[0].notify_one();
+    m_renderCondition.notify_one();
     lock.unlock();
 
     m_thread.join();
@@ -54,11 +57,11 @@ void RenderThread::submit() {
     /* Indicate to the render thread that we have work available. */
     std::unique_lock<std::mutex> lock(m_lock);
     m_sync = 1;
-    m_conditions[0].notify_one();
+    m_renderCondition.notify_one();
 
     /* Wait for it to finish its current work and take over the message buffers.
      * When this returns we are free to continue. */
-    m_conditions[1].wait(lock, [this] { return m_sync == 0; });
+    m_gameCondition.wait(lock, [this] { return m_sync == 0; });
 }
 
 /** Allocate space for a message.
@@ -90,7 +93,7 @@ void RenderThread::run() {
     while (true) {
         /* Wait for the game thread to indicate that it has work for us. */
         std::unique_lock<std::mutex> lock(m_lock);
-        m_conditions[0].wait(lock, [this] { return m_sync != 0; });
+        m_renderCondition.wait(lock, [this] { return m_sync != 0; });
 
         /* This is set by the destructor to indicate that we should exit. */
         if (m_sync == 2)
@@ -101,7 +104,7 @@ void RenderThread::run() {
 
         /* Wake the game thread back up. */
         m_sync = 0;
-        m_conditions[1].notify_one();
+        m_gameCondition.notify_one();
         lock.unlock();
 
         /* Process the messages. */
