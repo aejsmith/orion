@@ -4,7 +4,7 @@ objects = map(env.Object, [
     'material.cc',
     'pass.cc',
     'primitive_renderer.cc',
-    'render_manager.cc',
+    'render_resources.cc',
     'render_thread.cc',
     'shader.cc',
     'shader_compiler.cc',

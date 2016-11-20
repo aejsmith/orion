@@ -19,7 +19,7 @@
  * @brief               Rendering utility functions.
  */
 
-#include "render_core/render_manager.h"
+#include "render_core/render_resources.h"
 #include "render_core/utility.h"
 #include "render_core/vertex.h"
 
@@ -43,7 +43,7 @@ void RenderUtil::makeQuad(GPUVertexDataPtr &vertices) {
 
     auto vertexDataDesc = GPUVertexDataDesc().
         setCount(vb.size()).
-        setLayout(g_renderManager->resources().simpleVertexDataLayout);
+        setLayout(g_renderResources->simpleVertexDataLayout());
     vertexDataDesc.buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
     vertices = g_gpuManager->createVertexData(std::move(vertexDataDesc));
 }
@@ -80,7 +80,7 @@ void RenderUtil::makeSphere(unsigned rings, unsigned sides, GPUVertexDataPtr &ve
 
     auto vertexDataDesc = GPUVertexDataDesc().
         setCount(vb.size()).
-        setLayout(g_renderManager->resources().simpleVertexDataLayout);
+        setLayout(g_renderResources->simpleVertexDataLayout());
     vertexDataDesc.buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
     vertices = g_gpuManager->createVertexData(std::move(vertexDataDesc));
 
@@ -133,7 +133,7 @@ void RenderUtil::makeCone(unsigned baseVertices, GPUVertexDataPtr &vertices, GPU
 
     auto vertexDataDesc = GPUVertexDataDesc().
         setCount(vb.size()).
-        setLayout(g_renderManager->resources().simpleVertexDataLayout);
+        setLayout(g_renderResources->simpleVertexDataLayout());
     vertexDataDesc.buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vb);
     vertices = g_gpuManager->createVertexData(std::move(vertexDataDesc));
 

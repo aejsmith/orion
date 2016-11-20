@@ -36,7 +36,7 @@
 
 #include "physics/physics_manager.h"
 
-#include "render_core/render_manager.h"
+#include "render_core/render_resources.h"
 #include "render_core/render_thread.h"
 
 #include <SDL.h>
@@ -97,8 +97,8 @@ Engine::Engine() :
     g_inputManager = new InputManager;
     g_assetManager = new AssetManager;
     g_renderThread = new RenderThread;
-    g_renderManager = new RenderManager;
-    g_renderManager->init();
+    g_renderResources = new RenderResources;
+    g_renderResources->init();
     g_debugManager->initResources();
     g_physicsManager = new PhysicsManager;
 
@@ -118,7 +118,7 @@ Engine::~Engine() {
 
     /* Shut down global systems. */
     delete g_physicsManager;
-    delete g_renderManager;
+    delete g_renderResources;
     delete g_renderThread;
     delete g_debugManager;
     delete g_assetManager;

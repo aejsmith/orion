@@ -31,7 +31,7 @@
 
 #include "gpu/gpu_manager.h"
 
-#include "render_core/render_manager.h"
+#include "render_core/render_resources.h"
 #include "render_core/utility.h"
 #include "render_core/vertex.h"
 
@@ -170,7 +170,7 @@ AssetPtr OBJLoader::load() {
     /* Create the vertex buffer. */
     auto vertexDataDesc = GPUVertexDataDesc().
         setCount(m_vertices.size()).
-        setLayout(g_renderManager->resources().simpleVertexDataLayout);
+        setLayout(g_renderResources->simpleVertexDataLayout());
     vertexDataDesc.buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, m_vertices);
     mesh->sharedVertices = g_gpuManager->createVertexData(std::move(vertexDataDesc));
 

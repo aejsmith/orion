@@ -27,6 +27,9 @@
 
 #include "shader/resource.h"
 
+/** Rendering parameters. */
+static const uint16_t kShadowMapResolution = 512;
+
 IMPLEMENT_UNIFORM_STRUCT(LightUniforms, "light", ResourceSets::kLightResources);
 
 /**
@@ -165,8 +168,8 @@ GPUTexture *SceneLight::allocShadowMap() const {
 
     auto desc = GPUTextureDesc().
         setType(type).
-        setWidth(g_renderManager->shadowMapResolution()).
-        setHeight(g_renderManager->shadowMapResolution()).
+        setWidth(kShadowMapResolution).
+        setHeight(kShadowMapResolution).
         setMips(1).
         setFlags(GPUTexture::kRenderTarget).
         setFormat(kShadowMapFormat);
@@ -321,8 +324,7 @@ void SceneLight::updateShadowViews() {
     }
 
     /* Viewport should cover the whole shadow map. */
-    uint16_t shadowMapResolution = g_renderManager->shadowMapResolution();
-    IntRect viewport(0, 0, shadowMapResolution, shadowMapResolution);
+    IntRect viewport(0, 0, kShadowMapResolution, kShadowMapResolution);
     for (unsigned i = 0; i < numViews; i++)
         m_shadowViews[i].setViewport(viewport);
 }

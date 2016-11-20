@@ -23,7 +23,7 @@
 
 #include "render_core/geometry.h"
 #include "render_core/primitive_renderer.h"
-#include "render_core/render_manager.h"
+#include "render_core/render_resources.h"
 #include "render_core/utility.h"
 
 /** Initialise the renderer. */
@@ -84,7 +84,7 @@ void PrimitiveRenderer::draw(GPUCommandList *cmdList, GPUResourceSet *view) {
             /* Generate vertex data. */
             auto vertexDataDesc = GPUVertexDataDesc().
                 setCount(data.vertices.size()).
-                setLayout(g_renderManager->resources().simpleVertexDataLayout);
+                setLayout(g_renderResources->simpleVertexDataLayout());
             vertexDataDesc.buffers[0] = RenderUtil::buildGPUBuffer(
                 GPUBuffer::kVertexBuffer,
                 data.vertices,

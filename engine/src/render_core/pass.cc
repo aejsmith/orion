@@ -37,7 +37,7 @@
 #include "render/scene_light.h"
 
 #include "render_core/pass.h"
-#include "render_core/render_manager.h"
+#include "render_core/render_resources.h"
 #include "render_core/shader.h"
 #include "render_core/shader_compiler.h"
 #include "render_core/uniform_buffer.h"
@@ -179,12 +179,11 @@ void Pass::finalise() {
         pipelineDesc.programs = std::move(variation.programs);
 
         /* Bind standard resource sets. */
-        const RenderManager::Resources &resources = g_renderManager->resources();
         pipelineDesc.resourceLayout.resize(ResourceSets::kNumResourceSets);
-        pipelineDesc.resourceLayout[ResourceSets::kEntityResources] = resources.entityResourceSetLayout;
-        pipelineDesc.resourceLayout[ResourceSets::kViewResources] = resources.viewResourceSetLayout;
-        pipelineDesc.resourceLayout[ResourceSets::kLightResources] = resources.lightResourceSetLayout;
-        pipelineDesc.resourceLayout[ResourceSets::kPostEffectResources] = resources.postEffectResourceSetLayout;
+        pipelineDesc.resourceLayout[ResourceSets::kEntityResources] = g_renderResources->entityResourceSetLayout();
+        pipelineDesc.resourceLayout[ResourceSets::kViewResources] = g_renderResources->viewResourceSetLayout();
+        pipelineDesc.resourceLayout[ResourceSets::kLightResources] = g_renderResources->lightResourceSetLayout();
+        pipelineDesc.resourceLayout[ResourceSets::kPostEffectResources] = g_renderResources->postEffectResourceSetLayout();
 
         /* Bind material resources. */
         pipelineDesc.resourceLayout[ResourceSets::kMaterialResources] = m_parent->m_resourceSetLayout;
