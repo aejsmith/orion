@@ -4,6 +4,7 @@ objects = map(env.Object, [
     #'effects/fxaa_effect.cc',
     #'effects/test_effect.cc',
 
+    #'draw_list.cc',
     #'post_effect.cc',
     #'scene.cc',
     #'scene_entity.cc',

@@ -50,7 +50,7 @@ public:
 
     void writeText(const std::string &text, const glm::vec4 &colour = glm::vec4(1.0));
 
-    void renderView(GPUCommandList *cmdList, SceneView *view);
+    void renderView(GPUCommandList *cmdList, GPUResourceSet *view);
 
     void startFrame();
     void endFrame();

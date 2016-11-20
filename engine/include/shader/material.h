@@ -46,6 +46,7 @@ public:
     Shader *shader() const { return m_shader; }
 
     void setDrawState(GPUCommandList *cmdList) const;
+    void setDrawState(GPUCommandList *cmdList, Pass::Type passType, size_t index, SceneLight *light = nullptr) const;
 
     /**
      * Parameter value access.

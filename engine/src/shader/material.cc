@@ -158,6 +158,19 @@ void Material::setDrawState(GPUCommandList *cmdList) const {
     cmdList->bindResourceSet(ResourceSets::kMaterialResources, m_resources);
 }
 
+/** Set draw state for a specific pass.
+ * @param cmdList       GPU command list.
+ * @param passType      Pass type to set for.
+ * @param index         Index of the pass.
+ * @param light         Light the pass is being used with (optional dependent on
+ *                      passType). */
+void Material::setDrawState(GPUCommandList *cmdList, Pass::Type passType, size_t index, SceneLight *light) const {
+    setDrawState(cmdList);
+
+    const Pass *pass = m_shader->pass(passType, index);
+    pass->setDrawState(cmdList, light);
+}
+
 /** Get a parameter value.
  * @param name          Name of the parameter to get.
  * @param type          Type of the parameter.

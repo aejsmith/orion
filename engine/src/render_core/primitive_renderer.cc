@@ -30,7 +30,8 @@
 
 /** Initialise the renderer. */
 PrimitiveRenderer::PrimitiveRenderer() :
-    m_currentBatch(nullptr)
+    m_currentBatch(nullptr),
+    m_finalized(false)
 {}
 
 /** Destroy the renderer. */
@@ -47,7 +48,7 @@ PrimitiveRenderer::~PrimitiveRenderer() {}
  *                      limitations).
  */
 void PrimitiveRenderer::begin(PrimitiveType type, Material *material) {
-    checkMsg(m_drawList.empty(), "No more batches may be added after first draw");
+    checkMsg(!m_finalized, "No more batches may be added after first draw");
 
     BatchKey key = { type, material };
     auto it = m_batches.find(key);
@@ -69,14 +70,14 @@ void PrimitiveRenderer::doAddVertex(const SimpleVertex &vertex) {
 
 /** Draw all primitives that have been added.
  * @param cmdList       GPU command list.
- * @param view          Optional view to render with. This must be given if
- *                      any shaders used require view uniforms. */
-void PrimitiveRenderer::draw(GPUCommandList *cmdList, SceneView *view) {
+ * @param view          Optional view resources to bind. This must be given if
+ *                      any shaders used require view resources. */
+void PrimitiveRenderer::draw(GPUCommandList *cmdList, GPUResourceSet *view) {
     m_currentBatch = nullptr;
 
-    if (m_drawList.empty()) {
+    if (!m_finalized) {
+        /* Generate GPU buffers. */
         for (auto &batch : m_batches) {
-            const BatchKey &key = batch.first;
             BatchData &data = batch.second;
 
             if (!data.vertices.size())
@@ -94,21 +95,20 @@ void PrimitiveRenderer::draw(GPUCommandList *cmdList, SceneView *view) {
 
             /* No longer require CPU-side data. */
             data.vertices.clear();
-
-            /* Add to draw list. */
-            Geometry geometry;
-            geometry.vertices = data.gpu;
-            geometry.indices = nullptr;
-            geometry.primitiveType = key.type;
-            m_drawList.addDrawCalls(geometry, key.material, nullptr, Pass::Type::kBasic);
         }
+
+        m_finalized = true;
     }
 
-    #if 0
     if (view)
-        cmdList->bindResourceSet(ResourceSets::kViewResources, view->resourcesForDraw());
-    #endif
+        cmdList->bindResourceSet(ResourceSets::kViewResources, view);
 
     /* Render all batches. */
-    m_drawList.draw(cmdList);
+    for (auto &batch : m_batches) {
+        const BatchKey &key = batch.first;
+        const BatchData &data = batch.second;
+
+        key.material->setDrawState(cmdList, Pass::Type::kBasic, 0);
+        cmdList->draw(key.type, data.gpu, nullptr);
+    }
 }

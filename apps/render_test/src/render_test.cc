@@ -26,7 +26,7 @@
 
 #include "gpu/gpu_manager.h"
 
-#include "render/utility.h"
+#include "render_core/utility.h"
 
 #include "shader/material.h"
 
@@ -143,9 +143,7 @@ void RenderTestLayer::render(bool first) {
     instanceDesc.renderArea = pixelViewport();
     GPUCommandList *cmdList = g_gpuManager->beginRenderPass(instanceDesc);
 
-    m_material->setDrawState(cmdList);
-    m_material->shader()->pass(Pass::Type::kBasic, kUsePass)->setDrawState(cmdList, nullptr);
-
+    m_material->setDrawState(cmdList, Pass::Type::kBasic, kUsePass);
     cmdList->draw(PrimitiveType::kTriangleList, m_vertices, nullptr);
 
     g_gpuManager->submitRenderPass(cmdList);

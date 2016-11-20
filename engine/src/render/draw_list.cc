@@ -19,7 +19,7 @@
  * @brief               Draw list class.
  */
 
-#include "render_core/draw_list.h"
+#include "render/draw_list.h"
 
 #include "shader/material.h"
 

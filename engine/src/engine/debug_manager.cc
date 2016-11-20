@@ -33,6 +33,7 @@
 #include "input/input_handler.h"
 #include "input/input_manager.h"
 
+#include "render_core/geometry.h"
 #include "render_core/primitive_renderer.h"
 
 #include <SDL.h>
@@ -387,14 +388,8 @@ void DebugOverlay::render(bool first) {
                     cmd->ClipRect.z - cmd->ClipRect.x,
                     cmd->ClipRect.w - cmd->ClipRect.y));
 
-            /* Prepare a draw call. */
-            Geometry geometry;
-            geometry.vertices = vertexData;
-            geometry.indices = indexData;
-            geometry.primitiveType = PrimitiveType::kTriangleList;
-            DrawList drawList;
-            drawList.addDrawCalls(geometry, m_material, nullptr, Pass::Type::kBasic);
-            drawList.draw(cmdList);
+            m_material->setDrawState(cmdList, Pass::Type::kBasic, 0);
+            cmdList->draw(PrimitiveType::kTriangleList, vertexData, indexData);
 
             indexBufferOffset += cmd->ElemCount;
         }
@@ -689,9 +684,9 @@ void DebugManager::writeText(const std::string &text, const glm::vec4 &colour) {
  * the current render target. GPU state is modified.
  *
  * @param cmdList       GPU command list.
- * @param view          View to render for.
+ * @param view          Resources for view to render for.
  */
-void DebugManager::renderView(GPUCommandList *cmdList, SceneView *view) {
+void DebugManager::renderView(GPUCommandList *cmdList, GPUResourceSet *view) {
     PrimitiveRenderer renderer;
 
     cmdList->setBlendState(GPUBlendStateDesc().

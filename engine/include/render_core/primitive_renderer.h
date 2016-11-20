@@ -25,7 +25,6 @@
 
 #include "gpu/vertex_data.h"
 
-#include "render_core/draw_list.h"
 #include "render_core/vertex.h"
 
 class GPUCommandList;
@@ -41,8 +40,8 @@ class SceneView;
  *
  * Shaders which are used with this must provide a basic pass, this will be used
  * to render (no lighting support). Programs used by the pass will not have
- * entity or light uniforms available - all vertices used should be transformed.
- * View uniforms can optionally be made available by passing a SceneView to
+ * entity or light resources available - all vertices used should be transformed.
+ * View resources can optionally be made available by passing a GPUResourceSet
  * draw().
  */
 class PrimitiveRenderer {
@@ -60,7 +59,7 @@ public:
         doAddVertex(vertex);
     }
 
-    void draw(GPUCommandList *cmdList, SceneView *view);
+    void draw(GPUCommandList *cmdList, GPUResourceSet *view = nullptr);
 private:
     /** Key for a batch. */
     struct BatchKey {
@@ -95,5 +94,5 @@ private:
     HashMap<BatchKey, BatchData> m_batches;
 
     BatchData *m_currentBatch;          /**< Current batch that vertices should be added to. */
-    DrawList m_drawList;                /**< Generated draw list. */
+    bool m_finalized;                   /**< Whether the renderer has been finalized (i.e. draw() called). */
 };
