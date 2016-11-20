@@ -1,9 +1,0 @@
-Import('env')
-
-objects = map(env.ObjgenHeader, [
-    'collision_shape.h',
-    'physics_material.h',
-    'rigid_body.h',
-])
-
-Return('objects')

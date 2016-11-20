@@ -1,2 +1,14 @@
-target = SConscript(dirs = ['src'])
+Import('manager')
+
+env = manager.CreateEnvironment(depends = ['engine'])
+
+map(env.ObjgenSource, [
+    'src/render_test.cc',
+])
+
+objects = map(env.Object, [
+    'src/render_test.cc',
+])
+
+target = env.OrionApplication(name = 'render_test', sources = objects)
 Return('target')

@@ -1,0 +1,24 @@
+Import('env')
+
+objects = map(env.ObjgenHeader, [
+    'include/defs.h',
+    'include/material.h',
+    'include/pass.h',
+    'include/shader.h',
+    'include/shader_parameter.h',
+])
+
+objects += map(env.Object, [
+    'src/material.cc',
+    'src/pass.cc',
+    'src/primitive_renderer.cc',
+    'src/render_resources.cc',
+    'src/render_thread.cc',
+    'src/shader.cc',
+    'src/shader_compiler.cc',
+    'src/shader_parameter.cc',
+    'src/uniform_buffer.cc',
+    'src/utility.cc',
+])
+
+Return('objects')

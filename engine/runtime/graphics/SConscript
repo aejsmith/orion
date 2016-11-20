@@ -1,0 +1,19 @@
+Import('env')
+
+objects = map(env.ObjgenHeader, [
+    #'include/camera.h',
+    #'include/light.h',
+    #'include/mesh_renderer.h',
+    #'include/renderer.h',
+    #'include/skybox.h',
+])
+
+objects += map(env.Object, [
+    #'src/camera.cc',
+    #'src/light.cc',
+    #'src/mesh_renderer.cc',
+    #'src/renderer.cc',
+    #'src/skybox.cc',
+])
+
+Return('objects')

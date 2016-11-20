@@ -1,0 +1,57 @@
+from datetime import datetime
+import vcs
+
+Import('env')
+
+objects = map(env.ObjgenHeader, [
+    'include/asset.h',
+    'include/behaviour.h',
+    'include/component.h',
+    'include/entity.h',
+    'include/font.h',
+    'include/game.h',
+    'include/mesh.h',
+    'include/object.h',
+    'include/texture.h',
+    'include/world.h',
+])
+
+objects += map(env.Object, [
+    'src/asset.cc',
+    'src/asset_loader.cc',
+    'src/asset_manager.cc',
+    'src/component.cc',
+    'src/debug_manager.cc',
+    'src/engine.cc',
+    'src/entity.cc',
+    'src/font.cc',
+    'src/json_serialiser.cc',
+    'src/main.cc',
+    'src/mesh.cc',
+    'src/object.cc',
+    'src/render_target.cc',
+    'src/serialiser.cc',
+    'src/texture.cc',
+    'src/version.cc',
+    'src/window.cc',
+    'src/world.cc',
+    'src/world_explorer.cc',
+
+    'src/loaders/obj_loader.cc',
+    'src/loaders/texture_loader.cc',
+    'src/loaders/tga_loader.cc',
+    'src/loaders/ttf_loader.cc',
+])
+
+# Generate the version information file.
+def gen_version_cc(target, source, env):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    version = vcs.revision_id()
+
+    f = open(str(target[0]), 'w')
+    f.write('const char *g_versionString = "%s";\n' % (version))
+    f.write('const char *g_versionTimestamp = "%s";\n' % (timestamp))
+    f.close()
+AlwaysBuild(env.Command('src/version.cc', [], env.Action(gen_version_cc, None)))
+
+Return('objects')

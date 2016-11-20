@@ -1,0 +1,39 @@
+import os
+
+Import('manager')
+
+depends = [
+    'external/sdl',
+    '3rdparty/glm',
+]
+
+env = manager.CreateEnvironment(depends = depends)
+Export('env')
+
+objects = map(env.Object, [
+    'src/data_stream.cc',
+    'src/error.cc',
+    'src/hash.cc',
+    'src/log.cc',
+    'src/path.cc',
+    'src/pixel_format.cc',
+    'src/refcounted.cc',
+    'src/string.cc',
+
+    'src/math/bounding_box.cc',
+    'src/math/frustum.cc',
+    'src/math/intersection.cc',
+    'src/math/transform.cc',
+])
+
+if env['PLATFORM'] in ['linux']:
+    dir = os.path.join('src', 'posix')
+else:
+    dir = os.path.join('src', env['PLATFORM'])
+
+objects += SConscript(dirs = [dir])
+
+manager.AddComponent(
+    name = 'engine/core',
+    depends = depends,
+    objects = objects)

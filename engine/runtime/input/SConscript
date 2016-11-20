@@ -1,0 +1,9 @@
+Import('env')
+
+objects = map(env.Object, [
+    'src/input_handler.cc',
+    'src/input_info.cc',
+    'src/input_manager.cc',
+])
+
+Return('objects')

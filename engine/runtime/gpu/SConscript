@@ -1,0 +1,23 @@
+import os
+import util
+
+Import('env')
+
+if not Glob(os.path.join('src', env['GPU_API'])):
+    util.StopError("GPU API '%s' is not recognised." % (env['GPU_API']))
+
+objects = SConscript(dirs = [os.path.join('src', env['GPU_API'])])
+
+objects += map(env.Object, [
+    'src/buffer.cc',
+    'src/command_list.cc',
+    'src/gpu_manager.cc',
+    'src/index_data.cc',
+    'src/pipeline.cc',
+    'src/render_pass.cc',
+    'src/resource.cc',
+    'src/texture.cc',
+    'src/vertex_data.cc',
+])
+
+Return('objects')
