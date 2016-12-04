@@ -26,8 +26,6 @@
 
 #include "gpu/gpu_manager.h"
 
-#include "render/scene_light.h"
-
 #include "render_core/pass.h"
 #include "render_core/render_resources.h"
 #include "render_core/shader.h"
@@ -156,7 +154,8 @@ void Pass::finalise() {
 
         pipelineDesc.programs = std::move(variation.programs);
 
-        /* Bind standard resource sets. */
+        /* Bind standard resource sets. TODO: This should be specified by the
+         * pass type. */
         pipelineDesc.resourceLayout.resize(ResourceSets::kNumResourceSets);
         pipelineDesc.resourceLayout[ResourceSets::kEntityResources] = g_renderResources->entityResourceSetLayout();
         pipelineDesc.resourceLayout[ResourceSets::kViewResources] = g_renderResources->viewResourceSetLayout();

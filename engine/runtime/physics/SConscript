@@ -3,14 +3,14 @@ Import('env')
 objects = map(env.ObjgenHeader, [
     'include/collision_shape.h',
     'include/physics_material.h',
+    'include/physics_system.h',
     'include/rigid_body.h',
 ])
 
 objects += map(env.Object, [
     'src/collision_shape.cc',
-    'src/physics_manager.cc',
     'src/physics_material.cc',
-    'src/physics_world.cc',
+    'src/physics_system.cc',
     'src/rigid_body.cc',
 ])
 

@@ -34,8 +34,6 @@
 
 #include "input/input_manager.h"
 
-#include "physics/physics_manager.h"
-
 #include "render_core/render_resources.h"
 
 #include <SDL.h>
@@ -98,7 +96,6 @@ Engine::Engine() :
     g_renderResources = new RenderResources;
     g_renderResources->init();
     g_debugManager->initResources();
-    g_physicsManager = new PhysicsManager;
 
     g_debugManager->registerWindow(std::make_unique<WorldExplorerWindow>());
 
@@ -115,7 +112,6 @@ Engine::~Engine() {
     m_game.reset();
 
     /* Shut down global systems. */
-    delete g_physicsManager;
     delete g_renderResources;
     delete g_debugManager;
     delete g_assetManager;

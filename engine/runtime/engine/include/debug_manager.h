@@ -28,7 +28,6 @@
 class DebugOverlay;
 class DebugWindow;
 class GPUCommandList;
-class SceneView;
 
 /**
  * Debugging drawing/HUD API.

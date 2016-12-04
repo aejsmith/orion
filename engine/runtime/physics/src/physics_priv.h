@@ -36,11 +36,6 @@
 
 #include "core/core.h"
 
-extern btCollisionConfiguration *g_btCollisionConfiguration;
-extern btDispatcher *g_btDispatcher;
-extern btBroadphaseInterface *g_btBroadphase;
-extern btConstraintSolver *g_btConstraintSolver;
-
 namespace BulletUtil {
     /** Convert a vector to a Bullet vector.
      * @param vector        Vector to convert.

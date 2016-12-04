@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,32 +16,50 @@
 
 /**
  * @file
- * @brief               Physics world class.
+ * @brief               Physics system class.
  */
 
 #pragma once
 
-#include "core/core.h"
+#include "engine/world.h"
 
+#include "physics/physics_material.h"
+
+class btBroadphaseInterface;
+class btCollisionConfiguration;
+class btConstraintSolver;
+class btDispatcher;
 class btDiscreteDynamicsWorld;
 
 /** Physics state for a world. */
-class PhysicsWorld {
+class PhysicsSystem : public WorldSystem {
 public:
-    PhysicsWorld();
-    ~PhysicsWorld();
+    CLASS();
 
-    void tick(float dt);
+    PhysicsSystem();
 
     /** @return             Gravity vector. */
     const glm::vec3 &gravity() const { return m_gravity; }
 
     void setGravity(const glm::vec3 &gravity);
+
+    static PhysicsMaterialPtr defaultMaterial();
+protected:
+    ~PhysicsSystem();
+
+    void tick(float dt) override;
 private:
     glm::vec3 m_gravity;            /**< Gravity vector. */
 
-    /** Bullet world. */
+    /** Bullet systems. */
+    std::unique_ptr<btCollisionConfiguration> m_btCollisionConfiguration;
+    std::unique_ptr<btDispatcher> m_btDispatcher;
+    std::unique_ptr<btBroadphaseInterface> m_btBroadphase;
+    std::unique_ptr<btConstraintSolver> m_btConstraintSolver;
     std::unique_ptr<btDiscreteDynamicsWorld> m_btWorld;
+
+    /** Default physics material. */
+    PhysicsMaterialPtr m_defaultMaterial;
 
     friend class RigidBody;
 };

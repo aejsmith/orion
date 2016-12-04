@@ -22,10 +22,10 @@
 #pragma once
 
 #include "engine/entity.h"
+#include "engine/world.h"
 
 class Component;
 class Entity;
-class World;
 
 /**
  * Class implementing a component.
@@ -81,6 +81,19 @@ public:
 
     /** @return             World that the entity belongs to. */
     World *world() const { return m_entity->world(); }
+
+    /**
+     * Get a world system.
+     *
+     * Gets a global per-world system for the world this component belongs to.
+     * If the world doesn't yet have the specified system, it will be created.
+     *
+     * @tparam Type         Type of the system.
+     *
+     * @return              Reference to the world system.
+     */
+    template <typename Type> Type &getSystem() { return m_entity->world()->getSystem<Type>(); }
+
     /** @return             Transformation for the entity. */
     const Transform &transform() const { return m_entity->transform(); }
     /** @return             Entity relative position. */

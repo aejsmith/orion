@@ -28,8 +28,7 @@
 #include "engine/world.h"
 
 #include "physics/collision_shape.h"
-#include "physics/physics_manager.h"
-#include "physics/physics_world.h"
+#include "physics/physics_system.h"
 #include "physics/rigid_body.h"
 
 #include <functional>
@@ -71,7 +70,7 @@ RigidBody::RigidBody() :
     m_mass(0.0f),
     m_linearDamping(0.0f),
     m_angularDamping(0.0f),
-    m_material(g_physicsManager->defaultMaterial()),
+    m_material(PhysicsSystem::defaultMaterial()),
     m_updatingTransform(false),
     m_btRigidBody(nullptr),
     m_btCompoundShape(nullptr),
@@ -254,8 +253,8 @@ void RigidBody::addShape(CollisionShape *shape) {
 
         m_btRigidBody = new btRigidBody(constructionInfo);
 
-        PhysicsWorld *world = entity()->world()->physics();
-        world->m_btWorld->addRigidBody(m_btRigidBody);
+        PhysicsSystem &system = getSystem<PhysicsSystem>();
+        system.m_btWorld->addRigidBody(m_btRigidBody);
     }
 }
 
@@ -277,8 +276,8 @@ void RigidBody::removeShape(CollisionShape *shape) {
     }
 
     if (destroyBody) {
-        PhysicsWorld *world = entity()->world()->physics();
-        world->m_btWorld->removeRigidBody(m_btRigidBody);
+        PhysicsSystem &system = getSystem<PhysicsSystem>();
+        system.m_btWorld->removeRigidBody(m_btRigidBody);
 
         delete m_btRigidBody;
         m_btRigidBody = nullptr;

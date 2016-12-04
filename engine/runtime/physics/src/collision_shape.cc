@@ -26,7 +26,6 @@
 #include "physics_priv.h"
 
 #include "physics/collision_shape.h"
-#include "physics/physics_manager.h"
 #include "physics/rigid_body.h"
 
 /**

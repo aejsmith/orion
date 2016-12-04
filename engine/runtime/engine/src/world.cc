@@ -22,13 +22,16 @@
 #include "engine/serialiser.h"
 #include "engine/world.h"
 
-#include "physics/physics_world.h"
+/** Initialize the world system. */
+WorldSystem::WorldSystem() :
+    m_world(nullptr)
+{}
+
+/** Destroy the world system. */
+WorldSystem::~WorldSystem() {}
 
 /** Initialize the world. */
 World::World() {
-    /* Create the physics world. */
-    m_physics = new PhysicsWorld;
-
     /* Create the root entity. */
     m_root = new Entity();
     m_root->name = "root";
@@ -39,7 +42,6 @@ World::World() {
 /** Destroy the world. */
 World::~World() {
     m_root->destroy();
-    delete m_physics;
 }
 
 /** Serialise the world.
@@ -71,8 +73,9 @@ void World::deserialise(Serialiser &serialiser) {
 /** Update the world.
  * @param dt            Time elapsed since last update in seconds. */
 void World::tick(float dt) {
-    /* Update the physics simulation. */
-    m_physics->tick(dt);
+    /* Update all systems. */
+    for (const auto &it : m_systems)
+        it.second->tick(dt);
 
     /* Update all entities. */
     m_root->tick(dt);
@@ -90,4 +93,26 @@ void World::tick(float dt) {
  */
 Entity *World::createEntity(const std::string &name) {
     return m_root->createChild(name);
+}
+
+/**
+ * Get a world system.
+ *
+ * Gets a global per-world system for this world. If the world doesn't yet have
+ * the specified system, it will be created.
+ *
+ * @param metaClass     Meta-class of of the system.
+ *
+ * @return              Reference to the world system.
+ */
+WorldSystem &World::getSystem(const MetaClass &metaClass) {
+    ReferencePtr<WorldSystem> &system = m_systems[&metaClass];
+
+    if (!system) {
+        system = metaClass.construct().staticCast<WorldSystem>();
+        system->m_world = this;
+        system->init();
+    }
+
+    return *system;
 }
