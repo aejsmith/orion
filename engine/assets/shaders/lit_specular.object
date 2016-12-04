@@ -19,7 +19,7 @@
         ],
         "passes": [
             {
-                "type": "kDeferred",
+                "type": "Deferred",
                 "vertex": {
                     "source": "engine/shaders/lit_vtx.glsl"
                 },
@@ -32,7 +32,7 @@
                 }
             },
             {
-                "type": "kForward",
+                "type": "Forward",
                 "vertex": {
                     "source": "engine/shaders/lit_vtx.glsl"
                 },
@@ -45,7 +45,7 @@
                 }
             },
             {
-                "type": "kShadowCaster",
+                "type": "ShadowCaster",
                 "vertex": {
                     "source": "engine/shaders/shadow_vtx.glsl"
                 },

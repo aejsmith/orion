@@ -162,13 +162,18 @@ void Material::setDrawState(GPUCommandList *cmdList) const {
  * @param cmdList       GPU command list.
  * @param passType      Pass type to set for.
  * @param index         Index of the pass.
- * @param light         Light the pass is being used with (optional dependent on
- *                      passType). */
-void Material::setDrawState(GPUCommandList *cmdList, Pass::Type passType, size_t index, SceneLight *light) const {
+ * @param variation     Variation to use. This should be a valid variation for
+ *                      the given pass type. */
+void Material::setDrawState(
+    GPUCommandList *cmdList,
+    const std::string &passType,
+    size_t index,
+    const ShaderKeywordSet &variation) const
+{
     setDrawState(cmdList);
 
-    const Pass *pass = m_shader->pass(passType, index);
-    pass->setDrawState(cmdList, light);
+    const Pass *pass = m_shader->getPass(passType, index);
+    pass->setDrawState(cmdList, variation);
 }
 
 /** Get a parameter value.

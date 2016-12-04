@@ -6,7 +6,7 @@
         "parameters": [],
         "passes": [
             {
-                "type": "kForward",
+                "type": "Forward",
                 "vertex": {
                     "source": "engine/shaders/deferred_light_vtx.glsl"
                 },

@@ -6,7 +6,7 @@
         "parameters": [],
         "passes": [
             {
-                "type": "kBasic",
+                "type": "Basic",
                 "vertex": {
                     "source": "engine/shaders/post_effect_vtx.glsl"
                 },

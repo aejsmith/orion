@@ -21,67 +21,49 @@
 
 #pragma once
 
+#include "core/hash_table.h"
 #include "core/path.h"
-
-#include "engine/object.h"
 
 #include "gpu/pipeline.h"
 
 #include "render_core/defs.h"
 
-#include <vector>
+#include <list>
 
 class GPUCommandList;
-class SceneLight;
 class Shader;
 
 /** Rendering pass. */
 class Pass : Noncopyable {
 public:
-    /** Pass types. */
-    enum class ENUM() Type {
-        /**
-         * Always rendered, no lighting is applied. Also used for post-process
-         * and internal shaders. Every pass of this type will be executed in
-         * order once per entity.
-         */
-        kBasic,
+    /** Type of a list of shader variations. */
+    using VariationList = std::list<ShaderKeywordSet>;
 
-        /**
-         * Forward shading pass. Every pass of this type will be executed in
-         * order for each light affecting the entity.
-         */
-        kForward,
+    /** Name of the basic pass type. */
+    static const char *const kBasicType;
 
-        /**
-         * Deferred shading pass. Outputs material colours and properties to the
-         * G-Buffer, which will be used to compute lighting. Only one pass of
-         * this type should be specified.
-         */
-        kDeferred,
-
-        /** Shadow caster pass. Used when rendering shadow maps. */
-        kShadowCaster,
-    };
-
-    /** Number of Pass types. */
-    static const size_t kNumTypes = static_cast<size_t>(Type::kShadowCaster) + 1;
-
-    Pass(Shader *parent, Type type);
+    Pass(Shader *parent, const std::string &type);
     ~Pass();
 
     /** @return             Parent shader. */
     Shader *parent() const { return m_parent; }
     /** @return             Type of the pass. */
-    Type type() const { return m_type; }
+    const std::string &type() const { return m_type.first; }
 
     bool loadStage(unsigned stage, const Path &path, const ShaderKeywordSet &keywords);
 
-    void setDrawState(GPUCommandList *cmdList, SceneLight *light) const;
+    void setDrawState(
+        GPUCommandList *cmdList,
+        const ShaderKeywordSet &variation = ShaderKeywordSet()) const;
+
+    static void registerType(std::string type, VariationList variations);
 private:
+    /** Details of a pass type. */
+    using Type = std::pair<const std::string, VariationList>;
+
     /** Structure holding a shader variation. */
     struct Variation {
-        /** Pipeline created for the stage. */
+        /** GPU pipeline. */
         GPUPipelinePtr pipeline;
 
         /** Set of programs for the pipeline (only valid before finalise()). */
@@ -90,14 +72,18 @@ private:
 
     void finalise();
 
+    static const Type &lookupType(const std::string &type);
+
     Shader *m_parent;               /**< Parent shader. */
-    Type m_type;                    /**< Type of the pass. */
+    const Type &m_type;             /**< Type of the pass. */
 
     /**
-     * Array of shader variations. See setDrawState() for how the array is
-     * indexed.
+     * Map of variations.
+     *
+     * The key to this map is a single string formed by concatenating all
+     * keywords in the keyword set for the variation.
      */
-    std::vector<Variation> m_variations;
+    HashMap<std::string, Variation> m_variations;
 
     friend class Shader;
 };

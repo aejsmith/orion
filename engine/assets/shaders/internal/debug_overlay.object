@@ -15,7 +15,7 @@
         ],
         "passes": [
             {
-                "type": "kBasic",
+                "type": "Basic",
                 "vertex": {
                     "source": "engine/shaders/debug_overlay_vtx.glsl"
                 },

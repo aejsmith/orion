@@ -63,22 +63,8 @@ public:
 
     const ShaderParameter *lookupParameter(const std::string &name) const;
 
-    /** Get the number of passes of a certain type the shader has.
-     * @param type          Type to get.
-     * @return              Number of passes of the specified type. */
-    size_t numPasses(Pass::Type type) const {
-        return m_passes[static_cast<size_t>(type)].size();
-    }
-
-    /** Get a pass.
-     * @note                Does not check whether the pass exists, this must be
-     *                      done manually beforehand.
-     * @param type          Type of the pass to get.
-     * @param index         Index of the pass.
-     * @return              Pointer to pass. */
-    const Pass *pass(Pass::Type type, unsigned index) const {
-        return m_passes[static_cast<size_t>(type)][index];
-    }
+    size_t numPasses(const std::string &type) const;
+    const Pass *getPass(const std::string &type, size_t index) const;
 protected:
     ~Shader();
 
@@ -99,13 +85,8 @@ private:
     /** Resource set layout for the shader, generated from parameters. */
     GPUResourceSetLayoutPtr m_resourceSetLayout;
 
-    /**
-     * Array of passes.
-     *
-     * Array for the different pass types, with a variable-sized array
-     * within that for all passes of that type.
-     */
-    std::array<std::vector<Pass *>, Pass::kNumTypes> m_passes;
+    /** Map from pass type to an array of passes. */
+    HashMap<std::string, std::vector<Pass *>> m_passes;
 
     friend class Material;
     friend class Pass;

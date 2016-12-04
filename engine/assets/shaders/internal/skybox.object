@@ -11,7 +11,7 @@
         ],
         "passes": [
             {
-                "type": "kBasic",
+                "type": "Basic",
                 "vertex": {
                     "source": "engine/shaders/skybox_vtx.glsl"
                 },

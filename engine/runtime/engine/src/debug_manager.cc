@@ -388,7 +388,7 @@ void DebugOverlay::render(bool first) {
                     cmd->ClipRect.z - cmd->ClipRect.x,
                     cmd->ClipRect.w - cmd->ClipRect.y));
 
-            m_material->setDrawState(cmdList, Pass::Type::kBasic, 0);
+            m_material->setDrawState(cmdList, Pass::kBasicType);
             cmdList->draw(PrimitiveType::kTriangleList, vertexData, indexData);
 
             indexBufferOffset += cmd->ElemCount;

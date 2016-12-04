@@ -6,7 +6,7 @@
         "parameters": [],
         "passes": [
             {
-                "type": "kBasic",
+                "type": "Basic",
                 "vertex": {
                     "source": "apps/render_test/shaders/render_test_vtx.glsl"
                 },
@@ -15,7 +15,7 @@
                 }
             },
             {
-                "type": "kBasic",
+                "type": "Basic",
                 "vertex": {
                     "source": "apps/render_test/shaders/render_test_vtx.glsl",
                     "keywords": ["VBO"]

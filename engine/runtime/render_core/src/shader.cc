@@ -33,9 +33,9 @@ Shader::Shader() :
 /** Destroy the shader. */
 Shader::~Shader() {
     /* Delete all passes. */
-    for (size_t i = 0; i < m_passes.size(); i++) {
-        for (size_t j = 0; j < m_passes[i].size(); j++)
-            delete m_passes[i][j];
+    for (const auto &it : m_passes) {
+        for (Pass *pass : it.second)
+            delete pass;
     }
 
     delete m_uniformStruct;
@@ -72,12 +72,9 @@ void Shader::deserialise(Serialiser &serialiser) {
 
     if (serialiser.beginArray("passes")) {
         while (serialiser.beginGroup()) {
-            Pass::Type type;
+            std::string type;
             bool hasType = serialiser.read("type", type);
             check(hasType);
-
-            if (type == Pass::Type::kDeferred)
-                check(numPasses(Pass::Type::kDeferred) == 0);
 
             std::unique_ptr<Pass> pass(new Pass(this, type));
 
@@ -177,24 +174,38 @@ const ShaderParameter *Shader::lookupParameter(const std::string &name) const {
     return (it != m_parameters.end()) ? &it->second : nullptr;
 }
 
+/** Get the number of passes of a certain type the shader has.
+ * @param type          Type to get.
+ * @return              Number of passes of the specified type. */
+size_t Shader::numPasses(const std::string &type) const {
+    auto ret = m_passes.find(type);
+    if (ret != m_passes.end()) {
+        return ret->second.size();
+    } else {
+        return 0;
+    }
+}
+
+/** Get a pass.
+ * @param type          Type of the pass to get.
+ * @param index         Index of the pass to get.
+ * @return              Pointer to pass if found, null if not. */
+const Pass *Shader::getPass(const std::string &type, size_t index) const {
+    auto ret = m_passes.find(type);
+    if (ret != m_passes.end()) {
+        if (index < ret->second.size())
+            return ret->second[index];
+    }
+
+    return nullptr;
+}
+
 /** Add a pass to the shader.
  * @param pass          Pass to add. Becomes owned by the shader, will be
  *                      deleted when the shader is destroyed. */
 void Shader::addPass(Pass *pass) {
-    size_t index = static_cast<size_t>(pass->type());
-
-    switch (pass->type()) {
-        case Pass::Type::kDeferred:
-            checkMsg(
-                m_passes[index].size() == 0,
-                "Only one deferred pass is allowed per shader");
-            break;
-        default:
-            break;
-    }
-
     /* Finalise the pipeline. */
     pass->finalise();
 
-    m_passes[index].push_back(pass);
+    m_passes[pass->type()].push_back(pass);
 }

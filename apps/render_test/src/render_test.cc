@@ -119,7 +119,7 @@ RenderTestLayer::RenderTestLayer() :
             setLayout(std::move(vertexLayout));
         vertexDataDesc.buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, vertices);
     #else
-        GPUVertexDataLayoutPtr vertexLayout = g_gpuManager->createVertexDataLayout(GPUVertexDataLayoutDesc());
+        GPUVertexDataLayoutPtr vertexLayout = g_gpuManager->getVertexDataLayout(GPUVertexDataLayoutDesc());
         auto vertexDataDesc = GPUVertexDataDesc().
             setCount(3).
             setLayout(std::move(vertexLayout));
@@ -142,7 +142,7 @@ void RenderTestLayer::render(bool first) {
     instanceDesc.renderArea = pixelViewport();
     GPUCommandList *cmdList = g_gpuManager->beginRenderPass(instanceDesc);
 
-    m_material->setDrawState(cmdList, Pass::Type::kBasic, kUsePass);
+    m_material->setDrawState(cmdList, Pass::kBasicType, kUsePass);
     cmdList->draw(PrimitiveType::kTriangleList, m_vertices, nullptr);
 
     g_gpuManager->submitRenderPass(cmdList);

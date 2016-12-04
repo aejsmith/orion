@@ -11,7 +11,7 @@
         ],
         "passes": [
             {
-                "type": "kBasic",
+                "type": "Basic",
                 "vertex": {
                     "source": "engine/shaders/unlit_vtx.glsl"
                 },
@@ -21,7 +21,7 @@
                 }
             },
             {
-                "type": "kShadowCaster",
+                "type": "ShadowCaster",
                 "vertex": {
                     "source": "engine/shaders/shadow_vtx.glsl"
                 },

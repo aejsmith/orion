@@ -22,14 +22,6 @@
  *  - Cache of loaded shaders, identify ones which are identical and match them
  *    (e.g. ones which are the same despite not being compiled with the same
  *    keywords. Loading code would move from here to the shader cache.
- *  - Improved shader variation system (preprocessor defines). Fixed sized array
- *    for light/shadow variations isn't very nice. Want a system that allows
- *    shaders to define what variations they actually support (e.g. Unity's
- *    multi_compile pragma), and materials to be able to set keywords. We would
- *    then compile for all possible combinations, and then when getting a
- *    variation, form a key by filtering selected keywords to ones supported by
- *    the shader and look up based on that.
- *  - Don't need to compile shadow variation for ambient.
  */
 
 #include "gpu/gpu_manager.h"
@@ -42,33 +34,38 @@
 #include "render_core/shader_compiler.h"
 #include "render_core/uniform_buffer.h"
 
-/** Array of pass variation strings, indexed by pass type. */
-static const char *passShaderVariations[Pass::kNumTypes] = {
-    "BASIC_PASS",
-    "FORWARD_PASS",
-    "DEFERRED_PASS",
-    "SHADOW_CASTER_PASS",
-};
+/** Name of the basic pass type. */
+const char *const Pass::kBasicType = "Basic";
 
-/** Array of light variation strings, indexed by light type. */
-static const char *lightShaderVariations[SceneLight::kNumTypes] = {
-    "AMBIENT_LIGHT",
-    "DIRECTIONAL_LIGHT",
-    "POINT_LIGHT",
-    "SPOT_LIGHT",
-};
+/** Get a variation string.
+ * @param variation     Variation to get for.
+ * @return              Variation string. */
+static std::string getVariationString(const ShaderKeywordSet &variation) {
+    std::string str;
 
-/** Shadow variation string. */
-static const char *const shadowVariation = "SHADOW";
+    /* TODO: This could use some optimisation. Rather than doing this every time
+     * we want to look up a variation, pre-calculate the string (and a hash?) in
+     * some VariationKey object. */
+    for (const std::string &keyword : variation) {
+        if (!str.empty())
+            str += " ";
+        str += keyword;
+    }
+
+    return str;
+}
 
 /** Initialize the pass.
  * @param parent        Parent shader.
  * @param type          Type of the pass. */
-Pass::Pass(Shader *parent, Type type) :
+Pass::Pass(Shader *parent, const std::string &type) :
     m_parent(parent),
-    m_type(type),
-    m_variations((type == Type::kForward) ? SceneLight::kNumTypes * 2 : 1)
-{}
+    m_type(lookupType(type))
+{
+    /* Pre-create the variation map for all required variations. */
+    for (const ShaderKeywordSet &variation : m_type.second)
+        m_variations.emplace(getVariationString(variation), Variation());
+}
 
 /** Destroy the pass. */
 Pass::~Pass() {}
@@ -81,25 +78,17 @@ Pass::~Pass() {}
  * with this pass.
  *
  * @param cmdList       GPU command list.
- * @param light         Light that the pass is being drawn with. This is used
- *                      to select which shader variations to use. It is ignored
- *                      for non-lit pass types.
+ * @param variation     Variation of the pass to use. This should be a valid
+ *                      variation for the type of the pass.
  */
-void Pass::setDrawState(GPUCommandList *cmdList, SceneLight *light) const {
-    /* Find the variation to use. */
-    size_t index;
-    if (m_type == Type::kForward) {
-        index = light->type() * 2;
-        if (light->castShadows())
-            index++;
-    } else {
-        index = 0;
-    }
+void Pass::setDrawState(GPUCommandList *cmdList, const ShaderKeywordSet &variation) const {
+    std::string str = getVariationString(variation);
 
-    /* Bind the variation. */
-    const Variation &variation = m_variations[index];
-    check(variation.pipeline);
-    cmdList->bindPipeline(variation.pipeline);
+    auto ret = m_variations.find(str);
+    checkMsg(ret != m_variations.end(), "Invalid pass variation '%s'", str.c_str());
+
+    check(ret->second.pipeline);
+    cmdList->bindPipeline(ret->second.pipeline);
 }
 
 /** Compile a single variation.
@@ -139,7 +128,6 @@ bool Pass::loadStage(unsigned stage, const Path &path, const ShaderKeywordSet &k
     ShaderCompiler::Options options;
     options.path = path;
     options.stage = stage;
-    options.keywords = keywords;
     options.uniforms = m_parent->uniformStruct();
 
     /* Define texture parameters. */
@@ -148,24 +136,12 @@ bool Pass::loadStage(unsigned stage, const Path &path, const ShaderKeywordSet &k
             options.parameters.emplace_back(parameter.first, parameter.second);
     }
 
-    /* Set pass type keyword. */
-    options.keywords.insert(passShaderVariations[static_cast<size_t>(m_type)]);
+    /* Compile each variation. */
+    for (const ShaderKeywordSet &variation : m_type.second) {
+        options.keywords = keywords;
+        options.keywords.insert(variation.begin(), variation.end());
 
-    if (m_type == Type::kForward) {
-        /* Build each of the light type variations. */
-        for (unsigned i = 0; i < SceneLight::kNumTypes; i++) {
-            for (unsigned j = 0; j < 2; j++) {
-                ShaderCompiler::Options variationOptions = options;
-                variationOptions.keywords.insert(lightShaderVariations[i]);
-                if (j)
-                    variationOptions.keywords.insert(shadowVariation);
-
-                m_variations[(i * 2) + j].programs[stage] =
-                    compileVariation(variationOptions, m_parent);
-            }
-        }
-    } else {
-        m_variations[0].programs[stage] = compileVariation(options, m_parent);
+        m_variations[getVariationString(variation)].programs[stage] = compileVariation(options, m_parent);
     }
 
     return true;
@@ -173,7 +149,9 @@ bool Pass::loadStage(unsigned stage, const Path &path, const ShaderKeywordSet &k
 
 /** Finalise the pass (called from Shader::addPass). */
 void Pass::finalise() {
-    for (Variation &variation : m_variations) {
+    for (auto &it : m_variations) {
+        Variation &variation = it.second;
+
         GPUPipelineDesc pipelineDesc;
 
         pipelineDesc.programs = std::move(variation.programs);
@@ -191,4 +169,59 @@ void Pass::finalise() {
         /* Create a pipeline. */
         variation.pipeline = g_gpuManager->createPipeline(std::move(pipelineDesc));
     }
+}
+
+/** Wrapper class managing the pass type map. */
+class PassTypeRegistry {
+public:
+    /** Initialise the registry with built-in types. */
+    PassTypeRegistry() {
+        add(Pass::kBasicType, Pass::VariationList());
+    };
+
+    /** Look up a pass type. */
+    const std::pair<const std::string, Pass::VariationList> &lookup(const std::string &type) {
+        auto ret = m_map.find(type);
+        if (ret == m_map.end())
+            fatal("Unknown pass type '%s'", type.c_str());
+
+        return *ret;
+    }
+
+    /** Register a pass type. */
+    void add(std::string type, Pass::VariationList variations) {
+        /* Add a single variation with no keywords if the list is empty. */
+        if (variations.empty())
+            variations.emplace_back();
+
+        auto ret = m_map.emplace(
+            std::piecewise_construct,
+            std::forward_as_tuple(std::move(type)),
+            std::forward_as_tuple(std::move(variations)));
+        checkMsg(ret.second, "Duplicate pass type");
+    }
+
+    /** @return             Global pass type registry. */
+    static PassTypeRegistry &instance() {
+        static PassTypeRegistry instance;
+        return instance;
+    }
+private:
+    HashMap<std::string, Pass::VariationList> m_map;
+};
+
+/** Register a pass type.
+ * @param type          Pass type name.
+ * @param variations    List of variations to compile, i.e. a list of different
+ *                      combinations of keywords. An empty list will result in
+ *                      1 variation being compiled with no additional keywords. */
+void Pass::registerType(std::string type, VariationList variations) {
+    PassTypeRegistry::instance().add(std::move(type), std::move(variations));
+}
+
+/** Look up a pass type.
+ * @param type          Pass type name.
+ * @return              Reference to the pass type. */
+const Pass::Type &Pass::lookupType(const std::string &type) {
+    return PassTypeRegistry::instance().lookup(type);
 }
