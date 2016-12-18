@@ -25,28 +25,28 @@
 
 #include <list>
 
-class SceneEntity;
+class RenderEntity;
 
 /**
  * Base class for a component which renders something.
  *
  * This class is the base class for components which render something in the
- * world. It implements the functionality to add SceneEntities to the renderer
+ * world. It implements the functionality to add RenderEntities to the renderer
  * and keeps them updated.
  */
 class Renderer : public Component {
 public:
     CLASS();
 
-    VPROPERTY(bool, castShadow);
+    VPROPERTY(bool, castsShadow);
 
-    void setCastShadow(bool castShadow);
+    void setCastsShadow(bool castsShadow);
 
     /** @return             Whether the rendered object casts a shadow. */
-    bool castShadow() const { return m_castShadow; }
+    bool castsShadow() const { return m_castsShadow; }
 protected:
-    /** Type of a scene entity list. */
-    using SceneEntityList = std::list<SceneEntity *>;
+    /** Type of a renderer entity list. */
+    using RenderEntityList = std::list<RenderEntity *>;
 
     Renderer();
     ~Renderer();
@@ -56,19 +56,19 @@ protected:
     void deactivated() override;
 
     /**
-     * Create scene entities.
+     * Create renderer entities.
      *
      * This function is called each time the component is activated in the world
-     * to create the SceneEntities which will be added to the renderer. The
+     * to create the RenderEntities which will be added to the renderer. The
      * entities' transformations will be set after this has been called. The
      * entities are all deleted upon deactivation of the component.
      *
      * @param entities      List to populate.
      */
-    virtual void createSceneEntities(SceneEntityList &entities) = 0;
+    virtual void createRenderEntities(RenderEntityList &entities) = 0;
 private:
-    bool m_castShadow;             /**< Whether the object casts a shadow. */
+    bool m_castsShadow;            /**< Whether the object casts a shadow. */
 
-    /** List of scene entities. */
-    SceneEntityList m_sceneEntities;
+    /** List of renderer entities. */
+    RenderEntityList m_renderEntities;
 };

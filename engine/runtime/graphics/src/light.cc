@@ -22,40 +22,40 @@
 #include "engine/entity.h"
 #include "engine/world.h"
 
+#include "graphics/graphics_system.h"
 #include "graphics/light.h"
 
-#include "render/scene.h"
-#include "render/scene_light.h"
+#include "render/render_world.h"
 
 /** Default direction of a light. */
 static const glm::vec3 kDefaultDirection = glm::vec3(0.0f, 0.0f, -1.0f);
 
 /** Initialize a light component.
- * @param type          SceneLight type. */
-Light::Light(SceneLight::Type type) :
-    m_sceneLight(type)
+ * @param type          Light type. */
+Light::Light(RenderLight::Type type) :
+    m_renderLight(type)
 {
     /* Set default colour/intensity. */
     setColour(glm::vec3(1.0f, 1.0f, 1.0f));
     setIntensity(0.8f);
 
     /* Don't cast shadows by default. */
-    setCastShadows(false);
+    setCastsShadows(false);
 }
 
 /** Initialize an ambient light component. */
 AmbientLight::AmbientLight() :
-    Light(SceneLight::kAmbientLight)
+    Light(RenderLight::kAmbientLight)
 {}
 
 /** Initialize a directional light component. */
 DirectionalLight::DirectionalLight() :
-    Light(SceneLight::kDirectionalLight)
+    Light(RenderLight::kDirectionalLight)
 {}
 
 /** Initialize a point light component. */
 PointLight::PointLight() :
-    Light(SceneLight::kPointLight)
+    Light(RenderLight::kPointLight)
 {
     /* Set default parameters. */
     setRange(100.0f);
@@ -64,7 +64,7 @@ PointLight::PointLight() :
 
 /** Initialize a spot light component. */
 SpotLight::SpotLight() :
-    Light(SceneLight::kSpotLight)
+    Light(RenderLight::kSpotLight)
 {
     /* Set default parameters. */
     setRange(50.0f);
@@ -99,25 +99,22 @@ glm::vec3 Light::direction() const {
 void Light::transformed(unsigned changed) {
     #ifdef ORION_BUILD_DEBUG
         // FIXME: Doesn't handle name changes on the entity properly.
-        m_sceneLight.name = entity()->path();
+        m_renderLight.name = entity()->path();
     #endif
 
-    /* Update SceneLight's direction vector. Here we want to set the absolute
-     * direction. */
+    /* Update the RenderLight. Here we want to set the absolute values. */
     glm::vec3 direction = worldOrientation() * kDefaultDirection;
-    m_sceneLight.setDirection(direction);
-
-    /* Scene manager needs to know the light has moved. */
-    if (activeInWorld())
-        world()->scene()->transformLight(&m_sceneLight, worldPosition());
+    m_renderLight.setDirection(direction);
+    m_renderLight.setPosition(worldPosition());
 }
 
 /** Called when the component becomes active in the world. */
 void Light::activated() {
-    world()->scene()->addLight(&m_sceneLight, worldPosition());
+    auto &system = getSystem<GraphicsSystem>();
+    m_renderLight.setWorld(&system.renderWorld());
 }
 
 /** Called when the component becomes inactive in the world. */
 void Light::deactivated() {
-    world()->scene()->removeLight(&m_sceneLight);
+    m_renderLight.setWorld(nullptr);
 }

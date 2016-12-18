@@ -16,19 +16,16 @@
 
 /**
  * @file
- * @brief               Scene light class.
+ * @brief               Renderer light class.
  *
  * TODO:
  *  - Use a frustum rather than a bounding box for spot light culling.
  */
 
-#include "render/render_manager.h"
-#include "render/scene_light.h"
+#include "render/render_light.h"
+#include "render/render_world.h"
 
-#include "shader/resource.h"
-
-/** Rendering parameters. */
-static const uint16_t kShadowMapResolution = 512;
+#include "render_core/render_resources.h"
 
 IMPLEMENT_UNIFORM_STRUCT(LightUniforms, "light", ResourceSets::kLightResources);
 
@@ -40,21 +37,46 @@ IMPLEMENT_UNIFORM_STRUCT(LightUniforms, "light", ResourceSets::kLightResources);
  *
  * @param type          Type of the light.
  */
-SceneLight::SceneLight(Type type) :
+RenderLight::RenderLight(Type type) :
+    m_world(nullptr),
     m_type(type),
-    m_castShadows(false)
+    m_flags(0)
 {
-    m_resources = g_gpuManager->createResourceSet(
-        g_renderManager->resources().lightResourceSetLayout);
+    m_resources = g_gpuManager->createResourceSet(g_renderResources->lightResourceSetLayout());
     m_resources->bindUniformBuffer(ResourceSlots::kUniforms, m_uniforms.gpu());
 }
 
 /** Destroy the light. */
-SceneLight::~SceneLight() {}
+RenderLight::~RenderLight() {
+    setWorld(nullptr);
+}
+
+/** Set the world for the light.
+ * @param world         New world (null to remove). */
+void RenderLight::setWorld(RenderWorld *world) {
+    if (m_world)
+        m_world->removeLight(this);
+
+    m_world = world;
+
+    if (m_world)
+        m_world->addLight(this);
+}
+
+/** Set the light position.
+ * @param position      New light position. */
+void RenderLight::setPosition(const glm::vec3 &position) {
+    m_position = position;
+    m_uniforms.write()->position = m_position;
+
+    updateWorld();
+    updateVolumeTransform();
+    updateShadowViews();
+}
 
 /** Set the direction of the light.
  * @param direction     New light direction. */
-void SceneLight::setDirection(const glm::vec3 &direction) {
+void RenderLight::setDirection(const glm::vec3 &direction) {
     m_direction = glm::normalize(direction);
     m_uniforms.write()->direction = m_direction;
 
@@ -64,21 +86,21 @@ void SceneLight::setDirection(const glm::vec3 &direction) {
 
 /** Set the colour of the light.
  * @param colour        New light colour. */
-void SceneLight::setColour(const glm::vec3 &colour) {
+void RenderLight::setColour(const glm::vec3 &colour) {
     m_colour = colour;
     m_uniforms.write()->colour = m_colour;
 }
 
 /** Set the intensity of the light.
  * @param intensity     New light intensity. */
-void SceneLight::setIntensity(float intensity) {
+void RenderLight::setIntensity(float intensity) {
     m_intensity = intensity;
     m_uniforms.write()->intensity = m_intensity;
 }
 
 /** Set the cutoff angle (for spot lights).
  * @param cutoff        New cutoff angle. Must be <= 45 degrees. */
-void SceneLight::setCutoff(float cutoff) {
+void RenderLight::setCutoff(float cutoff) {
     checkMsg(cutoff <= 45.0f, "Cutoff angle must be <= 45");
 
     m_cutoff = cutoff;
@@ -93,7 +115,7 @@ void SceneLight::setCutoff(float cutoff) {
 
 /** Set the range of the light (for point/spot lights).
  * @param range         Range of the light. */
-void SceneLight::setRange(float range) {
+void RenderLight::setRange(float range) {
     m_range = range;
     m_uniforms.write()->range = m_range;
 
@@ -105,7 +127,7 @@ void SceneLight::setRange(float range) {
  * @param constant      Constant attenuation factor.
  * @param linear        Linear attenuation factor.
  * @param exp           Exponentional attenuation factor. */
-void SceneLight::setAttenuation(float constant, float linear, float exp) {
+void RenderLight::setAttenuation(float constant, float linear, float exp) {
     m_attenuationConstant = constant;
     m_attenuationLinear = linear;
     m_attenuationExp = exp;
@@ -116,71 +138,44 @@ void SceneLight::setAttenuation(float constant, float linear, float exp) {
     uniforms->attenuationExp = m_attenuationExp;
 }
 
-/** Set whether the light casts shadows.
- * @param castShadows   Whether the light casts shadows. */
-void SceneLight::setCastShadows(bool castShadows) {
-    if (castShadows != m_castShadows) {
-        m_castShadows = castShadows;
+/** Set the flags for the light.
+ * @param flags         New flags. */
+void RenderLight::setFlags(uint32_t flags) {
+    const bool changedShadows = (m_flags & kCastsShadows) != (flags & kCastsShadows);
+
+    m_flags = flags;
+
+    if (changedShadows)
         updateShadowViews();
-    }
 }
 
-/** Set the light position (private function called from Scene).
- * @param position      New light position. */
-void SceneLight::setPosition(const glm::vec3 &position) {
-    m_position = position;
-    m_uniforms.write()->position = m_position;
-
-    updateVolumeTransform();
-    updateShadowViews();
+/** Flush pending updates and get resources.
+ * @return              Resource set containing per-entity resources. */
+GPUResourceSet *RenderLight::getResources() {
+    m_uniforms.flush();
+    return m_resources;
 }
 
 /** Get light volume geometry.
- * @param geometry      Geometry structure to fill in. */
-void SceneLight::volumeGeometry(Geometry &geometry) const {
+ * @return              Geometry for the light volume. */
+Geometry RenderLight::volumeGeometry() const {
     switch (m_type) {
         case kPointLight:
-            g_renderManager->resources().sphereGeometry(geometry);
+            return g_renderResources->sphereGeometry();
             break;
         case kSpotLight:
-            g_renderManager->resources().coneGeometry(geometry);
+            return g_renderResources->coneGeometry();
             break;
         default:
-            g_renderManager->resources().quadGeometry(geometry);
+            return g_renderResources->quadGeometry();
             break;
     }
-}
-
-/** Allocate a shadow map for this light.
- * @return              Pointer to allocated shadow map. */
-GPUTexture *SceneLight::allocShadowMap() const {
-    GPUTexture::Type type;
-    switch (m_type) {
-        case kSpotLight:
-            type = GPUTexture::kTexture2D;
-            break;
-        case kPointLight:
-            type = GPUTexture::kTextureCube;
-            break;
-        default:
-            fatal("TODO");
-    }
-
-    auto desc = GPUTextureDesc().
-        setType(type).
-        setWidth(kShadowMapResolution).
-        setHeight(kShadowMapResolution).
-        setMips(1).
-        setFlags(GPUTexture::kRenderTarget).
-        setFormat(kShadowMapFormat);
-
-    return g_renderManager->allocTempRenderTarget(desc);
 }
 
 /** Determine if the light is visible to a view.
  * @param view          View to test against.
  * @return              Whether the light should be culled. */
-bool SceneLight::cull(SceneView *view) const {
+bool RenderLight::cull(RenderView *view) const {
     switch (m_type) {
         case kAmbientLight:
         case kDirectionalLight:
@@ -201,7 +196,7 @@ bool SceneLight::cull(SceneView *view) const {
 }
 
 /** Update the light volume transformation. */
-void SceneLight::updateVolumeTransform() {
+void RenderLight::updateVolumeTransform() {
     switch (m_type) {
         case kAmbientLight:
         case kDirectionalLight:
@@ -248,8 +243,8 @@ void SceneLight::updateVolumeTransform() {
 }
 
 /** Update the shadow views. */
-void SceneLight::updateShadowViews() {
-    if (!m_castShadows)
+void RenderLight::updateShadowViews() {
+    if (!castsShadows())
         return;
 
     unsigned numViews = 0;
@@ -322,9 +317,10 @@ void SceneLight::updateShadowViews() {
             /* TODO. */
             break;
     }
+}
 
-    /* Viewport should cover the whole shadow map. */
-    IntRect viewport(0, 0, kShadowMapResolution, kShadowMapResolution);
-    for (unsigned i = 0; i < numViews; i++)
-        m_shadowViews[i].setViewport(viewport);
+/** Update the light in the world. */
+void RenderLight::updateWorld() {
+    if (m_world)
+        m_world->updateLight(this);
 }

@@ -25,7 +25,7 @@
 
 #include "graphics/renderer.h"
 
-#include "shader/material.h"
+#include "render_core/material.h"
 
 /** Component which renders a mesh. */
 class MeshRenderer : public Renderer {
@@ -51,12 +51,12 @@ protected:
     void serialise(Serialiser &serialiser) const override;
     void deserialise(Serialiser &serialiser) override;
 
-    void createSceneEntities(SceneEntityList &entities) override;
+    void createRenderEntities(RenderEntityList &entities) override;
 private:
     MeshPtr m_mesh;                 /**< Mesh to render. */
 
     /** Array of materials. */
     std::vector<MaterialPtr> m_materials;
 
-    friend class SubMeshSceneEntity;
+    friend class SubMeshRenderEntity;
 };

@@ -16,16 +16,16 @@
 
 /**
  * @file
- * @brief               Scene light class.
+ * @brief               Renderer light class.
  */
 
 #pragma once
 
 #include "gpu/resource.h"
 
-#include "render/scene_view.h"
+#include "render/render_view.h"
 
-#include "render_core/uniform_buffer.h"
+class RenderWorld;
 
 struct Geometry;
 
@@ -46,7 +46,7 @@ UNIFORM_STRUCT_BEGIN(LightUniforms)
 UNIFORM_STRUCT_END;
 
 /** Renderer representation of a light source. */
-class SceneLight {
+class RenderLight {
 public:
     /** Type of a light. */
     enum Type {
@@ -57,19 +57,28 @@ public:
         kNumTypes,
     };
 
+    /** Light flags. */
+    enum : uint32_t {
+        /** Whether the light casts a shadow. */
+        kCastsShadows = (1 << 0),
+    };
+
     /** Maximum number of shadow views. */
     static const size_t kMaxShadowViews = CubeFace::kNumFaces;
-public:
-    explicit SceneLight(Type type);
-    ~SceneLight();
 
+    explicit RenderLight(Type type);
+    ~RenderLight();
+
+    void setWorld(RenderWorld *world);
+
+    void setPosition(const glm::vec3 &position);
     void setDirection(const glm::vec3 &direction);
     void setColour(const glm::vec3 &colour);
     void setIntensity(float intensity);
     void setCutoff(float cutoff);
     void setRange(float range);
     void setAttenuation(float constant, float linear, float exp);
-    void setCastShadows(bool castShadows);
+    void setFlags(uint32_t flags);
 
     /** @return             Type of the light. */
     Type type() const { return m_type; }
@@ -91,19 +100,14 @@ public:
     float attenuationLinear() const { return m_attenuationLinear; }
     /** @return             Exponential attenuation factor (point/spot). */
     float attenuationExp() const { return m_attenuationExp; }
+    /** @return             Flags for the light. */
+    uint32_t flags() const { return m_flags; }
     /** @return             Whether the light casts shadows. */
-    bool castShadows() const { return m_castShadows; }
+    bool castsShadows() const { return (m_flags & kCastsShadows) != 0; }
 
-    /** Flush pending updates and get resources for a draw call.
-     * @return              Resource set containing per-light resources. */
-    GPUResourceSet *resourcesForDraw() {
-        m_uniforms.flush();
-        return m_resources;
-    }
+    GPUResourceSet *getResources();
 
-    void volumeGeometry(Geometry &geometry) const;
-
-    GPUTexture *allocShadowMap() const;
+    Geometry volumeGeometry() const;
 
     /** @return             Number of shadow views for this light. */
     unsigned numShadowViews() const {
@@ -113,21 +117,22 @@ public:
     /** Get the shadow view at the specified index.
      * @param index         Index to get at.
      * @return              Pointer to shadow view. */
-    SceneView *shadowView(unsigned index) {
+    RenderView *shadowView(unsigned index) {
         return &m_shadowViews[index];
     }
 
-    bool cull(SceneView *view) const;
+    bool cull(RenderView *view) const;
 
     #ifdef ORION_BUILD_DEBUG
     std::string name;               /**< Name of the light (used for debugging). */
     #endif
 private:
-    void setPosition(const glm::vec3 &position);
-
     void updateVolumeTransform();
     void updateShadowViews();
+    void updateWorld();
 private:
+    RenderWorld *m_world;           /**< World that this light belongs to. */
+
     Type m_type;                    /**< Type of the light. */
 
     glm::vec3 m_position;           /**< Position of the light. */
@@ -139,7 +144,7 @@ private:
     float m_attenuationConstant;    /**< Constant attenuation factor (point/spot). */
     float m_attenuationLinear;      /**< Linear attenuation factor (point/spot). */
     float m_attenuationExp;         /**< Exponential attenuation factor (point/spot). */
-    bool m_castShadows;             /**< Whether the light casts shadows. */
+    uint32_t m_flags;               /**< Behaviour flags for the light. */
 
     /** Bounding box (for spot lights). */
     BoundingBox m_boundingBox;
@@ -154,7 +159,5 @@ private:
     GPUResourceSetPtr m_resources;
 
     /** Views for shadow map rendering. */
-    SceneView m_shadowViews[kMaxShadowViews];
-
-    friend class Scene;
+    RenderView m_shadowViews[kMaxShadowViews];
 };

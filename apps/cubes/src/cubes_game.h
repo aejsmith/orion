@@ -31,7 +31,7 @@
 
 #include "physics/physics_material.h"
 
-#include "shader/material.h"
+#include "render_core/material.h"
 
 /** Game class. */
 class CubesGame : public Game {

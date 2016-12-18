@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,24 +16,21 @@
 
 /**
  * @file
- * @brief               Test post-processing effect.
+ * @brief               Graphics system class.
  */
 
-#include "engine/asset_manager.h"
+#include "graphics/graphics_system.h"
 
-#include "render/effects/test_effect.h"
+#include "render/simple_render_world.h"
 
-/** Initialise the effect. */
-TestEffect::TestEffect() {
-    ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/test_effect");
-    m_material = new Material(shader);
-}
+/** Construct the graphics system. */
+GraphicsSystem::GraphicsSystem() {}
 
-/** Render the effect.
- * @param source        Reference to source image.
- * @param dest          Reference to destination image.
- * @return              Whether the effect was performed. */
-bool TestEffect::render(GPUTexture *source, GPUTexture *dest) {
-    blit(source, dest, m_material);
-    return true;
+/** Destroy the graphics system. */
+GraphicsSystem::~GraphicsSystem() {}
+
+/** Initialise the graphics system. */
+void GraphicsSystem::init() {
+    /* Always use SimpleRenderWorld for now until we have other implementations. */
+    m_renderWorld.reset(new SimpleRenderWorld);
 }

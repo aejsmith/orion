@@ -27,26 +27,27 @@
 
 #include "graphics/mesh_renderer.h"
 
-#include "render/geometry.h"
-#include "render/scene_entity.h"
+#include "render/render_entity.h"
 
-/** Scene entity for rendering a SubMesh. */
-class SubMeshSceneEntity : public SceneEntity {
+#include "render_core/geometry.h"
+
+/** Renderer entity for rendering a SubMesh. */
+class SubMeshRenderEntity : public RenderEntity {
 public:
-    SubMeshSceneEntity(Mesh *mesh, size_t index, MeshRenderer *parent);
+    SubMeshRenderEntity(Mesh *mesh, size_t index, MeshRenderer *parent);
 
-    void geometry(Geometry &geometry) const override;
+    Geometry geometry() const override;
     Material *material() const override;
 private:
     SubMesh *m_subMesh;             /**< Submesh to render. */
     MeshRenderer *m_parent;         /**< Parent mesh renderer. */
 };
 
-/** Initialize the scene entity.
+/** Initialize the entity.
  * @param mesh          Mesh the entity is for.
  * @param index         Index of the submesh.
  * @param parent        Parent mesh renderer. */
-SubMeshSceneEntity::SubMeshSceneEntity(Mesh *mesh, size_t index, MeshRenderer *parent) :
+SubMeshRenderEntity::SubMeshRenderEntity(Mesh *mesh, size_t index, MeshRenderer *parent) :
     m_subMesh(mesh->subMesh(index)),
     m_parent(parent)
 {
@@ -58,18 +59,22 @@ SubMeshSceneEntity::SubMeshSceneEntity(Mesh *mesh, size_t index, MeshRenderer *p
 }
 
 /** Get the geometry for the entity.
- * @param geometry      Draw data structure to fill in. */
-void SubMeshSceneEntity::geometry(Geometry &geometry) const {
+ * @return              Geometry for the entity. */
+Geometry SubMeshRenderEntity::geometry() const {
+    Geometry geometry;
+
     geometry.vertices = (m_subMesh->vertices)
         ? m_subMesh->vertices
         : m_subMesh->parent()->sharedVertices;
     geometry.indices = m_subMesh->indices;
     geometry.primitiveType = PrimitiveType::kTriangleList;
+
+    return geometry;
 }
 
 /** Get the material for the entity.
  * @return              Material for the entity. */
-Material *SubMeshSceneEntity::material() const {
+Material *SubMeshRenderEntity::material() const {
     return m_parent->m_materials[m_subMesh->material];
 }
 
@@ -116,7 +121,7 @@ void MeshRenderer::deserialise(Serialiser &serialiser) {
 void MeshRenderer::setMesh(Mesh *mesh) {
     m_mesh = mesh;
 
-    /* Deactivate and reactivate to re-create the scene entities. */
+    /* Deactivate and reactivate to re-create the renderer entities. */
     bool wasActive = active();
     setActive(false);
 
@@ -172,13 +177,13 @@ void MeshRenderer::setMaterial(size_t index, Material *material) {
     m_materials[index] = material;
 }
 
-/** Create scene entities.
+/** Create render entities.
  * @param entities      List to populate. */
-void MeshRenderer::createSceneEntities(SceneEntityList &entities) {
+void MeshRenderer::createRenderEntities(RenderEntityList &entities) {
     checkMsg(m_mesh, "No mesh set for MeshRenderer on '%s'", entity()->name.c_str());
 
     for (size_t i = 0; i < m_mesh->numSubMeshes(); i++) {
-        SubMeshSceneEntity *entity = new SubMeshSceneEntity(m_mesh, i, this);
+        SubMeshRenderEntity *entity = new SubMeshRenderEntity(m_mesh, i, this);
         entities.push_back(entity);
     }
 }

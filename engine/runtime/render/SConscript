@@ -1,21 +1,10 @@
 Import('env')
 
-objects = map(env.ObjgenHeader, [
-    #'include/effects/fxaa_effect.h',
-    #'include/effects/test_effect.h',
-    #'include/post_effect.h',
-])
-
-objects += map(env.Object, [
-    #'src/draw_list.cc',
-    #'src/post_effect.cc',
-    #'src/scene.cc',
-    #'src/scene_entity.cc',
-    #'src/scene_light.cc',
-    #'src/scene_renderer.cc',
-    #'src/scene_view.cc',
-    #'src/effects/fxaa_effect.cc',
-    #'src/effects/test_effect.cc',
+objects = map(env.Object, [
+    'src/render_entity.cc',
+    'src/render_light.cc',
+    'src/render_view.cc',
+    'src/simple_render_world.cc',
 ])
 
 Return('objects')

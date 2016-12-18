@@ -16,16 +16,15 @@
 
 /**
  * @file
- * @brief               Scene entity base class.
+ * @brief               Renderer entity class.
  */
 
 #include "gpu/gpu_manager.h"
 
-#include "render/render_manager.h"
-#include "render/scene.h"
-#include "render/scene_entity.h"
+#include "render/render_entity.h"
+#include "render/render_world.h"
 
-#include "shader/resource.h"
+#include "render_core/render_resources.h"
 
 IMPLEMENT_UNIFORM_STRUCT(EntityUniforms, "entity", ResourceSets::kEntityResources);
 
@@ -35,51 +34,64 @@ IMPLEMENT_UNIFORM_STRUCT(EntityUniforms, "entity", ResourceSets::kEntityResource
  * Note that properties are not initialised. They should be initialised by the
  * creator of the entity.
  */
-SceneEntity::SceneEntity() :
-    m_updatePending(false)
+RenderEntity::RenderEntity() :
+    m_world(nullptr),
+    m_flags(0)
 {
-    m_resources = g_gpuManager->createResourceSet(
-        g_renderManager->resources().entityResourceSetLayout);
+    m_resources = g_gpuManager->createResourceSet(g_renderResources->entityResourceSetLayout());
     m_resources->bindUniformBuffer(ResourceSlots::kUniforms, m_uniforms.gpu());
 }
 
 /** Destroy the entity. */
-SceneEntity::~SceneEntity() {}
+RenderEntity::~RenderEntity() {
+    setWorld(nullptr);
+}
+
+/** Set the world for the entity.
+ * @param world         New world (null to remove). */
+void RenderEntity::setWorld(RenderWorld *world) {
+    if (m_world)
+        m_world->removeEntity(this);
+
+    m_world = world;
+
+    if (m_world)
+        m_world->addEntity(this);
+}
 
 /** Set the transformation of the entity.
  * @param transform     New transformation. */
-void SceneEntity::setTransform(const Transform &transform) {
+void RenderEntity::setTransform(const Transform &transform) {
     m_transform = transform;
 
     EntityUniforms *uniforms = m_uniforms.write();
     uniforms->transform = m_transform.matrix();
     uniforms->position = m_transform.position();
 
-    queueUpdate();
+    updateWorld();
 }
 
 /** Set the bounding box of the entity.
  * @param boundingBox   New bounding box. */
-void SceneEntity::setBoundingBox(const BoundingBox &boundingBox) {
+void RenderEntity::setBoundingBox(const BoundingBox &boundingBox) {
     m_boundingBox = boundingBox;
 
-    queueUpdate();
+    updateWorld();
 }
 
-/** Set whether the rendered object casts a shadow.
- * @param castShadow    Whether the rendered object casts a shadow. */
-void SceneEntity::setCastShadow(bool castShadow) {
-    m_castShadow = castShadow;
+/** Flush pending updates and get resources.
+ * @return              Resource set containing per-entity resources. */
+GPUResourceSet *RenderEntity::getResources() {
+    m_uniforms.flush();
+    return m_resources;
 }
 
-/** Mark the entity as requiring an update in the Scene. */
-void SceneEntity::queueUpdate() {
+/** Update the entity in the world if required. */
+void RenderEntity::updateWorld() {
     /* Either transform or bounding box has changed, recalculate world bounding
-     * box. TODO: Could defer this until Scene performs update? */
+     * box. */
     m_worldBoundingBox = m_boundingBox.transform(m_transform.matrix());
 
-    if (m_scene && !m_updatePending) {
-        m_updatePending = true;
-        m_scene->queueEntityUpdate(this);
-    }
+    if (m_world)
+        m_world->updateEntity(this);
 }

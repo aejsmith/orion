@@ -23,7 +23,7 @@
 
 #include "engine/component.h"
 
-#include "render/scene_light.h"
+#include "render/render_light.h"
 
 /**
  * Base light component class.
@@ -37,20 +37,20 @@ public:
 
     VPROPERTY(glm::vec3, colour);
     VPROPERTY(float, intensity);
-    VPROPERTY(bool, castShadows);
+    VPROPERTY(bool, castsShadows);
 
     void setColour(const glm::vec3 &colour);
     void setIntensity(float intensity);
-    void setCastShadows(bool castShadows);
+    void setCastsShadows(bool castShadows);
 
     /** @return             Colour that the light emits. */
-    const glm::vec3 &colour() const { return m_sceneLight.colour(); }
+    const glm::vec3 &colour() const { return m_renderLight.colour(); }
     /** @return             Diffuse intensity. */
-    float intensity() const { return m_sceneLight.intensity(); }
+    float intensity() const { return m_renderLight.intensity(); }
     /** @return             Whether the light casts shadows. */
-    bool castShadows() const { return m_sceneLight.castShadows(); }
+    bool castsShadows() const { return m_renderLight.castsShadows(); }
 protected:
-    explicit Light(SceneLight::Type type);
+    explicit Light(RenderLight::Type type);
     ~Light() {}
 
     void transformed(unsigned changed) override;
@@ -69,20 +69,20 @@ protected:
     glm::vec3 direction() const;
 
     /** @return             Angle of effect. */
-    float cutoff() const { return m_sceneLight.cutoff(); }
+    float cutoff() const { return m_renderLight.cutoff(); }
     /** @return             Range of the light. */
-    float range() const { return m_sceneLight.range(); }
+    float range() const { return m_renderLight.range(); }
 
     /** @return             Attenuation parameters (constant, linear, exponential). */
     glm::vec3 attenuation() const {
         return glm::vec3(
-            m_sceneLight.attenuationConstant(),
-            m_sceneLight.attenuationLinear(),
-            m_sceneLight.attenuationExp());
+            m_renderLight.attenuationConstant(),
+            m_renderLight.attenuationLinear(),
+            m_renderLight.attenuationExp());
     }
 protected:
-    /** Scene light implementing this light. */
-    SceneLight m_sceneLight;
+    /** Renderer light implementing this light. */
+    RenderLight m_renderLight;
 };
 
 /**
@@ -90,8 +90,8 @@ protected:
  *
  * This component adds ambient lighting to the world. The ambient light is a
  * single colour value/intensity that is added on to the overall shading, to
- * simulate the effect of light scattered about the entire scene. The position
- * is ignored, the light affects the whole scene.
+ * simulate the effect of light scattered about the entire world. The position
+ * is ignored, the light affects the whole world.
  */
 class AmbientLight : public Light {
 public:
@@ -183,35 +183,43 @@ protected:
 /** Set the colour of the light.
  * @param colour        New light colour. */
 inline void Light::setColour(const glm::vec3 &colour) {
-    m_sceneLight.setColour(colour);
+    m_renderLight.setColour(colour);
 }
 
 /** Set the intensity of the light.
  * @param intensity     New light intensity. */
 inline void Light::setIntensity(float intensity) {
-    m_sceneLight.setIntensity(intensity);
+    m_renderLight.setIntensity(intensity);
 }
 
 /** Set whether the light casts shadows.
  * @param castShadows   Whether the light casts shadows. */
-inline void Light::setCastShadows(bool castShadows) {
-    m_sceneLight.setCastShadows(castShadows);
+inline void Light::setCastsShadows(bool castsShadows) {
+    uint32_t flags = m_renderLight.flags();
+
+    if (castsShadows) {
+        flags |= RenderLight::kCastsShadows;
+    } else {
+        flags &= ~RenderLight::kCastsShadows;
+    }
+
+    m_renderLight.setFlags(flags);
 }
 
 /** Set the cutoff angle.
  * @param cutoff        New cutoff angle. Must be <= 45 degrees. */
 inline void Light::setCutoff(float cutoff) {
-    m_sceneLight.setCutoff(cutoff);
+    m_renderLight.setCutoff(cutoff);
 }
 
 /** Set the range of the light.
  * @param range         Range of the light. */
 inline void Light::setRange(float range) {
-    m_sceneLight.setRange(range);
+    m_renderLight.setRange(range);
 }
 
 /** Set the attenuation parameters.
  * @param params        Attenuation parameters (constant, linear, exponential). */
 inline void Light::setAttenuation(const glm::vec3 &params) {
-    m_sceneLight.setAttenuation(params[0], params[1], params[2]);
+    m_renderLight.setAttenuation(params[0], params[1], params[2]);
 }

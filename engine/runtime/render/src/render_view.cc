@@ -16,45 +16,39 @@
 
 /**
  * @file
- * @brief               Scene view class.
+ * @brief               Renderer view class.
  */
 
 #include "gpu/gpu_manager.h"
 
-#include "render/render_manager.h"
-#include "render/scene.h"
-#include "render/scene_view.h"
+#include "render/render_view.h"
 
-#include "shader/resource.h"
+#include "render_core/render_resources.h"
 
 IMPLEMENT_UNIFORM_STRUCT(ViewUniforms, "view", ResourceSets::kViewResources);
 
 /**
- * Initialize the scene view.
+ * Initialize the view.
  *
- * Initializes the scene view. The view is initially invalid: a transformation,
+ * Initializes the view. The view is initially invalid: a transformation,
  * projection and viewport must be set manually.
- *
- * @param effectChain   Post-processing effect chain, if any.
  */
-SceneView::SceneView(const PostEffectChain *effectChain) :
+RenderView::RenderView() :
     m_viewOutdated(true),
     m_projectionOutdated(true),
-    m_aspect(1.0f),
-    m_postEffectChain(effectChain)
+    m_aspect(1.0f)
 {
-    m_resources = g_gpuManager->createResourceSet(
-        g_renderManager->resources().viewResourceSetLayout);
+    m_resources = g_gpuManager->createResourceSet(g_renderResources->viewResourceSetLayout());
     m_resources->bindUniformBuffer(ResourceSlots::kUniforms, m_uniforms.gpu());
 }
 
-/** Destroy the scene view. */
-SceneView::~SceneView() {}
+/** Destroy the view. */
+RenderView::~RenderView() {}
 
 /** Set the viewing transformation.
  * @param position      Viewing position.
  * @param orientation   Viewing orientation. */
-void SceneView::setTransform(const glm::vec3 &position, const glm::quat &orientation) {
+void RenderView::setTransform(const glm::vec3 &position, const glm::quat &orientation) {
     m_position = position;
     m_orientation = orientation;
 
@@ -67,7 +61,7 @@ void SceneView::setTransform(const glm::vec3 &position, const glm::quat &orienta
  * @param fov           Horizontal field of view, in degrees.
  * @param zNear         Distance to near clipping plane.
  * @param zFar          Distance to far clipping plane. */
-void SceneView::perspective(float fov, float zNear, float zFar) {
+void RenderView::perspective(float fov, float zNear, float zFar) {
     m_fov = fov;
     m_zNear = zNear;
     m_zFar = zFar;
@@ -77,7 +71,7 @@ void SceneView::perspective(float fov, float zNear, float zFar) {
 
 /** Set the viewport.
  * @param viewport      Viewport rectangle in pixels. */
-void SceneView::setViewport(const IntRect &viewport) {
+void RenderView::setViewport(const IntRect &viewport) {
     m_viewport = viewport;
 
     ViewUniforms *uniforms = m_uniforms.write();
@@ -93,9 +87,9 @@ void SceneView::setViewport(const IntRect &viewport) {
     }
 }
 
-/** Flush pending updates and get resources for a draw call.
+/** Flush pending updates and get resources.
  * @return              Resource set containing per-view resources. */
-GPUResourceSet *SceneView::resourcesForDraw() {
+GPUResourceSet *RenderView::getResources() {
     /* Ensure view and projection are up to date. */
     updateMatrices();
     m_uniforms.flush();
@@ -103,7 +97,7 @@ GPUResourceSet *SceneView::resourcesForDraw() {
 }
 
 /** Update the view/projection matrices. */
-void SceneView::updateMatrices() {
+void RenderView::updateMatrices() {
     bool wasOutdated = m_viewOutdated || m_projectionOutdated;
     ViewUniforms *uniforms = (wasOutdated) ? m_uniforms.write() : nullptr;
 

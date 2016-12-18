@@ -25,24 +25,25 @@
 
 #include "graphics/skybox.h"
 
-#include "render/geometry.h"
-#include "render/render_manager.h"
-#include "render/scene_entity.h"
+#include "render/render_entity.h"
 
-/** Scene entity for rendering a skybox. */
-class SkyboxSceneEntity : public SceneEntity {
+#include "render_core/geometry.h"
+#include "render_core/render_resources.h"
+
+/** Renderer entity for rendering a skybox. */
+class SkyboxRenderEntity : public RenderEntity {
 public:
-    SkyboxSceneEntity(Skybox *parent);
+    SkyboxRenderEntity(Skybox *parent);
 
-    void geometry(Geometry &geometry) const override;
+    Geometry geometry() const override;
     Material *material() const override;
 private:
     Skybox *m_parent;               /**< Parent skybox. */
 };
 
-/** Initialize the skybox scene entity
+/** Initialize the entity
  * @param parent        Parent skybox. */
-SkyboxSceneEntity::SkyboxSceneEntity(Skybox *parent) :
+SkyboxRenderEntity::SkyboxRenderEntity(Skybox *parent) :
     m_parent(parent)
 {
     /* Don't want to cull the skybox. */
@@ -55,16 +56,16 @@ SkyboxSceneEntity::SkyboxSceneEntity(Skybox *parent) :
 }
 
 /** Get the geometry for the entity.
- * @param geometry      Draw data structure to fill in. */
-void SkyboxSceneEntity::geometry(Geometry &geometry) const {
+ * @return              Geometry for the entity. */
+Geometry SkyboxRenderEntity::geometry() const {
     /* Skybox is rendered as a quad. The transformation is ignored by the
      * shader. */
-    g_renderManager->resources().quadGeometry(geometry);
+    return g_renderResources->quadGeometry();
 }
 
 /** Get the material for the entity.
  * @return              Material for the entity. */
-Material *SkyboxSceneEntity::material() const {
+Material *SkyboxRenderEntity::material() const {
     return m_parent->m_material;
 }
 
@@ -82,12 +83,12 @@ void Skybox::setTexture(TextureCube *texture) {
     m_material->setValue("skybox", m_texture);
 }
 
-/** Create scene entities.
+/** Create renderer entities.
  * @param entities      List to populate. */
-void Skybox::createSceneEntities(SceneEntityList &entities) {
+void Skybox::createRenderEntities(RenderEntityList &entities) {
     checkMsg(m_texture, "No texture set for Skybox");
     checkMsg(!entity()->parent(), "Skybox must be attached to root entity");
 
-    SkyboxSceneEntity *sceneEntity = new SkyboxSceneEntity(this);
-    entities.push_back(sceneEntity);
+    SkyboxRenderEntity *RenderEntity = new SkyboxRenderEntity(this);
+    entities.push_back(RenderEntity);
 }

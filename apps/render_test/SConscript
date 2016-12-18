@@ -1,6 +1,6 @@
 Import('manager')
 
-env = manager.CreateEnvironment(depends = ['engine'])
+env = manager.CreateEnvironment(depends = ['engine/base'])
 
 map(env.ObjgenSource, [
     'src/render_test.cc',

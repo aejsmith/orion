@@ -33,8 +33,6 @@
 
 #include "graphics/camera.h"
 
-#include "render/scene_renderer.h"
-
 /**
  * Construct a default camera.
  *
@@ -43,9 +41,7 @@
  * The default render target will be the main window.
  */
 Camera::Camera() :
-    RenderLayer(RenderLayer::kCameraPriority),
-    m_sceneView(&m_postEffectChain),
-    m_renderPath(RenderPath::kDeferred)
+    RenderLayer(RenderLayer::kCameraPriority)
 {
     /* Initialize the scene view with a default projection. */
     perspective();
@@ -54,38 +50,21 @@ Camera::Camera() :
     setRenderTarget(g_mainWindow);
 }
 
-/** Serialise the camera.
- * @param serialiser    Serialiser to write to. */
-void Camera::serialise(Serialiser &serialiser) const {
-    Component::serialise(serialiser);
-
-    serialiser.write("postEffectChain", m_postEffectChain);
-}
-
-/** Deserialise the camera.
- * @param serialiser    Serialiser to read from. */
-void Camera::deserialise(Serialiser &serialiser) {
-    Component::deserialise(serialiser);
-
-    serialiser.read("postEffectChain", m_postEffectChain);
-}
-
 /** Render the scene from the camera to its render target.
  * @param first         Whether this is the first layer on the RT. */
 void Camera::render(bool first) {
-    SceneRenderer renderer(world()->scene(), &m_sceneView, renderTarget(), m_renderPath);
-    renderer.render();
+    logError("TODO");
 }
 
 /** Update the viewport in the SceneView. */
 void Camera::viewportChanged() {
-    m_sceneView.setViewport(pixelViewport());
+    m_renderView.setViewport(pixelViewport());
 }
 
 /** Called when the camera transformation is changed.
  * @param changed       Flags indicating changes made. */
 void Camera::transformed(unsigned changed) {
-    m_sceneView.setTransform(entity()->worldPosition(), entity()->worldOrientation());
+    m_renderView.setTransform(entity()->worldPosition(), entity()->worldOrientation());
 }
 
 /** Called when the camera becomes active in the world. */

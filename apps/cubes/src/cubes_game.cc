@@ -45,11 +45,6 @@
 #include "physics/collision_shape.h"
 #include "physics/rigid_body.h"
 
-#include "render/effects/fxaa_effect.h"
-#include "render/render_manager.h"
-#include "render/utility.h"
-#include "render/vertex.h"
-
 /** Construct the game class. */
 CubesGame::CubesGame() :
     m_numCubes(0),
@@ -143,7 +138,7 @@ Entity *CubesGame::makeCube(bool withLights) {
             light->setAttenuation(glm::vec3(1.0f, 0.1f, 0.0f));
             light->setIntensity(1.5f);
             light->setCutoff(30.0f);
-            light->setCastShadows(false);
+            light->setCastsShadows(false);
             light->setActive(true);
         }
 

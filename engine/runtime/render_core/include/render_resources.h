@@ -27,8 +27,6 @@
 #include "gpu/state.h"
 #include "gpu/texture.h"
 
-#include "render/defs.h"
-
 #include "render_core/geometry.h"
 #include "render_core/material.h"
 

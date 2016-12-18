@@ -21,64 +21,74 @@
 
 #include "engine/world.h"
 
+#include "graphics/graphics_system.h"
 #include "graphics/renderer.h"
 
-#include "render/scene.h"
-#include "render/scene_entity.h"
+#include "render/render_entity.h"
+#include "render/render_world.h"
 
 /** Initialise the component. */
 Renderer::Renderer() :
-    m_castShadow(true)
+    m_castsShadow(true)
 {}
 
 /** Destory the component. */
 Renderer::~Renderer() {
-    check(m_sceneEntities.empty());
+    check(m_renderEntities.empty());
 }
 
 /** Set whether the rendered object casts a shadow.
- * @param castShadow    Whether to cast a shadow. */
-void Renderer::setCastShadow(bool castShadow) {
-    if (castShadow != m_castShadow) {
-        m_castShadow = castShadow;
+ * @param castsShadow   Whether to cast a shadow. */
+void Renderer::setCastsShadow(bool castsShadow) {
+    if (castsShadow != m_castsShadow) {
+        m_castsShadow = castsShadow;
 
-        for (SceneEntity *sceneEntity : m_sceneEntities)
-            sceneEntity->setCastShadow(castShadow);
+        for (RenderEntity *renderEntity : m_renderEntities) {
+            uint32_t flags = renderEntity->flags();
+
+            if (castsShadow) {
+                flags |= RenderEntity::kCastsShadow;
+            } else {
+                flags &= ~RenderEntity::kCastsShadow;
+            }
+
+            renderEntity->setFlags(flags);
+        }
     }
 }
 
 /** Called when the entity's transformation is updated.
  * @param changed       Flags indicating changes made. */
 void Renderer::transformed(unsigned changed) {
-    /* Update all scene entity transformations. */
-    for (SceneEntity *sceneEntity : m_sceneEntities)
-        sceneEntity->setTransform(worldTransform());
+    /* Update all renderer entity transformations. */
+    for (RenderEntity *renderEntity : m_renderEntities)
+        renderEntity->setTransform(worldTransform());
 }
 
 /** Called when the component becomes active in the world. */
 void Renderer::activated() {
-    /* Scene entities should not yet be created. Create them. */
-    check(m_sceneEntities.empty());
-    createSceneEntities(m_sceneEntities);
-    check(!m_sceneEntities.empty());
+    /* Renderer entities should not yet be created. Create them. */
+    check(m_renderEntities.empty());
+    createRenderEntities(m_renderEntities);
+    check(!m_renderEntities.empty());
+
+    auto &system = getSystem<GraphicsSystem>();
 
     /* Set properties and add them all to the renderer. */
-    for (SceneEntity *sceneEntity : m_sceneEntities) {
-        sceneEntity->setTransform(worldTransform());
-        sceneEntity->setCastShadow(m_castShadow);
+    for (RenderEntity *renderEntity : m_renderEntities) {
+        renderEntity->setTransform(worldTransform());
+        renderEntity->setFlags((m_castsShadow) ? RenderEntity::kCastsShadow : 0);
 
-        world()->scene()->addEntity(sceneEntity);
+        renderEntity->setWorld(&system.renderWorld());
     }
 }
 
 /** Called when the component becomes inactive in the world. */
 void Renderer::deactivated() {
-    while (!m_sceneEntities.empty()) {
-        SceneEntity *sceneEntity = m_sceneEntities.back();
-        m_sceneEntities.pop_back();
+    while (!m_renderEntities.empty()) {
+        RenderEntity *renderEntity = m_renderEntities.back();
+        m_renderEntities.pop_back();
 
-        world()->scene()->removeEntity(sceneEntity);
-
-        delete sceneEntity;
+        delete renderEntity;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2016 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,21 +16,29 @@
 
 /**
  * @file
- * @brief               FXAA post-processing effect.
+ * @brief               Graphics system class.
  */
 
 #pragma once
 
-#include "render/post_effect.h"
+#include "engine/world.h"
 
-/** FXAA post-processing effect. */
-class FXAAEffect : public PostEffect {
+class RenderWorld;
+
+/** Graphics state for a world. */
+class GraphicsSystem : public WorldSystem {
 public:
     CLASS();
 
-    FXAAEffect();
+    GraphicsSystem();
 
-    bool render(GPUTexture *source, GPUTexture *dest) override;
+    /** @return             Renderer world. */
+    RenderWorld &renderWorld() const { return *m_renderWorld; }
+protected:
+    ~GraphicsSystem();
+
+    void init() override;
 private:
-    MaterialPtr m_material;             /**< Material for the effect. */
+    /** Renderer world. */
+    std::unique_ptr<RenderWorld> m_renderWorld;
 };

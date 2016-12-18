@@ -25,7 +25,7 @@
 
 #include "graphics/renderer.h"
 
-#include "shader/material.h"
+#include "render_core/material.h"
 
 /**
  * Component which renders a skybox.
@@ -49,10 +49,10 @@ public:
 protected:
     ~Skybox() {}
 
-    virtual void createSceneEntities(SceneEntityList &entities) override;
+    void createRenderEntities(RenderEntityList &entities) override;
 private:
     TextureCubePtr m_texture;       /**< Skybox texture. */
     MaterialPtr m_material;         /**< Skybox material. */
 
-    friend class SkyboxSceneEntity;
+    friend class SkyboxRenderEntity;
 };
