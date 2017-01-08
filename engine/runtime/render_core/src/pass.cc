@@ -35,6 +35,9 @@
 /** Name of the basic pass type. */
 const char *const Pass::kBasicType = "Basic";
 
+/** Define the basic pass type. */
+DEFINE_PASS_TYPE("Basic", PassType::VariationList());
+
 /** Get a variation string.
  * @param variation     Variation to get for.
  * @return              Variation string. */
@@ -58,10 +61,10 @@ static std::string getVariationString(const ShaderKeywordSet &variation) {
  * @param type          Type of the pass. */
 Pass::Pass(Shader *parent, const std::string &type) :
     m_parent(parent),
-    m_type(lookupType(type))
+    m_type(PassType::lookup(type))
 {
     /* Pre-create the variation map for all required variations. */
-    for (const ShaderKeywordSet &variation : m_type.second)
+    for (const ShaderKeywordSet &variation : m_type.variations)
         m_variations.emplace(getVariationString(variation), Variation());
 }
 
@@ -135,7 +138,7 @@ bool Pass::loadStage(unsigned stage, const Path &path, const ShaderKeywordSet &k
     }
 
     /* Compile each variation. */
-    for (const ShaderKeywordSet &variation : m_type.second) {
+    for (const ShaderKeywordSet &variation : m_type.variations) {
         options.keywords = keywords;
         options.keywords.insert(variation.begin(), variation.end());
 
@@ -170,57 +173,43 @@ void Pass::finalise() {
     }
 }
 
-/** Wrapper class managing the pass type map. */
-class PassTypeRegistry {
-public:
-    /** Initialise the registry with built-in types. */
-    PassTypeRegistry() {
-        add(Pass::kBasicType, Pass::VariationList());
-    };
+/** @return             Global pass type map. */
+static auto &passTypeMap() {
+    static HashMap<std::string, PassType *> map;
+    return map;
+}
 
-    /** Look up a pass type. */
-    const std::pair<const std::string, Pass::VariationList> &lookup(const std::string &type) {
-        auto ret = m_map.find(type);
-        if (ret == m_map.end())
-            fatal("Unknown pass type '%s'", type.c_str());
-
-        return *ret;
-    }
-
-    /** Register a pass type. */
-    void add(std::string type, Pass::VariationList variations) {
-        /* Add a single variation with no keywords if the list is empty. */
-        if (variations.empty())
-            variations.emplace_back();
-
-        auto ret = m_map.emplace(
-            std::piecewise_construct,
-            std::forward_as_tuple(std::move(type)),
-            std::forward_as_tuple(std::move(variations)));
-        checkMsg(ret.second, "Duplicate pass type");
-    }
-
-    /** @return             Global pass type registry. */
-    static PassTypeRegistry &instance() {
-        static PassTypeRegistry instance;
-        return instance;
-    }
-private:
-    HashMap<std::string, Pass::VariationList> m_map;
-};
-
-/** Register a pass type.
- * @param type          Pass type name.
+/** Register the pass type.
+ * @param name          Pass type name.
  * @param variations    List of variations to compile, i.e. a list of different
  *                      combinations of keywords. An empty list will result in
  *                      1 variation being compiled with no additional keywords. */
-void Pass::registerType(std::string type, VariationList variations) {
-    PassTypeRegistry::instance().add(std::move(type), std::move(variations));
+PassType::PassType(std::string inName, VariationList inVariations) :
+    name(std::move(inName)),
+    variations(std::move(inVariations))
+{
+    /* Add a single variation with no keywords if the list is empty. */
+    if (this->variations.empty())
+        this->variations.emplace_back();
+
+    auto ret = passTypeMap().emplace(name, this);
+    checkMsg(ret.second, "Duplicate pass type");
+}
+
+/** Unregister the pass type. */
+PassType::~PassType() {
+    passTypeMap().erase(this->name);
 }
 
 /** Look up a pass type.
- * @param type          Pass type name.
+ * @param name          Pass type name.
  * @return              Reference to the pass type. */
-const Pass::Type &Pass::lookupType(const std::string &type) {
-    return PassTypeRegistry::instance().lookup(type);
+const PassType &PassType::lookup(const std::string &name) {
+    const auto &map = passTypeMap();
+
+    auto ret = map.find(name);
+    if (ret == map.end())
+        fatal("Unknown pass type '%s'", name.c_str());
+
+    return *ret->second;
 }

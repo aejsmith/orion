@@ -33,12 +33,38 @@
 class GPUCommandList;
 class Shader;
 
-/** Rendering pass. */
-class Pass : Noncopyable {
+/**
+ * Details of a pass type.
+ *
+ * Use the DEFINE_PASS_TYPE macro at global scope to define a pass type which
+ * will be registered at initialisation.
+ */
+class PassType {
 public:
     /** Type of a list of shader variations. */
     using VariationList = std::list<ShaderKeywordSet>;
 
+    PassType(std::string name, VariationList variations);
+    ~PassType();
+
+    std::string name;
+    VariationList variations;
+
+    static const PassType &lookup(const std::string &name);
+};
+
+/* Bypass preprocessor idiocy. */
+#define _PASS_TYPE_INSTANCE_NAME(id) g_passType_ ## id
+#define PASS_TYPE_INSTANCE_NAME(id) _PASS_TYPE_INSTANCE_NAME(id)
+
+/** Define a pass type (use at global scope).
+ * @see                 PassType::PassType(). */
+#define DEFINE_PASS_TYPE(args...) \
+    static PassType PASS_TYPE_INSTANCE_NAME(__LINE__)(args)
+
+/** Rendering pass. */
+class Pass : Noncopyable {
+public:
     /** Name of the basic pass type. */
     static const char *const kBasicType;
 
@@ -48,19 +74,14 @@ public:
     /** @return             Parent shader. */
     Shader *parent() const { return m_parent; }
     /** @return             Type of the pass. */
-    const std::string &type() const { return m_type.first; }
+    const std::string &type() const { return m_type.name; }
 
     bool loadStage(unsigned stage, const Path &path, const ShaderKeywordSet &keywords);
 
     void setDrawState(
         GPUCommandList *cmdList,
         const ShaderKeywordSet &variation = ShaderKeywordSet()) const;
-
-    static void registerType(std::string type, VariationList variations);
 private:
-    /** Details of a pass type. */
-    using Type = std::pair<const std::string, VariationList>;
-
     /** Structure holding a shader variation. */
     struct Variation {
         /** GPU pipeline. */
@@ -72,10 +93,8 @@ private:
 
     void finalise();
 
-    static const Type &lookupType(const std::string &type);
-
     Shader *m_parent;               /**< Parent shader. */
-    const Type &m_type;             /**< Type of the pass. */
+    const PassType &m_type;         /**< Type of the pass. */
 
     /**
      * Map of variations.
