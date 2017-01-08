@@ -1,6 +1,13 @@
 Import('env')
 
-objects = map(env.Object, [
+objects = map(env.ObjgenHeader, [
+    'include/deferred_render_pipeline.h',
+    'include/render_pipeline.h',
+])
+
+objects += map(env.Object, [
+    'src/deferred_render_pipeline.cc',
+    'src/render_context.cc',
     'src/render_entity.cc',
     'src/render_light.cc',
     'src/render_view.cc',

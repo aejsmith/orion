@@ -59,7 +59,7 @@ public:
      * @param view          View to cull against.
      * @param outResults    Results structure to fill in.
      */
-    virtual void cull(const RenderView *view, CullResults &outResults) = 0;
+    virtual void cull(const RenderView *view, CullResults &outResults) const = 0;
 
     /** Add an entity to the world.
      * @param entity        Entity to add. */

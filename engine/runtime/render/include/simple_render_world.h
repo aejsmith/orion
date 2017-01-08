@@ -35,7 +35,7 @@ public:
     SimpleRenderWorld();
     ~SimpleRenderWorld();
 
-    void cull(const RenderView *view, CullResults &outResults) override;
+    void cull(const RenderView *view, CullResults &outResults) const override;
 
     void addEntity(RenderEntity *entity) override;
     void updateEntity(RenderEntity *entity) override;

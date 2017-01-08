@@ -30,7 +30,7 @@ SimpleRenderWorld::~SimpleRenderWorld() {}
 /** Cull the world against the given view.
  * @param view          View to cull against.
  * @param outResults    Results structure to fill in. */
-void SimpleRenderWorld::cull(const RenderView *view, CullResults &outResults) {
+void SimpleRenderWorld::cull(const RenderView *view, CullResults &outResults) const {
     fatal("TODO");
 }
 
