@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -23,6 +23,8 @@
 
 #include "core/hash_table.h"
 
+#include "engine/global_resource.h"
+
 #include "gpu/resource.h"
 #include "gpu/state.h"
 #include "gpu/texture.h"
@@ -35,8 +37,6 @@ class RenderResources : Noncopyable {
 public:
     RenderResources();
     ~RenderResources();
-
-    void init();
 
     /** @return             Vertex data layout for SimpleVertex. */
     GPUVertexDataLayout *simpleVertexDataLayout() const { return m_simpleVertexDataLayout; }
@@ -122,4 +122,4 @@ private:
     GPUIndexDataPtr m_coneIndexData;
 };
 
-extern RenderResources *g_renderResources;
+extern GlobalResource<RenderResources> g_renderResources;

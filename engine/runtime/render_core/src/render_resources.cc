@@ -28,16 +28,10 @@
 #include "render_core/vertex.h"
 
 /** Global rendering resources. */
-RenderResources *g_renderResources;
+GlobalResource<RenderResources> g_renderResources;
 
 /** Initialise the rendering resource manager. */
-RenderResources::RenderResources() {}
-
-/** Destroy the rendering resource manager. */
-RenderResources::~RenderResources() {}
-
-/** Create rendering resources. */
-void RenderResources::init() {
+RenderResources::RenderResources() {
     /* Create the simple vertex data layout. */
     {
         GPUVertexDataLayoutDesc desc(1, 4);
@@ -107,3 +101,6 @@ void RenderResources::init() {
         RenderUtil::makeCone(20, m_coneVertexData, m_coneIndexData);
     }
 }
+
+/** Destroy the rendering resource manager. */
+RenderResources::~RenderResources() {}

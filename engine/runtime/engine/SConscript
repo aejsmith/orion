@@ -25,6 +25,7 @@ objects += map(env.Object, [
     'src/engine.cc',
     'src/entity.cc',
     'src/font.cc',
+    'src/global_resource.cc',
     'src/json_serialiser.cc',
     'src/main.cc',
     'src/mesh.cc',

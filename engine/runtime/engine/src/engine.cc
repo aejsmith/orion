@@ -93,8 +93,7 @@ Engine::Engine() :
     /* Initialize other global systems. */
     g_inputManager = new InputManager;
     g_assetManager = new AssetManager;
-    g_renderResources = new RenderResources;
-    g_renderResources->init();
+    g_renderResources.init();
     g_debugManager->initResources();
 
     g_debugManager->registerWindow(std::make_unique<WorldExplorerWindow>());
@@ -111,8 +110,10 @@ Engine::~Engine() {
     /* Shut down the game. */
     m_game.reset();
 
+    /** Destroy global resources. */
+    GlobalResourceBase::destroyAll();
+
     /* Shut down global systems. */
-    delete g_renderResources;
     delete g_debugManager;
     delete g_assetManager;
     delete g_inputManager;
