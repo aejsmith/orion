@@ -315,22 +315,30 @@ void VulkanGPUManager::submitRenderPass(GPUCommandList *cmdList) {
     std::vector<VkClearValue> clearValues;
     clearValues.reserve(targets.colour.size() + ((targets.depthStencil) ? 1 : 0));
 
+    const GPURenderPassDesc &passDesc = state.renderPass->desc();
     const GPURenderPassInstanceDesc &desc = vkCmdList->passInstance()->desc();
 
-    for (auto &clearColour : desc.clearColours) {
-        VkClearValue clearValue;
-        clearValue.color.float32[0] = clearColour.r;
-        clearValue.color.float32[1] = clearColour.g;
-        clearValue.color.float32[2] = clearColour.b;
-        clearValue.color.float32[3] = clearColour.a;
-        clearValues.push_back(clearValue);
+    for (size_t i = 0; i < desc.clearColours.size(); i++) {
+        /* The validation layer complains if we pass a larger clear value array
+         * than is necessary to cover all the targets with their load op set to
+         * clear, so only add an entry if needed. */
+        if (passDesc.colourAttachments[i].loadOp == GPURenderLoadOp::kClear) {
+            clearValues.resize(i + 1);
+            clearValues[i].color.float32[0] = desc.clearColours[i].r;
+            clearValues[i].color.float32[1] = desc.clearColours[i].g;
+            clearValues[i].color.float32[2] = desc.clearColours[i].b;
+            clearValues[i].color.float32[3] = desc.clearColours[i].a;
+        }
     }
 
     if (targets.depthStencil) {
-        VkClearValue clearValue;
-        clearValue.depthStencil.depth = desc.clearDepth;
-        clearValue.depthStencil.stencil = desc.clearStencil;
-        clearValues.push_back(clearValue);
+        const auto &attachment = passDesc.depthStencilAttachment;
+        if (attachment.loadOp == GPURenderLoadOp::kClear || attachment.stencilLoadOp == GPURenderLoadOp::kClear) {
+            size_t index = targets.colour.size();
+            clearValues.resize(index + 1);
+            clearValues[index].depthStencil.depth = desc.clearDepth;
+            clearValues[index].depthStencil.stencil = desc.clearStencil;
+        }
     }
 
     /* Perform the pass. */
