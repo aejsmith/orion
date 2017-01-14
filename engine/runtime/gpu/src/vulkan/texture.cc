@@ -262,6 +262,7 @@ void VulkanTexture::update(const IntRect &area, const void *data, unsigned mip, 
     region.imageOffset.y = area.y;
     region.imageExtent.width = areaWidth;
     region.imageExtent.height = areaHeight;
+    region.imageExtent.depth = 1;
     vkCmdCopyBufferToImage(
         stagingCmdBuf->handle(),
         staging->buffer(),
