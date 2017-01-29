@@ -50,6 +50,34 @@ DeferredRenderPipeline::Resources::Resources() {
     this->lightMaterial = new Material(shader);
 }
 
+/** Initialise the rendering context. */
+DeferredRenderPipeline::Context::Context(const RenderWorld &world, RenderView &view, RenderTarget &target) :
+    RenderContext(world, view, target)
+{
+    auto desc = GPUTextureDesc().
+        setType(GPUTexture::kTexture2D).
+        setWidth(target.width()).
+        setHeight(target.height()).
+        setMips(1).
+        setFlags(GPUTexture::kRenderTarget);
+
+    /* Allocate the main output textures. */
+    desc.format = kColourBufferFormat;
+    this->colourBuffer = g_renderTargetPool->allocate(desc);
+    desc.format = kDepthBufferFormat;
+    this->depthBuffer = g_renderTargetPool->allocate(desc);
+
+    /* Allocate the G-Buffer textures. */
+    desc.format = kDeferredBufferAFormat;
+    this->deferredBufferA = g_renderTargetPool->allocate(desc);
+    desc.format = kDeferredBufferBFormat;
+    this->deferredBufferB = g_renderTargetPool->allocate(desc);
+    desc.format = kDeferredBufferCFormat;
+    this->deferredBufferC = g_renderTargetPool->allocate(desc);
+    desc.format = kDeferredBufferDFormat;
+    this->deferredBufferD = g_renderTargetPool->allocate(desc);
+}
+
 /** Initialise the pipeline. */
 DeferredRenderPipeline::DeferredRenderPipeline() {
     /* Ensure that global resources are initialised. */
@@ -64,7 +92,7 @@ DeferredRenderPipeline::~DeferredRenderPipeline() {}
  * @param view          View to render from.
  * @param target        Render target. */
 void DeferredRenderPipeline::render(const RenderWorld &world, RenderView &view, RenderTarget &target) {
-    RenderContext context(world, view, target);
+    Context context(world, view, target);
 
     logError("DeferredRenderPipeline::render: TODO");
 }
