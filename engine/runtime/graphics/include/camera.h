@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -24,6 +24,7 @@
 #include "engine/component.h"
 #include "engine/render_target.h"
 
+#include "render/render_pipeline.h"
 #include "render/render_view.h"
 
 /** A view into the world from which the scene will be rendered. */
@@ -88,6 +89,9 @@ private:
     void viewportChanged() override;
 
     RenderView m_renderView;            /**< View implementing this camera. */
+
+    /** Rendering pipeline for the camera. */
+    ObjectPtr<RenderPipeline> m_renderPipeline;
 };
 
 /** Set up a perspective projection.

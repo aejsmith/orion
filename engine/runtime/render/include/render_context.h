@@ -37,17 +37,17 @@ class RenderWorld;
  */
 class RenderContext {
 public:
-    RenderContext(const RenderWorld *world, RenderView *view, RenderTarget *target);
+    RenderContext(const RenderWorld &world, RenderView &view, RenderTarget &target);
     ~RenderContext();
 
     /** @return             World that the context is rendering. */
-    const RenderWorld *world() const { return m_world; }
+    const RenderWorld &world() const { return m_world; }
     /** @return             View that is being rendered from. */
-    RenderView *view() const { return m_view; }
+    RenderView &view() const { return m_view; }
     /** @return             Target that is being rendered to. */
-    RenderTarget *target() const { return m_target; }
+    RenderTarget &target() const { return m_target; }
 private:
-    const RenderWorld *m_world;         /**< World that the context is rendering. */
-    RenderView *m_view;                 /**< View that is being rendered from. */
-    RenderTarget *m_target;             /**< Target that is being rendered to. */
+    const RenderWorld &m_world;         /**< World that the context is rendering. */
+    RenderView &m_view;                 /**< View that is being rendered from. */
+    RenderTarget &m_target;             /**< Target that is being rendered to. */
 };

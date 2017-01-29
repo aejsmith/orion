@@ -35,7 +35,7 @@ public:
     DeferredRenderPipeline();
     ~DeferredRenderPipeline();
 
-    void render(const RenderWorld *world, RenderView *view, RenderTarget *target) override;
+    void render(const RenderWorld &world, RenderView &view, RenderTarget &target) override;
 private:
     /** Global resources for the pipeline. */
     struct Resources {

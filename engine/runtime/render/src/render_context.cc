@@ -25,7 +25,7 @@
  * @param world         World to render.
  * @param view          View to render from.
  * @param target        Render target. */
-RenderContext::RenderContext(const RenderWorld *world, RenderView *view, RenderTarget *target) :
+RenderContext::RenderContext(const RenderWorld &world, RenderView &view, RenderTarget &target) :
     m_world(world),
     m_view(view),
     m_target(target)

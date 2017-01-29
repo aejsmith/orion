@@ -63,6 +63,8 @@ DeferredRenderPipeline::~DeferredRenderPipeline() {}
  * @param world         World to render.
  * @param view          View to render from.
  * @param target        Render target. */
-void DeferredRenderPipeline::render(const RenderWorld *world, RenderView *view, RenderTarget *target) {
+void DeferredRenderPipeline::render(const RenderWorld &world, RenderView &view, RenderTarget &target) {
     RenderContext context(world, view, target);
+
+    logError("DeferredRenderPipeline::render: TODO");
 }

@@ -48,7 +48,7 @@ public:
      * @param view          View to render from.
      * @param target        Render target.
      */
-    virtual void render(const RenderWorld *world, RenderView *view, RenderTarget *target) = 0;
+    virtual void render(const RenderWorld &world, RenderView &view, RenderTarget &target) = 0;
 protected:
     RenderPipeline() {}
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -32,6 +32,9 @@
 #include "engine/world.h"
 
 #include "graphics/camera.h"
+#include "graphics/graphics_system.h"
+
+#include "render/deferred_render_pipeline.h"
 
 /**
  * Construct a default camera.
@@ -48,12 +51,18 @@ Camera::Camera() :
 
     /* Default to the main window as the render target. */
     setRenderTarget(g_mainWindow);
+
+    /* TODO: Make this a property. */
+    m_renderPipeline = new DeferredRenderPipeline;
 }
 
 /** Render the scene from the camera to its render target.
  * @param first         Whether this is the first layer on the RT. */
 void Camera::render(bool first) {
-    logError("TODO");
+    assert(renderTarget());
+
+    auto &system = getSystem<GraphicsSystem>();
+    m_renderPipeline->render(system.renderWorld(), m_renderView, *renderTarget());
 }
 
 /** Update the viewport in the SceneView. */
