@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -20,6 +20,8 @@
  */
 
 #pragma once
+
+#include "core/listener.h"
 
 #include "engine/object.h"
 
@@ -64,6 +66,13 @@ public:
 /** Main class of the engine. */
 class Engine : Noncopyable {
 public:
+    /** Frame listener class. */
+    class FrameListener : public Listener<FrameListener> {
+    public:
+        /** Called at the start of a new frame. */
+        virtual void frameStarted() = 0;
+    };
+
     Engine();
     ~Engine();
 
@@ -92,6 +101,12 @@ public:
 
     void addRenderTarget(RenderTarget *target);
     void removeRenderTarget(RenderTarget *target);
+
+    /**
+     * Event handling.
+     */
+
+    void addFrameListener(FrameListener *listener);
 private:
     /**
      * Main loop functions.
@@ -107,6 +122,9 @@ private:
 
     /** List of render targets. */
     std::list<RenderTarget *> m_renderTargets;
+
+    /** Event notification. */
+    Notifier<FrameListener> m_frameNotifier;
 
     /** Timing information. */
     uint32_t m_lastTick;            /**< Last tick time. */

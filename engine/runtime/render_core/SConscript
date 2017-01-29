@@ -13,6 +13,7 @@ objects += map(env.Object, [
     'src/pass.cc',
     'src/primitive_renderer.cc',
     'src/render_resources.cc',
+    'src/render_target_pool.cc',
     'src/shader.cc',
     'src/shader_compiler.cc',
     'src/shader_parameter.cc',

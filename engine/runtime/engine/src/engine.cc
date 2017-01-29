@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -35,6 +35,7 @@
 #include "input/input_manager.h"
 
 #include "render_core/render_resources.h"
+#include "render_core/render_target_pool.h"
 
 #include <SDL.h>
 
@@ -94,6 +95,7 @@ Engine::Engine() :
     g_inputManager = new InputManager;
     g_assetManager = new AssetManager;
     g_renderResources.init();
+    g_renderTargetPool.init();
     g_debugManager->initResources();
 
     g_debugManager->registerWindow(std::make_unique<WorldExplorerWindow>());
@@ -142,6 +144,9 @@ void Engine::run() {
 
         /* Reset frame statistics. */
         m_stats.drawCalls = 0;
+
+        /* Call frame start handlers. */
+        m_frameNotifier.notify([] (FrameListener *listener) { listener->frameStarted(); });
 
         m_game->startFrame();
 
@@ -280,4 +285,10 @@ void Engine::addRenderTarget(RenderTarget *target) {
  * @param target        Render target to remove. */
 void Engine::removeRenderTarget(RenderTarget *target) {
     m_renderTargets.remove(target);
+}
+
+/** Add a frame listener.
+ * @param listener      Listener to add. */
+void Engine::addFrameListener(FrameListener *listener) {
+    m_frameNotifier.add(listener);
 }
