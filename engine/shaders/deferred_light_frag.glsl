@@ -21,20 +21,19 @@
 
 #include "lighting.h"
 
+layout(pixel_center_integer) in vec4 gl_FragCoord;
+
 layout(location = 0) out vec4 fragColour;
 
 /** Decode the G-Buffer data.
  * @param data          Lighting data structure to fill in. */
 void decodeGBuffer(out LightingData data) {
-    /* Determine G-Buffer texture coordinates. */
-    vec2 size = textureSize(deferredBufferA, 0);
-    vec2 texcoord = gl_FragCoord.xy / size;
-
     /* Sample the textures. */
-    vec4 sampleA = texture(deferredBufferA, texcoord);
-    vec4 sampleB = texture(deferredBufferB, texcoord);
-    vec4 sampleC = texture(deferredBufferC, texcoord);
-    vec4 sampleD = texture(deferredBufferD, texcoord);
+    ivec2 uv = ivec2(gl_FragCoord.x, gl_FragCoord.y);
+    vec4 sampleA = texelFetch(deferredBufferA, uv, 0);
+    vec4 sampleB = texelFetch(deferredBufferB, uv, 0);
+    vec4 sampleC = texelFetch(deferredBufferC, uv, 0);
+    vec4 sampleD = texelFetch(deferredBufferD, uv, 0);
 
     /* Normal is scaled into the [0, 1] range, change it back to [-1, 1]. */
     data.normal = (sampleA.rgb * 2.0) - 1.0;
