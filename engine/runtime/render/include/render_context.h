@@ -23,9 +23,10 @@
 
 #include "core/core.h"
 
+#include "render/render_world.h"
+
 class RenderTarget;
 class RenderView;
-class RenderWorld;
 
 /**
  * Rendering context class.
@@ -46,6 +47,40 @@ public:
     RenderView &view() const { return m_view; }
     /** @return             Target that is being rendered to. */
     RenderTarget &target() const { return m_target; }
+
+    /**
+     * Cull the world against the primary view.
+     *
+     * Obtains lists of all the entities visible from the primary view, as well
+     * as all the lights visible if the kCullLights flag is passed.
+     *
+     * @param outResults    Results structure to fill in.
+     * @param flags         Culling behaviour flags.
+     */
+    void cull(
+        RenderWorld::CullResults &outResults,
+        uint32_t flags = RenderWorld::kCullLights) const
+    {
+        m_world.cull(m_view, outResults, flags);
+    }
+
+    /**
+     * Cull the world against the given view.
+     *
+     * Obtains lists of all the entities visible from the given view, as well
+     * as all the lights visible if the kCullLights flag is passed.
+     *
+     * @param view          View to cull against.
+     * @param outResults    Results structure to fill in.
+     * @param flags         Culling behaviour flags.
+     */
+    void cull(
+        RenderView &view,
+        RenderWorld::CullResults &outResults,
+        uint32_t flags = RenderWorld::kCullLights) const
+    {
+        m_world.cull(view, outResults, flags);
+    }
 private:
     const RenderWorld &m_world;         /**< World that the context is rendering. */
     RenderView &m_view;                 /**< View that is being rendered from. */

@@ -19,6 +19,9 @@
  * @brief               Simple world implementation.
  */
 
+#include "render/render_entity.h"
+#include "render/render_light.h"
+#include "render/render_view.h"
 #include "render/simple_render_world.h"
 
 /** Initialise the world. */
@@ -29,9 +32,20 @@ SimpleRenderWorld::~SimpleRenderWorld() {}
 
 /** Cull the world against the given view.
  * @param view          View to cull against.
- * @param outResults    Results structure to fill in. */
-void SimpleRenderWorld::cull(const RenderView *view, CullResults &outResults) const {
-    fatal("TODO");
+ * @param outResults    Results structure to fill in.
+ * @param flags         Culling behaviour flags. */
+void SimpleRenderWorld::cull(RenderView &view, CullResults &outResults, uint32_t flags) const {
+    for (RenderEntity *entity : m_entities) {
+        if (Math::intersect(view.frustum(), entity->worldBoundingBox()))
+            outResults.entities.emplace_back(entity);
+    }
+
+    if (flags & kCullLights) {
+        for (RenderLight *light : m_lights) {
+            if (!light->cull(view))
+                 outResults.lights.emplace_back(light);
+        }
+    }
 }
 
 /** Add an entity to the world.

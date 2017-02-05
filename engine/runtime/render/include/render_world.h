@@ -39,6 +39,12 @@ class RenderView;
  */
 class RenderWorld {
 public:
+    /** Culling behaviour flags. */
+    enum CullFlags : uint32_t {
+        /** Whether to visible lights in the results. */
+        kCullLights = (1 << 0),
+    };
+
     /** Structure containing the results of culling. */
     struct CullResults {
         /** List of visible entities. */
@@ -53,13 +59,17 @@ public:
     /**
      * Cull the world against the given view.
      *
-     * Given a view, obtains lists of all the entities and lights visible from
-     * it.
+     * Given a view, obtains lists of all the entities visible from it, as well
+     * as all the lights visible if the kCullLights flag is passed.
      *
      * @param view          View to cull against.
      * @param outResults    Results structure to fill in.
+     * @param flags         Culling behaviour flags.
      */
-    virtual void cull(const RenderView *view, CullResults &outResults) const = 0;
+    virtual void cull(
+        RenderView &view,
+        CullResults &outResults,
+        uint32_t flags = kCullLights) const = 0;
 
     /** Add an entity to the world.
      * @param entity        Entity to add. */

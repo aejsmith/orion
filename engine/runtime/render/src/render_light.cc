@@ -175,7 +175,11 @@ Geometry RenderLight::volumeGeometry() const {
 /** Determine if the light is visible to a view.
  * @param view          View to test against.
  * @return              Whether the light should be culled. */
-bool RenderLight::cull(RenderView *view) const {
+bool RenderLight::cull(RenderView &view) const {
+    /* Ignore lights which would have no effect. */
+    if (!m_intensity || !glm::length(m_colour))
+        return true;
+
     switch (m_type) {
         case kAmbientLight:
         case kDirectionalLight:
@@ -184,11 +188,11 @@ bool RenderLight::cull(RenderView *view) const {
         case kPointLight:
         {
             Sphere sphere(m_position, m_range);
-            return !Math::intersect(view->frustum(), sphere);
+            return !Math::intersect(view.frustum(), sphere);
         }
 
         case kSpotLight:
-            return !Math::intersect(view->frustum(), m_boundingBox);
+            return !Math::intersect(view.frustum(), m_boundingBox);
 
         default:
             return true;

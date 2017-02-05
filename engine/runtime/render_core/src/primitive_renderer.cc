@@ -106,7 +106,9 @@ void PrimitiveRenderer::draw(GPUCommandList *cmdList, GPUResourceSet *view) {
         const BatchKey &key = batch.first;
         const BatchData &data = batch.second;
 
-        key.material->setDrawState(cmdList, Pass::kBasicType);
-        cmdList->draw(key.type, data.gpu, nullptr);
+        if (data.gpu) {
+            key.material->setDrawState(cmdList, Pass::kBasicType);
+            cmdList->draw(key.type, data.gpu, nullptr);
+        }
     }
 }

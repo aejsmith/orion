@@ -75,10 +75,6 @@ RenderResources::RenderResources() {
         /* View resources. */
         desc.slots.resize(ResourceSlots::kNumViewResources);
         desc.slots[ResourceSlots::kUniforms].type = GPUResourceType::kUniformBuffer;
-        desc.slots[ResourceSlots::kDeferredBufferA].type = GPUResourceType::kTexture;
-        desc.slots[ResourceSlots::kDeferredBufferB].type = GPUResourceType::kTexture;
-        desc.slots[ResourceSlots::kDeferredBufferC].type = GPUResourceType::kTexture;
-        desc.slots[ResourceSlots::kDeferredBufferD].type = GPUResourceType::kTexture;
         m_viewResourceSetLayout = g_gpuManager->createResourceSetLayout(std::move(desc));
 
         /* Light resources. */

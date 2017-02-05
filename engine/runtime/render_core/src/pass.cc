@@ -33,7 +33,7 @@
 #include "render_core/uniform_buffer.h"
 
 /** Name of the basic pass type. */
-const char *const Pass::kBasicType = "Basic";
+const std::string Pass::kBasicType("Basic");
 
 /** Define the basic pass type. */
 DEFINE_PASS_TYPE("Basic", PassType::VariationList());

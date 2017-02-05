@@ -3,7 +3,24 @@
         "objectClass": "Shader",
         "objectID": 0,
         "objectProperties": {},
-        "parameters": [],
+        "parameters": [
+            {
+                "name": "deferredBufferA",
+                "type": "kTexture2D"
+            },
+            {
+                "name": "deferredBufferB",
+                "type": "kTexture2D"
+            },
+            {
+                "name": "deferredBufferC",
+                "type": "kTexture2D"
+            },
+            {
+                "name": "deferredBufferD",
+                "type": "kTexture2D"
+            }
+        ],
         "passes": [
             {
                 "type": "DeferredLight",

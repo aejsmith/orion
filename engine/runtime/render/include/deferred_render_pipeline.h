@@ -23,7 +23,9 @@
 
 #include "engine/global_resource.h"
 
+#include "render/draw_list.h"
 #include "render/render_pipeline.h"
+#include "render/render_world.h"
 
 #include "render_core/material.h"
 #include "render_core/render_target_pool.h"
@@ -59,8 +61,35 @@ class DeferredRenderPipeline final : public RenderPipeline {
 public:
     CLASS();
 
+    DeferredRenderPipeline();
+    ~DeferredRenderPipeline();
+
+    void render(const RenderWorld &world, RenderView &view, RenderTarget &target) const override;
+private:
+    /** Global resources for the pipeline. */
+    struct Resources {
+        /** Deferred light shader. */
+        ShaderPtr lightShader;
+
+        /** Render passes. */
+        GPURenderPassPtr gBufferPass;       /**< G-Buffer render pass. */
+        GPURenderPassPtr lightPass;         /**< Deferred light render pass. */
+        GPURenderPassPtr basicPass;         /**< Basic render pass. */
+    public:
+        Resources();
+    };
+
+    /** Per-light state. */
+    struct Light {
+        RenderLight *renderLight;           /**< Light object. */
+        GPUResourceSet *resources;          /**< Resources for the light. */
+    };
+
     /** Rendering context. */
     struct Context : RenderContext {
+        /** Rendering area. */
+        IntRect renderArea;
+
         /** Main output textures. */
         RenderTargetPool::Handle colourBuffer;
         RenderTargetPool::Handle depthBuffer;
@@ -70,21 +99,33 @@ public:
         RenderTargetPool::Handle deferredBufferB;
         RenderTargetPool::Handle deferredBufferC;
         RenderTargetPool::Handle deferredBufferD;
+
+        /** Light material. */
+        MaterialPtr lightMaterial;
+
+        /** Culling results. */
+        RenderWorld::CullResults cullResults;
+
+        /** Per-light state. */
+        std::vector<Light> lights;
+
+        /** List of draw calls for entities with deferred passes. */
+        DrawList deferredDrawList;
+
+        /** List of draw calls for entities with basic passes. */
+        DrawList basicDrawList;
     public:
-        Context(const RenderWorld &world, RenderView &view, RenderTarget &target);
+        using RenderContext::RenderContext;
     };
 
-    DeferredRenderPipeline();
-    ~DeferredRenderPipeline();
+    void allocResources(Context &context) const;
 
-    void render(const RenderWorld &world, RenderView &view, RenderTarget &target) override;
-private:
-    /** Global resources for the pipeline. */
-    struct Resources {
-        MaterialPtr lightMaterial;      /**< Deferred light material. */
-    public:
-        Resources();
-    };
+    void prepareLights(Context &context) const;
+    void prepareEntities(Context &context) const;
+
+    void renderDeferred(Context &context) const;
+    void renderBasic(Context &context) const;
+    void renderDebug(Context &context) const;
 
     static GlobalResource<Resources> m_resources;
 };

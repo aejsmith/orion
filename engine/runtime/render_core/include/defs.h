@@ -70,13 +70,7 @@ namespace ResourceSlots {
          * Per-view resources (kViewResources).
          */
 
-        /** Deferred G-Buffer textures. */
-        kDeferredBufferA = 1,
-        kDeferredBufferB = 2,
-        kDeferredBufferC = 3,
-        kDeferredBufferD = 4,
-
-        kNumViewResources = 5,
+        kNumViewResources = 1,
 
         /**
          * Per-light resources (kLightResources).

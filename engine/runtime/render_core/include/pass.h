@@ -66,7 +66,7 @@ public:
 class Pass : Noncopyable {
 public:
     /** Name of the basic pass type. */
-    static const char *const kBasicType;
+    static const std::string kBasicType;
 
     Pass(Shader *parent, const std::string &type);
     ~Pass();
