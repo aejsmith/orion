@@ -16,7 +16,7 @@
 
 /**
  * @file
- * @brief               Forward lighting vertex shader.
+ * @brief               Lit vertex shader.
  */
 
 layout(location = kPositionSemantic) in vec3 attribPosition;
