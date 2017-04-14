@@ -32,7 +32,7 @@
 
 /** Screen buffer pixel formats. */
 static const PixelFormat kColourBufferFormat = PixelFormat::kR8G8B8A8;
-static const PixelFormat kDepthBufferFormat = PixelFormat::kDepth24Stencil8;
+static const PixelFormat kDepthBufferFormat  = PixelFormat::kDepth32;
 
 /**
  * G-Buffer pixel formats. The buffer layout is as follows:
@@ -54,7 +54,7 @@ static const PixelFormat kDepthBufferFormat = PixelFormat::kDepth24Stencil8;
 static const PixelFormat kDeferredBufferAFormat = PixelFormat::kR10G10B10A2;
 static const PixelFormat kDeferredBufferBFormat = PixelFormat::kR8G8B8A8;
 static const PixelFormat kDeferredBufferCFormat = PixelFormat::kR8G8B8A8;
-static const PixelFormat kDeferredBufferDFormat = PixelFormat::kDepth24Stencil8;
+static const PixelFormat kDeferredBufferDFormat = PixelFormat::kDepth32;
 
 /** Rendering pipeline implementing deferred rendering. */
 class DeferredRenderPipeline final : public RenderPipeline {

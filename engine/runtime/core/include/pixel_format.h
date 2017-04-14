@@ -58,8 +58,8 @@ struct PixelFormat {
 
         /** Depth/stencil formats. */
         kDepth16,               /**< Depth, 16 bits. */
-        kDepth24,               /**< Depth, 24 bits. */
-        kDepth24Stencil8,       /**< Depth/stencil, 24 bits/8 bits. */
+        kDepth32,               /**< Depth, 32 bits. */
+        kDepth32Stencil8,       /**< Depth/stencil, 24 bits/8 bits. */
 
         /** Number of pixel formats. */
         kNumFormats,
@@ -82,8 +82,8 @@ struct PixelFormat {
     static bool isDepth(PixelFormat format) {
         switch (format) {
             case kDepth16:
-            case kDepth24:
-            case kDepth24Stencil8:
+            case kDepth32:
+            case kDepth32Stencil8:
                 return true;
             default:
                 return false;
@@ -95,7 +95,7 @@ struct PixelFormat {
      * @return              Whether the format is a depth format. */
     static bool isDepthStencil(PixelFormat format) {
         switch (format) {
-            case kDepth24Stencil8:
+            case kDepth32Stencil8:
                 return true;
             default:
                 return false;

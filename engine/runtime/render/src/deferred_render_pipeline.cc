@@ -82,7 +82,7 @@ DeferredRenderPipeline::Resources::Resources() {
     passDesc.depthStencilAttachment               = GPURenderAttachmentDesc();
     passDesc.depthStencilAttachment.format        = kDepthBufferFormat;
     passDesc.depthStencilAttachment.loadOp        = GPURenderLoadOp::kClear;
-    passDesc.depthStencilAttachment.stencilLoadOp = GPURenderLoadOp::kClear;
+    passDesc.depthStencilAttachment.stencilLoadOp = GPURenderLoadOp::kDontCare;
 
     this->gBufferPass = g_gpuManager->createRenderPass(std::move(passDesc));
 
@@ -92,7 +92,7 @@ DeferredRenderPipeline::Resources::Resources() {
     passDesc.colourAttachments[0].loadOp          = GPURenderLoadOp::kClear;
     passDesc.depthStencilAttachment.format        = kDepthBufferFormat;
     passDesc.depthStencilAttachment.loadOp        = GPURenderLoadOp::kLoad;
-    passDesc.depthStencilAttachment.stencilLoadOp = GPURenderLoadOp::kLoad;
+    passDesc.depthStencilAttachment.stencilLoadOp = GPURenderLoadOp::kDontCare;
 
     this->lightPass = g_gpuManager->createRenderPass(std::move(passDesc));
 

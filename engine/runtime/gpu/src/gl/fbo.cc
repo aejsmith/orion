@@ -88,8 +88,13 @@ GLuint GLGPUManager::createFBO(const GPURenderTargetDesc &desc) {
     glReadBuffer((desc.colour.size() > 0) ? buffers[0] : GL_NONE);
     glDrawBuffers(desc.colour.size(), buffers);
 
-    if (desc.depthStencil.texture)
-        setAttachment(GL_DEPTH_STENCIL_ATTACHMENT, desc.depthStencil);
+    if (desc.depthStencil.texture) {
+        if (PixelFormat::isDepthStencil(desc.depthStencil.texture->format())) {
+            setAttachment(GL_DEPTH_STENCIL_ATTACHMENT, desc.depthStencil);
+        } else {
+            setAttachment(GL_DEPTH_ATTACHMENT, desc.depthStencil);
+        }
+    }
 
     /* Check for error. */
     GLenum status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);

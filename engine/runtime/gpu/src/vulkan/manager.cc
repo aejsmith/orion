@@ -362,8 +362,8 @@ void VulkanGPUManager::initFeatures() {
     initFormat(PixelFormat::kFloatR32G32,       VK_FORMAT_R32G32_SFLOAT);
     initFormat(PixelFormat::kFloatR32,          VK_FORMAT_R32_SFLOAT);
     initFormat(PixelFormat::kDepth16,           VK_FORMAT_D16_UNORM);
-    initFormat(PixelFormat::kDepth24,           VK_FORMAT_X8_D24_UNORM_PACK32);
-    initFormat(PixelFormat::kDepth24Stencil8,   VK_FORMAT_D24_UNORM_S8_UINT);
+    initFormat(PixelFormat::kDepth32,           VK_FORMAT_D32_SFLOAT);
+    initFormat(PixelFormat::kDepth32Stencil8,   VK_FORMAT_D32_SFLOAT_S8_UINT);
 }
 
 /** Begin a new frame. */

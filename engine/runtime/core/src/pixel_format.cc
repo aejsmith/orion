@@ -36,6 +36,7 @@ size_t PixelFormat::bytesPerPixel(PixelFormat format) {
             return 12;
         case kFloatR16G16B16A16:
         case kFloatR32G32:
+        case kDepth32Stencil8:
             return 8;
         case kFloatR16G16B16:
             return 6;
@@ -44,11 +45,10 @@ size_t PixelFormat::bytesPerPixel(PixelFormat format) {
         case kR10G10B10A2:
         case kFloatR16G16:
         case kFloatR32:
-        case kDepth24Stencil8:
+        case kDepth32:
             return 4;
         case kR8G8B8:
         case kB8G8R8:
-        case kDepth24:
             return 3;
         case kR8G8:
         case kFloatR16:

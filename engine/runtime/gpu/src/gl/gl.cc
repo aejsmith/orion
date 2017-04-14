@@ -241,24 +241,24 @@ void GLGPUManager::initPixelFormats() {
      * supported formats.
      * TODO: If we ever run on a big endian platform, the packed pixel
      * formats will need to be changed. */
-    f[PixelFormat::kR8G8B8A8]          = { GL_RGBA8,             GL_RGBA,            GL_UNSIGNED_INT_8_8_8_8_REV };
-    f[PixelFormat::kR8G8B8]            = { GL_RGB8,              GL_RGB,             GL_UNSIGNED_BYTE };
-    f[PixelFormat::kR8G8]              = { GL_RG8,               GL_RG,              GL_UNSIGNED_BYTE };
-    f[PixelFormat::kR8]                = { GL_R8,                GL_RED,             GL_UNSIGNED_BYTE };
-    f[PixelFormat::kB8G8R8A8]          = { GL_RGBA8,             GL_BGRA,            GL_UNSIGNED_INT_8_8_8_8_REV };
-    f[PixelFormat::kB8G8R8]            = { GL_RGB8,              GL_BGR,             GL_UNSIGNED_BYTE };
-    f[PixelFormat::kR10G10B10A2]       = { GL_RGB10_A2,          GL_RGBA,            GL_UNSIGNED_INT_2_10_10_10_REV };
-    f[PixelFormat::kFloatR16G16B16A16] = { GL_RGBA16F,           GL_RGBA,            GL_HALF_FLOAT };
-    f[PixelFormat::kFloatR16G16B16]    = { GL_RGB16F,            GL_RGB,             GL_HALF_FLOAT };
-    f[PixelFormat::kFloatR16G16]       = { GL_RG16F,             GL_RG,              GL_HALF_FLOAT };
-    f[PixelFormat::kFloatR16]          = { GL_R16F,              GL_RED,             GL_HALF_FLOAT };
-    f[PixelFormat::kFloatR32G32B32A32] = { GL_RGBA32F,           GL_RGBA,            GL_FLOAT };
-    f[PixelFormat::kFloatR32G32B32]    = { GL_RGB32F,            GL_RGB,             GL_FLOAT };
-    f[PixelFormat::kFloatR32G32]       = { GL_RG32F,             GL_RG,              GL_FLOAT };
-    f[PixelFormat::kFloatR32]          = { GL_R32F,              GL_RED,             GL_FLOAT };
-    f[PixelFormat::kDepth16]           = { GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT };
-    f[PixelFormat::kDepth24]           = { GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT };
-    f[PixelFormat::kDepth24Stencil8]   = { GL_DEPTH24_STENCIL8,  GL_DEPTH_STENCIL,   GL_UNSIGNED_INT_24_8 };
+    f[PixelFormat::kR8G8B8A8]          = { GL_RGBA8,              GL_RGBA,            GL_UNSIGNED_INT_8_8_8_8_REV };
+    f[PixelFormat::kR8G8B8]            = { GL_RGB8,               GL_RGB,             GL_UNSIGNED_BYTE };
+    f[PixelFormat::kR8G8]              = { GL_RG8,                GL_RG,              GL_UNSIGNED_BYTE };
+    f[PixelFormat::kR8]                = { GL_R8,                 GL_RED,             GL_UNSIGNED_BYTE };
+    f[PixelFormat::kB8G8R8A8]          = { GL_RGBA8,              GL_BGRA,            GL_UNSIGNED_INT_8_8_8_8_REV };
+    f[PixelFormat::kB8G8R8]            = { GL_RGB8,               GL_BGR,             GL_UNSIGNED_BYTE };
+    f[PixelFormat::kR10G10B10A2]       = { GL_RGB10_A2,           GL_RGBA,            GL_UNSIGNED_INT_2_10_10_10_REV };
+    f[PixelFormat::kFloatR16G16B16A16] = { GL_RGBA16F,            GL_RGBA,            GL_HALF_FLOAT };
+    f[PixelFormat::kFloatR16G16B16]    = { GL_RGB16F,             GL_RGB,             GL_HALF_FLOAT };
+    f[PixelFormat::kFloatR16G16]       = { GL_RG16F,              GL_RG,              GL_HALF_FLOAT };
+    f[PixelFormat::kFloatR16]          = { GL_R16F,               GL_RED,             GL_HALF_FLOAT };
+    f[PixelFormat::kFloatR32G32B32A32] = { GL_RGBA32F,            GL_RGBA,            GL_FLOAT };
+    f[PixelFormat::kFloatR32G32B32]    = { GL_RGB32F,             GL_RGB,             GL_FLOAT };
+    f[PixelFormat::kFloatR32G32]       = { GL_RG32F,              GL_RG,              GL_FLOAT };
+    f[PixelFormat::kFloatR32]          = { GL_R32F,               GL_RED,             GL_FLOAT };
+    f[PixelFormat::kDepth16]           = { GL_DEPTH_COMPONENT16,  GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT };
+    f[PixelFormat::kDepth32]           = { GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT };
+    f[PixelFormat::kDepth32Stencil8]   = { GL_DEPTH32F_STENCIL8,  GL_DEPTH_STENCIL,   GL_FLOAT_32_UNSIGNED_INT_24_8_REV };
 }
 
 #if ORION_GL_DEBUG
