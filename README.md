@@ -2,6 +2,8 @@
 
 Orion is a hobby 3D game engine project. It currently supports Linux and Windows (64-bit).
 
+<a href="https://raw.githubusercontent.com/aejsmith/orion/master/documentation/screenshot.png"><img src="https://raw.githubusercontent.com/aejsmith/orion/master/documentation/screenshot.png" width="720" height="450"></a>
+
 ## License
 
 Orion is licensed under the ISC license, see [license.txt](https://github.com/aejsmith/orion/blob/master/documentation/license.txt) for details.
