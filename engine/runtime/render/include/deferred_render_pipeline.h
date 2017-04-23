@@ -24,6 +24,7 @@
 #include "engine/global_resource.h"
 
 #include "render/draw_list.h"
+#include "render/render_light.h"
 #include "render/render_pipeline.h"
 #include "render/render_world.h"
 
@@ -45,7 +46,7 @@ static const PixelFormat kDepthBufferFormat  = PixelFormat::kDepth32;
  *  ---|-------------|------------|------------|------------|------------
  *   C | R8G8B8A8    | Specular.r | Specular.g | Specular.b | 1/Shininess
  *  ---|-------------|------------|------------|------------|------------
- *   D | D24S8       | Depth      | -          | -          | -
+ *   D | D32         | Depth      | -          | -          | -
  *
  * These are all unsigned normalized textures, therefore the normals are scaled
  * to fit into the [0, 1] range, and the shininess is stored as its reciprocal.
@@ -56,6 +57,9 @@ static const PixelFormat kDeferredBufferBFormat = PixelFormat::kR8G8B8A8;
 static const PixelFormat kDeferredBufferCFormat = PixelFormat::kR8G8B8A8;
 static const PixelFormat kDeferredBufferDFormat = PixelFormat::kDepth32;
 
+/** Shadow map format. TODO: Investigate lowering this to D16. */
+static const PixelFormat kShadowMapFormat       = PixelFormat::kDepth32;
+
 /** Rendering pipeline implementing deferred rendering. */
 class DeferredRenderPipeline final : public RenderPipeline {
 public:
@@ -63,6 +67,9 @@ public:
 
     DeferredRenderPipeline();
     ~DeferredRenderPipeline();
+
+    /** Resolution to use for shadow maps. */
+    PROPERTY() uint16_t shadowMapResolution;
 
     void render(const RenderWorld &world, RenderView &view, RenderTarget &target) const override;
 private:
@@ -72,17 +79,25 @@ private:
         ShaderPtr lightShader;
 
         /** Render passes. */
-        GPURenderPassPtr gBufferPass;       /**< G-Buffer render pass. */
-        GPURenderPassPtr lightPass;         /**< Deferred light render pass. */
-        GPURenderPassPtr basicPass;         /**< Basic render pass. */
+        GPURenderPassPtr shadowMapPass;         /**< Shadow map pass. */
+        GPURenderPassPtr gBufferPass;           /**< G-Buffer render pass. */
+        GPURenderPassPtr lightPass;             /**< Deferred light render pass. */
+        GPURenderPassPtr basicPass;             /**< Basic render pass. */
     public:
         Resources();
     };
 
     /** Per-light state. */
     struct Light {
-        RenderLight *renderLight;           /**< Light object. */
-        GPUResourceSet *resources;          /**< Resources for the light. */
+        RenderLight *renderLight;               /**< Light object. */
+        GPUResourceSet *resources;              /**< Resources for the light. */
+        RenderTargetPool::Handle shadowMap;     /**< Shadow map for the light. */
+
+        /** Shadow map culling results per view. */
+        RenderWorld::CullResults shadowMapCullResults[RenderLight::kMaxShadowViews];
+
+        /** Shadow map draw lists per view. */
+        DrawList shadowMapDrawLists[RenderLight::kMaxShadowViews];
     };
 
     /** Rendering context. */
@@ -118,12 +133,17 @@ private:
         using RenderContext::RenderContext;
     };
 
-    void allocResources(Context &context) const;
+    void allocateResources(Context &context) const;
 
     void prepareLights(Context &context) const;
+    void allocateShadowMap(Light &light) const;
+
     void prepareEntities(Context &context) const;
 
+    void renderShadowMaps(Context &context) const;
     void renderDeferred(Context &context) const;
+    void renderDeferredGBuffer(Context &context) const;
+    void renderDeferredLights(Context &context) const;
     void renderBasic(Context &context) const;
     void renderDebug(Context &context) const;
 

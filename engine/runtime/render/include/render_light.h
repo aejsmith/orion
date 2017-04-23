@@ -117,8 +117,8 @@ public:
     /** Get the shadow view at the specified index.
      * @param index         Index to get at.
      * @return              Pointer to shadow view. */
-    RenderView *shadowView(unsigned index) {
-        return &m_shadowViews[index];
+    RenderView &shadowView(unsigned index) {
+        return m_shadowViews[index];
     }
 
     bool cull(RenderView &view) const;

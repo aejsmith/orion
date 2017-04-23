@@ -29,9 +29,9 @@
 #include "render_core/geometry.h"
 
 /** Pass type names. */
-static const std::string kDeferredPassType("Deferred");
-static const std::string kShadowCasterPassType("ShadowCaster");
-static const std::string kDeferredLightPassType("DeferredLight");
+static const std::string kDeferredPassType      ("Deferred");
+static const std::string kShadowCasterPassType  ("ShadowCaster");
+static const std::string kDeferredLightPassType ("DeferredLight");
 
 /** Names of light variations. */
 static const std::string kLightVariations[RenderLight::kNumTypes] = {
@@ -43,6 +43,9 @@ static const std::string kLightVariations[RenderLight::kNumTypes] = {
 
 /** Name of the shadow variation. */
 static const std::string kShadowVariation("SHADOW");
+
+/** Default shadow map resolution. */
+static const uint16_t kDefaultShadowMapResolution = 512;
 
 /* Register the deferred pass type. */
 DEFINE_PASS_TYPE(kDeferredPassType, {});
@@ -70,6 +73,15 @@ DeferredRenderPipeline::Resources::Resources() {
     this->lightShader = g_assetManager->load<Shader>("engine/shaders/internal/deferred_light");
 
     GPURenderPassDesc passDesc;
+
+    /* Create the shadow map pass. */
+    passDesc.colourAttachments.resize(0);
+    passDesc.depthStencilAttachment               = GPURenderAttachmentDesc();
+    passDesc.depthStencilAttachment.format        = kShadowMapFormat;
+    passDesc.depthStencilAttachment.loadOp        = GPURenderLoadOp::kClear;
+    passDesc.depthStencilAttachment.stencilLoadOp = GPURenderLoadOp::kDontCare;
+
+    this->shadowMapPass = g_gpuManager->createRenderPass(std::move(passDesc));
 
     /* Create the G-Buffer pass. */
     passDesc.colourAttachments.resize(3);
@@ -102,13 +114,15 @@ DeferredRenderPipeline::Resources::Resources() {
     passDesc.colourAttachments[0].loadOp          = GPURenderLoadOp::kLoad;
     passDesc.depthStencilAttachment.format        = kDepthBufferFormat;
     passDesc.depthStencilAttachment.loadOp        = GPURenderLoadOp::kLoad;
-    passDesc.depthStencilAttachment.stencilLoadOp = GPURenderLoadOp::kLoad;
+    passDesc.depthStencilAttachment.stencilLoadOp = GPURenderLoadOp::kDontCare;
 
     this->basicPass = g_gpuManager->createRenderPass(std::move(passDesc));
 }
 
 /** Initialise the pipeline. */
-DeferredRenderPipeline::DeferredRenderPipeline() {
+DeferredRenderPipeline::DeferredRenderPipeline() :
+    shadowMapResolution(kDefaultShadowMapResolution)
+{
     /* Ensure that global resources are initialised. */
     m_resources.init();
 }
@@ -123,7 +137,7 @@ DeferredRenderPipeline::~DeferredRenderPipeline() {}
 void DeferredRenderPipeline::render(const RenderWorld &world, RenderView &view, RenderTarget &target) const {
     Context context(world, view, target);
 
-    allocResources(context);
+    allocateResources(context);
 
     /* Get lists of visible entities and lights. */
     context.cull(context.cullResults);
@@ -131,6 +145,7 @@ void DeferredRenderPipeline::render(const RenderWorld &world, RenderView &view, 
     prepareLights(context);
     prepareEntities(context);
 
+    renderShadowMaps(context);
     renderDeferred(context);
     renderBasic(context);
     renderDebug(context);
@@ -148,34 +163,35 @@ void DeferredRenderPipeline::render(const RenderWorld &world, RenderView &view, 
 
 /** Allocate rendering resources.
  * @param context       Rendering context. */
-void DeferredRenderPipeline::allocResources(Context &context) const {
+void DeferredRenderPipeline::allocateResources(Context &context) const {
     context.renderArea = IntRect(glm::ivec2(0, 0), context.view().viewport().size());
 
     auto textureDesc = GPUTextureDesc().
-        setType(GPUTexture::kTexture2D).
-        setWidth(context.renderArea.width).
-        setHeight(context.renderArea.height).
-        setMips(1).
-        setFlags(GPUTexture::kRenderTarget);
+        setType   (GPUTexture::kTexture2D).
+        setWidth  (context.renderArea.width).
+        setHeight (context.renderArea.height).
+        setMips   (1).
+        setFlags  (GPUTexture::kRenderTarget);
 
     /* Allocate the main output textures. */
-    textureDesc.format = kColourBufferFormat;
-    context.colourBuffer = g_renderTargetPool->allocate(textureDesc);
-    textureDesc.format = kDepthBufferFormat;
-    context.depthBuffer = g_renderTargetPool->allocate(textureDesc);
+    textureDesc.format      = kColourBufferFormat;
+    context.colourBuffer    = g_renderTargetPool->allocate(textureDesc);
+    textureDesc.format      = kDepthBufferFormat;
+    context.depthBuffer     = g_renderTargetPool->allocate(textureDesc);
 
     /* Allocate the G-Buffer textures. */
-    textureDesc.format = kDeferredBufferAFormat;
+    textureDesc.format      = kDeferredBufferAFormat;
     context.deferredBufferA = g_renderTargetPool->allocate(textureDesc);
-    textureDesc.format = kDeferredBufferBFormat;
+    textureDesc.format      = kDeferredBufferBFormat;
     context.deferredBufferB = g_renderTargetPool->allocate(textureDesc);
-    textureDesc.format = kDeferredBufferCFormat;
+    textureDesc.format      = kDeferredBufferCFormat;
     context.deferredBufferC = g_renderTargetPool->allocate(textureDesc);
-    textureDesc.format = kDeferredBufferDFormat;
+    textureDesc.format      = kDeferredBufferDFormat;
     context.deferredBufferD = g_renderTargetPool->allocate(textureDesc);
 
     /* Create a material to refer to the render targets. */
     context.lightMaterial = new Material(m_resources->lightShader);
+
     GPUSamplerStatePtr sampler = g_gpuManager->getSamplerState();
     context.lightMaterial->setGPUTexture("deferredBufferA", context.deferredBufferA, sampler);
     context.lightMaterial->setGPUTexture("deferredBufferB", context.deferredBufferB, sampler);
@@ -196,7 +212,72 @@ void DeferredRenderPipeline::prepareLights(Context &context) const {
 
         /* Flush resource updates. */
         light.resources = renderLight->getResources();
+
+        if (renderLight->castsShadows()) {
+            allocateShadowMap(light);
+
+            /* Update the shadow map resource binding. */
+            GPUSamplerStatePtr sampler = g_gpuManager->getSamplerState();
+            light.resources->bindTexture(ResourceSlots::kShadowMap, light.shadowMap, sampler);
+
+            /* Now find all shadow casting entities which are affected by this
+             * light. */
+            const unsigned numShadowViews = renderLight->numShadowViews();
+            for (unsigned i = 0; i < numShadowViews; i++) {
+                RenderView &shadowView = renderLight->shadowView(i);
+
+                /* Update the viewport for the current shadow map resolution. */
+                IntRect viewport(0, 0, this->shadowMapResolution, this->shadowMapResolution);
+                shadowView.setViewport(viewport);
+
+                /* TODO: Could maybe exclude non-shadow casting entities during
+                 * the cull process? */
+                auto &cullResults = light.shadowMapCullResults[i];
+                context.world().cull(shadowView, cullResults, 0);
+
+                for (RenderEntity *entity : cullResults.entities) {
+                    if (entity->castsShadow()) {
+                        Shader *shader = entity->material()->shader();
+
+                        if (shader->numPasses(kShadowCasterPassType) > 0) {
+                            light.shadowMapDrawLists[i].add(entity, kShadowCasterPassType);
+                        } else {
+                            logWarning(
+                                "Shader for shadow casting entity '%s' lacks shadow caster pass",
+                                entity->name.c_str());
+                        }
+                    }
+                }
+            }
+        }
     }
+}
+
+/** Allocate a shadow map for a light.
+ * @param light         Light to allocate for. */
+void DeferredRenderPipeline::allocateShadowMap(Light &light) const {
+    GPUTexture::Type type;
+    switch (light.renderLight->type()) {
+        case RenderLight::kSpotLight:
+            type = GPUTexture::kTexture2D;
+            break;
+        case RenderLight::kPointLight:
+            type = GPUTexture::kTextureCube;
+            break;
+        default:
+            fatal("TODO");
+            break;
+    }
+
+    auto desc = GPUTextureDesc().
+        setType   (type).
+        setWidth  (this->shadowMapResolution).
+        setHeight (this->shadowMapResolution).
+        setMips   (1).
+        setFlags  (GPUTexture::kRenderTarget).
+        setFormat (kShadowMapFormat);
+
+    light.shadowMap = g_renderTargetPool->allocate(desc);
 }
 
 /** Prepare entity state.
@@ -215,124 +296,174 @@ void DeferredRenderPipeline::prepareEntities(Context &context) const {
     }
 }
 
+/** Render shadow maps.
+ * @param context       Rendering context. */
+void DeferredRenderPipeline::renderShadowMaps(Context &context) const {
+    GPU_DEBUG_GROUP("Shadow Maps");
+
+    for (Light &light : context.lights) {
+        if (!light.shadowMap)
+            continue;
+
+        RenderLight *renderLight = light.renderLight;
+
+        GPU_DEBUG_GROUP("Light '%s'", renderLight->name.c_str());
+
+        const unsigned numShadowViews = renderLight->numShadowViews();
+        for (unsigned i = 0; i < numShadowViews; i++) {
+            GPU_DEBUG_GROUP("View %u", i);
+
+            RenderView &shadowView = renderLight->shadowView(i);
+
+            GPURenderPassInstanceDesc passDesc(m_resources->shadowMapPass);
+            passDesc.targets.depthStencil.texture = light.shadowMap;
+            passDesc.targets.depthStencil.layer   = i;
+            passDesc.clearDepth                   = 1.0;
+            passDesc.renderArea                   = shadowView.viewport();
+
+            GPUCommandList *cmdList = g_gpuManager->beginRenderPass(passDesc);
+
+            /* Bind resources. */
+            cmdList->bindResourceSet(ResourceSets::kLightResources, light.resources);
+            cmdList->bindResourceSet(ResourceSets::kViewResources, shadowView.getResources());
+
+            /* Render the shadow map. Default state is what we want here:
+             * blending disabled, depth test/write enabled. */
+            light.shadowMapDrawLists[i].draw(cmdList, ShaderKeywordSet());
+
+            g_gpuManager->submitRenderPass(cmdList);
+        }
+    }
+}
+
 /** Perform deferred rendering.
  * @param context       Rendering context. */
 void DeferredRenderPipeline::renderDeferred(Context &context) const {
     GPU_DEBUG_GROUP("Deferred Rendering");
 
-    {
-        GPU_DEBUG_GROUP("G-Buffer Pass");
+    renderDeferredGBuffer(context);
+    renderDeferredLights(context);
+}
 
-        GPURenderPassInstanceDesc passDesc(m_resources->gBufferPass);
-        passDesc.targets.colour[0].texture    = context.deferredBufferA;
-        passDesc.targets.colour[1].texture    = context.deferredBufferB;
-        passDesc.targets.colour[2].texture    = context.deferredBufferC;
-        passDesc.targets.depthStencil.texture = context.depthBuffer;
-        passDesc.clearColours[0]              = glm::vec4(0.0, 0.0, 0.0, 0.0);
-        passDesc.clearColours[1]              = glm::vec4(0.0, 0.0, 0.0, 0.0);
-        passDesc.clearColours[2]              = glm::vec4(0.0, 0.0, 0.0, 0.0);
-        passDesc.clearDepth                   = 1.0;
-        passDesc.clearStencil                 = 0;
-        passDesc.renderArea                   = context.renderArea;
+/** Render the G-Buffer.
+ * @param context       Rendering context. */
+void DeferredRenderPipeline::renderDeferredGBuffer(Context &context) const {
+    GPU_DEBUG_GROUP("G-Buffer Pass");
 
-        GPUCommandList *cmdList = g_gpuManager->beginRenderPass(passDesc);
+    GPURenderPassInstanceDesc passDesc(m_resources->gBufferPass);
+    passDesc.targets.colour[0].texture    = context.deferredBufferA;
+    passDesc.targets.colour[1].texture    = context.deferredBufferB;
+    passDesc.targets.colour[2].texture    = context.deferredBufferC;
+    passDesc.targets.depthStencil.texture = context.depthBuffer;
+    passDesc.clearColours[0]              = glm::vec4(0.0, 0.0, 0.0, 0.0);
+    passDesc.clearColours[1]              = glm::vec4(0.0, 0.0, 0.0, 0.0);
+    passDesc.clearColours[2]              = glm::vec4(0.0, 0.0, 0.0, 0.0);
+    passDesc.clearDepth                   = 1.0;
+    passDesc.clearStencil                 = 0;
+    passDesc.renderArea                   = context.renderArea;
 
-        /* Bind view resources. */
-        cmdList->bindResourceSet(ResourceSets::kViewResources, context.view().getResources());
+    GPUCommandList *cmdList = g_gpuManager->beginRenderPass(passDesc);
 
-        /* Render everything to the G-Buffer. Default state is what we want,
-         * blending disabled, depth test/write enabled. */
-        context.deferredDrawList.draw(cmdList, ShaderKeywordSet());
+    /* Bind view resources. */
+    cmdList->bindResourceSet(ResourceSets::kViewResources, context.view().getResources());
 
-        g_gpuManager->submitRenderPass(cmdList);
+    /* Render everything to the G-Buffer. Default state is what we want,
+     * blending disabled, depth test/write enabled. */
+    context.deferredDrawList.draw(cmdList, ShaderKeywordSet());
 
-        /* Make a copy of the depth buffer. We need to do this as we want to
-         * keep the same depth buffer while rendering light volumes, but the
-         * light shaders need to read the depth buffer. */
-        g_gpuManager->blit(
-            GPUTextureImageRef(context.depthBuffer),
-            GPUTextureImageRef(context.deferredBufferD),
-            context.renderArea.pos(),
-            context.renderArea.pos(),
-            context.renderArea.size());
-    }
+    g_gpuManager->submitRenderPass(cmdList);
 
-    {
-        GPU_DEBUG_GROUP("Light Pass");
+    /* Make a copy of the depth buffer. We need to do this as we want to
+     * keep the same depth buffer while rendering light volumes, but the
+     * light shaders need to read the depth buffer. */
+    g_gpuManager->blit(
+        GPUTextureImageRef(context.depthBuffer),
+        GPUTextureImageRef(context.deferredBufferD),
+        context.renderArea.pos(),
+        context.renderArea.pos(),
+        context.renderArea.size());
+}
 
-        /* Begin the light pass on the primary render target. */
-        GPURenderPassInstanceDesc passDesc(m_resources->lightPass);
-        passDesc.targets.colour[0].texture    = context.colourBuffer;
-        passDesc.targets.depthStencil.texture = context.depthBuffer;
-        passDesc.clearColours[0]              = glm::vec4(0.0, 0.0, 0.0, 1.0);
-        passDesc.renderArea                   = context.renderArea;
+/** Perform deferred light rendering.
+ * @param context       Rendering context. */
+void DeferredRenderPipeline::renderDeferredLights(Context &context) const {
+    GPU_DEBUG_GROUP("Light Pass");
 
-        GPUCommandList *cmdList = g_gpuManager->beginRenderPass(passDesc);
+    /* Begin the light pass on the primary render target. */
+    GPURenderPassInstanceDesc passDesc(m_resources->lightPass);
+    passDesc.targets.colour[0].texture    = context.colourBuffer;
+    passDesc.targets.depthStencil.texture = context.depthBuffer;
+    passDesc.clearColours[0]              = glm::vec4(0.0, 0.0, 0.0, 1.0);
+    passDesc.renderArea                   = context.renderArea;
 
-        /* Set up state for the light material. */
-        context.lightMaterial->setDrawState(cmdList);
+    GPUCommandList *cmdList = g_gpuManager->beginRenderPass(passDesc);
 
-        /* Bind view resources. */
-        cmdList->bindResourceSet(ResourceSets::kViewResources, context.view().getResources());
+    /* Set up state for the light material. */
+    context.lightMaterial->setDrawState(cmdList);
 
-        /* Light volumes should be rendered with additive blending. */
-        cmdList->setBlendState(GPUBlendStateDesc().
-            setFunc(BlendFunc::kAdd).
-            setSourceFactor(BlendFactor::kOne).
-            setDestFactor(BlendFactor::kOne));
+    /* Bind view resources. */
+    cmdList->bindResourceSet(ResourceSets::kViewResources, context.view().getResources());
 
-        for (Light &light : context.lights) {
-            GPU_CMD_DEBUG_GROUP(cmdList, "Light '%s'", light.renderLight->name.c_str());
+    /* Light volumes should be rendered with additive blending. */
+    cmdList->setBlendState(GPUBlendStateDesc().
+        setFunc         (BlendFunc::kAdd).
+        setSourceFactor (BlendFactor::kOne).
+        setDestFactor   (BlendFactor::kOne));
 
-            /* Set up rasterizer/depth testing state. No depth writes here, the
-             * light volumes should not affect our depth buffer. */
-            switch (light.renderLight->type()) {
-                case RenderLight::kAmbientLight:
-                case RenderLight::kDirectionalLight:
-                    /* These are rendered as full-screen quads and should have
-                     * their front faces unconditionally rendered. */
-                    cmdList->setDepthStencilState(GPUDepthStencilStateDesc().
-                        setDepthFunc(ComparisonFunc::kAlways).
-                        setDepthWrite(false));
-                    cmdList->setRasterizerState();
-                    break;
+    for (Light &light : context.lights) {
+        GPU_CMD_DEBUG_GROUP(cmdList, "Light '%s'", light.renderLight->name.c_str());
 
-                default:
-                    /* For others we want to render their back faces, so that
-                     * they will still be rendered even if the view is inside
-                     * the light volume. Test for depth greater than or equal to
-                     * the back face of the light volume so that only pixels in
-                     * front of it are touched. Additionally, enable depth
-                     * clamping so that the light volume is not clipped. */
-                    cmdList->setDepthStencilState(GPUDepthStencilStateDesc().
-                        setDepthFunc(ComparisonFunc::kGreaterOrEqual).
-                        setDepthWrite(false));
-                    cmdList->setRasterizerState(GPURasterizerStateDesc().
-                        setCullMode(CullMode::kFront).
-                        setDepthClamp(true));
-                    break;
+        /* Set up rasterizer/depth testing state. No depth writes here, the
+         * light volumes should not affect our depth buffer. */
+        switch (light.renderLight->type()) {
+            case RenderLight::kAmbientLight:
+            case RenderLight::kDirectionalLight:
+                /* These are rendered as full-screen quads and should have
+                 * their front faces unconditionally rendered. */
+                cmdList->setDepthStencilState(GPUDepthStencilStateDesc().
+                    setDepthFunc  (ComparisonFunc::kAlways).
+                    setDepthWrite (false));
 
-            }
+                cmdList->setRasterizerState();
+                break;
 
-            /* Set up the appropriate pass from the light shader. */
-            ShaderKeywordSet variation;
-            variation.insert(kLightVariations[light.renderLight->type()]);
-            if (light.renderLight->castsShadows())
-                variation.insert(kShadowVariation);
+            default:
+                /* For others we want to render their back faces, so that
+                 * they will still be rendered even if the view is inside
+                 * the light volume. Test for depth greater than or equal to
+                 * the back face of the light volume so that only pixels in
+                 * front of it are touched. Additionally, enable depth
+                 * clamping so that the light volume is not clipped. */
+                cmdList->setDepthStencilState(GPUDepthStencilStateDesc().
+                    setDepthFunc  (ComparisonFunc::kGreaterOrEqual).
+                    setDepthWrite (false));
 
-            const Pass *pass = m_resources->lightShader->getPass(kDeferredLightPassType, 0);
-            pass->setDrawState(cmdList, variation);
+                cmdList->setRasterizerState(GPURasterizerStateDesc().
+                    setCullMode   (CullMode::kFront).
+                    setDepthClamp (true));
 
-            /* Set light resources. */
-            cmdList->bindResourceSet(ResourceSets::kLightResources, light.resources);
+                break;
 
-            /* Draw the light volume. */
-            Geometry geometry = light.renderLight->volumeGeometry();
-            cmdList->draw(geometry.primitiveType, geometry.vertices, geometry.indices);
         }
 
-        g_gpuManager->submitRenderPass(cmdList);
+        /* Set up the appropriate pass from the light shader. */
+        ShaderKeywordSet variation;
+        variation.insert(kLightVariations[light.renderLight->type()]);
+        if (light.renderLight->castsShadows())
+            variation.insert(kShadowVariation);
+
+        const Pass *pass = m_resources->lightShader->getPass(kDeferredLightPassType, 0);
+        pass->setDrawState(cmdList, variation);
+
+        /* Set light resources. */
+        cmdList->bindResourceSet(ResourceSets::kLightResources, light.resources);
+
+        /* Draw the light volume. */
+        Geometry geometry = light.renderLight->volumeGeometry();
+        cmdList->draw(geometry.primitiveType, geometry.vertices, geometry.indices);
     }
+
+    g_gpuManager->submitRenderPass(cmdList);
 }
 
 /** Render basic materials.

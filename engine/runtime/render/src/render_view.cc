@@ -72,18 +72,20 @@ void RenderView::perspective(float fov, float zNear, float zFar) {
 /** Set the viewport.
  * @param viewport      Viewport rectangle in pixels. */
 void RenderView::setViewport(const IntRect &viewport) {
-    m_viewport = viewport;
+    if (viewport != m_viewport) {
+        m_viewport = viewport;
 
-    ViewUniforms *uniforms = m_uniforms.write();
-    uniforms->viewportPosition = viewport.pos();
-    uniforms->viewportSize = viewport.size();
+        ViewUniforms *uniforms = m_uniforms.write();
+        uniforms->viewportPosition = viewport.pos();
+        uniforms->viewportSize = viewport.size();
 
-    /* Calculate aspect ratio. If it changes, we must recalculate the projection
-     * matrix. */
-    float aspect = static_cast<float>(viewport.width) / static_cast<float>(viewport.height);
-    if (aspect != m_aspect) {
-        m_aspect = aspect;
-        m_projectionOutdated = true;
+        /* Calculate aspect ratio. If it changes, we must recalculate the projection
+         * matrix. */
+        float aspect = static_cast<float>(viewport.width) / static_cast<float>(viewport.height);
+        if (aspect != m_aspect) {
+            m_aspect = aspect;
+            m_projectionOutdated = true;
+        }
     }
 }
 

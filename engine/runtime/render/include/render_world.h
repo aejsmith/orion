@@ -41,7 +41,7 @@ class RenderWorld {
 public:
     /** Culling behaviour flags. */
     enum CullFlags : uint32_t {
-        /** Whether to visible lights in the results. */
+        /** Whether to include visible lights in the results. */
         kCullLights = (1 << 0),
     };
 
