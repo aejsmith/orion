@@ -4,17 +4,22 @@ objects = map(env.ObjgenHeader, [
     'include/deferred_render_pipeline.h',
     'include/post_effect.h',
     'include/render_pipeline.h',
+
+    'include/post_effects/fxaa_effect.h',
 ])
 
 objects += map(env.Object, [
     'src/deferred_render_pipeline.cc',
     'src/draw_list.cc',
+    'src/post_effect.cc',
     'src/render_context.cc',
     'src/render_entity.cc',
     'src/render_light.cc',
     'src/render_pipeline.cc',
     'src/render_view.cc',
     'src/simple_render_world.cc',
+
+    'src/post_effects/fxaa_effect.cc',
 ])
 
 Return('objects')

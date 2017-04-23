@@ -3,10 +3,15 @@
         "objectClass": "Shader",
         "objectID": 0,
         "objectProperties": {},
-        "parameters": [],
+        "parameters": [
+            {
+                "name": "sourceTexture",
+                "type": "kTexture2D"
+            }
+        ],
         "passes": [
             {
-                "type": "Basic",
+                "type": "PostEffect",
                 "vertex": {
                     "source": "engine/shaders/post_effect_vtx.glsl"
                 },

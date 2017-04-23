@@ -45,8 +45,6 @@ float FxaaLuma(vec4 rgba) {
 void main() {
     vec2 texcoord = calcSourceCoordinate();
 
-    // FIXME: Not sure if this is correct when colour buffer is larger than
-    // what we're rendering.
     vec2 rcpFrame = 1.0f / textureSize(sourceTexture, 0);
 
     fragColour = FxaaPixelShader(
