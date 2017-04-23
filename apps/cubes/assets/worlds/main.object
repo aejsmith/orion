@@ -77,7 +77,7 @@
         },
         "objectProperties": {
             "active": true,
-            "castShadow": true,
+            "castsShadow": false,
             "texture": {
                 "asset": "game/textures/skybox"
             }
@@ -97,7 +97,7 @@
                 1.0
             ],
             "intensity": 0.05000000074505806,
-            "castShadows": false
+            "castsShadows": false
         }
     },
     {
@@ -150,7 +150,7 @@
         },
         "objectProperties": {
             "active": true,
-            "castShadow": false,
+            "castsShadow": false,
             "mesh": {
                 "asset": "game/models/floor"
             }
@@ -242,7 +242,7 @@
         },
         "objectProperties": {
             "active": true,
-            "castShadow": true,
+            "castsShadow": true,
             "mesh": {
                 "asset": "game/models/companion_cube"
             }
@@ -334,7 +334,7 @@
         },
         "objectProperties": {
             "active": true,
-            "castShadow": true,
+            "castsShadow": true,
             "mesh": {
                 "asset": "game/models/companion_cube"
             }
@@ -542,7 +542,7 @@
                 1.0
             ],
             "intensity": 0.800000011920929,
-            "castShadows": true,
+            "castsShadows": true,
             "cutoff": 45.0,
             "range": 20.0,
             "attenuation": [
@@ -601,7 +601,7 @@
                 1.0
             ],
             "intensity": 1.0,
-            "castShadows": true,
+            "castsShadows": true,
             "range": 50.0,
             "attenuation": [
                 1.0,
@@ -660,7 +660,7 @@
                 0.0
             ],
             "intensity": 1.0,
-            "castShadows": true,
+            "castsShadows": true,
             "range": 50.0,
             "attenuation": [
                 1.0,
@@ -719,7 +719,7 @@
                 0.0
             ],
             "intensity": 1.0,
-            "castShadows": true,
+            "castsShadows": true,
             "range": 50.0,
             "attenuation": [
                 1.0,
