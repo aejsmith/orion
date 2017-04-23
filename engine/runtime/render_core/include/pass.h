@@ -59,8 +59,8 @@ public:
 
 /** Define a pass type (use at global scope).
  * @see                 PassType::PassType(). */
-#define DEFINE_PASS_TYPE(args...) \
-    static PassType PASS_TYPE_INSTANCE_NAME(__LINE__)(args)
+#define DEFINE_PASS_TYPE(...) \
+    static PassType PASS_TYPE_INSTANCE_NAME(__LINE__)(__VA_ARGS__)
 
 /** Rendering pass. */
 class Pass : Noncopyable {
