@@ -52,8 +52,8 @@ Camera::Camera() :
     /* Default to the main window as the render target. */
     setRenderTarget(g_mainWindow);
 
-    /* TODO: Make this a property. */
-    m_renderPipeline = new DeferredRenderPipeline;
+    /* Default to a deferred rendering pipeline. */
+    this->renderPipeline = new DeferredRenderPipeline;
 }
 
 /** Render the scene from the camera to its render target.
@@ -62,7 +62,10 @@ void Camera::render(bool first) {
     assert(renderTarget());
 
     auto &system = getSystem<GraphicsSystem>();
-    m_renderPipeline->render(system.renderWorld(), m_renderView, *renderTarget());
+    this->renderPipeline->render(
+        system.renderWorld(),
+        m_renderView,
+        *renderTarget());
 }
 
 /** Update the viewport in the SceneView. */

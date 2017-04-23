@@ -35,6 +35,13 @@ public:
     Camera();
 
     /**
+     * Renderer settings.
+     */
+
+    /** Rendering pipeline for the camera. */
+    PROPERTY() ObjectPtr<RenderPipeline> renderPipeline;
+
+    /**
      * View settings.
      */
 
@@ -89,9 +96,6 @@ private:
     void viewportChanged() override;
 
     RenderView m_renderView;            /**< View implementing this camera. */
-
-    /** Rendering pipeline for the camera. */
-    ObjectPtr<RenderPipeline> m_renderPipeline;
 };
 
 /** Set up a perspective projection.
