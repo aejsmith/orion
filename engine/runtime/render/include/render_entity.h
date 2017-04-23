@@ -91,9 +91,7 @@ public:
      * @return              Material for the entity. */
     virtual Material *material() const = 0;
 
-    #ifdef ORION_BUILD_DEBUG
-    std::string name;                   /**< Name of the entity (used for debugging). */
-    #endif
+    std::string name;                   /**< Name of the entity. */
 protected:
     RenderEntity();
 

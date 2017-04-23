@@ -50,9 +50,7 @@ SkyboxRenderEntity::SkyboxRenderEntity(Skybox *parent) :
     BoundingBox boundingBox(glm::vec3(-FLT_MAX), glm::vec3(FLT_MAX));
     setBoundingBox(boundingBox);
 
-    #ifdef ORION_BUILD_DEBUG
-        this->name = String::format("Skybox '%s'", parent->entity()->path().c_str());
-    #endif
+    this->name = String::format("Skybox '%s'", parent->entity()->path().c_str());
 }
 
 /** Get the geometry for the entity.

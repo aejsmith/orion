@@ -123,9 +123,7 @@ public:
 
     bool cull(RenderView &view) const;
 
-    #ifdef ORION_BUILD_DEBUG
     std::string name;               /**< Name of the light (used for debugging). */
-    #endif
 private:
     void updateVolumeTransform();
     void updateShadowViews();

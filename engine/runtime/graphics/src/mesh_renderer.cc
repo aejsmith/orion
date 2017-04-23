@@ -53,9 +53,7 @@ SubMeshRenderEntity::SubMeshRenderEntity(Mesh *mesh, size_t index, MeshRenderer 
 {
     setBoundingBox(m_subMesh->boundingBox);
 
-    #ifdef ORION_BUILD_DEBUG
-        this->name = String::format("MeshRenderer '%s' SubMesh %zu", parent->entity()->path().c_str(), index);
-    #endif
+    this->name = String::format("MeshRenderer '%s' SubMesh %zu", parent->entity()->path().c_str(), index);
 }
 
 /** Get the geometry for the entity.

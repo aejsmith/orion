@@ -97,10 +97,8 @@ glm::vec3 Light::direction() const {
 /** Called when the entity's transformation is changed.
  * @param changed       Flags indicating changes made. */
 void Light::transformed(unsigned changed) {
-    #ifdef ORION_BUILD_DEBUG
-        // FIXME: Doesn't handle name changes on the entity properly.
-        m_renderLight.name = entity()->path();
-    #endif
+    // FIXME: Doesn't handle name changes on the entity properly.
+    m_renderLight.name = entity()->path();
 
     /* Update the RenderLight. Here we want to set the absolute values. */
     glm::vec3 direction = worldOrientation() * kDefaultDirection;
