@@ -163,7 +163,6 @@ void Pass::finalise() {
         pipelineDesc.resourceLayout[ResourceSets::kEntityResources] = g_renderResources->entityResourceSetLayout();
         pipelineDesc.resourceLayout[ResourceSets::kViewResources] = g_renderResources->viewResourceSetLayout();
         pipelineDesc.resourceLayout[ResourceSets::kLightResources] = g_renderResources->lightResourceSetLayout();
-        pipelineDesc.resourceLayout[ResourceSets::kPostEffectResources] = g_renderResources->postEffectResourceSetLayout();
 
         /* Bind material resources. */
         pipelineDesc.resourceLayout[ResourceSets::kMaterialResources] = m_parent->m_resourceSetLayout;

@@ -82,12 +82,6 @@ RenderResources::RenderResources() {
         desc.slots[ResourceSlots::kUniforms].type = GPUResourceType::kUniformBuffer;
         desc.slots[ResourceSlots::kShadowMap].type = GPUResourceType::kTexture;
         m_lightResourceSetLayout = g_gpuManager->createResourceSetLayout(std::move(desc));
-
-        /* Post effect resources. */
-        desc.slots.resize(ResourceSlots::kNumPostEffectResources);
-        desc.slots[ResourceSlots::kDepthBuffer].type = GPUResourceType::kTexture;
-        desc.slots[ResourceSlots::kSourceTexture].type = GPUResourceType::kTexture;
-        m_postEffectResourceSetLayout = g_gpuManager->createResourceSetLayout(std::move(desc));
     }
 
     /* Create the utility geometry. */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -22,9 +22,6 @@
 #ifndef __POST_EFFECT_H
 #define __POST_EFFECT_H
 
-layout(set = kPostEffectResources, binding = kSourceTexture) uniform sampler2D sourceTexture;
-layout(set = kPostEffectResources, binding = kDepthBuffer) uniform sampler2D depthBuffer;
-
 /** Calculate the source texture coordinate for the pixel position.
  * @return              Texture coordinate. */
 vec2 calcSourceCoordinate() {
@@ -35,18 +32,6 @@ vec2 calcSourceCoordinate() {
  * @return              Sampled texture value. */
 vec4 sampleSourceTexture() {
     return texture(sourceTexture, calcSourceCoordinate());
-}
-
-/** Calculate the depth buffer coordinate for the pixel position.
- * @return              Texture coordinate. */
-vec2 calcDepthCoordinate() {
-    return gl_FragCoord.xy / textureSize(depthBuffer, 0);
-}
-
-/** Sample the scene depth buffer at the current pixel position.
- * @return              Sampled texture value. */
-vec4 sampleDepthBuffer() {
-    return texture(depthBuffer, calcSourceCoordinate());
 }
 
 #endif /* __POST_EFFECT_H */

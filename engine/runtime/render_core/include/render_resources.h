@@ -47,8 +47,6 @@ public:
     GPUResourceSetLayout *viewResourceSetLayout() const { return m_viewResourceSetLayout; }
     /** @return             Light resource set layout. */
     GPUResourceSetLayout *lightResourceSetLayout() const { return m_lightResourceSetLayout; }
-    /** @return             Post effect resource set layout. */
-    GPUResourceSetLayout *postEffectResourceSetLayout() const { return m_postEffectResourceSetLayout; }
 
     /**
      * Get geometry for a quad.
@@ -112,7 +110,6 @@ private:
     GPUResourceSetLayoutPtr m_entityResourceSetLayout;
     GPUResourceSetLayoutPtr m_viewResourceSetLayout;
     GPUResourceSetLayoutPtr m_lightResourceSetLayout;
-    GPUResourceSetLayoutPtr m_postEffectResourceSetLayout;
 
     /** Basic geometry. */
     GPUVertexDataPtr m_quadVertexData;

@@ -31,10 +31,6 @@
 #include "render_core/material.h"
 #include "render_core/render_target_pool.h"
 
-/** Screen buffer pixel formats. */
-static const PixelFormat kColourBufferFormat = PixelFormat::kR8G8B8A8;
-static const PixelFormat kDepthBufferFormat  = PixelFormat::kDepth32;
-
 /**
  * G-Buffer pixel formats. The buffer layout is as follows:
  *

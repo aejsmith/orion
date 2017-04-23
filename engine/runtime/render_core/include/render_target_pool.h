@@ -53,13 +53,30 @@ public:
             m_target(std::move(target))
         {}
 
+        Handle(const Handle &other) :
+            m_target(other.m_target)
+        {}
+
         Handle(Handle &&other) :
             m_target(std::move(other.m_target))
         {}
 
+        Handle &operator =(const Handle &other) {
+            m_target = other.m_target;
+            return *this;
+        }
+
         Handle &operator =(Handle &&other) {
             m_target = std::move(other.m_target);
             return *this;
+        }
+
+        bool operator ==(const Handle &other) const{
+            return m_target == other.m_target;
+        }
+
+        bool operator !=(const Handle &other) const{
+            return !(*this == other);
         }
 
         /** @return             Whether the handle is valid. */

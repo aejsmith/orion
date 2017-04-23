@@ -47,8 +47,6 @@ namespace ResourceSets {
         kMaterialResources = 2,
         /** Resources for the entity currently being rendered. */
         kEntityResources = 3,
-        /** Resources for the current post-processing pass. */
-        kPostEffectResources = 4,
 
         kNumResourceSets,
     };
@@ -80,17 +78,5 @@ namespace ResourceSlots {
         kShadowMap = 1,
 
         kNumLightResources = 2,
-
-        /**
-         * Post-processing resources (kPostEffectResources).
-         */
-
-        /** Depth buffer. */
-        kDepthBuffer = 0,
-
-        /** Source texture. */
-        kSourceTexture = 1,
-
-        kNumPostEffectResources = 2,
     };
 }

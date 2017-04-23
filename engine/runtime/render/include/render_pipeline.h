@@ -25,6 +25,14 @@
 
 #include "render/render_context.h"
 
+#include "render_core/render_target_pool.h"
+
+class PostEffect;
+
+/** Screen buffer pixel formats. */
+static const PixelFormat kColourBufferFormat = PixelFormat::kR8G8B8A8;
+static const PixelFormat kDepthBufferFormat  = PixelFormat::kDepth32;
+
 /**
  * Rendering pipeline base class.
  *
@@ -35,7 +43,17 @@ class RenderPipeline : public Object {
 public:
     CLASS();
 
-    ~RenderPipeline() {}
+    ~RenderPipeline();
+
+    /** Global resources for all pipelines. */
+    struct BaseResources {
+        /** Render passes. */
+        GPURenderPassPtr postEffectPass;        /**< Shadow map pass. */
+    public:
+        BaseResources();
+    };
+
+    static const BaseResources &resources();
 
     /**
      * Render a world.
@@ -49,6 +67,16 @@ public:
      * @param target        Render target.
      */
     virtual void render(const RenderWorld &world, RenderView &view, RenderTarget &target) const = 0;
+
+    void addPostEffect(ObjectPtr<PostEffect> effect);
 protected:
-    RenderPipeline() {}
+    RenderPipeline();
+
+    void serialise(Serialiser &serialiser) const override;
+    void deserialise(Serialiser &serialiser) override;
+
+    RenderTargetPool::Handle renderPostEffects(const RenderTargetPool::Handle &input) const;
+private:
+    /** List of post processing effects. */
+    std::list<ObjectPtr<PostEffect>> m_postEffects;
 };
