@@ -79,7 +79,7 @@ private:
     /** Vertex data layout for GUI drawing. */
     GPUVertexDataLayoutPtr m_vertexDataLayout;
 
-    MaterialPtr m_material;             /**< Material for GUI drawing. */
+    ShaderPtr m_shader;                 /**< Shader for GUI drawing. */
     GPUTexturePtr m_fontTexture;        /**< Font texture for GUI. */
     GPUSamplerStatePtr m_sampler;       /**< Texture sampler for the GUI. */
     State m_state;                      /**< State of the GUI. */
@@ -191,8 +191,7 @@ void DebugOverlay::initResources() {
     m_vertexDataLayout = g_gpuManager->getVertexDataLayout(vertexDesc);
 
     /* Load GUI shader. */
-    ShaderPtr shader = g_assetManager->load<Shader>("engine/shaders/internal/debug_overlay");
-    m_material = new Material(shader);
+    m_shader = g_assetManager->load<Shader>("engine/shaders/internal/debug_overlay");
 
     /* Upload the font atlas. TODO: We're currently using an RGBA32 texture even
      * though only the alpha channel is used by the font atlas. This is so that
@@ -257,19 +256,7 @@ void DebugOverlay::addText(const std::string &text, const glm::vec4 &colour) {
 void DebugOverlay::startFrame() {
     ImGuiIO &io = ImGui::GetIO();
 
-    /* Update viewport. */
-    ImVec2 size(pixelViewport().width, pixelViewport().height);
-    if (size.x != io.DisplaySize.x || size.y != io.DisplaySize.y) {
-        /* Set up a new projection matrix. */
-        glm::mat4 projectionMatrix(
-            2.0f / size.x, 0.0f,           0.0f,  0.0f,
-            0.0f,          2.0f / -size.y, 0.0f,  0.0f,
-            0.0f,          0.0f,           -1.0f, 0.0f,
-            -1.0f,         1.0f,           0.0f,  1.0f);
-        m_material->setValue("projectionMatrix", projectionMatrix);
-
-        io.DisplaySize = size;
-    }
+    io.DisplaySize = ImVec2(pixelViewport().width, pixelViewport().height);
 
     // FIXME: This is not quite accurate.
     io.DeltaTime = g_engine->stats().frameTime;
@@ -342,6 +329,9 @@ void DebugOverlay::render(bool first) {
     cmdList->setRasterizerState(GPURasterizerStateDesc().
         setCullMode(CullMode::kDisabled));
 
+    MaterialPtr material;
+    GPUTexture *lastTexture = nullptr;
+
     for (int i = 0; i < drawData->CmdListsCount; i++) {
         const ImDrawList *imCmdList = drawData->CmdLists[i];
 
@@ -368,7 +358,24 @@ void DebugOverlay::render(bool first) {
         size_t indexBufferOffset = 0;
         for (const ImDrawCmd *cmd = imCmdList->CmdBuffer.begin(); cmd != imCmdList->CmdBuffer.end(); cmd++) {
             GPUTexture *texture = reinterpret_cast<GPUTexture *>(cmd->TextureId);
-            m_material->setGPUTexture("debugTexture", texture, m_sampler);
+
+            /* Need a new material per texture, since we can't alter resource
+             * bindings mid-render pass. */
+            if (!material || texture != lastTexture) {
+                material = new Material(m_shader);
+
+                /* Set up a new projection matrix. */
+                ImGuiIO &io = ImGui::GetIO();
+                ImVec2 size = io.DisplaySize;
+                glm::mat4 projectionMatrix(
+                    2.0f / size.x, 0.0f,           0.0f,  0.0f,
+                    0.0f,          2.0f / -size.y, 0.0f,  0.0f,
+                    0.0f,          0.0f,           -1.0f, 0.0f,
+                    -1.0f,         1.0f,           0.0f,  1.0f);
+                material->setValue("projectionMatrix", projectionMatrix);
+
+                material->setGPUTexture("debugTexture", texture, m_sampler);
+            }
 
             /* Create index data. */
             auto indexDataDesc = GPUIndexDataDesc().
@@ -388,7 +395,7 @@ void DebugOverlay::render(bool first) {
                     cmd->ClipRect.z - cmd->ClipRect.x,
                     cmd->ClipRect.w - cmd->ClipRect.y));
 
-            m_material->setDrawState(cmdList, Pass::kBasicType);
+            material->setDrawState(cmdList, Pass::kBasicType);
             cmdList->draw(PrimitiveType::kTriangleList, vertexData, indexData);
 
             indexBufferOffset += cmd->ElemCount;
