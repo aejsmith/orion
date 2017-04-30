@@ -29,6 +29,8 @@
 #include "engine/world_explorer.h"
 #include "engine/world.h"
 
+#include "graphics/mesh_renderer.h"
+
 /** Initialise the world explorer. */
 WorldExplorerWindow::WorldExplorerWindow() :
     DebugWindow("World Explorer"),
@@ -407,8 +409,6 @@ static void displayPropertyEditors(Object *object, const MetaClass *metaClass) {
     }
 }
 
-#if 0
-
 /** Custom editor for a MeshRenderer.
  * @param renderer      Renderer to edit. */
 static void displayMeshRendererEditor(MeshRenderer *renderer) {
@@ -433,8 +433,6 @@ static void displayMeshRendererEditor(MeshRenderer *renderer) {
     }
 }
 
-#endif
-
 /** Display an editor for an object's properties.
  * @param object        Object to display for.
  * @return              Whether to destroy the object. */
@@ -451,11 +449,9 @@ static bool displayObjectEditor(Object *object) {
     /* Generic editors based on class properties. */
     displayPropertyEditors(object, &object->metaClass());
 
-    #if 0
     /* Custom editors beyond what can be done with the property system. */
     if (&object->metaClass() == &MeshRenderer::staticMetaClass)
         displayMeshRendererEditor(static_cast<MeshRenderer *>(object));
-    #endif
 
     ImGui::Columns(1);
     ImGui::PopID();
