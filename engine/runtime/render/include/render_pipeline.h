@@ -48,7 +48,8 @@ public:
     /** Global resources for all pipelines. */
     struct BaseResources {
         /** Render passes. */
-        GPURenderPassPtr postEffectPass;        /**< Shadow map pass. */
+        GPURenderPassPtr postEffectPass;        /**< Post-processing effect pass. */
+        GPURenderPassPtr debugPass;             /**< Debug rendering pass. */
     public:
         BaseResources();
     };
@@ -76,6 +77,8 @@ protected:
     void deserialise(Serialiser &serialiser) override;
 
     RenderTargetPool::Handle renderPostEffects(const RenderTargetPool::Handle &input) const;
+
+    void renderDebug(RenderContext &context, const RenderTargetPool::Handle &texture) const;
 private:
     /** List of post processing effects. */
     std::list<ObjectPtr<PostEffect>> m_postEffects;

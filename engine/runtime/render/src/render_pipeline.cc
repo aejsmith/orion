@@ -19,10 +19,12 @@
  * @brief               Rendering pipeline class.
  */
 
+#include "engine/debug_manager.h"
 #include "engine/serialiser.h"
 
 #include "render/post_effect.h"
 #include "render/render_pipeline.h"
+#include "render/render_view.h"
 
 /** Global resources for all pipelines. */
 static GlobalResource<RenderPipeline::BaseResources> g_renderPipelineResources;
@@ -33,11 +35,21 @@ RenderPipeline::BaseResources::BaseResources() {
     {
         GPURenderPassDesc desc;
 
+        /* Create the post-processing pass. */
         desc.colourAttachments.resize(1);
         desc.colourAttachments[0].format = kColourBufferFormat;
         desc.colourAttachments[0].loadOp = GPURenderLoadOp::kDontCare;
-        desc.depthStencilAttachment = GPURenderAttachmentDesc();
+        desc.depthStencilAttachment      = GPURenderAttachmentDesc();
+
         this->postEffectPass = g_gpuManager->createRenderPass(std::move(desc));
+
+        /* Create the debug rendering pass. */
+        desc.colourAttachments.resize(1);
+        desc.colourAttachments[0].format = kColourBufferFormat;
+        desc.colourAttachments[0].loadOp = GPURenderLoadOp::kLoad;
+        desc.depthStencilAttachment      = GPURenderAttachmentDesc();
+
+        this->debugPass = g_gpuManager->createRenderPass(std::move(desc));
     }
 }
 
@@ -126,4 +138,22 @@ RenderTargetPool::Handle RenderPipeline::renderPostEffects(const RenderTargetPoo
 
     /* Swapped above, last output is currently in source. */
     return source;
+}
+
+/** Render debug primitives.
+ * @param context       Rendering context.
+ * @param texture       Texture to render to. */
+void RenderPipeline::renderDebug(RenderContext &context, const RenderTargetPool::Handle &texture) const {
+    GPU_DEBUG_GROUP("Debug");
+
+    GPURenderPassInstanceDesc passDesc(resources().debugPass);
+    passDesc.targets.colour[0].texture = texture;
+    passDesc.renderArea                = IntRect(glm::ivec2(0, 0), context.view().viewport().size());
+
+    GPUCommandList *cmdList = g_gpuManager->beginRenderPass(passDesc);
+
+    /* Draw debug primitives onto the view. */
+    g_debugManager->renderView(cmdList, context.view().getResources());
+
+    g_gpuManager->submitRenderPass(cmdList);
 }

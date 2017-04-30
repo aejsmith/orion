@@ -153,7 +153,7 @@ void DeferredRenderPipeline::render(const RenderWorld &world, RenderView &view, 
     RenderTargetPool::Handle output = renderPostEffects(context.colourBuffer);
 
     /* Render debug primitives. */
-    renderDebug(context);
+    renderDebug(context, output);
 
     /* Finally, blit the output buffer onto the real render target. */
     GPUTextureImageRef dest;
@@ -487,24 +487,6 @@ void DeferredRenderPipeline::renderBasic(Context &context) const {
     cmdList->bindResourceSet(ResourceSets::kViewResources, context.view().getResources());
 
     context.basicDrawList.draw(cmdList, ShaderKeywordSet());
-
-    g_gpuManager->submitRenderPass(cmdList);
-}
-
-/** Render debug primitives.
- * @param context       Rendering context. */
-void DeferredRenderPipeline::renderDebug(Context &context) const {
-    GPU_DEBUG_GROUP("Debug");
-
-    GPURenderPassInstanceDesc passDesc(m_resources->basicPass);
-    passDesc.targets.colour[0].texture    = context.colourBuffer;
-    passDesc.targets.depthStencil.texture = context.depthBuffer;
-    passDesc.renderArea                   = context.renderArea;
-
-    GPUCommandList *cmdList = g_gpuManager->beginRenderPass(passDesc);
-
-    /* Draw debug primitives onto the view. */
-    g_debugManager->renderView(cmdList, context.view().getResources());
 
     g_gpuManager->submitRenderPass(cmdList);
 }

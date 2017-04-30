@@ -141,7 +141,6 @@ private:
     void renderDeferredGBuffer(Context &context) const;
     void renderDeferredLights(Context &context) const;
     void renderBasic(Context &context) const;
-    void renderDebug(Context &context) const;
 
     static GlobalResource<Resources> m_resources;
 };
