@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Alex Smith
+ * Copyright (C) 2016-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -35,16 +35,7 @@
 WorldExplorerWindow::WorldExplorerWindow() :
     DebugWindow("World Explorer"),
     m_entityToOpen(nullptr)
-{
-    /* Build up a list of known component classes for the creation menu. */
-    MetaClass::visit(
-        [&] (const MetaClass &metaClass) {
-            if (&metaClass != &Component::staticMetaClass &&
-                    Component::staticMetaClass.isBaseOf(metaClass) &&
-                    metaClass.isConstructable())
-                m_componentClasses.insert(std::make_pair(metaClass.name(), &metaClass));
-        });
-}
+{}
 
 /** Render the world explorer. */
 void WorldExplorerWindow::render() {
@@ -53,8 +44,9 @@ void WorldExplorerWindow::render() {
     if (!m_currentEntity || m_currentEntity->refcount() == 1)
         m_currentEntity = g_engine->world()->root();
 
-    ImGui::SetNextWindowSize(ImVec2(500, 600), ImGuiSetCond_Once);
-    ImGui::SetNextWindowPosCenter(ImGuiSetCond_Once);
+    ImGuiIO &io = ImGui::GetIO();
+    ImGui::SetNextWindowSize(ImVec2(450, io.DisplaySize.y - 60), ImGuiSetCond_Once);
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 450 - 20, 40), ImGuiSetCond_Once);
 
     if (!begin() || !g_engine->world()) {
         ImGui::End();
@@ -94,11 +86,13 @@ void WorldExplorerWindow::displayOptions() {
 
         ImGui::BeginChild("newComponentList", ImVec2(250, 250), false);
 
-        for (auto &it : m_componentClasses) {
-            if (filter.PassFilter(it.first.c_str())) {
-                if (ImGui::MenuItem(it.first.c_str())) {
+        const ClassList &componentClasses = getDerivedClasses(Component::staticMetaClass);
+
+        for (const MetaClass *metaClass : componentClasses) {
+            if (filter.PassFilter(metaClass->name())) {
+                if (ImGui::MenuItem(metaClass->name())) {
                     ImGui::CloseCurrentPopup();
-                    m_currentEntity->createComponent(*it.second);
+                    m_currentEntity->createComponent(*metaClass);
                 }
             }
         }
@@ -161,7 +155,7 @@ void WorldExplorerWindow::displayOptions() {
 void WorldExplorerWindow::displayEntityTree() {
     ImGui::BeginChild(
         "entityTree",
-        ImVec2(0, ImGui::GetContentRegionAvail().y * 0.33f),
+        ImVec2(0, ImGui::GetContentRegionAvail().y * 0.3f),
         false);
 
     World *world = g_engine->world();
@@ -226,6 +220,7 @@ void displayPropertyEditor(Object *object, const MetaProperty &property, Func di
     ImGui::PopID();
 }
 
+/** Helper to get an enum value name. */
 static bool enumItemGetter(void *data, int index, const char **outText) {
     auto constants = *reinterpret_cast<const MetaType::EnumConstantArray *>(data);
     if (outText)
@@ -234,7 +229,7 @@ static bool enumItemGetter(void *data, int index, const char **outText) {
 }
 
 /** Edit enum properties. */
-static void displayEnumPropertyEditor(Object *object, const MetaProperty &property) {
+void WorldExplorerWindow::displayEnumPropertyEditor(Object *object, const MetaProperty &property) {
     if (!property.type().isEnum())
         return;
 
@@ -274,7 +269,7 @@ static void displayEnumPropertyEditor(Object *object, const MetaProperty &proper
  * @param asset         Asset pointer to modify.
  * @param metaClass     Expected class of the asset.
  * @return              Whether the asset was changed. */
-static bool displayAssetEditor(AssetPtr &asset, const MetaClass &metaClass) {
+bool WorldExplorerWindow::displayAssetEditor(AssetPtr &asset, const MetaClass &metaClass) {
     bool ret = false;
 
     /* Edit the asset path. Only update when enter is pressed. It's OK that we
@@ -319,7 +314,7 @@ static bool displayAssetEditor(AssetPtr &asset, const MetaClass &metaClass) {
 }
 
 /** Edit properties which reference an asset. */
-static void displayAssetPropertyEditor(Object *object, const MetaProperty &property) {
+void WorldExplorerWindow::displayAssetPropertyEditor(Object *object, const MetaProperty &property) {
     if (!property.type().isPointer())
         return;
     if (!property.type().pointeeType().isObject())
@@ -344,8 +339,74 @@ static void displayAssetPropertyEditor(Object *object, const MetaProperty &prope
     ImGui::PopID();
 }
 
+/** Edit properties which reference a non-asset object. */
+void WorldExplorerWindow::displayObjectPropertyEditor(Object *object, const MetaProperty &property) {
+    if (!property.type().isPointer())
+        return;
+    if (!property.type().pointeeType().isObject())
+        return;
+
+    const MetaClass &pointeeClass = static_cast<const MetaClass &>(property.type().pointeeType());
+
+    if (Asset::staticMetaClass.isBaseOf(pointeeClass) ||
+        Entity::staticMetaClass.isBaseOf(pointeeClass) ||
+        Component::staticMetaClass.isBaseOf(pointeeClass))
+    {
+        return;
+    }
+
+    ImGui::PushID(&property);
+
+    ImGui::Text(property.name());
+    ImGui::NextColumn();
+
+    ObjectPtr<Object> target;
+    object->getProperty(property.name(), property.type(), &target);
+
+    ImGui::BeginGroup();
+
+    ImGui::AlignFirstTextHeightToWidgets();
+    ImGui::Text(target->metaClass().name());
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("New"))
+        ImGui::OpenPopup("new");
+    if (ImGui::BeginPopup("new")) {
+        static ImGuiTextFilter filter;
+        ImGui::PushItemWidth(-1);
+        filter.Draw("");
+        ImGui::PopItemWidth();
+
+        ImGui::BeginChild("newObjectList", ImVec2(250, 250), false);
+
+        const ClassList &derivedClasses = getDerivedClasses(pointeeClass);
+
+        for (const MetaClass *metaClass : derivedClasses) {
+            if (filter.PassFilter(metaClass->name())) {
+                if (ImGui::MenuItem(metaClass->name())) {
+                    ImGui::CloseCurrentPopup();
+                    target = metaClass->construct();
+                    object->setProperty(property.name(), property.type(), &target);
+                }
+            }
+        }
+
+        ImGui::EndChild();
+        ImGui::EndPopup();
+    }
+
+    ImGui::EndGroup();
+
+    ImGui::NextColumn();
+    ImGui::PopID();
+
+    /* Want to add an editor for this object. */
+    m_childObjects.emplace_back(std::move(target));
+}
+
 /** Display editors for a specific class' properties. */
-static void displayPropertyEditors(Object *object, const MetaClass *metaClass) {
+void WorldExplorerWindow::displayPropertyEditors(Object *object, const MetaClass *metaClass) {
     /* Display base class properties first. */
     if (metaClass->parent())
         displayPropertyEditors(object, metaClass->parent());
@@ -353,11 +414,33 @@ static void displayPropertyEditors(Object *object, const MetaClass *metaClass) {
     for (const MetaProperty &property : metaClass->properties()) {
         /* These all do nothing if the type does not match. */
 
+        ImGui::AlignFirstTextHeightToWidgets();
+
         displayPropertyEditor<bool>(
             object, property,
             [&] (bool *value) {
                 return ImGui::Checkbox("", value);
             });
+
+        #define DISPLAY_INT_EDITOR(type) \
+            displayPropertyEditor<type>( \
+                object, property, \
+                [&] (type *value) { \
+                    int tmp = *value; \
+                    bool ret = ImGui::InputInt("", &tmp, 0, 0, ImGuiInputTextFlags_EnterReturnsTrue); \
+                    if (ret) \
+                        *value = static_cast<type>(tmp); \
+                    return ret; \
+                });
+
+        DISPLAY_INT_EDITOR(int8_t);
+        DISPLAY_INT_EDITOR(uint8_t);
+        DISPLAY_INT_EDITOR(int16_t);
+        DISPLAY_INT_EDITOR(uint16_t);
+        DISPLAY_INT_EDITOR(int32_t);
+        DISPLAY_INT_EDITOR(uint32_t);
+
+        #undef DISPLAY_INT_EDITOR
 
         displayPropertyEditor<float>(
             object, property,
@@ -406,12 +489,13 @@ static void displayPropertyEditors(Object *object, const MetaClass *metaClass) {
 
         displayEnumPropertyEditor(object, property);
         displayAssetPropertyEditor(object, property);
+        displayObjectPropertyEditor(object, property);
     }
 }
 
 /** Custom editor for a MeshRenderer.
  * @param renderer      Renderer to edit. */
-static void displayMeshRendererEditor(MeshRenderer *renderer) {
+void WorldExplorerWindow::displayMeshRendererEditor(MeshRenderer *renderer) {
     const Mesh *mesh = renderer->mesh();
     if (!mesh)
         return;
@@ -421,6 +505,7 @@ static void displayMeshRendererEditor(MeshRenderer *renderer) {
 
     for (const std::pair<std::string, size_t> &materialPair : mesh->materials()) {
         ImGui::Indent();
+        ImGui::AlignFirstTextHeightToWidgets();
         ImGui::Text(materialPair.first.c_str());
         ImGui::Unindent();
         ImGui::NextColumn();
@@ -435,11 +520,12 @@ static void displayMeshRendererEditor(MeshRenderer *renderer) {
 
 /** Display an editor for an object's properties.
  * @param object        Object to display for.
+ * @param canDestroy    Whether the object can be destroyed.
  * @return              Whether to destroy the object. */
-static bool displayObjectEditor(Object *object) {
+bool WorldExplorerWindow::displayObjectEditor(Object *object, bool canDestroy) {
     bool open = true;
 
-    if (!ImGui::CollapsingHeader(object->metaClass().name(), &open, ImGuiTreeNodeFlags_DefaultOpen))
+    if (!ImGui::CollapsingHeader(object->metaClass().name(), (canDestroy) ? &open : nullptr, ImGuiTreeNodeFlags_DefaultOpen))
         return false;
 
     ImGui::PushID(object);
@@ -454,6 +540,19 @@ static bool displayObjectEditor(Object *object) {
         displayMeshRendererEditor(static_cast<MeshRenderer *>(object));
 
     ImGui::Columns(1);
+
+    /* Display child object editors. */
+    if (open && !m_childObjects.empty()) {
+        auto children = std::move(m_childObjects);
+
+        for (const ObjectPtr<Object> &child : children) {
+            ImGui::Indent();
+            ImGui::BeginChild(child->metaClass().name());
+            displayObjectEditor(child, false);
+            ImGui::EndChild();
+        }
+    }
+
     ImGui::PopID();
 
     return !open;
@@ -468,7 +567,7 @@ void WorldExplorerWindow::displayEntityEditor() {
 
     /* Editor for entity properties. */
     if (m_currentEntity->parent()) {
-        if (displayObjectEditor(m_currentEntity)) {
+        if (displayObjectEditor(m_currentEntity, true)) {
             EntityPtr next = m_currentEntity->parent();
             m_currentEntity->destroy();
             m_currentEntity = std::move(next);
@@ -482,7 +581,7 @@ void WorldExplorerWindow::displayEntityEditor() {
 
     /* Editor for each component's properties. */
     for (Component *component : m_currentEntity->components()) {
-        if (displayObjectEditor(component))
+        if (displayObjectEditor(component, true))
             toDestroy = component;
     }
 
@@ -492,4 +591,29 @@ void WorldExplorerWindow::displayEntityEditor() {
         toDestroy->destroy();
 
     ImGui::EndChild();
+}
+
+/** Get a list of constructable classes derived from the given class.
+ * @param metaClass     Class to get derived classes of.
+ * @return              Sorted list of derived classes. */
+const WorldExplorerWindow::ClassList &WorldExplorerWindow::getDerivedClasses(const MetaClass &metaClass) {
+    auto it = m_derivedClasses.find(&metaClass);
+    if (it != m_derivedClasses.end())
+        return it->second;
+
+    ClassList classList;
+
+    MetaClass::visit(
+        [&] (const MetaClass &otherClass) {
+            if (metaClass.isBaseOf(otherClass) && otherClass.isConstructable())
+                classList.emplace_back(&otherClass);
+        });
+
+    classList.sort(
+        [] (const MetaClass *a, const MetaClass *b) {
+            return strcmp(a->name(), b->name()) < 0;
+        });
+
+    auto ret = m_derivedClasses.emplace(&metaClass, std::move(classList));
+    return ret.first->second;
 }
