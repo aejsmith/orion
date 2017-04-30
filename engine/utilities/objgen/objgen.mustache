@@ -37,7 +37,12 @@ static void {{mangledName}}_set_{{propertyName}}(Object *base, const void *value
 {{/properties}}
 static const MetaClass::PropertyArray {{mangledName}}_propertyTable = {
 {{#properties}}
-    MetaProperty("{{propertyName}}", MetaType::lookup<{{{propertyType}}}>(), {{mangledName}}_get_{{propertyName}}, {{mangledName}}_set_{{propertyName}}),
+    MetaProperty(
+        "{{propertyName}}",
+        MetaType::lookup<{{{propertyType}}}>(),
+        {{propertyFlags}},
+        {{mangledName}}_get_{{propertyName}},
+        {{mangledName}}_set_{{propertyName}}),
 {{/properties}}
 };
 

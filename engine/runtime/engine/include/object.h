@@ -401,6 +401,12 @@ public:
 /** Class providing metadata about a property. */
 class MetaProperty {
 public:
+    /** Property behaviour flags. */
+    enum : uint32_t {
+        /** Transient, will not be serialised. */
+        kTransient = (1 << 0),
+    };
+
     /** Type of the get function defined by objgen. */
     using GetFunction = void (*)(const Object *, void *);
     /** Type of the set function defined by objgen. */
@@ -409,6 +415,7 @@ public:
     MetaProperty(
         const char *name,
         const MetaType &type,
+        uint32_t flags,
         GetFunction getFunction,
         SetFunction setFunction);
 
@@ -416,6 +423,8 @@ public:
     const char *name() const { return m_name; }
     /** @return             Type of the property. */
     const MetaType &type() const { return m_type; }
+    /** @return             Behaviour flags for the property. */
+    uint32_t flags() const { return m_flags; }
 private:
     /** Get the property value.
      * @param object        Object to get property from.
@@ -433,6 +442,7 @@ private:
 
     const char *m_name;                 /**< Name of the property. */
     const MetaType &m_type;             /**< Type of the property. */
+    uint32_t m_flags;                   /**< Behaviour flags. */
     GetFunction m_getFunction;          /**< Get function defined by objgen. */
     SetFunction m_setFunction;          /**< Set function defined by objgen. */
 

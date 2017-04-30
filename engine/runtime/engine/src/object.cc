@@ -45,11 +45,11 @@
  * @param traits        Traits for the type.
  * @param parent        Parent type (for pointers and Object-derived classes). */
 MetaType::MetaType(const char *name, size_t size, uint32_t traits, const MetaType *parent) :
-    m_name(name),
-    m_size(size),
-    m_traits(traits),
-    m_parent(parent),
-    m_enumConstants(nullptr)
+    m_name          (name),
+    m_size          (size),
+    m_traits        (traits),
+    m_parent        (parent),
+    m_enumConstants (nullptr)
 {}
 
 /** Allocate a new meta-type.
@@ -99,9 +99,9 @@ MetaClass::MetaClass(
     ConstructorFunction constructor,
     const PropertyArray &properties)
     :
-    MetaType(name, size, traits | MetaType::kIsObject, parent),
-    m_constructor(constructor),
-    m_properties(properties)
+    MetaType      (name, size, traits | MetaType::kIsObject, parent),
+    m_constructor (constructor),
+    m_properties  (properties)
 {
     auto ret = metaClassMap().insert(std::make_pair(name, this));
     checkMsg(ret.second, "Registering meta-class '%s' that already exists", name);
@@ -215,13 +215,15 @@ void MetaClass::visit(const std::function<void (const MetaClass &)> &function) {
 MetaProperty::MetaProperty(
     const char *name,
     const MetaType &type,
+    uint32_t flags,
     GetFunction getFunction,
     SetFunction setFunction)
     :
-    m_name(name),
-    m_type(type),
-    m_getFunction(getFunction),
-    m_setFunction(setFunction)
+    m_name        (name),
+    m_type        (type),
+    m_flags       (flags),
+    m_getFunction (getFunction),
+    m_setFunction (setFunction)
 {}
 
 /** Look up a property and check that it is the given type.
@@ -341,6 +343,9 @@ void Object::serialise(Serialiser &serialiser) const {
                 serialiseProperties(metaClass->parent());
 
             for (const MetaProperty &property : metaClass->properties()) {
+                if (property.flags() & MetaProperty::kTransient)
+                    continue;
+
                 SerialisationBuffer buf(property.type());
                 property.get(this, buf.data);
                 serialiser.write(property.name(), property.type(), buf.data);
@@ -375,6 +380,9 @@ void Object::deserialise(Serialiser &serialiser) {
                     deserialiseProperties(metaClass->parent());
 
                 for (const MetaProperty &property : metaClass->properties()) {
+                    if (property.flags() & MetaProperty::kTransient)
+                        continue;
+
                     SerialisationBuffer buf(property.type());
                     if (serialiser.read(property.name(), property.type(), buf.data))
                         property.set(this, buf.data);

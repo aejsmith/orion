@@ -107,6 +107,9 @@ public:
     std::string getFunction;        /**< Getter function for the property (empty for direct access). */
     std::string setFunction;        /**< Setter function for the property (empty for direct access). */
 
+    /** Behaviour flags. */
+    bool transient;
+
     Mustache::Data generate() const override;
     void dump(unsigned depth) const override;
 protected:
@@ -395,7 +398,8 @@ void ParsedDecl::visitChildren(CXCursor cursor, const VisitFunction &function) {
  * @param cursor        Cursor to initialise from.
  * @param _parent       Parent declaration. */
 ParsedProperty::ParsedProperty(CXCursor cursor, ParsedDecl *parent) :
-    ParsedDecl(cursor, parent)
+    ParsedDecl (cursor, parent),
+    transient  (false)
 {
     /* Remove prefixes from property names. */
     if (this->name.substr(0, 2) == "m_") {
@@ -446,22 +450,26 @@ bool ParsedProperty::handleAnnotation(const std::string &type, const rapidjson::
         return true;
     }
 
-    if (attributes.HasMember("get")) {
-        const rapidjson::Value &value = attributes["get"];
+    static const char *kGetAttribute       = "get";
+    static const char *kSetAttribute       = "set";
+    static const char *kTransientAttribute = "transient";
+
+    if (attributes.HasMember(kGetAttribute)) {
+        const rapidjson::Value &value = attributes[kGetAttribute];
 
         if (!value.IsString()) {
-            parseError(this->cursor, "'get' attribute must be a string");
+            parseError(this->cursor, "'%s' attribute must be a string", kGetAttribute);
             return true;
         }
 
         this->getFunction = value.GetString();
     }
 
-    if (attributes.HasMember("set")) {
-        const rapidjson::Value &value = attributes["set"];
+    if (attributes.HasMember(kSetAttribute)) {
+        const rapidjson::Value &value = attributes[kSetAttribute];
 
         if (!value.IsString()) {
-            parseError(this->cursor, "'set' attribute must be a string");
+            parseError(this->cursor, "'%s' attribute must be a string", kSetAttribute);
             return true;
         }
 
@@ -471,6 +479,17 @@ bool ParsedProperty::handleAnnotation(const std::string &type, const rapidjson::
     if (this->getFunction.empty() != this->setFunction.empty()) {
         parseError(this->cursor, "both 'get' and 'set' or neither of them must be specified");
         return true;
+    }
+
+    if (attributes.HasMember(kTransientAttribute)) {
+        const rapidjson::Value &value = attributes[kTransientAttribute];
+
+        if (!value.IsBool()) {
+            parseError(this->cursor, "'%s' attribute must be a boolean", kTransientAttribute);
+            return true;
+        }
+
+        this->transient = value.GetBool();
     }
 
     if (clang_getCXXAccessSpecifier(this->cursor) != CX_CXXPublic) {
@@ -504,8 +523,25 @@ bool ParsedProperty::handleAnnotation(const std::string &type, const rapidjson::
 Mustache::Data ParsedProperty::generate() const {
     Mustache::Data data;
 
+    /* Generate a flags string. */
+    std::string flags;
+    auto addFlag =
+        [&] (const char *flag) {
+            if (!flags.empty())
+                flags += " | ";
+            flags += "MetaProperty::";
+            flags += flag;
+        };
+
+    if (this->transient)
+        addFlag("kTransient");
+
+    if (flags.empty())
+        flags = "0";
+
     data.set("propertyName", this->name);
     data.set("propertyType", this->type);
+    data.set("propertyFlags", flags);
 
     if (!this->getFunction.empty()) {
         data.set("propertyGet", this->getFunction);
