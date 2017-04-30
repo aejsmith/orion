@@ -67,6 +67,13 @@ public:
     /** Resolution to use for shadow maps. */
     PROPERTY() uint16_t shadowMapResolution;
 
+    #if ORION_BUILD_DEBUG
+
+    /** Debug options. */
+    PROPERTY("transient": true) bool debugDrawLights;
+
+    #endif
+
     void render(const RenderWorld &world, RenderView &view, RenderTarget &target) const override;
 private:
     /** Global resources for the pipeline. */

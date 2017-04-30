@@ -210,6 +210,38 @@ void DeferredRenderPipeline::prepareLights(Context &context) const {
     context.lights.reserve(context.cullResults.lights.size());
 
     for (RenderLight *renderLight : context.cullResults.lights) {
+        /* Debug light rendering. */
+        #if ORION_BUILD_DEBUG
+            if (this->debugDrawLights) {
+                switch (renderLight->type()) {
+                    case RenderLight::kPointLight:
+                    case RenderLight::kSpotLight:
+                    {
+                        glm::vec3 position = renderLight->position();
+                        BoundingBox boundingBox(
+                            position - glm::vec3(0.2f, 0.2f, 0.2f),
+                            position + glm::vec3(0.2f, 0.2f, 0.2f));
+
+                        glm::vec4 colour = glm::vec4(renderLight->colour(), 1.0f);
+                        g_debugManager->draw(boundingBox, colour, true);
+
+                        if (renderLight->type() == RenderLight::kSpotLight) {
+                            g_debugManager->drawLine(
+                                position,
+                                position + renderLight->direction(),
+                                colour,
+                                true);
+                        }
+
+                        break;
+                    }
+
+                    default:
+                        break;
+                }
+            }
+        #endif
+
         context.lights.emplace_back();
         Light &light = context.lights.back();
 
