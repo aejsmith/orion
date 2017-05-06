@@ -429,30 +429,31 @@ VulkanSamplerState::VulkanSamplerState(VulkanGPUManager *manager, const GPUSampl
 
     switch (m_desc.filterMode) {
         case SamplerFilterMode::kBilinear:
-            createInfo.magFilter = VK_FILTER_LINEAR;
-            createInfo.minFilter = VK_FILTER_LINEAR;
-            createInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+            createInfo.magFilter        = VK_FILTER_LINEAR;
+            createInfo.minFilter        = VK_FILTER_LINEAR;
+            createInfo.mipmapMode       = VK_SAMPLER_MIPMAP_MODE_NEAREST;
             break;
         case SamplerFilterMode::kTrilinear:
-            createInfo.magFilter = VK_FILTER_LINEAR;
-            createInfo.minFilter = VK_FILTER_LINEAR;
-            createInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+            createInfo.magFilter        = VK_FILTER_LINEAR;
+            createInfo.minFilter        = VK_FILTER_LINEAR;
+            createInfo.mipmapMode       = VK_SAMPLER_MIPMAP_MODE_LINEAR;
             break;
         case SamplerFilterMode::kAnisotropic:
-            createInfo.magFilter = VK_FILTER_LINEAR;
-            createInfo.minFilter = VK_FILTER_LINEAR;
-            createInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+            createInfo.magFilter        = VK_FILTER_LINEAR;
+            createInfo.minFilter        = VK_FILTER_LINEAR;
+            createInfo.mipmapMode       = VK_SAMPLER_MIPMAP_MODE_LINEAR;
             createInfo.anisotropyEnable = true;
+
             /* TODO: global default if set to 0, see GL note about hashing. */
-            createInfo.maxAnisotropy = glm::clamp(
+            createInfo.maxAnisotropy    = glm::clamp(
                 static_cast<float>(m_desc.maxAnisotropy),
                 1.0f,
                 manager->device()->limits().maxSamplerAnisotropy);
             break;
         default:
-            createInfo.magFilter = VK_FILTER_NEAREST;
-            createInfo.minFilter = VK_FILTER_NEAREST;
-            createInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+            createInfo.magFilter        = VK_FILTER_NEAREST;
+            createInfo.minFilter        = VK_FILTER_NEAREST;
+            createInfo.mipmapMode       = VK_SAMPLER_MIPMAP_MODE_NEAREST;
             break;
     }
 
@@ -466,9 +467,12 @@ VulkanSamplerState::VulkanSamplerState(VulkanGPUManager *manager, const GPUSampl
             }
         };
 
-    createInfo.addressModeU = convertAddressMode(desc.addressU);
-    createInfo.addressModeV = convertAddressMode(desc.addressV);
-    createInfo.addressModeW = convertAddressMode(desc.addressW);
+    createInfo.addressModeU  = convertAddressMode(desc.addressU);
+    createInfo.addressModeV  = convertAddressMode(desc.addressV);
+    createInfo.addressModeW  = convertAddressMode(desc.addressW);
+
+    createInfo.compareEnable = desc.compareEnable;
+    createInfo.compareOp     = VulkanUtil::convertComparisonFunc(desc.compareFunc);
 
     checkVk(vkCreateSampler(manager->device()->handle(), &createInfo, nullptr, &m_handle));
 }

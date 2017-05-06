@@ -496,36 +496,10 @@ VulkanDepthStencilState::VulkanDepthStencilState(const GPUDepthStencilStateDesc 
     GPUDepthStencilState(desc),
     m_createInfo()
 {
-    m_createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-    m_createInfo.depthTestEnable = desc.depthFunc != ComparisonFunc::kAlways;
+    m_createInfo.sType            = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    m_createInfo.depthTestEnable  = desc.depthFunc != ComparisonFunc::kAlways;
     m_createInfo.depthWriteEnable = desc.depthWrite;
-
-    switch (desc.depthFunc) {
-        case ComparisonFunc::kAlways:
-            m_createInfo.depthCompareOp = VK_COMPARE_OP_ALWAYS;
-            break;
-        case ComparisonFunc::kNever:
-            m_createInfo.depthCompareOp = VK_COMPARE_OP_NEVER;
-            break;
-        case ComparisonFunc::kEqual:
-            m_createInfo.depthCompareOp = VK_COMPARE_OP_EQUAL;
-            break;
-        case ComparisonFunc::kNotEqual:
-            m_createInfo.depthCompareOp = VK_COMPARE_OP_NOT_EQUAL;
-            break;
-        case ComparisonFunc::kLess:
-            m_createInfo.depthCompareOp = VK_COMPARE_OP_LESS;
-            break;
-        case ComparisonFunc::kLessOrEqual:
-            m_createInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
-            break;
-        case ComparisonFunc::kGreater:
-            m_createInfo.depthCompareOp = VK_COMPARE_OP_GREATER;
-            break;
-        case ComparisonFunc::kGreaterOrEqual:
-            m_createInfo.depthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL;
-            break;
-    }
+    m_createInfo.depthCompareOp   = VulkanUtil::convertComparisonFunc(desc.depthFunc);
 }
 
 /** Create a depth/stencil state object.

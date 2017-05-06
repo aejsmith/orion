@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -52,9 +52,9 @@ struct GPUBlendStateDesc {
     BlendFactor destFactor;         /**< Destination factor. */
 
     GPUBlendStateDesc() :
-        func(BlendFunc::kAdd),
-        sourceFactor(BlendFactor::kOne),
-        destFactor(BlendFactor::kZero)
+        func         (BlendFunc::kAdd),
+        sourceFactor (BlendFactor::kOne),
+        destFactor   (BlendFactor::kZero)
     {}
 
     SET_DESC_PARAMETER(setFunc, BlendFunc, func);
@@ -87,8 +87,8 @@ struct GPUDepthStencilStateDesc {
     bool depthWrite;                /**< Whether to enable depth buffer writes. */
 
     GPUDepthStencilStateDesc() :
-        depthFunc(ComparisonFunc::kLessOrEqual),
-        depthWrite(true)
+        depthFunc  (ComparisonFunc::kLessOrEqual),
+        depthWrite (true)
     {}
 
     SET_DESC_PARAMETER(setDepthFunc, ComparisonFunc, depthFunc);
@@ -119,8 +119,8 @@ struct GPURasterizerStateDesc {
     bool depthClamp;                /**< Whether to enable depth clamping. */
 
     GPURasterizerStateDesc() :
-        cullMode(CullMode::kBack),
-        depthClamp(false)
+        cullMode   (CullMode::kBack),
+        depthClamp (false)
     {}
 
     SET_DESC_PARAMETER(setCullMode, CullMode, cullMode);
@@ -152,13 +152,17 @@ struct GPUSamplerStateDesc {
     SamplerAddressMode addressU;    /**< Addressing mode in U direction. */
     SamplerAddressMode addressV;    /**< Addressing mode in V direction. */
     SamplerAddressMode addressW;    /**< Addressing mode in W direction. */
+    bool compareEnable;             /**< Enable comparison against a reference value. */
+    ComparisonFunc compareFunc;     /**< Comparison function when compareEnable is true. */
 
     GPUSamplerStateDesc() :
-        filterMode(SamplerFilterMode::kNearest),
-        maxAnisotropy(1),
-        addressU(SamplerAddressMode::kClamp),
-        addressV(SamplerAddressMode::kClamp),
-        addressW(SamplerAddressMode::kClamp)
+        filterMode    (SamplerFilterMode::kNearest),
+        maxAnisotropy (1),
+        addressU      (SamplerAddressMode::kClamp),
+        addressV      (SamplerAddressMode::kClamp),
+        addressW      (SamplerAddressMode::kClamp),
+        compareEnable (false),
+        compareFunc   (ComparisonFunc::kAlways)
     {}
 
     SET_DESC_PARAMETER(setFilterMode, SamplerFilterMode, filterMode);
@@ -166,6 +170,8 @@ struct GPUSamplerStateDesc {
     SET_DESC_PARAMETER(setAddressU, SamplerAddressMode, addressU);
     SET_DESC_PARAMETER(setAddressV, SamplerAddressMode, addressV);
     SET_DESC_PARAMETER(setAddressW, SamplerAddressMode, addressW);
+    SET_DESC_PARAMETER(setCompareEnable, bool, compareEnable);
+    SET_DESC_PARAMETER(setCompareFunc, ComparisonFunc, compareFunc);
 
     /** Compare this descriptor with another. */
     bool operator ==(const GPUSamplerStateDesc &other) const {
@@ -173,7 +179,9 @@ struct GPUSamplerStateDesc {
             maxAnisotropy == other.maxAnisotropy &&
             addressU == other.addressU &&
             addressV == other.addressV &&
-            addressW == other.addressW;
+            addressW == other.addressW &&
+            compareEnable == other.compareEnable &&
+            compareFunc == other.compareFunc;
     }
 
     /** Get a hash from a sampler state descriptor. */
@@ -183,6 +191,8 @@ struct GPUSamplerStateDesc {
         hash = hashCombine(hash, desc.addressU);
         hash = hashCombine(hash, desc.addressV);
         hash = hashCombine(hash, desc.addressW);
+        hash = hashCombine(hash, desc.compareEnable);
+        hash = hashCombine(hash, desc.compareFunc);
         return hash;
     }
 };

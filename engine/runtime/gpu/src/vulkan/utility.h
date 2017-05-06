@@ -70,4 +70,30 @@ namespace VulkanUtil {
 
         return aspectMask;
     }
+
+    /** Convert a comparison function.
+     * @param func          Function to convert.
+     * @return              Vulkan comparison operation. */
+    inline VkCompareOp convertComparisonFunc(ComparisonFunc func) {
+        switch (func) {
+            case ComparisonFunc::kAlways:
+                return VK_COMPARE_OP_ALWAYS;
+            case ComparisonFunc::kNever:
+                return VK_COMPARE_OP_NEVER;
+            case ComparisonFunc::kEqual:
+                return VK_COMPARE_OP_EQUAL;
+            case ComparisonFunc::kNotEqual:
+                return VK_COMPARE_OP_NOT_EQUAL;
+            case ComparisonFunc::kLess:
+                return VK_COMPARE_OP_LESS;
+            case ComparisonFunc::kLessOrEqual:
+                return VK_COMPARE_OP_LESS_OR_EQUAL;
+            case ComparisonFunc::kGreater:
+                return VK_COMPARE_OP_GREATER;
+            case ComparisonFunc::kGreaterOrEqual:
+                return VK_COMPARE_OP_GREATER_OR_EQUAL;
+            default:
+                unreachable();
+        }
+    }
 }

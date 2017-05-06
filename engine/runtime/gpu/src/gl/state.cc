@@ -480,6 +480,15 @@ GLSamplerState::GLSamplerState(const GPUSamplerStateDesc &desc) :
             glSamplerParameteri(m_sampler, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             break;
     }
+
+    glSamplerParameteri(
+        m_sampler,
+        GL_TEXTURE_COMPARE_MODE,
+        (m_desc.compareEnable) ? GL_COMPARE_REF_TO_TEXTURE : GL_NONE);
+    glSamplerParameteri(
+        m_sampler,
+        GL_TEXTURE_COMPARE_FUNC,
+        GLUtil::convertComparisonFunc(m_desc.compareFunc));
 }
 
 /** Destroy the sampler state object. */
