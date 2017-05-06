@@ -116,7 +116,7 @@ AssetPtr OBJLoader::load() {
         m_currentLine++;
 
         std::vector<std::string> tokens;
-        String::tokenize(line, tokens, " \r", true);
+        String::tokenize(line, tokens, " \r");
         if (!tokens.size())
             continue;
 
@@ -252,7 +252,7 @@ bool OBJLoader::addFace(const std::vector<std::string> &tokens) {
     std::vector<uint16_t> indices(numVertices);
     for (size_t i = 0; i < numVertices; i++) {
         std::vector<std::string> subTokens;
-        String::tokenize(tokens[i + 1], subTokens, "/", false);
+        String::tokenize(tokens[i + 1], subTokens, "/", -1, false);
         if (subTokens.size() != 3) {
             logError("%s: %u: Expected v/vt/vn", m_path, m_currentLine);
             return false;

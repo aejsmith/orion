@@ -20,6 +20,7 @@
  */
 
 #include "core/filesystem.h"
+#include "core/string.h"
 
 #include <fstream>
 #include <functional>
@@ -215,36 +216,6 @@ static void parseError(CXCursor cursor, const char *fmt, ...) {
     g_parseErrorOccurred = true;
 }
 
-/** Split a string into tokens.
- * @param str           String to split.
- * @param tokens        Vector to fill with tokens (existing content left intact).
- * @param delimiters    Delimiter characters (defaults to " ").
- * @param maxTokens     Maximum number of tokens (-1 for no limit, the default).
- *                      After this limit is reached the remainder of the string
- *                      is added to the last token. */
-static void tokenize(
-    const std::string &str,
-    std::vector<std::string> &tokens,
-    const char *delimiters = " ",
-    int maxTokens = -1)
-{
-    size_t last = 0;
-    size_t pos = 0;
-    int numTokens = 0;
-
-    while (pos != std::string::npos) {
-        if (maxTokens > 0 && numTokens == maxTokens - 1) {
-            tokens.emplace_back(str, last);
-            break;
-        } else {
-            pos = str.find_first_of(delimiters, last);
-            tokens.emplace_back(str, last, pos - last);
-            last = pos + 1;
-            numTokens++;
-        }
-    }
-}
-
 /**
  * Mangle a name string for use in generated code.
  *
@@ -316,7 +287,7 @@ static bool parseAnnotation(CXCursor cursor, std::string &type, rapidjson::Docum
     clang_disposeString(str);
 
     std::vector<std::string> tokens;
-    tokenize(annotation, tokens, ":", 3);
+    String::tokenize(annotation, tokens, ":", 3, false);
 
     if (tokens[0].compare("orion")) {
         /* Don't raise an error for annotations that aren't marked as being for
