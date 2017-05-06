@@ -125,6 +125,10 @@ DeferredRenderPipeline::DeferredRenderPipeline() :
 {
     /* Ensure that global resources are initialised. */
     m_resources.init();
+
+    #if ORION_BUILD_DEBUG
+        this->debugDrawLights = false;
+    #endif
 }
 
 /** Destroy the pipeline. */
