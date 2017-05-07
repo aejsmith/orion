@@ -23,10 +23,11 @@
 #define __LIGHTING_H
 
 #ifdef SHADOW
+    /** Shadow sampler. */
     #if defined(SPOT_LIGHT)
-        layout(set = kLightResources, binding = kShadowMap) uniform sampler2D shadowMap;
+        layout(set = kLightResources, binding = kShadowMap) uniform sampler2DShadow shadowMap;
     #elif defined(POINT_LIGHT)
-        layout(set = kLightResources, binding = kShadowMap) uniform samplerCube shadowMap;
+        layout(set = kLightResources, binding = kShadowMap) uniform samplerCubeShadow shadowMap;
     #endif
 #endif
 
@@ -49,32 +50,90 @@ float calcShadow(LightingData data) {
              * texture lookup). */
             vec4 shadowPos = light.shadowSpace * vec4(data.position, 1.0);
 
-            /* Calculate depth (from light point of view) of this pixel. */
-            float pixelDepth = shadowPos.z / shadowPos.w;
+            /* Calculate texture coordinate in X/Y and reference depth value
+             * (depth of this pixel from light point of view). */
+            vec3 uvDepth = shadowPos.xyz / shadowPos.w;
 
-            /* Sample the shadow map. */
-            float shadowDepth = textureProj(shadowMap, shadowPos.xyw).r;
+            /* Apply bias. */
+            uvDepth.z += light.shadowBiasConstant;
 
-            /* Compare with a bias to prevent shadow acne. */
-            return shadowDepth < (pixelDepth - 0.005) ? 0.2 : 1.0;
+            /* 3x3 PCF. */
+            float shadow = 0.0;
+            vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+            for (int x = -1; x <= 1; x++) {
+                for (int y = -1; y <= 1; y++) {
+                    vec3 p = vec3(
+                        uvDepth.xy + (vec2(x, y) * texelSize),
+                        uvDepth.z);
+
+                    /* Sample the shadow map. Returns [0, 1] where 0 is fully
+                     * shadowed and 1 is unshadowed. */
+                    shadow += texture(shadowMap, p);
+                }
+            }
+
+            shadow /= 9.0;
+
+            return shadow;
         #elif defined(POINT_LIGHT)
             /* Cube map face is selected by the highest magnitude component in
-             * the light to fragment vector. This component is defines the depth
-             * of the pixel. */
+             * the light to fragment vector. This component defines the depth
+             * of the pixel. Also choose the offset directions to use for PCF
+             * based on this (we want to vary the other 2 components). */
             vec3 direction = data.position - light.position;
             vec3 absDirection = abs(direction);
-            float localDepth = max(absDirection.x, max(absDirection.y, absDirection.z));
+
+            float localDepth;
+            vec3 offsetA, offsetB;
+
+            if (absDirection.x >= absDirection.y && absDirection.x >= absDirection.z) {
+                localDepth = absDirection.x;
+                offsetA = vec3(0.0, 1.0, 0.0);
+                offsetB = vec3(0.0, 0.0, 1.0);
+            } else if (absDirection.y >= absDirection.x && absDirection.y >= absDirection.z) {
+                localDepth = absDirection.y;
+                offsetA = vec3(1.0, 0.0, 0.0);
+                offsetB = vec3(0.0, 0.0, 1.0);
+            } else {
+                localDepth = absDirection.z;
+                offsetA = vec3(1.0, 0.0, 0.0);
+                offsetB = vec3(0.0, 1.0, 0.0);
+            }
 
             /* Convert this value to a depth value. */
             float far = light.range;
             float near = light.shadowZNear;
             float depth = -(far / (near - far)) - ((far * near) / (far - near) / localDepth);
 
-            /* Sample the shadow map. */
-            float shadowDepth = texture(shadowMap, direction).r;
+            /* Determine the offsets to use for PCF (a single texel). Multiply
+             * by 2 since cube texture coordinates are remapped from the [-1, 1]
+             * range to [0, 1]. */
+            float texelSize = (1.0 / textureSize(shadowMap, 0).x);
+            offsetA = offsetA * texelSize * 2.0;
+            offsetB = offsetB * texelSize * 2.0;
 
-            /* Same as above. */
-            return shadowDepth < (depth - 0.005) ? 0.2 : 1.0;
+            /* Base texture coordinates, with depth comparison value in last
+             * component. Normalize the direction here so that the offset should
+             * correspond to a single texel. */
+            vec4 directionDepth = vec4(normalize(direction), depth + light.shadowBiasConstant);
+
+            /* 3x3 PCF. */
+            float shadow = 0.0;
+            for (int a = -1; a <= 1; a++) {
+                for (int b = -1; b <= 1; b++) {
+                    vec4 p = vec4(
+                        directionDepth.xyz + (offsetA * a) + (offsetB * b),
+                        directionDepth.w);
+
+                    /* Sample the shadow map. Returns [0, 1] where 0 is fully
+                     * shadowed and 1 is unshadowed. */
+                    shadow += texture(shadowMap, p);
+                }
+            }
+
+            shadow /= 9.0;
+
+            return shadow;
         #else
             return 1.0;
         #endif

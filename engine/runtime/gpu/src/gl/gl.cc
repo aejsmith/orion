@@ -179,6 +179,7 @@ GLGPUManager::GLGPUManager(const EngineConfiguration &config, Window *&window) :
     this->state.setCullFace(GL_BACK);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
 /** Shut down the GPU interface. */

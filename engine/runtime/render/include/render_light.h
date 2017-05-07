@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -43,6 +43,7 @@ UNIFORM_STRUCT_BEGIN(LightUniforms)
     UNIFORM_STRUCT_MEMBER(float, attenuationConstant);
     UNIFORM_STRUCT_MEMBER(float, attenuationLinear);
     UNIFORM_STRUCT_MEMBER(float, attenuationExp);
+    UNIFORM_STRUCT_MEMBER(float, shadowBiasConstant);
 UNIFORM_STRUCT_END;
 
 /** Renderer representation of a light source. */
@@ -79,6 +80,7 @@ public:
     void setRange(float range);
     void setAttenuation(float constant, float linear, float exp);
     void setFlags(uint32_t flags);
+    void setShadowBias(float constant);
 
     /** @return             Type of the light. */
     Type type() const { return m_type; }
@@ -104,6 +106,8 @@ public:
     uint32_t flags() const { return m_flags; }
     /** @return             Whether the light casts shadows. */
     bool castsShadows() const { return (m_flags & kCastsShadows) != 0; }
+    /** @return             Constant shadow bias. */
+    float shadowBiasConstant() const { return m_shadowBiasConstant; }
 
     GPUResourceSet *getResources();
 
@@ -143,6 +147,7 @@ private:
     float m_attenuationLinear;      /**< Linear attenuation factor (point/spot). */
     float m_attenuationExp;         /**< Exponential attenuation factor (point/spot). */
     uint32_t m_flags;               /**< Behaviour flags for the light. */
+    float m_shadowBiasConstant;     /**< Constant shadow bias. */
 
     /** Bounding box (for spot lights). */
     BoundingBox m_boundingBox;

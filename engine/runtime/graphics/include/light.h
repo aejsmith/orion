@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -38,10 +38,12 @@ public:
     VPROPERTY(glm::vec3, colour);
     VPROPERTY(float, intensity);
     VPROPERTY(bool, castsShadows);
+    VPROPERTY(float, shadowBiasConstant);
 
     void setColour(const glm::vec3 &colour);
     void setIntensity(float intensity);
     void setCastsShadows(bool castShadows);
+    void setShadowBiasConstant(float constant);
 
     /** @return             Colour that the light emits. */
     const glm::vec3 &colour() const { return m_renderLight.colour(); }
@@ -49,6 +51,8 @@ public:
     float intensity() const { return m_renderLight.intensity(); }
     /** @return             Whether the light casts shadows. */
     bool castsShadows() const { return m_renderLight.castsShadows(); }
+    /** @return             Constant shadow bias. */
+    float shadowBiasConstant() const { return m_renderLight.shadowBiasConstant(); }
 protected:
     explicit Light(RenderLight::Type type);
     ~Light() {}
@@ -222,4 +226,10 @@ inline void Light::setRange(float range) {
  * @param params        Attenuation parameters (constant, linear, exponential). */
 inline void Light::setAttenuation(const glm::vec3 &params) {
     m_renderLight.setAttenuation(params[0], params[1], params[2]);
+}
+
+/** Set the constant shadow bias.
+ * @param constant      Constant shadow bias. */
+inline void Light::setShadowBiasConstant(float constant) {
+    m_renderLight.setShadowBias(constant);
 }

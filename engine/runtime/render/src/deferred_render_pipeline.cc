@@ -258,7 +258,10 @@ void DeferredRenderPipeline::prepareLights(Context &context) const {
             allocateShadowMap(light);
 
             /* Update the shadow map resource binding. */
-            GPUSamplerStatePtr sampler = g_gpuManager->getSamplerState();
+            GPUSamplerStatePtr sampler = g_gpuManager->getSamplerState(GPUSamplerStateDesc().
+                setFilterMode    (SamplerFilterMode::kBilinear).
+                setCompareEnable (true).
+                setCompareFunc   (ComparisonFunc::kLess));
             light.resources->bindTexture(ResourceSlots::kShadowMap, light.shadowMap, sampler);
 
             /* Now find all shadow casting entities which are affected by this

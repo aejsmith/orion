@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -41,6 +41,7 @@ Light::Light(RenderLight::Type type) :
 
     /* Don't cast shadows by default. */
     setCastsShadows(false);
+    setShadowBiasConstant(-0.001);
 }
 
 /** Initialize an ambient light component. */

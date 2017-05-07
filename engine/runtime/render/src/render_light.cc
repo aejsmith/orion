@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -147,6 +147,15 @@ void RenderLight::setFlags(uint32_t flags) {
 
     if (changedShadows)
         updateShadowViews();
+}
+
+/** Set shadow bias parameters.
+ * @param constant      Constant attenuation factor. */
+void RenderLight::setShadowBias(float constant) {
+    m_shadowBiasConstant = constant;
+
+    LightUniforms *uniforms = m_uniforms.write();
+    uniforms->shadowBiasConstant = m_shadowBiasConstant;
 }
 
 /** Flush pending updates and get resources.
