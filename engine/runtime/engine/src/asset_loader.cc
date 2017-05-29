@@ -31,34 +31,38 @@ AssetPtr AssetLoader::load(DataStream *data, const char *path) {
     return load();
 }
 
-/** @return             Registered loader factory map. */
-static auto &assetLoaderFactoryMap() {
-    static std::map<std::string, AssetLoaderFactory *> map;
-    return map;
-}
-
-/** Initialize the asset loader factory.
- * @param type          File type (extension) that the loader is for. */
-AssetLoaderFactory::AssetLoaderFactory(const char *type) :
-    m_type(type)
-{
-    /* Register the loader factory. */
-    auto ret = assetLoaderFactoryMap().insert(std::make_pair(m_type, this));
-    checkMsg(ret.second, "Registering asset loader '%s' that already exists", m_type);
-}
-
-/** Destroy the asset loader factory. */
-AssetLoaderFactory::~AssetLoaderFactory() {
-    /* Unregister the loader factory. */
-    assetLoaderFactoryMap().erase(m_type);
-}
-
 /** Create an asset loader for a file type.
  * @param type          File type to create for.
  * @return              Created asset loader if type known, null if not. */
-AssetLoader *AssetLoaderFactory::create(const std::string &type) {
-    auto ret = assetLoaderFactoryMap().find(type);
-    return (ret != assetLoaderFactoryMap().end())
-        ? ret->second->create()
-        : nullptr;
+ObjectPtr<AssetLoader> AssetLoader::create(const std::string &type) {
+    /* Map of file types to loader class. This is populated on first use of a
+     * type to avoid having to search over the known classes for repeated loads
+     * of a given type. */
+    static std::map<std::string, const MetaClass *> typeMap;
+
+    ObjectPtr<AssetLoader> loader;
+
+    auto ret = typeMap.find(type);
+    if (ret != typeMap.end()) {
+        ObjectPtr<Object> object = ret->second->construct();
+        loader = object.staticCast<AssetLoader>();
+    } else {
+        MetaClass::visit(
+            [&] (const MetaClass &metaClass) {
+                if (AssetLoader::staticMetaClass.isBaseOf(metaClass) && metaClass.isConstructable()) {
+                    ObjectPtr<Object> object = metaClass.construct();
+                    ObjectPtr<AssetLoader> tmpLoader = object.staticCast<AssetLoader>();
+
+                    const char *extension = tmpLoader->extension();
+                    if (extension != nullptr) {
+                        typeMap.insert(std::make_pair(extension, &metaClass));
+
+                        if (type == extension)
+                            loader = tmpLoader;
+                    }
+                }
+            });
+    }
+
+    return loader;
 }

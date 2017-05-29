@@ -57,13 +57,13 @@ class TextureCubeLoader : public AssetLoader {
 public:
     CLASS();
 
-    AssetPtr load() override;
-
-    /** @return             Whether the loader requires data. */
-    bool requireData() const override {
+    /** @return             File extension which this loader handles. */
+    const char *extension() const override {
         /* We source our data from the source textures. */
-        return false;
+        return nullptr;
     }
+
+    AssetPtr load() override;
 
     /** Source textures for each face. */
     PROPERTY() Texture2DPtr positiveXFace;

@@ -34,10 +34,17 @@ public:
 
     virtual ~AssetLoader() {}
 
+    /** @return             File extension which this loader handles, or null
+     *                      if the loader does not require any additional
+     *                      data. */
+    virtual const char *extension() const = 0;
+
     AssetPtr load(DataStream *data, const char *path);
 
     /** @return             Whether the loader requires data. */
-    virtual bool requireData() const { return true; }
+    bool requireData() const { return extension() != nullptr; }
+
+    static ObjectPtr<AssetLoader> create(const std::string &type);
 protected:
     AssetLoader() {}
 
@@ -48,31 +55,3 @@ protected:
     DataStream *m_data;                 /**< Asset data stream (if any). */
     const char *m_path;                 /**< Asset path being loaded. */
 };
-
-/** Asset loader factory class. */
-class AssetLoaderFactory {
-public:
-    explicit AssetLoaderFactory(const char *type);
-    virtual ~AssetLoaderFactory();
-
-    static AssetLoader *create(const std::string &type);
-protected:
-    /** Create an asset loader of this type.
-     * @return              Created asset loader. */
-    virtual AssetLoader *create() const = 0;
-private:
-    const char *m_type;                 /**< File type that this factory is for. */
-};
-
-/** Implement an asset loader type.
- * @param className     Loader class name.
- * @param type          File type string. */
-#define IMPLEMENT_ASSET_LOADER(className, type) \
-    class className##Factory : public AssetLoaderFactory { \
-    public: \
-        className##Factory() : AssetLoaderFactory(type) {} \
-        AssetLoader *create() const override { return new className(); } \
-    private: \
-        static className##Factory m_instance; \
-    }; \
-    className##Factory className##Factory::m_instance

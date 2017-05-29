@@ -224,7 +224,7 @@ AssetPtr AssetManager::load(const Path &path) {
         } else {
             assert(data);
 
-            loader = AssetLoaderFactory::create(type);
+            loader = AssetLoader::create(type);
             if (!loader) {
                 logError("%s: Unknown file type '%s'", path.c_str(), type.c_str());
                 return nullptr;

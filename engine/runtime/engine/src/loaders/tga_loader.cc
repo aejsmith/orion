@@ -30,6 +30,9 @@ class TGALoader : public Texture2DLoader {
 public:
     CLASS();
 
+    /** @return             File extension which this loader handles. */
+    const char *extension() const override { return "tga"; }
+
     bool loadData() override;
 private:
     /** TGA image file header. */
@@ -52,8 +55,6 @@ private:
 };
 
 #include "tga_loader.obj.cc"
-
-IMPLEMENT_ASSET_LOADER(TGALoader, "tga");
 
 /** Load a TGA file.
  * @return              Whether the texture data was loaded sucessfully. */

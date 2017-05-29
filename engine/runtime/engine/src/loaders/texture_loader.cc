@@ -23,40 +23,6 @@
 
 #include "gpu/gpu_manager.h"
 
-/** Parse common texture attributes.
- * @param path          Path to asset (for error output).
- * @param attributes    Attributes to parse.
- * @param texture       Texture to apply attributes to.
- * @return              Whether attributes were parsed successfully. */
-static bool parseAttributes(
-    const char *path,
-    const rapidjson::Document &attributes,
-    TextureBase *texture)
-{
-    if (attributes.HasMember("addressMode")) {
-        if (!attributes["addressMode"].IsString()) {
-            logError("%s: 'addressMode' attribute should be a string", path);
-            return false;
-        }
-
-        const char *modeString = attributes["addressMode"].GetString();
-        SamplerAddressMode mode;
-
-        if (strcmp(modeString, "Clamp") == 0) {
-            mode = SamplerAddressMode::kClamp;
-        } else if (strcmp(modeString, "Wrap") == 0) {
-            mode = SamplerAddressMode::kWrap;
-        } else {
-            logError("%s: Invalid value '%s' for 'addressMode' attribute", path, modeString);
-            return false;
-        }
-
-        texture->setAddressMode(mode);
-    }
-
-    return true;
-}
-
 /**
  * Base 2D texture loader.
  */
@@ -86,8 +52,6 @@ AssetPtr Texture2DLoader::load() {
 /**
  * Cube texture loader.
  */
-
-IMPLEMENT_ASSET_LOADER(TextureCubeLoader, "cube");
 
 /** Load a cube texture asset.
  * @return              Pointer to loaded asset, null on failure. */

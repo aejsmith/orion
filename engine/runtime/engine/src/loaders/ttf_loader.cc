@@ -27,12 +27,13 @@ class TTFLoader : public AssetLoader {
 public:
     CLASS();
 
+    /** @return             File extension which this loader handles. */
+    const char *extension() const override { return "ttf"; }
+
     AssetPtr load() override;
 };
 
 #include "ttf_loader.obj.cc"
-
-IMPLEMENT_ASSET_LOADER(TTFLoader, "ttf");
 
 /** Load a TTF font asset.
  * @return              Pointer to loaded asset, null on failure. */

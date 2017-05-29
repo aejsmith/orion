@@ -73,6 +73,10 @@ public:
     };
 public:
     OBJLoader();
+
+    /** @return             File extension which this loader handles. */
+    const char *extension() const override { return "obj"; }
+
     AssetPtr load() override;
 private:
     template <typename VectorType>
@@ -101,8 +105,6 @@ private:
 };
 
 #include "obj_loader.obj.cc"
-
-IMPLEMENT_ASSET_LOADER(OBJLoader, "obj");
 
 /** Initialize the OBJ loader. */
 OBJLoader::OBJLoader() :
