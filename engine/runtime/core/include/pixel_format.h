@@ -41,11 +41,15 @@ struct PixelFormat {
          * independent of endianness.
          */
         kR8G8B8A8,              /**< RGBA, unsigned normalized, 8 bits per component. */
+        kR8G8B8A8sRGB,          /**< RGBA, unsigned normalized, 8 bits per component, sRGB. */
         kR8G8B8,                /**< RGB, unsigned normalized, 8 bits per component. */
+        kR8G8B8sRGB,            /**< RGB, unsigned normalized, 8 bits per component, sRGB. */
         kR8G8,                  /**< RG, unsigned normalized, 8 bits per component. */
         kR8,                    /**< R, unsigned normalized, 8 bits per component. */
         kB8G8R8A8,              /**< BGRA, unsigned normalized, 8 bits per component. */
+        kB8G8R8A8sRGB,          /**< BGRA, unsigned normalized, 8 bits per component, sRGB. */
         kB8G8R8,                /**< BGR, unsigned normalized, 8 bits per component. */
+        kB8G8R8sRGB,            /**< BGR, unsigned normalized, 8 bits per component, sRGB. */
         kR10G10B10A2,           /**< RGBA, unsigned normalized, 10 bits RGB, 2 bits A. */
         kFloatR16G16B16A16,     /**< RGBA, float, 16 bits per component. */
         kFloatR16G16B16,        /**< RGB, float, 16 bits per component. */
