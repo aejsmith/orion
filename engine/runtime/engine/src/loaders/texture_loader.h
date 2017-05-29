@@ -32,10 +32,14 @@ public:
 
     /** Addressing mode for sampling the texture. */
     PROPERTY() SamplerAddressMode addressMode;
+
+    /** Whether to use an sRGB format. */
+    PROPERTY() bool sRGB;
 protected:
     TextureLoader();
 
     void applyAttributes(TextureBase *texture);
+    PixelFormat getFinalFormat(PixelFormat format) const;
 };
 
 /** 2D texture loader base class. */

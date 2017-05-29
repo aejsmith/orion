@@ -29,13 +29,39 @@
 
 /** Construct the texture loader. */
 TextureLoader::TextureLoader() :
-    addressMode (SamplerAddressMode::kClamp)
+    addressMode (SamplerAddressMode::kClamp),
+    sRGB        (false)
 {}
 
 /** Apply texture attributes.
  * @param texture       Texture to apply to. */
 void TextureLoader::applyAttributes(TextureBase *texture) {
     texture->setAddressMode(this->addressMode);
+}
+
+/** Get the format to use taking attributes into account.
+ * @param format        Base format (should not be sRGB). */
+PixelFormat TextureLoader::getFinalFormat(PixelFormat format) const {
+    if (this->sRGB) {
+        switch (format) {
+            case PixelFormat::kR8G8B8A8:
+                format = PixelFormat::kR8G8B8A8sRGB;
+                break;
+            case PixelFormat::kR8G8B8:
+                format = PixelFormat::kR8G8B8sRGB;
+                break;
+            case PixelFormat::kB8G8R8A8:
+                format = PixelFormat::kB8G8R8A8sRGB;
+                break;
+            case PixelFormat::kB8G8R8:
+                format = PixelFormat::kB8G8R8sRGB;
+                break;
+            default:
+                break;
+        }
+    }
+
+    return format;
 }
 
 /**
@@ -53,7 +79,7 @@ AssetPtr Texture2DLoader::load() {
     Texture2DPtr texture = new Texture2D(
         m_width,
         m_height,
-        m_format,
+        getFinalFormat(m_format),
         0,
         GPUTexture::kAutoMipmap | GPUTexture::kRenderTarget);
     texture->update(m_buffer.get());
@@ -109,7 +135,7 @@ AssetPtr TextureCubeLoader::load() {
      * in attributes or determine from source. */
     TextureCubePtr texture = new TextureCube(
         size,
-        PixelFormat::kR8G8B8A8,
+        getFinalFormat(PixelFormat::kR8G8B8A8),
         0,
         GPUTexture::kAutoMipmap | GPUTexture::kRenderTarget);
 
