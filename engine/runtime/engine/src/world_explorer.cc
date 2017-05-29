@@ -475,7 +475,7 @@ void WorldExplorerWindow::displayPropertyEditors(Object *object, const MetaClass
                     glm::degrees(eulerAngles.x),
                     glm::degrees(eulerAngles.y),
                     glm::degrees(eulerAngles.z));
-                if (ImGui::InputFloat3("", &eulerAngles.x, -1, ImGuiInputTextFlags_EnterReturnsTrue)) {
+                if (ImGui::SliderFloat3("", &eulerAngles.x, -180.0f, 180.0f)) {
                     eulerAngles = glm::vec3(
                         glm::radians(eulerAngles.x),
                         glm::radians(eulerAngles.y),
