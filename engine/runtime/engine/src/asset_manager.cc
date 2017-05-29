@@ -217,9 +217,19 @@ AssetPtr AssetManager::load(const Path &path) {
                 return nullptr;
             }
 
-            if (loader->requireData() && !data) {
-                logError("%s: Asset '%s' has loader but missing data", path.c_str());
-                return nullptr;
+            if (data) {
+                if (!loader->requireData()) {
+                    logError("%s: Asset '%s' has data but loader does not need it", path.c_str());
+                    return nullptr;
+                } else if (type != loader->extension()) {
+                    logError("%s: Asset '%s' has loader but is for a different file type", path.c_str());
+                    return nullptr;
+                }
+            } else {
+                if (loader->requireData()) {
+                    logError("%s: Asset '%s' has loader but missing data", path.c_str());
+                    return nullptr;
+                }
             }
         } else {
             assert(data);
