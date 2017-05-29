@@ -42,8 +42,10 @@
 /** Global instance of the engine. */
 Engine *g_engine = nullptr;
 
-/** Initialize the engine. */
-Engine::Engine() :
+/** Initialize the engine.
+ * @param argc          Command line argument count.
+ * @param argv          Command line argument array. */
+Engine::Engine(int argc, char **argv) :
     m_world(nullptr),
     m_lastTick(0),
     m_lastFPS(0),
@@ -51,6 +53,9 @@ Engine::Engine() :
 {
     check(!g_engine);
     g_engine = this;
+
+    for (int i = 1; i < argc; i++)
+        m_arguments.emplace_back(argv[i]);
 
     /* Find the game class and get the engine configuration from it. */
     const MetaClass *gameClass = nullptr;

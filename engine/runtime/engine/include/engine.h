@@ -73,7 +73,7 @@ public:
         virtual void frameStarted() = 0;
     };
 
-    Engine();
+    Engine(int argc, char **argv);
     ~Engine();
 
     void run();
@@ -84,6 +84,8 @@ public:
     Game *game() const { return m_game; }
     /** @return             Engine statistics. */
     EngineStats &stats() { return m_stats; }
+    /** @return             Engine command line arguments. */
+    const std::vector<std::string> &arguments() const { return m_arguments; }
 
     /**
      * World management.
@@ -133,6 +135,9 @@ private:
 
     /** Engine statistics. */
     EngineStats m_stats;
+
+    /** Command line arguments. */
+    std::vector<std::string> m_arguments;
 };
 
 extern Engine *g_engine;

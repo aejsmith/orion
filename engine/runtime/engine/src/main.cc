@@ -27,7 +27,7 @@
  * @param argc          Argument count.
  * @param argv          Argument array. */
 int main(int argc, char **argv) {
-    Engine engine;
+    Engine engine(argc, argv);
     engine.run();
     return 0;
 }
