@@ -69,7 +69,11 @@ void CubesGame::init() {
     m_cubePhysicsMaterial = g_assetManager->load<PhysicsMaterial>("game/physics_materials/companion_cube");
 
     /* Load the world. */
-    m_world = g_engine->loadWorld("game/worlds/main");
+    const auto &arguments = g_engine->arguments();
+    std::string worldPath("game/worlds/main");
+    if (arguments.size() > 0)
+        worldPath = arguments[arguments.size() - 1];
+    m_world = g_engine->loadWorld(worldPath);
 
     // TODO: see below.
     std::function<void (Entity *)> getStats =
