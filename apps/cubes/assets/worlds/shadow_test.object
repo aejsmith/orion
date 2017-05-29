@@ -1,0 +1,1028 @@
+[
+    {
+        "objectClass": "World",
+        "objectID": 0,
+        "objectProperties": {},
+        "root": {
+            "objectID": 1
+        }
+    },
+    {
+        "objectClass": "Entity",
+        "objectID": 1,
+        "world": {
+            "objectID": 0
+        },
+        "parent": {},
+        "objectProperties": {
+            "name": "root",
+            "active": true,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "orientation": [
+                1.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        "components": [
+            {
+                "objectID": 2
+            },
+            {
+                "objectID": 3
+            }
+        ],
+        "children": [
+            {
+                "objectID": 4
+            },
+            {
+                "objectID": 8
+            },
+            {
+                "objectID": 12
+            },
+            {
+                "objectID": 16
+            },
+            {
+                "objectID": 22
+            },
+            {
+                "objectID": 24
+            },
+            {
+                "objectID": 26
+            },
+            {
+                "objectID": 28
+            },
+            {
+                "objectID": 30
+            },
+            {
+                "objectID": 34
+            },
+            {
+                "objectID": 38
+            }
+        ]
+    },
+    {
+        "objectClass": "Skybox",
+        "objectID": 2,
+        "entity": {
+            "objectID": 1
+        },
+        "objectProperties": {
+            "active": true,
+            "castsShadow": false,
+            "texture": {
+                "asset": "game/textures/skybox"
+            }
+        }
+    },
+    {
+        "objectClass": "AmbientLight",
+        "objectID": 3,
+        "entity": {
+            "objectID": 1
+        },
+        "objectProperties": {
+            "active": true,
+            "colour": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "intensity": 0.05000000074505806,
+            "castsShadows": false,
+            "shadowBiasConstant": -0.0005000000237487257
+        }
+    },
+    {
+        "objectClass": "Entity",
+        "objectID": 4,
+        "world": {
+            "objectID": 0
+        },
+        "parent": {
+            "objectID": 1
+        },
+        "objectProperties": {
+            "name": "floor",
+            "active": true,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "orientation": [
+                0.7071067690849304,
+                -0.7071067690849304,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                100.0,
+                100.0,
+                1.0
+            ]
+        },
+        "components": [
+            {
+                "objectID": 5
+            },
+            {
+                "objectID": 6
+            },
+            {
+                "objectID": 7
+            }
+        ],
+        "children": []
+    },
+    {
+        "objectClass": "MeshRenderer",
+        "objectID": 5,
+        "entity": {
+            "objectID": 4
+        },
+        "objectProperties": {
+            "active": true,
+            "castsShadow": false,
+            "mesh": {
+                "asset": "game/models/floor"
+            }
+        },
+        "materials": {
+            "default": {
+                "asset": "game/materials/floor"
+            }
+        }
+    },
+    {
+        "objectClass": "BoxCollisionShape",
+        "objectID": 6,
+        "entity": {
+            "objectID": 4
+        },
+        "objectProperties": {
+            "active": true,
+            "halfExtents": [
+                0.5,
+                0.5,
+                0.009999999776482582
+            ]
+        }
+    },
+    {
+        "objectClass": "RigidBody",
+        "objectID": 7,
+        "entity": {
+            "objectID": 4
+        },
+        "objectProperties": {
+            "active": true,
+            "mass": 0.0,
+            "linearDamping": 0.0,
+            "angularDamping": 0.0,
+            "material": {
+                "asset": "engine/physics_materials/default"
+            }
+        }
+    },
+    {
+        "objectClass": "Entity",
+        "objectID": 8,
+        "world": {
+            "objectID": 0
+        },
+        "parent": {
+            "objectID": 1
+        },
+        "objectProperties": {
+            "name": "cube_0",
+            "active": true,
+            "position": [
+                -0.3048062026500702,
+                0.5899999737739563,
+                -7.124876022338867
+            ],
+            "orientation": [
+                0.9316610097885132,
+                1.8178516469902207e-8,
+                0.36332863569259646,
+                -2.963267853317575e-8
+            ],
+            "scale": [
+                0.20000000298023225,
+                0.20000000298023225,
+                0.20000000298023225
+            ]
+        },
+        "components": [
+            {
+                "objectID": 9
+            },
+            {
+                "objectID": 10
+            },
+            {
+                "objectID": 11
+            }
+        ],
+        "children": []
+    },
+    {
+        "objectClass": "MeshRenderer",
+        "objectID": 9,
+        "entity": {
+            "objectID": 8
+        },
+        "objectProperties": {
+            "active": true,
+            "castsShadow": true,
+            "mesh": {
+                "asset": "game/models/companion_cube"
+            }
+        },
+        "materials": {
+            "Material.004": {
+                "asset": "game/materials/companion_cube"
+            }
+        }
+    },
+    {
+        "objectClass": "BoxCollisionShape",
+        "objectID": 10,
+        "entity": {
+            "objectID": 8
+        },
+        "objectProperties": {
+            "active": true,
+            "halfExtents": [
+                2.9000000953674318,
+                2.9000000953674318,
+                2.9000000953674318
+            ]
+        }
+    },
+    {
+        "objectClass": "RigidBody",
+        "objectID": 11,
+        "entity": {
+            "objectID": 8
+        },
+        "objectProperties": {
+            "active": true,
+            "mass": 10.0,
+            "linearDamping": 0.0,
+            "angularDamping": 0.0,
+            "material": {
+                "asset": "game/physics_materials/companion_cube"
+            }
+        }
+    },
+    {
+        "objectClass": "Entity",
+        "objectID": 12,
+        "world": {
+            "objectID": 0
+        },
+        "parent": {
+            "objectID": 1
+        },
+        "objectProperties": {
+            "name": "cube_1",
+            "active": true,
+            "position": [
+                2.664849281311035,
+                0.5899999141693115,
+                -6.046928882598877
+            ],
+            "orientation": [
+                -1.5760129201680685e-7,
+                -0.5336281061172485,
+                -1.145009704828226e-7,
+                0.8457192182540894
+            ],
+            "scale": [
+                0.20000000298023225,
+                0.20000000298023225,
+                0.20000000298023225
+            ]
+        },
+        "components": [
+            {
+                "objectID": 13
+            },
+            {
+                "objectID": 14
+            },
+            {
+                "objectID": 15
+            }
+        ],
+        "children": []
+    },
+    {
+        "objectClass": "MeshRenderer",
+        "objectID": 13,
+        "entity": {
+            "objectID": 12
+        },
+        "objectProperties": {
+            "active": true,
+            "castsShadow": true,
+            "mesh": {
+                "asset": "game/models/companion_cube"
+            }
+        },
+        "materials": {
+            "Material.004": {
+                "asset": "game/materials/companion_cube"
+            }
+        }
+    },
+    {
+        "objectClass": "BoxCollisionShape",
+        "objectID": 14,
+        "entity": {
+            "objectID": 12
+        },
+        "objectProperties": {
+            "active": true,
+            "halfExtents": [
+                2.9000000953674318,
+                2.9000000953674318,
+                2.9000000953674318
+            ]
+        }
+    },
+    {
+        "objectClass": "RigidBody",
+        "objectID": 15,
+        "entity": {
+            "objectID": 12
+        },
+        "objectProperties": {
+            "active": true,
+            "mass": 10.0,
+            "linearDamping": 0.0,
+            "angularDamping": 0.0,
+            "material": {
+                "asset": "game/physics_materials/companion_cube"
+            }
+        }
+    },
+    {
+        "objectClass": "Entity",
+        "objectID": 16,
+        "world": {
+            "objectID": 0
+        },
+        "parent": {
+            "objectID": 1
+        },
+        "objectProperties": {
+            "name": "player",
+            "active": true,
+            "position": [
+                -5.0173234939575199,
+                4.715683937072754,
+                -16.080215454101564
+            ],
+            "orientation": [
+                0.14780431985855103,
+                0.0,
+                0.9889852404594421,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        "components": [
+            {
+                "objectID": 17
+            }
+        ],
+        "children": [
+            {
+                "objectID": 19
+            }
+        ]
+    },
+    {
+        "objectClass": "PlayerController",
+        "objectID": 17,
+        "entity": {
+            "objectID": 16
+        },
+        "objectProperties": {
+            "active": true,
+            "camera": {
+                "objectID": 18
+            }
+        }
+    },
+    {
+        "objectClass": "Camera",
+        "objectID": 18,
+        "entity": {
+            "objectID": 19
+        },
+        "objectProperties": {
+            "active": true,
+            "renderPipeline": {
+                "objectID": 20
+            },
+            "projectionMode": "kPerspective",
+            "fov": 90.0,
+            "zNear": 0.25,
+            "zFar": 200.0
+        }
+    },
+    {
+        "objectClass": "Entity",
+        "objectID": 19,
+        "world": {
+            "objectID": 0
+        },
+        "parent": {
+            "objectID": 16
+        },
+        "objectProperties": {
+            "name": "camera",
+            "active": true,
+            "position": [
+                0.0,
+                1.0,
+                0.0
+            ],
+            "orientation": [
+                0.9653515815734863,
+                -0.2609240710735321,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        "components": [
+            {
+                "objectID": 18
+            }
+        ],
+        "children": []
+    },
+    {
+        "objectClass": "DeferredRenderPipeline",
+        "objectID": 20,
+        "objectProperties": {
+            "shadowMapResolution": 512
+        },
+        "postEffects": [
+            {
+                "objectID": 21
+            }
+        ]
+    },
+    {
+        "objectClass": "FXAAEffect",
+        "objectID": 21,
+        "objectProperties": {}
+    },
+    {
+        "objectClass": "Entity",
+        "objectID": 22,
+        "world": {
+            "objectID": 0
+        },
+        "parent": {
+            "objectID": 1
+        },
+        "objectProperties": {
+            "name": "light_0",
+            "active": true,
+            "position": [
+                3.0,
+                3.0,
+                -7.0
+            ],
+            "orientation": [
+                0.6463894844055176,
+                -0.32566362619400027,
+                0.6276489496231079,
+                -0.28667154908180239
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        "components": [
+            {
+                "objectID": 23
+            }
+        ],
+        "children": []
+    },
+    {
+        "objectClass": "SpotLight",
+        "objectID": 23,
+        "entity": {
+            "objectID": 22
+        },
+        "objectProperties": {
+            "active": true,
+            "colour": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "intensity": 0.800000011920929,
+            "castsShadows": true,
+            "shadowBiasConstant": -0.0005000000237487257,
+            "cutoff": 45.0,
+            "range": 20.0,
+            "attenuation": [
+                0.20000000298023225,
+                0.009999999776482582,
+                0.00019999999494757503
+            ]
+        }
+    },
+    {
+        "objectClass": "Entity",
+        "objectID": 24,
+        "world": {
+            "objectID": 0
+        },
+        "parent": {
+            "objectID": 1
+        },
+        "objectProperties": {
+            "name": "light_1",
+            "active": true,
+            "position": [
+                -2.0,
+                3.0,
+                -3.5
+            ],
+            "orientation": [
+                1.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        "components": [
+            {
+                "objectID": 25
+            }
+        ],
+        "children": []
+    },
+    {
+        "objectClass": "PointLight",
+        "objectID": 25,
+        "entity": {
+            "objectID": 24
+        },
+        "objectProperties": {
+            "active": false,
+            "colour": [
+                0.0,
+                0.0,
+                1.0
+            ],
+            "intensity": 1.0,
+            "castsShadows": true,
+            "shadowBiasConstant": -0.0005000000237487257,
+            "range": 50.0,
+            "attenuation": [
+                1.0,
+                0.09000000357627869,
+                0.03200000151991844
+            ]
+        }
+    },
+    {
+        "objectClass": "Entity",
+        "objectID": 26,
+        "world": {
+            "objectID": 0
+        },
+        "parent": {
+            "objectID": 1
+        },
+        "objectProperties": {
+            "name": "light_2",
+            "active": true,
+            "position": [
+                2.0,
+                3.0,
+                -3.5
+            ],
+            "orientation": [
+                1.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        "components": [
+            {
+                "objectID": 27
+            }
+        ],
+        "children": []
+    },
+    {
+        "objectClass": "PointLight",
+        "objectID": 27,
+        "entity": {
+            "objectID": 26
+        },
+        "objectProperties": {
+            "active": false,
+            "colour": [
+                0.0,
+                1.0,
+                0.0
+            ],
+            "intensity": 1.0,
+            "castsShadows": true,
+            "shadowBiasConstant": -0.0005000000237487257,
+            "range": 50.0,
+            "attenuation": [
+                1.0,
+                0.09000000357627869,
+                0.03200000151991844
+            ]
+        }
+    },
+    {
+        "objectClass": "Entity",
+        "objectID": 28,
+        "world": {
+            "objectID": 0
+        },
+        "parent": {
+            "objectID": 1
+        },
+        "objectProperties": {
+            "name": "light_3",
+            "active": true,
+            "position": [
+                0.0,
+                3.0,
+                -9.0
+            ],
+            "orientation": [
+                1.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        "components": [
+            {
+                "objectID": 29
+            }
+        ],
+        "children": []
+    },
+    {
+        "objectClass": "PointLight",
+        "objectID": 29,
+        "entity": {
+            "objectID": 28
+        },
+        "objectProperties": {
+            "active": false,
+            "colour": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "intensity": 1.0,
+            "castsShadows": true,
+            "shadowBiasConstant": -0.0005000000237487257,
+            "range": 50.0,
+            "attenuation": [
+                1.0,
+                0.09000000357627869,
+                0.03200000151991844
+            ]
+        }
+    },
+    {
+        "objectClass": "Entity",
+        "objectID": 30,
+        "world": {
+            "objectID": 0
+        },
+        "parent": {
+            "objectID": 1
+        },
+        "objectProperties": {
+            "name": "cube_2",
+            "active": true,
+            "position": [
+                -7.31511116027832,
+                0.5899999141693115,
+                -5.3769683837890629
+            ],
+            "orientation": [
+                0.9999403357505798,
+                7.898948162221587e-9,
+                -0.010920739732682705,
+                1.3912524821080297e-7
+            ],
+            "scale": [
+                0.20000000298023225,
+                0.20000000298023225,
+                0.20000000298023225
+            ]
+        },
+        "components": [
+            {
+                "objectID": 31
+            },
+            {
+                "objectID": 32
+            },
+            {
+                "objectID": 33
+            }
+        ],
+        "children": []
+    },
+    {
+        "objectClass": "MeshRenderer",
+        "objectID": 31,
+        "entity": {
+            "objectID": 30
+        },
+        "objectProperties": {
+            "active": true,
+            "castsShadow": true,
+            "mesh": {
+                "asset": "game/models/companion_cube"
+            }
+        },
+        "materials": {
+            "Material.004": {
+                "asset": "game/materials/companion_cube"
+            }
+        }
+    },
+    {
+        "objectClass": "BoxCollisionShape",
+        "objectID": 32,
+        "entity": {
+            "objectID": 30
+        },
+        "objectProperties": {
+            "active": true,
+            "halfExtents": [
+                2.9000000953674318,
+                2.9000000953674318,
+                2.9000000953674318
+            ]
+        }
+    },
+    {
+        "objectClass": "RigidBody",
+        "objectID": 33,
+        "entity": {
+            "objectID": 30
+        },
+        "objectProperties": {
+            "active": true,
+            "mass": 10.0,
+            "linearDamping": 0.0,
+            "angularDamping": 0.0,
+            "material": {
+                "asset": "game/physics_materials/companion_cube"
+            }
+        }
+    },
+    {
+        "objectClass": "Entity",
+        "objectID": 34,
+        "world": {
+            "objectID": 0
+        },
+        "parent": {
+            "objectID": 1
+        },
+        "objectProperties": {
+            "name": "cube_3",
+            "active": true,
+            "position": [
+                -12.582159996032715,
+                0.5899999141693115,
+                -7.480525493621826
+            ],
+            "orientation": [
+                0.9999404549598694,
+                -3.960483496712186e-9,
+                0.010910756886005402,
+                1.3251649022549828e-7
+            ],
+            "scale": [
+                0.20000000298023225,
+                0.20000000298023225,
+                0.20000000298023225
+            ]
+        },
+        "components": [
+            {
+                "objectID": 35
+            },
+            {
+                "objectID": 36
+            },
+            {
+                "objectID": 37
+            }
+        ]
+    },
+    {
+        "objectClass": "MeshRenderer",
+        "objectID": 35,
+        "entity": {
+            "objectID": 34
+        },
+        "objectProperties": {
+            "active": true,
+            "castsShadow": true,
+            "mesh": {
+                "asset": "game/models/companion_cube"
+            }
+        },
+        "materials": {
+            "Material.004": {
+                "asset": "game/materials/companion_cube"
+            }
+        }
+    },
+    {
+        "objectClass": "BoxCollisionShape",
+        "objectID": 36,
+        "entity": {
+            "objectID": 34
+        },
+        "objectProperties": {
+            "active": true,
+            "halfExtents": [
+                2.9000000953674318,
+                2.9000000953674318,
+                2.9000000953674318
+            ]
+        }
+    },
+    {
+        "objectClass": "RigidBody",
+        "objectID": 37,
+        "entity": {
+            "objectID": 34
+        },
+        "objectProperties": {
+            "active": true,
+            "mass": 10.0,
+            "linearDamping": 0.0,
+            "angularDamping": 0.0,
+            "material": {
+                "asset": "game/physics_materials/companion_cube"
+            }
+        }
+    },
+    {
+        "objectClass": "Entity",
+        "objectID": 38,
+        "world": {
+            "objectID": 0
+        },
+        "parent": {
+            "objectID": 1
+        },
+        "objectProperties": {
+            "name": "cube_4",
+            "active": true,
+            "position": [
+                -12.058530807495118,
+                0.5899999141693115,
+                -12.112427711486817
+            ],
+            "orientation": [
+                0.5519385933876038,
+                6.158295917657597e-8,
+                0.8338847160339356,
+                -5.1332136763448946e-8
+            ],
+            "scale": [
+                0.20000000298023225,
+                0.20000000298023225,
+                0.20000000298023225
+            ]
+        },
+        "components": [
+            {
+                "objectID": 39
+            },
+            {
+                "objectID": 40
+            },
+            {
+                "objectID": 41
+            }
+        ],
+        "children": []
+    },
+    {
+        "objectClass": "MeshRenderer",
+        "objectID": 39,
+        "entity": {
+            "objectID": 38
+        },
+        "objectProperties": {
+            "active": true,
+            "castsShadow": true,
+            "mesh": {
+                "asset": "game/models/companion_cube"
+            }
+        },
+        "materials": {
+            "Material.004": {
+                "asset": "game/materials/companion_cube"
+            }
+        }
+    },
+    {
+        "objectClass": "BoxCollisionShape",
+        "objectID": 40,
+        "entity": {
+            "objectID": 38
+        },
+        "objectProperties": {
+            "active": true,
+            "halfExtents": [
+                2.9000000953674318,
+                2.9000000953674318,
+                2.9000000953674318
+            ]
+        }
+    },
+    {
+        "objectClass": "RigidBody",
+        "objectID": 41,
+        "entity": {
+            "objectID": 38
+        },
+        "objectProperties": {
+            "active": true,
+            "mass": 10.0,
+            "linearDamping": 0.0,
+            "angularDamping": 0.0,
+            "material": {
+                "asset": "game/physics_materials/companion_cube"
+            }
+        }
+    }
+]
