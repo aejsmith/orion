@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -28,37 +28,24 @@
 #include <rapidjson/document.h>
 
 /** Class which loads asset data. */
-class AssetLoader {
+class AssetLoader : public Object {
 public:
+    CLASS();
+
     virtual ~AssetLoader() {}
 
-    AssetPtr load(DataStream *data, DataStream *metadata, const char *path);
+    AssetPtr load(DataStream *data, const char *path);
+
+    /** @return             Whether the loader requires data. */
+    virtual bool requireData() const { return true; }
 protected:
     AssetLoader() {}
-
-    /**
-     * Whether the asset data file should be treated as metadata.
-     *
-     * Some asset types (e.g. materials) only exist as metadata. Asset data
-     * files are matched to a loader based on their extension, while
-     * metadata files have a .metadata extension. This would mean that
-     * metadata-only assets would require a dummy data file that could be
-     * used to identify the type as well as the main metadata file. This
-     * property avoids that by treating the main data file as the metadata
-     * file, so only one file (the one with the type extension) is needed.
-     * The load() method will receive the parsed contents of that file as
-     * the attributes argument, and a null stream argument.
-     *
-     * @return              Whether data file should be treated as metadata.
-     */
-    virtual bool dataIsMetadata() const { return false; }
 
     /** Load the asset.
      * @return              Pointer to loaded asset, null on failure. */
     virtual AssetPtr load() = 0;
 protected:
     DataStream *m_data;                 /**< Asset data stream (if any). */
-    rapidjson::Document m_attributes;   /**< Asset attributes. */
     const char *m_path;                 /**< Asset path being loaded. */
 };
 

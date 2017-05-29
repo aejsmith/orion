@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -38,6 +38,8 @@
 /** Wavefront .obj mesh loader. */
 class OBJLoader : public AssetLoader {
 public:
+    CLASS();
+
     /** Submesh descriptor. */
     struct SubMeshDesc {
         std::string material;           /**< Material name. */
@@ -97,6 +99,8 @@ private:
     /** Map from VertexKey to a buffer index. */
     HashMap<VertexKey, uint16_t> m_vertexMap;
 };
+
+#include "obj_loader.obj.cc"
 
 IMPLEMENT_ASSET_LOADER(OBJLoader, "obj");
 

@@ -5,6 +5,7 @@ Import('env')
 
 objects = map(env.ObjgenHeader, [
     'include/asset.h',
+    'include/asset_loader.h',
     'include/behaviour.h',
     'include/component.h',
     'include/entity.h',
@@ -14,6 +15,14 @@ objects = map(env.ObjgenHeader, [
     'include/object.h',
     'include/texture.h',
     'include/world.h',
+
+    'src/loaders/texture_loader.h',
+])
+
+map(env.ObjgenSource, [
+    'src/loaders/obj_loader.cc',
+    'src/loaders/tga_loader.cc',
+    'src/loaders/ttf_loader.cc',
 ])
 
 objects += map(env.Object, [

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -28,6 +28,8 @@
 /** TGA texture loader class. */
 class TGALoader : public Texture2DLoader {
 public:
+    CLASS();
+
     bool loadData() override;
 private:
     /** TGA image file header. */
@@ -48,6 +50,8 @@ private:
     };
     #pragma pack(pop)
 };
+
+#include "tga_loader.obj.cc"
 
 IMPLEMENT_ASSET_LOADER(TGALoader, "tga");
 

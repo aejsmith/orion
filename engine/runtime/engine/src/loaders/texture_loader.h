@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -27,7 +27,12 @@
 /** 2D texture loader base class. */
 class Texture2DLoader : public AssetLoader {
 public:
+    CLASS();
+
     AssetPtr load() override;
+
+    /** Addressing mode for sampling the texture. */
+    PROPERTY() SamplerAddressMode addressMode;
 protected:
     /**
      * Load the texture data.
@@ -45,4 +50,26 @@ protected:
 
     /** Buffer containing texture data. */
     std::unique_ptr<uint8_t []> m_buffer;
+};
+
+/** Cube texture loader class. */
+class TextureCubeLoader : public AssetLoader {
+public:
+    CLASS();
+
+    AssetPtr load() override;
+
+    /** @return             Whether the loader requires data. */
+    bool requireData() const override {
+        /* We source our data from the source textures. */
+        return false;
+    }
+
+    /** Source textures for each face. */
+    PROPERTY() Texture2DPtr positiveXFace;
+    PROPERTY() Texture2DPtr negativeXFace;
+    PROPERTY() Texture2DPtr positiveYFace;
+    PROPERTY() Texture2DPtr negativeYFace;
+    PROPERTY() Texture2DPtr positiveZFace;
+    PROPERTY() Texture2DPtr negativeZFace;
 };

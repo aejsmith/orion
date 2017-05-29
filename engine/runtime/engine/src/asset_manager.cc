@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -39,6 +39,10 @@
 #include "engine/debug_manager.h"
 #include "engine/debug_window.h"
 #include "engine/json_serialiser.h"
+
+/** Special file extensions. */
+static const char *const kObjectFileExtension = "object";
+static const char *const kLoaderFileExtension = "loader";
 
 /** Global asset manager instance. */
 AssetManager *g_assetManager;
@@ -109,9 +113,10 @@ AssetPtr AssetManager::load(const Path &path) {
         return nullptr;
     }
 
-    /* Iterate over entries to try to find the asset data/metadata. */
+    /* Iterate over entries to try to find the asset data and a corresponding
+     * loader. */
     std::unique_ptr<DataStream> data;
-    std::unique_ptr<DataStream> metadata;
+    std::unique_ptr<DataStream> loaderData;
     std::string type;
     Directory::Entry entry;
     while (directory->next(entry)) {
@@ -122,9 +127,9 @@ AssetPtr AssetManager::load(const Path &path) {
             std::string entryExt = entry.name.extension();
             Path filePath = directoryPath / entry.name;
 
-            if (entryExt == "metadata") {
-                metadata.reset(Filesystem::openFile(filePath));
-                if (!metadata) {
+            if (entryExt == kLoaderFileExtension) {
+                loaderData.reset(Filesystem::openFile(filePath));
+                if (!loaderData) {
                     logError("Failed to open '%s'", filePath.c_str());
                     return nullptr;
                 }
@@ -145,8 +150,8 @@ AssetPtr AssetManager::load(const Path &path) {
         }
     }
 
-    /* Succeeded if we have at least a data stream. */
-    if (!data) {
+    /* Succeeded if we have either stream. */
+    if (!data && !loaderData) {
         logError("Could not find asset '%s'", path.c_str());
         return nullptr;
     }
@@ -162,8 +167,17 @@ AssetPtr AssetManager::load(const Path &path) {
             m_assets.insert(std::make_pair(path.str(), asset));
         };
 
-    if (type == "object") {
+    if (type == kObjectFileExtension) {
+        type.clear();
+
         /* This is a serialised object. */
+        if (loaderData) {
+            logError("%s: Serialised object cannot have a loader", path.c_str());
+            return nullptr;
+        }
+
+        assert(data);
+
         std::vector<uint8_t> serialisedData(data->size());
         if (!data->read(&serialisedData[0], data->size())) {
             logError("%s: Failed to read asset data", path.c_str());
@@ -182,26 +196,55 @@ AssetPtr AssetManager::load(const Path &path) {
 
         asset = serialiser.deserialise<Asset>(serialisedData);
         if (!asset) {
-            logError("%s: Error during deserialisation", path.c_str());
+            logError("%s: Error during object deserialisation", path.c_str());
             return nullptr;
         }
     } else {
-        /* Look for a loader for the asset. */
-        std::unique_ptr<AssetLoader> loader(AssetLoaderFactory::create(type));
-        if (!loader) {
-            logError("%s: Unknown file type '%s'", path.c_str(), type.c_str());
-            return nullptr;
+        /* Get a loader for the asset. Use a serialised one if it exists, else
+         * get a default one based on the file type. */
+        ObjectPtr<AssetLoader> loader;
+        if (loaderData) {
+            std::vector<uint8_t> serialisedData(loaderData->size());
+            if (!loaderData->read(&serialisedData[0], loaderData->size())) {
+                logError("%s: Failed to read loader data", path.c_str());
+                return nullptr;
+            }
+
+            JSONSerialiser serialiser;
+            loader = serialiser.deserialise<AssetLoader>(serialisedData);
+            if (!loader) {
+                logError("%s: Error during loader deserialisation", path.c_str());
+                return nullptr;
+            }
+
+            if (loader->requireData() && !data) {
+                logError("%s: Asset '%s' has loader but missing data", path.c_str());
+                return nullptr;
+            }
+        } else {
+            assert(data);
+
+            loader = AssetLoaderFactory::create(type);
+            if (!loader) {
+                logError("%s: Unknown file type '%s'", path.c_str(), type.c_str());
+                return nullptr;
+            }
         }
 
         /* Create the asset. The loader should log an error if it fails. */
-        asset = loader->load(data.get(), metadata.get(), path.c_str());
+        asset = loader->load(data.get(), path.c_str());
         if (!asset)
             return nullptr;
 
         addAsset(asset);
     }
 
-    logDebug("Loaded asset '%s' with file type '%s'", path.c_str(), type.c_str());
+    if (!type.empty()) {
+        logDebug("Loaded asset '%s' from source file type '%s'", path.c_str(), type.c_str());
+    } else {
+        logDebug("Loaded asset '%s'", path.c_str());
+    }
+
     return asset;
 }
 

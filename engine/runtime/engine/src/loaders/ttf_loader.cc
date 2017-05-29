@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -25,8 +25,12 @@
 /** TTF font asset loader. */
 class TTFLoader : public AssetLoader {
 public:
+    CLASS();
+
     AssetPtr load() override;
 };
+
+#include "ttf_loader.obj.cc"
 
 IMPLEMENT_ASSET_LOADER(TTFLoader, "ttf");
 

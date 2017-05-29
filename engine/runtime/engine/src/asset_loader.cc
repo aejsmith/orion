@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,44 +21,13 @@
 
 #include "engine/asset_loader.h"
 
-#include <rapidjson/error/en.h>
-
 /** Load the asset.
  * @param data          Asset data stream.
- * @param metadata      Asset metadata stream.
  * @param path          Asset path being loaded.
  * @return              Pointer to loaded asset, null on failure. */
-AssetPtr AssetLoader::load(DataStream *data, DataStream *metadata, const char *path) {
+AssetPtr AssetLoader::load(DataStream *data, const char *path) {
+    m_data = data;
     m_path = path;
-
-    if (dataIsMetadata()) {
-        metadata = data;
-        m_data = nullptr;
-    } else {
-        m_data = data;
-    }
-
-    /* Parse the metadata JSON stream. If we don't have a metadata stream
-     * from the filesystem, we'll just leave it empty so the loader sees
-     * no attributes. */
-    if (metadata && metadata->size()) {
-        std::unique_ptr<char[]> buf(new char[metadata->size() + 1]);
-        buf[metadata->size()] = 0;
-        if (!metadata->read(buf.get(), metadata->size())) {
-            logError("%s: Failed to read metadata", path);
-            return nullptr;
-        }
-
-        m_attributes.Parse(buf.get());
-        if (m_attributes.HasParseError()) {
-            const char *msg = rapidjson::GetParseError_En(m_attributes.GetParseError());
-            logError("%s: Parse error in metadata (at %zu): %s", path, m_attributes.GetErrorOffset(), msg);
-            return nullptr;
-        }
-    } else {
-        m_attributes.SetObject();
-    }
-
     return load();
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -77,9 +77,8 @@ AssetPtr Texture2DLoader::load() {
         GPUTexture::kAutoMipmap | GPUTexture::kRenderTarget);
     texture->update(m_buffer.get());
 
-    /* Parse attributes. */
-    if (!parseAttributes(m_path, m_attributes, texture))
-        return nullptr;
+    /* Apply attributes. */
+    texture->setAddressMode(this->addressMode);
 
     return texture;
 }
@@ -88,57 +87,42 @@ AssetPtr Texture2DLoader::load() {
  * Cube texture loader.
  */
 
-/** Cube texture loader class. */
-class TextureCubeLoader : public AssetLoader {
-public:
-    bool dataIsMetadata() const override { return true; }
-    AssetPtr load() override;
-};
-
 IMPLEMENT_ASSET_LOADER(TextureCubeLoader, "cube");
-
-/** Names for each face attribute. */
-static const char *faceAttributeNames[] = {
-    "positiveXFace",
-    "negativeXFace",
-    "positiveYFace",
-    "negativeYFace",
-    "positiveZFace",
-    "negativeZFace",
-};
 
 /** Load a cube texture asset.
  * @return              Pointer to loaded asset, null on failure. */
 AssetPtr TextureCubeLoader::load() {
+    Texture2DPtr *faces[CubeFace::kNumFaces] = {
+        &this->positiveXFace,
+        &this->negativeXFace,
+        &this->positiveYFace,
+        &this->negativeYFace,
+        &this->positiveZFace,
+        &this->negativeZFace,
+    };
+
     uint32_t size = 0;
-    Texture2DPtr faces[CubeFace::kNumFaces];
 
-    /* Load the textures for each face. */
+    /* Validate source textures. */
     for (unsigned i = 0; i < CubeFace::kNumFaces; i++) {
-        const char *name = faceAttributeNames[i];
+        Texture2DPtr &face = *faces[i];
 
-        if (!m_attributes.HasMember(name)) {
-            logError("%s: '%s' attribute is missing", m_path, name);
-            return nullptr;
-        } else if (!m_attributes[name].IsString()) {
-            logError("%s: '%s' attribute should be a string", m_path, name);
+        if (!face) {
+            logError("%s: Source texture for face %u is missing", m_path, i);
             return nullptr;
         }
 
-        const char *sourcePath = m_attributes[name].GetString();
-        faces[i] = g_assetManager->load<Texture2D>(sourcePath);
-
         /* Ensure dimensions are correct. */
-        if (faces[i]->width() != faces[i]->height()) {
-            logError("%s: Source texture '%s' is not square", m_path, sourcePath);
+        if (face->width() != face->height()) {
+            logError("%s: Source texture '%s' is not square", m_path, face->path().c_str());
             return nullptr;
         } else if (size) {
-            if (faces[i]->width() != size) {
-                logError("%s: Source texture '%s' dimensions do not match", m_path, sourcePath);
+            if (face->width() != size) {
+                logError("%s: Source texture '%s' dimensions do not match", m_path, face->path().c_str());
                 return nullptr;
             }
         } else {
-            size = faces[i]->width();
+            size = face->width();
         }
     }
 
@@ -152,16 +136,14 @@ AssetPtr TextureCubeLoader::load() {
 
     /* Copy source texture data into the cube texture. */
     for (unsigned i = 0; i < CubeFace::kNumFaces; i++) {
-        GPUTextureImageRef source(faces[i]->gpu());
+        Texture2DPtr &face = *faces[i];
+
+        GPUTextureImageRef source(face->gpu());
         GPUTextureImageRef dest(texture->gpu(), i);
         g_gpuManager->blit(source, dest, glm::ivec2(0, 0), glm::ivec2(0, 0), glm::ivec2(size, size));
     }
 
     texture->gpu()->generateMipmap();
-
-    /* Parse attributes. */
-    if (!parseAttributes(m_path, m_attributes, texture))
-        return nullptr;
 
     return texture;
 }
