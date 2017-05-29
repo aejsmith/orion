@@ -24,15 +24,26 @@
 #include "engine/asset_loader.h"
 #include "engine/texture.h"
 
+/** Texture loader base class. */
+class TextureLoader : public AssetLoader {
+public:
+    // FIXME: objgen can't detect that a class has unimplemented pure virtuals.
+    CLASS("constructable": false);
+
+    /** Addressing mode for sampling the texture. */
+    PROPERTY() SamplerAddressMode addressMode;
+protected:
+    TextureLoader() {}
+
+    void applyAttributes(TextureBase *texture);
+};
+
 /** 2D texture loader base class. */
-class Texture2DLoader : public AssetLoader {
+class Texture2DLoader : public TextureLoader {
 public:
     CLASS();
 
     AssetPtr load() override;
-
-    /** Addressing mode for sampling the texture. */
-    PROPERTY() SamplerAddressMode addressMode;
 protected:
     /**
      * Load the texture data.
@@ -53,7 +64,7 @@ protected:
 };
 
 /** Cube texture loader class. */
-class TextureCubeLoader : public AssetLoader {
+class TextureCubeLoader : public TextureLoader {
 public:
     CLASS();
 

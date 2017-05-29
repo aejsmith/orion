@@ -24,6 +24,16 @@
 #include "gpu/gpu_manager.h"
 
 /**
+ * Base texture loader.
+ */
+
+/** Apply texture attributes.
+ * @param texture       Texture to apply to. */
+void TextureLoader::applyAttributes(TextureBase *texture) {
+    texture->setAddressMode(this->addressMode);
+}
+
+/**
  * Base 2D texture loader.
  */
 
@@ -44,7 +54,7 @@ AssetPtr Texture2DLoader::load() {
     texture->update(m_buffer.get());
 
     /* Apply attributes. */
-    texture->setAddressMode(this->addressMode);
+    applyAttributes(texture);
 
     return texture;
 }
@@ -108,6 +118,8 @@ AssetPtr TextureCubeLoader::load() {
     }
 
     texture->gpu()->generateMipmap();
+
+    applyAttributes(texture);
 
     return texture;
 }
