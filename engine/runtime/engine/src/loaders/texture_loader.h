@@ -33,7 +33,7 @@ public:
     /** Addressing mode for sampling the texture. */
     PROPERTY() SamplerAddressMode addressMode;
 protected:
-    TextureLoader() {}
+    TextureLoader();
 
     void applyAttributes(TextureBase *texture);
 };

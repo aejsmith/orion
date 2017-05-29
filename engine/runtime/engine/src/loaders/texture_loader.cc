@@ -27,6 +27,11 @@
  * Base texture loader.
  */
 
+/** Construct the texture loader. */
+TextureLoader::TextureLoader() :
+    addressMode (SamplerAddressMode::kClamp)
+{}
+
 /** Apply texture attributes.
  * @param texture       Texture to apply to. */
 void TextureLoader::applyAttributes(TextureBase *texture) {
