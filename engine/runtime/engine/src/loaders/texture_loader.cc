@@ -47,14 +47,8 @@ PixelFormat TextureLoader::getFinalFormat(PixelFormat format) const {
             case PixelFormat::kR8G8B8A8:
                 format = PixelFormat::kR8G8B8A8sRGB;
                 break;
-            case PixelFormat::kR8G8B8:
-                format = PixelFormat::kR8G8B8sRGB;
-                break;
             case PixelFormat::kB8G8R8A8:
                 format = PixelFormat::kB8G8R8A8sRGB;
-                break;
-            case PixelFormat::kB8G8R8:
-                format = PixelFormat::kB8G8R8sRGB;
                 break;
             default:
                 break;

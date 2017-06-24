@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -42,14 +42,10 @@ struct PixelFormat {
          */
         kR8G8B8A8,              /**< RGBA, unsigned normalized, 8 bits per component. */
         kR8G8B8A8sRGB,          /**< RGBA, unsigned normalized, 8 bits per component, sRGB. */
-        kR8G8B8,                /**< RGB, unsigned normalized, 8 bits per component. */
-        kR8G8B8sRGB,            /**< RGB, unsigned normalized, 8 bits per component, sRGB. */
         kR8G8,                  /**< RG, unsigned normalized, 8 bits per component. */
         kR8,                    /**< R, unsigned normalized, 8 bits per component. */
         kB8G8R8A8,              /**< BGRA, unsigned normalized, 8 bits per component. */
         kB8G8R8A8sRGB,          /**< BGRA, unsigned normalized, 8 bits per component, sRGB. */
-        kB8G8R8,                /**< BGR, unsigned normalized, 8 bits per component. */
-        kB8G8R8sRGB,            /**< BGR, unsigned normalized, 8 bits per component, sRGB. */
         kR10G10B10A2,           /**< RGBA, unsigned normalized, 10 bits RGB, 2 bits A. */
         kFloatR16G16B16A16,     /**< RGBA, float, 16 bits per component. */
         kFloatR16G16B16,        /**< RGB, float, 16 bits per component. */

@@ -348,14 +348,10 @@ void VulkanGPUManager::initFeatures() {
         };
     initFormat(PixelFormat::kR8G8B8A8,          VK_FORMAT_R8G8B8A8_UNORM);
     initFormat(PixelFormat::kR8G8B8A8sRGB,      VK_FORMAT_R8G8B8A8_SRGB);
-    initFormat(PixelFormat::kR8G8B8,            VK_FORMAT_R8G8B8_UNORM);
-    initFormat(PixelFormat::kR8G8B8sRGB,        VK_FORMAT_R8G8B8_SRGB);
     initFormat(PixelFormat::kR8G8,              VK_FORMAT_R8G8_UNORM);
     initFormat(PixelFormat::kR8,                VK_FORMAT_R8_UNORM);
     initFormat(PixelFormat::kB8G8R8A8,          VK_FORMAT_B8G8R8A8_UNORM);
     initFormat(PixelFormat::kB8G8R8A8sRGB,      VK_FORMAT_B8G8R8A8_SRGB);
-    initFormat(PixelFormat::kB8G8R8,            VK_FORMAT_B8G8R8_UNORM);
-    initFormat(PixelFormat::kB8G8R8sRGB,        VK_FORMAT_B8G8R8_SRGB);
     initFormat(PixelFormat::kR10G10B10A2,       VK_FORMAT_A2B10G10R10_UNORM_PACK32);
     initFormat(PixelFormat::kFloatR16G16B16A16, VK_FORMAT_R16G16B16A16_SFLOAT);
     initFormat(PixelFormat::kFloatR16G16B16,    VK_FORMAT_R16G16B16_SFLOAT);
