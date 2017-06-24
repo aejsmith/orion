@@ -41,7 +41,9 @@ size_t PixelFormat::bytesPerPixel(PixelFormat format) {
         case kFloatR16G16B16:
             return 6;
         case kR8G8B8A8:
+        case kR8G8B8A8sRGB:
         case kB8G8R8A8:
+        case kB8G8R8A8sRGB:
         case kR10G10B10A2:
         case kFloatR16G16:
         case kFloatR32:
