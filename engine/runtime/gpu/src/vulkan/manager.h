@@ -41,8 +41,11 @@
 
 /** Details of Vulkan features. */
 struct VulkanFeatures {
-    bool validation;                    /**< Whether validation layers are enabled. */
-    bool debugMarker;                   /**< Whether the debug marker extension is enabled. */
+    VkPhysicalDeviceFeatures device;    /**< Physical device features. */
+
+    /** Extensions etc. */
+    bool validation : 1;                /**< Whether validation layers are enabled. */
+    bool debugMarker : 1;               /**< Whether the debug marker extension is enabled. */
 
     /** Structure containing details of a pixel format. */
     struct Format {

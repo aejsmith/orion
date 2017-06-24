@@ -50,6 +50,7 @@ bool VulkanDevice::identify(VulkanSurface *surface, VulkanFeatures &features) {
     uint32_t count;
 
     vkGetPhysicalDeviceProperties(m_physicalHandle, &m_properties);
+    vkGetPhysicalDeviceFeatures(m_physicalHandle, &features.device);
 
     const char *vendorString = "Unknown";
     switch (m_properties.vendorID) {
@@ -180,6 +181,9 @@ void VulkanDevice::init() {
     deviceCreateInfo.ppEnabledLayerNames = &layers[0];
     deviceCreateInfo.enabledExtensionCount = m_extensions.size();
     deviceCreateInfo.ppEnabledExtensionNames = &m_extensions[0];
+
+    /* Enable all supported features. */
+    deviceCreateInfo.pEnabledFeatures = &manager()->features().device;
 
     VkResult result = vkCreateDevice(m_physicalHandle, &deviceCreateInfo, nullptr, &m_handle);
     if (result != VK_SUCCESS)
