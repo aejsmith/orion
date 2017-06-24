@@ -426,6 +426,7 @@ VulkanSamplerState::VulkanSamplerState(VulkanGPUManager *manager, const GPUSampl
 {
     VkSamplerCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    createInfo.maxAnisotropy = 1.0f;
 
     switch (m_desc.filterMode) {
         case SamplerFilterMode::kBilinear:
