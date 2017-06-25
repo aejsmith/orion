@@ -27,6 +27,8 @@
 #include "render/render_pipeline.h"
 #include "render/render_view.h"
 
+#include "render/post_effects/gamma_correction_effect.h"
+
 /** Global resources for all pipelines. */
 static GlobalResource<RenderPipeline::BaseResources> g_renderPipelineResources;
 
@@ -34,6 +36,11 @@ static GlobalResource<RenderPipeline::BaseResources> g_renderPipelineResources;
 RenderPipeline::RenderPipeline() {
     /* Ensure global resources are initialised. */
     g_renderPipelineResources.init();
+
+    /* Default to having a gamma correction pass. Really this should only be
+     * done if targetting the main window, for off-screen rendering it would
+     * be better to just store the results in an sRGB texture. */
+    m_postEffects.emplace_back(new GammaCorrectionEffect);
 }
 
 /** Destroy the pipeline. */
@@ -58,6 +65,8 @@ void RenderPipeline::deserialise(Serialiser &serialiser) {
     Object::deserialise(serialiser);
 
     if (serialiser.beginArray("postEffects")) {
+        m_postEffects.clear();
+
         ObjectPtr<PostEffect> effect;
         while (serialiser.pop(effect))
             m_postEffects.emplace_back(std::move(effect));
