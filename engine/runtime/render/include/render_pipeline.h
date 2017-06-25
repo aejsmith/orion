@@ -30,7 +30,7 @@
 class PostEffect;
 
 /** Screen buffer pixel formats. */
-static const PixelFormat kColourBufferFormat = PixelFormat::kR8G8B8A8;
+static const PixelFormat kColourBufferFormat = PixelFormat::kR8G8B8A8sRGB;
 static const PixelFormat kDepthBufferFormat  = PixelFormat::kDepth32;
 
 /**

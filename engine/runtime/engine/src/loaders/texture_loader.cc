@@ -30,7 +30,7 @@
 /** Construct the texture loader. */
 TextureLoader::TextureLoader() :
     addressMode (SamplerAddressMode::kClamp),
-    sRGB        (false)
+    sRGB        (true)
 {}
 
 /** Apply texture attributes.

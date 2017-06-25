@@ -47,10 +47,15 @@
  * These are all unsigned normalized textures, therefore the normals are scaled
  * to fit into the [0, 1] range, and the shininess is stored as its reciprocal.
  * Position is reconstructed from the depth buffer.
+ *
+ * Currently sRGB formats are used for the diffuse and specular buffers, since
+ * regular 8-bit formats do not have sufficient precision to store linear values
+ * without introducing banding. This will be swapped to 16-bit float formats
+ * when HDR is implemented.
  */
 static const PixelFormat kDeferredBufferAFormat = PixelFormat::kR10G10B10A2;
-static const PixelFormat kDeferredBufferBFormat = PixelFormat::kR8G8B8A8;
-static const PixelFormat kDeferredBufferCFormat = PixelFormat::kR8G8B8A8;
+static const PixelFormat kDeferredBufferBFormat = PixelFormat::kR8G8B8A8sRGB;
+static const PixelFormat kDeferredBufferCFormat = PixelFormat::kR8G8B8A8sRGB;
 static const PixelFormat kDeferredBufferDFormat = PixelFormat::kDepth32;
 
 /** Shadow map format. TODO: Investigate lowering this to D16. */

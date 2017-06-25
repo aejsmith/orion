@@ -6,6 +6,7 @@ objects = map(env.ObjgenHeader, [
     'include/render_pipeline.h',
 
     'include/post_effects/fxaa_effect.h',
+    'include/post_effects/gamma_correction_effect.h',
 ])
 
 objects += map(env.Object, [
@@ -20,6 +21,7 @@ objects += map(env.Object, [
     'src/simple_render_world.cc',
 
     'src/post_effects/fxaa_effect.cc',
+    'src/post_effects/gamma_correction_effect.cc',
 ])
 
 Return('objects')
