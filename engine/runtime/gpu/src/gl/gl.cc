@@ -180,6 +180,9 @@ GLGPUManager::GLGPUManager(const EngineConfiguration &config, Window *&window) :
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+    /* We want all outputs to sRGB textures to perform conversion. */
+    glEnable(GL_FRAMEBUFFER_SRGB);
 }
 
 /** Shut down the GPU interface. */

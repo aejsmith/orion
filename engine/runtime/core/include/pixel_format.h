@@ -76,6 +76,19 @@ struct PixelFormat {
         return !isDepth(format);
     }
 
+    /** Check if a format is an sRGB format.
+     * @param format        Format to check.
+     * @return              Whether the format is an sRGB format. */
+    static bool isSRGB(PixelFormat format) {
+        switch (format) {
+            case kR8G8B8A8sRGB:
+            case kB8G8R8A8sRGB:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     /** Check if a format is a depth format.
      * @param format        Format to check.
      * @return              Whether the format is a depth format. */

@@ -234,6 +234,17 @@ void GLState::bindBufferBase(GLenum target, GLuint index, GLuint buffer) {
  * @param target        Target(s) to bind to.
  * @param framebuffer   Framebuffer to bind. */
 void GLState::bindFramebuffer(GLenum target, GLuint framebuffer) {
+    /* Most drivers seem to perform sRGB conversion on the default framebuffer
+     * even if it is not in an sRGB format (i.e. even when GL_LINEAR is returned
+     * for GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING). */
+    if (target == GL_FRAMEBUFFER || target == GL_DRAW_FRAMEBUFFER) {
+        if (framebuffer == 0 && this->boundDrawFramebuffer != 0) {
+            glDisable(GL_FRAMEBUFFER_SRGB);
+        } else if (framebuffer != 0 && this->boundDrawFramebuffer == 0) {
+            glEnable(GL_FRAMEBUFFER_SRGB);
+        }
+    }
+
     switch (target) {
         case GL_FRAMEBUFFER:
             if (this->boundDrawFramebuffer != framebuffer || this->boundReadFramebuffer != framebuffer) {

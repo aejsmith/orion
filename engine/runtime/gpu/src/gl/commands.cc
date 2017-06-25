@@ -69,6 +69,12 @@ void GLGPUManager::blit(
     check(isDepth == (dest && PixelFormat::isDepth(dest.texture->format())));
     check(!isDepth || source.texture->format() == dest.texture->format());
 
+    /* Blitting from an sRGB texture to the backbuffer will give incorrect
+     * results since we have to turn off GL_FRAMEBUFFER_SRGB when rendering to
+     * the backbuffer (because GL implementations are terrible), but this means
+     * sRGB conversion won't be done on reads. */
+    check(dest || !PixelFormat::isSRGB(source.texture->format()));
+
     /* Preserve current framebuffer state. */
     GLuint prevDrawFBO = this->state.boundDrawFramebuffer;
     GLuint prevReadFBO = this->state.boundReadFramebuffer;
