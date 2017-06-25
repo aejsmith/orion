@@ -36,19 +36,21 @@ DEFINE_PASS_TYPE(kPostEffectPassType, {});
 /**
  * Blit from a source to a destination texture using a material.
  *
- * Draws a full-screen quad onto the destination texture using the specified
+ * Draws a full-screen quad onto the destination target using the specified
  * material. The material's shader is expected to contain a PostEffect pass, and
  * accept a "sourceTexture" parameter which will be set to the source texture.
  *
  * @param source        Source texture.
- * @param dest          Destination texture.
+ * @param target        Render target.
+ * @param area          Area to render to on the target.
  * @param material      Material to draw with.
  * @param passIndex     Pass index to draw.
  * @param samplerState  Sampler state for sampling the source texture.
  */
 void PostEffect::blit(
     GPUTexture *source,
-    GPUTexture *dest,
+    const GPURenderTargetDesc &target,
+    const IntRect &area,
     Material *material,
     size_t passIndex,
     GPUSamplerState *samplerState) const
@@ -60,12 +62,12 @@ void PostEffect::blit(
         source,
         (samplerState) ? samplerState : defaultSampler.get());
 
-    /* Begin a render pass. */
-    GPURenderPassInstanceDesc passDesc(RenderPipeline::resources().postEffectPass);
-    passDesc.targets.colour[0].texture = dest;
-    passDesc.renderArea                = IntRect(0, 0, dest->width(), dest->height());
-
-    GPUCommandList *cmdList = g_gpuManager->beginRenderPass(passDesc);
+    /* Begin a render pass matching the target format. Load op is set to don't
+     * care since it is expected we will overwrite its entire content. */
+    GPUCommandList *cmdList = RenderPipeline::beginSimpleRenderPass(
+        target,
+        area,
+        GPURenderLoadOp::kDontCare);
 
     /* Disable blending and depth testing/writes. TODO: Blending should come
      * from Pass properties. */

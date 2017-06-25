@@ -153,21 +153,12 @@ void DeferredRenderPipeline::render(const RenderWorld &world, RenderView &view, 
     renderDeferred(context);
     renderBasic(context);
 
-    /* Perform post-processing effects. */
-    RenderTargetPool::Handle output = renderPostEffects(context.colourBuffer);
+    /* Perform post-processing effects and output the image to the real render
+     * target. */
+    renderPostEffects(context, context.colourBuffer);
 
     /* Render debug primitives. */
-    renderDebug(context, output);
-
-    /* Finally, blit the output buffer onto the real render target. */
-    GPUTextureImageRef dest;
-    context.target().getTextureImageRef(dest);
-    g_gpuManager->blit(
-        GPUTextureImageRef(output),
-        dest,
-        context.renderArea.pos(),
-        context.view().viewport().pos(),
-        context.renderArea.size());
+    renderDebug(context);
 }
 
 /** Allocate rendering resources.

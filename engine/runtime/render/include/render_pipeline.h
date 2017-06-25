@@ -47,11 +47,7 @@ public:
 
     /** Global resources for all pipelines. */
     struct BaseResources {
-        /** Render passes. */
-        GPURenderPassPtr postEffectPass;        /**< Post-processing effect pass. */
-        GPURenderPassPtr debugPass;             /**< Debug rendering pass. */
-    public:
-        BaseResources();
+        HashMap<GPURenderAttachmentDesc, GPURenderPassPtr> renderPasses;
     };
 
     static const BaseResources &resources();
@@ -70,15 +66,20 @@ public:
     virtual void render(const RenderWorld &world, RenderView &view, RenderTarget &target) const = 0;
 
     void addPostEffect(ObjectPtr<PostEffect> effect);
+
+    static GPUCommandList* beginSimpleRenderPass(
+        const GPURenderTargetDesc &target,
+        const IntRect &area,
+        GPURenderLoadOp loadOp);
 protected:
     RenderPipeline();
 
     void serialise(Serialiser &serialiser) const override;
     void deserialise(Serialiser &serialiser) override;
 
-    RenderTargetPool::Handle renderPostEffects(const RenderTargetPool::Handle &input) const;
+    void renderPostEffects(RenderContext &context, const RenderTargetPool::Handle &input) const;
 
-    void renderDebug(RenderContext &context, const RenderTargetPool::Handle &texture) const;
+    void renderDebug(RenderContext &context) const;
 private:
     /** List of post processing effects. */
     std::list<ObjectPtr<PostEffect>> m_postEffects;

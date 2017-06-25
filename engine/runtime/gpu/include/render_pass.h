@@ -59,6 +59,19 @@ struct GPURenderAttachmentDesc {
     explicit operator bool() const {
         return format != PixelFormat::kUnknown;
     }
+
+    /** Compare this descriptor with another. */
+    bool operator ==(const GPURenderAttachmentDesc &other) const {
+        return format == other.format && loadOp == other.loadOp && stencilLoadOp == other.stencilLoadOp;
+    }
+
+    /** Get a hash from a render pass attachment descriptor. */
+    friend size_t hashValue(const GPURenderAttachmentDesc &desc) {
+        size_t hash = hashValue(desc.format);
+        hash = hashCombine(hash, desc.loadOp);
+        hash = hashCombine(hash, desc.stencilLoadOp);
+        return hash;
+    }
 };
 
 /** Structure describing a render pass. */

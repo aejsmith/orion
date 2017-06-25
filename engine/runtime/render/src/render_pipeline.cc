@@ -21,6 +21,7 @@
 
 #include "engine/debug_manager.h"
 #include "engine/serialiser.h"
+#include "engine/window.h"
 
 #include "render/post_effect.h"
 #include "render/render_pipeline.h"
@@ -28,30 +29,6 @@
 
 /** Global resources for all pipelines. */
 static GlobalResource<RenderPipeline::BaseResources> g_renderPipelineResources;
-
-/** Initialise global resources for all pipelines. */
-RenderPipeline::BaseResources::BaseResources() {
-    /* Create the standard render passes. */
-    {
-        GPURenderPassDesc desc;
-
-        /* Create the post-processing pass. */
-        desc.colourAttachments.resize(1);
-        desc.colourAttachments[0].format = kColourBufferFormat;
-        desc.colourAttachments[0].loadOp = GPURenderLoadOp::kDontCare;
-        desc.depthStencilAttachment      = GPURenderAttachmentDesc();
-
-        this->postEffectPass = g_gpuManager->createRenderPass(std::move(desc));
-
-        /* Create the debug rendering pass. */
-        desc.colourAttachments.resize(1);
-        desc.colourAttachments[0].format = kColourBufferFormat;
-        desc.colourAttachments[0].loadOp = GPURenderLoadOp::kLoad;
-        desc.depthStencilAttachment      = GPURenderAttachmentDesc();
-
-        this->debugPass = g_gpuManager->createRenderPass(std::move(desc));
-    }
-}
 
 /** Construct the pipeline. */
 RenderPipeline::RenderPipeline() {
@@ -100,12 +77,27 @@ void RenderPipeline::addPostEffect(ObjectPtr<PostEffect> effect) {
     m_postEffects.emplace_back(std::move(effect));
 }
 
-/** Render all post-processing effects.
+/**
+ * Render all post-processing effects.
+ *
+ * Renders all post-processing effects (if any) and outputs the final image to
+ * the render target.
+ *
  * @param input         Input texture.
- * @return              Final processed output texture. */
-RenderTargetPool::Handle RenderPipeline::renderPostEffects(const RenderTargetPool::Handle &input) const {
-    if (m_postEffects.empty())
-        return input;
+ */
+void RenderPipeline::renderPostEffects(RenderContext &context, const RenderTargetPool::Handle &input) const {
+    if (m_postEffects.empty()) {
+        /* Just blit to the output. */
+        GPUTextureImageRef dest;
+        context.target().getTextureImageRef(dest);
+        g_gpuManager->blit(
+            GPUTextureImageRef(input),
+            dest,
+            glm::ivec2(0, 0),
+            context.view().viewport().pos(),
+            context.view().viewport().size());
+        return;
+    }
 
     GPU_DEBUG_GROUP("Post Processing");
 
@@ -117,43 +109,100 @@ RenderTargetPool::Handle RenderPipeline::renderPostEffects(const RenderTargetPoo
     for (PostEffect *effect : m_postEffects) {
         GPU_DEBUG_GROUP("%s", effect->metaClass().name());
 
-        if (!dest || dest == input) {
-            auto textureDesc = GPUTextureDesc().
-                setType   (GPUTexture::kTexture2D).
-                setWidth  (input->width()).
-                setHeight (input->height()).
-                setMips   (1).
-                setFlags  (GPUTexture::kRenderTarget).
-                setFormat (input->format());
+        const bool isLast = effect == m_postEffects.back();
 
-            dest = g_renderTargetPool->allocate(textureDesc);
+        GPURenderTargetDesc targetDesc(1);
+        IntRect targetArea;
+
+        if (isLast) {
+            /* The final effect outputs onto the real render target. */
+            context.target().getRenderTargetDesc(targetDesc);
+            targetArea = context.view().viewport();
+        } else {
+            if (!dest || dest == input) {
+                auto textureDesc = GPUTextureDesc().
+                    setType   (GPUTexture::kTexture2D).
+                    setWidth  (input->width()).
+                    setHeight (input->height()).
+                    setMips   (1).
+                    setFlags  (GPUTexture::kRenderTarget).
+                    setFormat (input->format());
+
+                dest = g_renderTargetPool->allocate(textureDesc);
+            }
+
+            targetDesc.colour[0].texture = dest;
+            targetArea = IntRect(0, 0, input->width(), input->height());
         }
 
-        if (effect->render(source, dest)) {
+        if (effect->render(source, targetDesc, targetArea)) {
             /* Rendered successfully, switch the output to be the source for the
              * next effect. */
             std::swap(dest, source);
         }
     }
-
-    /* Swapped above, last output is currently in source. */
-    return source;
 }
 
 /** Render debug primitives.
- * @param context       Rendering context.
- * @param texture       Texture to render to. */
-void RenderPipeline::renderDebug(RenderContext &context, const RenderTargetPool::Handle &texture) const {
+ * @param context       Rendering context. */
+void RenderPipeline::renderDebug(RenderContext &context) const {
     GPU_DEBUG_GROUP("Debug");
 
-    GPURenderPassInstanceDesc passDesc(resources().debugPass);
-    passDesc.targets.colour[0].texture = texture;
-    passDesc.renderArea                = IntRect(glm::ivec2(0, 0), context.view().viewport().size());
+    GPURenderTargetDesc targetDesc;
+    context.target().getRenderTargetDesc(targetDesc);
 
-    GPUCommandList *cmdList = g_gpuManager->beginRenderPass(passDesc);
+    GPUCommandList *cmdList = beginSimpleRenderPass(
+        targetDesc,
+        context.view().viewport(),
+        GPURenderLoadOp::kLoad);
 
     /* Draw debug primitives onto the view. */
     g_debugManager->renderView(cmdList, context.view().getResources());
 
     g_gpuManager->submitRenderPass(cmdList);
+}
+
+/**
+ * Begin a simple render pass.
+ *
+ * Begins a simple render pass with a single colour attachment. These render
+ * passes are cached and will be reused.
+ *
+ * @param desc          Descriptor for the colour attachment.
+ */
+GPUCommandList* RenderPipeline::beginSimpleRenderPass(
+    const GPURenderTargetDesc &target,
+    const IntRect &area,
+    GPURenderLoadOp loadOp)
+{
+    assert(target.colour.size() == 1);
+    assert(!target.depthStencil);
+
+    /* Get a render pass matching the target format.
+     * FIXME: Can we kill this special casing for the main window and always
+     * have a real texture object here? */
+    GPURenderAttachmentDesc attachmentDesc;
+    attachmentDesc.format = (target.isMainWindow())
+                                ? g_mainWindow->format()
+                                : target.colour[0].texture->format();
+    attachmentDesc.loadOp = loadOp;
+
+    auto &cache = g_renderPipelineResources->renderPasses;
+
+    auto it = cache.find(attachmentDesc);
+    if (it == cache.end()) {
+        GPURenderPassDesc passDesc(1);
+        passDesc.colourAttachments[0] = attachmentDesc;
+
+        GPURenderPassPtr pass = g_gpuManager->createRenderPass(std::move(passDesc));
+        auto ret = cache.emplace(attachmentDesc, std::move(pass));
+        check(ret.second);
+        it = ret.first;
+    }
+
+    GPURenderPassInstanceDesc passDesc(it->second);
+    passDesc.targets    = target;
+    passDesc.renderArea = area;
+
+    return g_gpuManager->beginRenderPass(passDesc);
 }

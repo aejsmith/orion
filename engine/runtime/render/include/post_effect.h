@@ -23,6 +23,7 @@
 
 #include "engine/object.h"
 
+#include "gpu/render_pass.h"
 #include "gpu/state.h"
 
 class GPUTexture;
@@ -44,25 +45,27 @@ public:
     /**
      * Render the effect.
      *
-     * Given the source texture, renders to the destination texture with the
-     * image effect applied. The source texture is the output of the previous
-     * effect in the chain (or the renderer, if the effect is the first), and
-     * the output will be either be used as the final image or as input into the
+     * Given the source texture, renders to the destination target with the
+     * effect applied. The source texture is the output of the previous effect
+     * in the chain (or the renderer, if the effect is the first), and the
+     * target will be either be used as the final image or as input into the
      * following effect in the chain.
      *
      * @param source        Source texture.
-     * @param dest          Destination texture.
+     * @param target        Render target.
+     * @param area          Area to render to on the target.
      *
      * @return              Whether the effect was performed.
      */
-    virtual bool render(GPUTexture *source, GPUTexture *dest) const = 0;
+    virtual bool render(GPUTexture *source, const GPURenderTargetDesc &target, const IntRect &area) const = 0;
 protected:
     /** Initialise the effect. */
     PostEffect() {}
 
     void blit(
         GPUTexture *source,
-        GPUTexture *dest,
+        const GPURenderTargetDesc &target,
+        const IntRect &area,
         Material *material,
         size_t passIndex = 0,
         GPUSamplerState *samplerState = nullptr) const;

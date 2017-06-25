@@ -100,8 +100,8 @@ private:
      *
      * This is only created if the layer's render method calls beginRenderPass()
      * and points to a render pass which will render directly to the render
-     * target with not depth/stencil target. It is not used for scene rendering,
-     * SceneRenderer handles that internally.
+     * target with no depth/stencil target. It is not used for scene rendering,
+     * RenderPipeline handles that internally.
      */
     GPURenderPassPtr m_renderPass;
 
