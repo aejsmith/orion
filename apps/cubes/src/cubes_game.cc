@@ -139,7 +139,7 @@ Entity *CubesGame::makeCube(bool withLights) {
             light->setDirection(lights[i].direction);
             light->setColour(lights[i].colour);
             light->setRange(200.0f);
-            light->setAttenuation(glm::vec3(1.0f, 0.1f, 0.0f));
+            light->setAttenuation(glm::vec3(1.0f, 0.1f, 0.1f));
             light->setIntensity(1.5f);
             light->setCutoff(30.0f);
             light->setCastsShadows(false);

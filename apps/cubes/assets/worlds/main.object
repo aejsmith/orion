@@ -56,16 +56,16 @@
                 "objectID": 16
             },
             {
-                "objectID": 22
+                "objectID": 23
             },
             {
-                "objectID": 24
+                "objectID": 25
             },
             {
-                "objectID": 26
+                "objectID": 27
             },
             {
-                "objectID": 28
+                "objectID": 29
             }
         ]
     },
@@ -96,8 +96,9 @@
                 1.0,
                 1.0
             ],
-            "intensity": 0.05000000074505806,
-            "castsShadows": false
+            "intensity": 0.003000000026077032,
+            "castsShadows": false,
+            "shadowBiasConstant": -0.0010000000474974514
         }
     },
     {
@@ -491,6 +492,9 @@
         "postEffects": [
             {
                 "objectID": 21
+            },
+            {
+                "objectID": 22
             }
         ]
     },
@@ -500,8 +504,15 @@
         "objectProperties": {}
     },
     {
-        "objectClass": "Entity",
+        "objectClass": "GammaCorrectionEffect",
         "objectID": 22,
+        "objectProperties": {
+            "gamma": 2.200000047683716
+        }
+    },
+    {
+        "objectClass": "Entity",
+        "objectID": 23,
         "world": {
             "objectID": 0
         },
@@ -530,16 +541,15 @@
         },
         "components": [
             {
-                "objectID": 23
+                "objectID": 24
             }
-        ],
-        "children": []
+        ]
     },
     {
         "objectClass": "SpotLight",
-        "objectID": 23,
+        "objectID": 24,
         "entity": {
-            "objectID": 22
+            "objectID": 23
         },
         "objectProperties": {
             "active": true,
@@ -548,20 +558,21 @@
                 1.0,
                 1.0
             ],
-            "intensity": 0.800000011920929,
+            "intensity": 0.6000000238418579,
             "castsShadows": true,
+            "shadowBiasConstant": -0.0010000000474974514,
             "cutoff": 45.0,
             "range": 20.0,
             "attenuation": [
                 1.0,
-                0.04500000178813934,
-                0.007499999832361937
+                0.10000000149011612,
+                0.04500000178813934
             ]
         }
     },
     {
         "objectClass": "Entity",
-        "objectID": 24,
+        "objectID": 25,
         "world": {
             "objectID": 0
         },
@@ -590,16 +601,16 @@
         },
         "components": [
             {
-                "objectID": 25
+                "objectID": 26
             }
         ],
         "children": []
     },
     {
         "objectClass": "PointLight",
-        "objectID": 25,
+        "objectID": 26,
         "entity": {
-            "objectID": 24
+            "objectID": 25
         },
         "objectProperties": {
             "active": true,
@@ -610,17 +621,18 @@
             ],
             "intensity": 1.0,
             "castsShadows": true,
+            "shadowBiasConstant": -0.0010000000474974514,
             "range": 50.0,
             "attenuation": [
                 1.0,
-                0.09000000357627869,
-                0.03200000151991844
+                0.10000000149011612,
+                0.09000000357627869
             ]
         }
     },
     {
         "objectClass": "Entity",
-        "objectID": 26,
+        "objectID": 27,
         "world": {
             "objectID": 0
         },
@@ -649,16 +661,16 @@
         },
         "components": [
             {
-                "objectID": 27
+                "objectID": 28
             }
         ],
         "children": []
     },
     {
         "objectClass": "PointLight",
-        "objectID": 27,
+        "objectID": 28,
         "entity": {
-            "objectID": 26
+            "objectID": 27
         },
         "objectProperties": {
             "active": true,
@@ -669,17 +681,18 @@
             ],
             "intensity": 1.0,
             "castsShadows": true,
+            "shadowBiasConstant": -0.0010000000474974514,
             "range": 50.0,
             "attenuation": [
                 1.0,
-                0.09000000357627869,
-                0.03200000151991844
+                0.10000000149011612,
+                0.09000000357627869
             ]
         }
     },
     {
         "objectClass": "Entity",
-        "objectID": 28,
+        "objectID": 29,
         "world": {
             "objectID": 0
         },
@@ -708,16 +721,16 @@
         },
         "components": [
             {
-                "objectID": 29
+                "objectID": 30
             }
         ],
         "children": []
     },
     {
         "objectClass": "PointLight",
-        "objectID": 29,
+        "objectID": 30,
         "entity": {
-            "objectID": 28
+            "objectID": 29
         },
         "objectProperties": {
             "active": true,
@@ -728,11 +741,12 @@
             ],
             "intensity": 1.0,
             "castsShadows": true,
+            "shadowBiasConstant": -0.0010000000474974514,
             "range": 50.0,
             "attenuation": [
                 1.0,
-                0.09000000357627869,
-                0.03200000151991844
+                0.10000000149011612,
+                0.09000000357627869
             ]
         }
     }
