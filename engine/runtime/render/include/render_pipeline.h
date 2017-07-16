@@ -30,8 +30,10 @@
 class PostEffect;
 
 /** Screen buffer pixel formats. */
-static const PixelFormat kColourBufferFormat = PixelFormat::kR8G8B8A8sRGB;
-static const PixelFormat kDepthBufferFormat  = PixelFormat::kDepth32;
+static const PixelFormat kHDRColourBufferFormat          = PixelFormat::kFloatR16G16B16A16;
+static const PixelFormat kLinearLDRColourBufferFormat    = PixelFormat::kR8G8B8A8sRGB;
+static const PixelFormat kNonLinearLDRColourBufferFormat = PixelFormat::kR8G8B8A8;
+static const PixelFormat kDepthBufferFormat              = PixelFormat::kDepth32;
 
 /**
  * Rendering pipeline base class.
@@ -44,6 +46,14 @@ public:
     CLASS();
 
     ~RenderPipeline();
+
+    /** Type of input to/output from an effect. */
+    enum class ImageType {
+        kDontCare,          /**< Don't care, just use/match whatever we're supplied. */
+        kHDR,               /**< Input should be or output is HDR. */
+        kLinearLDR,         /**< Input should be or output is linear LDR. */
+        kNonLinearLDR,      /**< Input should be or output is non-linear LDR. */
+    };
 
     /** Global resources for all pipelines. */
     struct BaseResources {
@@ -67,17 +77,18 @@ public:
 
     void addPostEffect(ObjectPtr<PostEffect> effect);
 
-    static GPUCommandList* beginSimpleRenderPass(
-        const GPURenderTargetDesc &target,
-        const IntRect &area,
-        GPURenderLoadOp loadOp);
+    static GPUCommandList* beginSimpleRenderPass(const GPURenderTargetDesc &target,
+                                                 const IntRect &area,
+                                                 GPURenderLoadOp loadOp);
 protected:
     RenderPipeline();
 
     void serialise(Serialiser &serialiser) const override;
     void deserialise(Serialiser &serialiser) override;
 
-    void renderPostEffects(RenderContext &context, const RenderTargetPool::Handle &input) const;
+    void renderPostEffects(RenderContext &context,
+                           const RenderTargetPool::Handle &input,
+                           ImageType imageType) const;
 
     void renderDebug(RenderContext &context) const;
 private:

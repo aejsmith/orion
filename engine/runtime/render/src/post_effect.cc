@@ -47,27 +47,24 @@ DEFINE_PASS_TYPE(kPostEffectPassType, {});
  * @param passIndex     Pass index to draw.
  * @param samplerState  Sampler state for sampling the source texture.
  */
-void PostEffect::blit(
-    GPUTexture *source,
-    const GPURenderTargetDesc &target,
-    const IntRect &area,
-    Material *material,
-    size_t passIndex,
-    GPUSamplerState *samplerState) const
+void PostEffect::blit(GPUTexture *source,
+                      const GPURenderTargetDesc &target,
+                      const IntRect &area,
+                      Material *material,
+                      size_t passIndex,
+                      GPUSamplerState *samplerState) const
 {
     /* Bind the source texture. */
     GPUSamplerStatePtr defaultSampler = g_gpuManager->getSamplerState();
-    material->setGPUTexture(
-        "sourceTexture",
-        source,
-        (samplerState) ? samplerState : defaultSampler.get());
+    material->setGPUTexture("sourceTexture",
+                            source,
+                            (samplerState) ? samplerState : defaultSampler.get());
 
     /* Begin a render pass matching the target format. Load op is set to don't
      * care since it is expected we will overwrite its entire content. */
-    GPUCommandList *cmdList = RenderPipeline::beginSimpleRenderPass(
-        target,
-        area,
-        GPURenderLoadOp::kDontCare);
+    GPUCommandList *cmdList = RenderPipeline::beginSimpleRenderPass(target,
+                                                                    area,
+                                                                    GPURenderLoadOp::kDontCare);
 
     /* Disable blending and depth testing/writes. TODO: Blending should come
      * from Pass properties. */

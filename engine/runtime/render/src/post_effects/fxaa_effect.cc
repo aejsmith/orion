@@ -35,9 +35,8 @@ FXAAEffect::~FXAAEffect() {}
 /** Render the effect.
  * @param source        Source texture.
  * @param target        Render target.
- * @param area          Area to render to on the target.
- * @return              Whether the effect was performed. */
-bool FXAAEffect::render(GPUTexture *source, const GPURenderTargetDesc &target, const IntRect &area) const {
+ * @param area          Area to render to on the target. */
+void FXAAEffect::render(GPUTexture *source, const GPURenderTargetDesc &target, const IntRect &area) const {
     /* Use bilinear filtering. */
     auto samplerDesc = GPUSamplerStateDesc().
         setFilterMode    (SamplerFilterMode::kBilinear).
@@ -45,5 +44,4 @@ bool FXAAEffect::render(GPUTexture *source, const GPURenderTargetDesc &target, c
     GPUSamplerStatePtr samplerState = g_gpuManager->getSamplerState(samplerDesc);
 
     blit(source, target, area, m_material, 0, samplerState);
-    return true;
 }

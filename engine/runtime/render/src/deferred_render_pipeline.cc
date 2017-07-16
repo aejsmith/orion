@@ -100,7 +100,7 @@ DeferredRenderPipeline::Resources::Resources() {
 
     /* Create the lighting pass. */
     passDesc.colourAttachments.resize(1);
-    passDesc.colourAttachments[0].format          = kColourBufferFormat;
+    passDesc.colourAttachments[0].format          = kLinearLDRColourBufferFormat;
     passDesc.colourAttachments[0].loadOp          = GPURenderLoadOp::kClear;
     passDesc.depthStencilAttachment.format        = kDepthBufferFormat;
     passDesc.depthStencilAttachment.loadOp        = GPURenderLoadOp::kLoad;
@@ -110,7 +110,7 @@ DeferredRenderPipeline::Resources::Resources() {
 
     /* Create the basic material pass. */
     passDesc.colourAttachments.resize(1);
-    passDesc.colourAttachments[0].format          = kColourBufferFormat;
+    passDesc.colourAttachments[0].format          = kLinearLDRColourBufferFormat;
     passDesc.colourAttachments[0].loadOp          = GPURenderLoadOp::kLoad;
     passDesc.depthStencilAttachment.format        = kDepthBufferFormat;
     passDesc.depthStencilAttachment.loadOp        = GPURenderLoadOp::kLoad;
@@ -155,7 +155,7 @@ void DeferredRenderPipeline::render(const RenderWorld &world, RenderView &view, 
 
     /* Perform post-processing effects and output the image to the real render
      * target. */
-    renderPostEffects(context, context.colourBuffer);
+    renderPostEffects(context, context.colourBuffer, ImageType::kLinearLDR);
 
     /* Render debug primitives. */
     renderDebug(context);
@@ -174,7 +174,7 @@ void DeferredRenderPipeline::allocateResources(Context &context) const {
         setFlags  (GPUTexture::kRenderTarget);
 
     /* Allocate the main output textures. */
-    textureDesc.format      = kColourBufferFormat;
+    textureDesc.format      = kLinearLDRColourBufferFormat;
     context.colourBuffer    = g_renderTargetPool->allocate(textureDesc);
     textureDesc.format      = kDepthBufferFormat;
     context.depthBuffer     = g_renderTargetPool->allocate(textureDesc);
@@ -221,11 +221,10 @@ void DeferredRenderPipeline::prepareLights(Context &context) const {
                         g_debugManager->draw(boundingBox, colour, true);
 
                         if (renderLight->type() == RenderLight::kSpotLight) {
-                            g_debugManager->drawLine(
-                                position,
-                                position + renderLight->direction(),
-                                colour,
-                                true);
+                            g_debugManager->drawLine(position,
+                                                     position + renderLight->direction(),
+                                                     colour,
+                                                     true);
                         }
 
                         break;
@@ -277,9 +276,8 @@ void DeferredRenderPipeline::prepareLights(Context &context) const {
                         if (shader->numPasses(kShadowCasterPassType) > 0) {
                             light.shadowMapDrawLists[i].add(entity, kShadowCasterPassType);
                         } else {
-                            logWarning(
-                                "Shader for shadow casting entity '%s' lacks shadow caster pass",
-                                entity->name.c_str());
+                            logWarning("Shader for shadow casting entity '%s' lacks shadow caster pass",
+                                       entity->name.c_str());
                         }
                     }
                 }
@@ -411,12 +409,11 @@ void DeferredRenderPipeline::renderDeferredGBuffer(Context &context) const {
     /* Make a copy of the depth buffer. We need to do this as we want to
      * keep the same depth buffer while rendering light volumes, but the
      * light shaders need to read the depth buffer. */
-    g_gpuManager->blit(
-        GPUTextureImageRef(context.depthBuffer),
-        GPUTextureImageRef(context.deferredBufferD),
-        context.renderArea.pos(),
-        context.renderArea.pos(),
-        context.renderArea.size());
+    g_gpuManager->blit(GPUTextureImageRef(context.depthBuffer),
+                       GPUTextureImageRef(context.deferredBufferD),
+                       context.renderArea.pos(),
+                       context.renderArea.pos(),
+                       context.renderArea.size());
 }
 
 /** Perform deferred light rendering.

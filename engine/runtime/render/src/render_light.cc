@@ -38,9 +38,9 @@ IMPLEMENT_UNIFORM_STRUCT(LightUniforms, "light", ResourceSets::kLightResources);
  * @param type          Type of the light.
  */
 RenderLight::RenderLight(Type type) :
-    m_world(nullptr),
-    m_type(type),
-    m_flags(0)
+    m_world (nullptr),
+    m_type  (type),
+    m_flags (0)
 {
     m_resources = g_gpuManager->createResourceSet(g_renderResources->lightResourceSetLayout());
     m_resources->bindUniformBuffer(ResourceSlots::kUniforms, m_uniforms.gpu());
@@ -220,10 +220,9 @@ void RenderLight::updateVolumeTransform() {
         case kPointLight:
             /* Volume is a sphere. Geometry has radius of 1, we must scale this
              * to the light's range. */
-            m_volumeTransform.set(
-                m_position,
-                glm::quat(),
-                glm::vec3(m_range, m_range, m_range));
+            m_volumeTransform.set(m_position,
+                                  glm::quat(),
+                                  glm::vec3(m_range, m_range, m_range));
             m_uniforms.write()->volumeTransform = m_volumeTransform.matrix();
             break;
 
@@ -311,9 +310,9 @@ void RenderLight::updateShadowViews() {
             for (unsigned i = 0; i < numViews; i++) {
                 /* View is centered on the light looking in the direction of the
                  * face being rendered. */
-                m_shadowViews[i].setTransform(
-                    m_position,
-                    Math::quatLookAt(cubeFaces[i].direction, cubeFaces[i].up));
+                m_shadowViews[i].setTransform(m_position,
+                                              Math::quatLookAt(cubeFaces[i].direction,
+                                                               cubeFaces[i].up));
 
                 /* Perspective projection covering the whole face, limited to
                  * the light's range. */

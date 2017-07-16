@@ -25,10 +25,75 @@
 
 #include "core/pixel_format.h"
 
+/** Check if a format is a colour format.
+ * @param format        Format to check.
+ * @return              Whether the format is a colour format. */
+bool PixelFormat::isColour(const PixelFormat format) {
+    return !isDepth(format);
+}
+
+/** Check if a format is an sRGB format.
+ * @param format        Format to check.
+ * @return              Whether the format is an sRGB format. */
+bool PixelFormat::isSRGB(const PixelFormat format) {
+    switch (format) {
+        case kR8G8B8A8sRGB:
+        case kB8G8R8A8sRGB:
+            return true;
+        default:
+            return false;
+    }
+}
+
+/** Check if a format is a floating point colour format.
+ * @param format        Format to check.
+ * @return              Whether the format is a floating point colour format. */
+bool PixelFormat::isFloat(const PixelFormat format) {
+    switch (format) {
+        case kFloatR16G16B16A16:
+        case kFloatR16G16B16:
+        case kFloatR16G16:
+        case kFloatR16:
+        case kFloatR32G32B32A32:
+        case kFloatR32G32B32:
+        case kFloatR32G32:
+        case kFloatR32:
+            return true;
+        default:
+            return false;
+    }
+}
+
+/** Check if a format is a depth format.
+ * @param format        Format to check.
+ * @return              Whether the format is a depth format. */
+bool PixelFormat::isDepth(const PixelFormat format) {
+    switch (format) {
+        case kDepth16:
+        case kDepth32:
+        case kDepth32Stencil8:
+            return true;
+        default:
+            return false;
+    }
+}
+
+/** Check if a format is a depth/stencil format.
+ * @param format        Format to check.
+ * @return              Whether the format is a depth format. */
+bool PixelFormat::isDepthStencil(const PixelFormat format) {
+    switch (format) {
+        case kDepth32Stencil8:
+            return true;
+        default:
+            return false;
+    }
+}
+
 /** Get the number of bytes per pixel for a pixel format.
  * @param format        Format to get for.
  * @return              Number of bytes per pixel using the given format. */
-size_t PixelFormat::bytesPerPixel(PixelFormat format) {
+size_t PixelFormat::bytesPerPixel(const PixelFormat format) {
     switch (format) {
         case kFloatR32G32B32A32:
             return 16;

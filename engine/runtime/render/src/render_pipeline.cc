@@ -92,26 +92,63 @@ void RenderPipeline::addPostEffect(ObjectPtr<PostEffect> effect) {
  * Renders all post-processing effects (if any) and outputs the final image to
  * the render target.
  *
+ * @param context       Rendering context.
  * @param input         Input texture.
+ * @param imageType     Type of the input image.
  */
-void RenderPipeline::renderPostEffects(RenderContext &context, const RenderTargetPool::Handle &input) const {
+void RenderPipeline::renderPostEffects(RenderContext &context,
+                                       const RenderTargetPool::Handle &input,
+                                       ImageType imageType) const
+{
+    /* Helper to check that the render target format is suitable for the output
+     * image type. */
+    auto validateTargetImageType =
+        [&] (const ImageType outputImageType) {
+            #if ORION_BUILD_DEBUG
+                /* FIXME: Can we kill this special casing for the main window
+                 * and always have a real texture object here? */
+                GPURenderTargetDesc target;
+                context.target().getRenderTargetDesc(target);
+                const PixelFormat targetFormat = (target.isMainWindow())
+                                                     ? g_mainWindow->format()
+                                                     : target.colour[0].texture->format();
+                ImageType targetType;
+                if (PixelFormat::isFloat(targetFormat)) {
+                    targetType = ImageType::kHDR;
+                } else if (PixelFormat::isSRGB(targetFormat)) {
+                    targetType = ImageType::kLinearLDR;
+                } else {
+                    targetType = ImageType::kNonLinearLDR;
+                }
+
+                if (targetType != outputImageType) {
+                    logWarning("Render target expects output image type %d but render pipeline output type is %d",
+                               targetType,
+                               outputImageType);
+                }
+            #endif
+        };
+
     if (m_postEffects.empty()) {
+        validateTargetImageType(imageType);
+
         /* Just blit to the output. */
         GPUTextureImageRef dest;
         context.target().getTextureImageRef(dest);
-        g_gpuManager->blit(
-            GPUTextureImageRef(input),
-            dest,
-            glm::ivec2(0, 0),
-            context.view().viewport().pos(),
-            context.view().viewport().size());
+        g_gpuManager->blit(GPUTextureImageRef(input),
+                           dest,
+                           glm::ivec2(0, 0),
+                           context.view().viewport().pos(),
+                           context.view().viewport().size());
         return;
     }
 
     GPU_DEBUG_GROUP("Post Processing");
 
     /* We bounce between up to 2 temporary render targets. These are allocated
-     * below when needed. */
+     * below when needed. TODO: Maybe we should have these allocated up front
+     * when the render pipeline is created, based on requirements of the whole
+     * effect chain. */
     RenderTargetPool::Handle dest;
     RenderTargetPool::Handle source = input;
 
@@ -120,22 +157,58 @@ void RenderPipeline::renderPostEffects(RenderContext &context, const RenderTarge
 
         const bool isLast = effect == m_postEffects.back();
 
+        ImageType outputImageType = effect->outputImageType();
+        if (outputImageType == ImageType::kDontCare)
+            outputImageType = imageType;
+
         GPURenderTargetDesc targetDesc(1);
         IntRect targetArea;
 
         if (isLast) {
+            validateTargetImageType(outputImageType);
+
             /* The final effect outputs onto the real render target. */
             context.target().getRenderTargetDesc(targetDesc);
             targetArea = context.view().viewport();
         } else {
-            if (!dest || dest == input) {
+            #if ORION_BUILD_DEBUG
+                const ImageType expectedImageType = effect->inputImageType();
+                if (expectedImageType != ImageType::kDontCare && expectedImageType != imageType) {
+                    logWarning("Effect '%s' expects input image type %d but current type is %d",
+                               effect->metaClass().name(),
+                               expectedImageType,
+                               imageType);
+                }
+            #endif
+
+            if (!dest || imageType != outputImageType) {
+                PixelFormat format;
+
+                switch (outputImageType) {
+                    case ImageType::kHDR:
+                        format = kHDRColourBufferFormat;
+                        break;
+
+                    case ImageType::kLinearLDR:
+                        format = kLinearLDRColourBufferFormat;
+                        break;
+
+                    case ImageType::kNonLinearLDR:
+                        format = kNonLinearLDRColourBufferFormat;
+                        break;
+
+                    default:
+                        unreachable();
+
+                }
+
                 auto textureDesc = GPUTextureDesc().
                     setType   (GPUTexture::kTexture2D).
                     setWidth  (input->width()).
                     setHeight (input->height()).
                     setMips   (1).
                     setFlags  (GPUTexture::kRenderTarget).
-                    setFormat (input->format());
+                    setFormat (format);
 
                 dest = g_renderTargetPool->allocate(textureDesc);
             }
@@ -144,11 +217,17 @@ void RenderPipeline::renderPostEffects(RenderContext &context, const RenderTarge
             targetArea = IntRect(0, 0, input->width(), input->height());
         }
 
-        if (effect->render(source, targetDesc, targetArea)) {
-            /* Rendered successfully, switch the output to be the source for the
-             * next effect. */
-            std::swap(dest, source);
-        }
+        effect->render(source, targetDesc, targetArea);
+
+        /* Switch the output to be the source for the next effect. */
+        std::swap(dest, source);
+
+        /* Changing image type will invalidate the other target we have as well,
+         * need to change the format. */
+        if (outputImageType != imageType || dest == input)
+            dest = nullptr;
+
+        imageType = outputImageType;
     }
 }
 
@@ -160,10 +239,9 @@ void RenderPipeline::renderDebug(RenderContext &context) const {
     GPURenderTargetDesc targetDesc;
     context.target().getRenderTargetDesc(targetDesc);
 
-    GPUCommandList *cmdList = beginSimpleRenderPass(
-        targetDesc,
-        context.view().viewport(),
-        GPURenderLoadOp::kLoad);
+    GPUCommandList *cmdList = beginSimpleRenderPass(targetDesc,
+                                                    context.view().viewport(),
+                                                    GPURenderLoadOp::kLoad);
 
     /* Draw debug primitives onto the view. */
     g_debugManager->renderView(cmdList, context.view().getResources());
@@ -179,10 +257,9 @@ void RenderPipeline::renderDebug(RenderContext &context) const {
  *
  * @param desc          Descriptor for the colour attachment.
  */
-GPUCommandList* RenderPipeline::beginSimpleRenderPass(
-    const GPURenderTargetDesc &target,
-    const IntRect &area,
-    GPURenderLoadOp loadOp)
+GPUCommandList* RenderPipeline::beginSimpleRenderPass(const GPURenderTargetDesc &target,
+                                                      const IntRect &area,
+                                                      GPURenderLoadOp loadOp)
 {
     assert(target.colour.size() == 1);
     assert(!target.depthStencil);

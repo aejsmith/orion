@@ -34,14 +34,22 @@ GammaCorrectionEffect::GammaCorrectionEffect() :
 /** Destroy the effect. */
 GammaCorrectionEffect::~GammaCorrectionEffect() {}
 
+/** @return             Expected input image type. */
+RenderPipeline::ImageType GammaCorrectionEffect::inputImageType() const {
+    return RenderPipeline::ImageType::kLinearLDR;
+}
+
+/** @return             Output image type. */
+RenderPipeline::ImageType GammaCorrectionEffect::outputImageType() const {
+    return RenderPipeline::ImageType::kNonLinearLDR;
+}
+
 /** Render the effect.
  * @param source        Source texture.
  * @param target        Render target.
- * @param area          Area to render to on the target.
- * @return              Whether the effect was performed. */
-bool GammaCorrectionEffect::render(GPUTexture *source, const GPURenderTargetDesc &target, const IntRect &area) const {
+ * @param area          Area to render to on the target. */
+void GammaCorrectionEffect::render(GPUTexture *source, const GPURenderTargetDesc &target, const IntRect &area) const {
     m_material->setValue("gamma", this->gamma);
 
     blit(source, target, area, m_material);
-    return true;
 }

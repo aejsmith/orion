@@ -34,9 +34,9 @@ IMPLEMENT_UNIFORM_STRUCT(ViewUniforms, "view", ResourceSets::kViewResources);
  * projection and viewport must be set manually.
  */
 RenderView::RenderView() :
-    m_viewOutdated(true),
-    m_projectionOutdated(true),
-    m_aspect(1.0f)
+    m_viewOutdated       (true),
+    m_projectionOutdated (true),
+    m_aspect             (1.0f)
 {
     m_resources = g_gpuManager->createResourceSet(g_renderResources->viewResourceSetLayout());
     m_resources->bindUniformBuffer(ResourceSlots::kUniforms, m_uniforms.gpu());

@@ -69,51 +69,11 @@ struct PixelFormat {
     constexpr PixelFormat(Impl value) : m_value(value) {}
     constexpr operator Impl() const { return m_value; }
 
-    /** Check if a format is a colour format.
-     * @param format        Format to check.
-     * @return              Whether the format is a colour format. */
-    static bool isColour(PixelFormat format) {
-        return !isDepth(format);
-    }
-
-    /** Check if a format is an sRGB format.
-     * @param format        Format to check.
-     * @return              Whether the format is an sRGB format. */
-    static bool isSRGB(PixelFormat format) {
-        switch (format) {
-            case kR8G8B8A8sRGB:
-            case kB8G8R8A8sRGB:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    /** Check if a format is a depth format.
-     * @param format        Format to check.
-     * @return              Whether the format is a depth format. */
-    static bool isDepth(PixelFormat format) {
-        switch (format) {
-            case kDepth16:
-            case kDepth32:
-            case kDepth32Stencil8:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    /** Check if a format is a depth/stencil format.
-     * @param format        Format to check.
-     * @return              Whether the format is a depth format. */
-    static bool isDepthStencil(PixelFormat format) {
-        switch (format) {
-            case kDepth32Stencil8:
-                return true;
-            default:
-                return false;
-        }
-    }
+    static bool isColour(PixelFormat format);
+    static bool isSRGB(PixelFormat format);
+    static bool isFloat(PixelFormat format);
+    static bool isDepth(PixelFormat format);
+    static bool isDepthStencil(PixelFormat format);
 
     static size_t bytesPerPixel(PixelFormat format);
 

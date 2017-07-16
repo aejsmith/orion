@@ -49,6 +49,8 @@ public:
     public:
         Handle() {}
 
+        Handle(std::nullptr_t) {}
+
         Handle(ReferencePtr<Target> target) :
             m_target(std::move(target))
         {}

@@ -33,7 +33,7 @@ public:
     FXAAEffect();
     ~FXAAEffect();
 
-    bool render(GPUTexture *source, const GPURenderTargetDesc &target, const IntRect &area) const override;
+    void render(GPUTexture *source, const GPURenderTargetDesc &target, const IntRect &area) const override;
 private:
     MaterialPtr m_material;             /**< FXAA material. */
 };

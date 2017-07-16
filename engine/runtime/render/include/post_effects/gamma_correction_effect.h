@@ -42,7 +42,10 @@ public:
     /** Gamma value to use. */
     PROPERTY() float gamma;
 
-    bool render(GPUTexture *source, const GPURenderTargetDesc &target, const IntRect &area) const override;
+    RenderPipeline::ImageType inputImageType() const override;
+    RenderPipeline::ImageType outputImageType() const override;
+
+    void render(GPUTexture *source, const GPURenderTargetDesc &target, const IntRect &area) const override;
 private:
     MaterialPtr m_material;             /**< Gamma correction material. */
 };
