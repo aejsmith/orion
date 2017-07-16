@@ -59,7 +59,7 @@ protected:
     /** Initialise the object.
      * @param manager       Manager that owns the object. */
     explicit VulkanObject(VulkanGPUManager *manager) :
-        m_manager(manager)
+        m_manager (manager)
     {}
 private:
     VulkanGPUManager *m_manager;            /**< Manager that owns the object. */
@@ -75,8 +75,8 @@ protected:
     /** Initialise the object.
      * @param manager       Manager that owns the object. */
     explicit VulkanHandle(VulkanGPUManager *manager) :
-        VulkanObject(manager),
-        m_handle(VK_NULL_HANDLE)
+        VulkanObject (manager),
+        m_handle     (VK_NULL_HANDLE)
     {}
 
     T m_handle;                             /**< Handle to the object. */

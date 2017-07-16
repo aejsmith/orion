@@ -60,8 +60,8 @@ static std::string getVariationString(const ShaderKeywordSet &variation) {
  * @param parent        Parent shader.
  * @param type          Type of the pass. */
 Pass::Pass(Shader *parent, const std::string &type) :
-    m_parent(parent),
-    m_type(PassType::lookup(type))
+    m_parent (parent),
+    m_type   (PassType::lookup(type))
 {
     /* Pre-create the variation map for all required variations. */
     for (const ShaderKeywordSet &variation : m_type.variations)
@@ -161,8 +161,8 @@ void Pass::finalise() {
          * pass type. */
         pipelineDesc.resourceLayout.resize(ResourceSets::kNumResourceSets);
         pipelineDesc.resourceLayout[ResourceSets::kEntityResources] = g_renderResources->entityResourceSetLayout();
-        pipelineDesc.resourceLayout[ResourceSets::kViewResources] = g_renderResources->viewResourceSetLayout();
-        pipelineDesc.resourceLayout[ResourceSets::kLightResources] = g_renderResources->lightResourceSetLayout();
+        pipelineDesc.resourceLayout[ResourceSets::kViewResources]   = g_renderResources->viewResourceSetLayout();
+        pipelineDesc.resourceLayout[ResourceSets::kLightResources]  = g_renderResources->lightResourceSetLayout();
 
         /* Bind material resources. */
         pipelineDesc.resourceLayout[ResourceSets::kMaterialResources] = m_parent->m_resourceSetLayout;
@@ -184,8 +184,8 @@ static auto &passTypeMap() {
  *                      combinations of keywords. An empty list will result in
  *                      1 variation being compiled with no additional keywords. */
 PassType::PassType(std::string inName, VariationList inVariations) :
-    name(std::move(inName)),
-    variations(std::move(inVariations))
+    name       (std::move(inName)),
+    variations (std::move(inVariations))
 {
     /* Add a single variation with no keywords if the list is empty. */
     if (this->variations.empty())

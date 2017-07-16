@@ -176,12 +176,12 @@ struct GPUSamplerStateDesc {
     /** Compare this descriptor with another. */
     bool operator ==(const GPUSamplerStateDesc &other) const {
         return filterMode == other.filterMode &&
-            maxAnisotropy == other.maxAnisotropy &&
-            addressU == other.addressU &&
-            addressV == other.addressV &&
-            addressW == other.addressW &&
-            compareEnable == other.compareEnable &&
-            compareFunc == other.compareFunc;
+               maxAnisotropy == other.maxAnisotropy &&
+               addressU == other.addressU &&
+               addressV == other.addressV &&
+               addressW == other.addressW &&
+               compareEnable == other.compareEnable &&
+               compareFunc == other.compareFunc;
     }
 
     /** Get a hash from a sampler state descriptor. */

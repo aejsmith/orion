@@ -66,9 +66,8 @@ private:
 template <typename ListenerType>
 class Notifier {
 public:
-    static_assert(
-        std::is_base_of<Listener<ListenerType>, ListenerType>::value,
-        "ListenerType must be derived from Listener");
+    static_assert(std::is_base_of<Listener<ListenerType>, ListenerType>::value,
+                  "ListenerType must be derived from Listener");
 
     ~Notifier() {
         /* Update all the listeners still attached so that they no longer refer

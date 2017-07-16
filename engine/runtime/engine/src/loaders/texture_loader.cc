@@ -70,12 +70,11 @@ AssetPtr Texture2DLoader::load() {
 
     /* Create the texture, with mipmaps. TODO: Some formats will include
      * mipmaps and therefore not need them creating here. */
-    Texture2DPtr texture = new Texture2D(
-        m_width,
-        m_height,
-        getFinalFormat(m_format),
-        0,
-        GPUTexture::kAutoMipmap | GPUTexture::kRenderTarget);
+    Texture2DPtr texture = new Texture2D(m_width,
+                                         m_height,
+                                         getFinalFormat(m_format),
+                                         0,
+                                         GPUTexture::kAutoMipmap | GPUTexture::kRenderTarget);
     texture->update(m_buffer.get());
 
     /* Apply attributes. */
@@ -127,11 +126,10 @@ AssetPtr TextureCubeLoader::load() {
 
     /* Create the cube texture. TODO: Better choice for format, perhaps specify
      * in attributes or determine from source. */
-    TextureCubePtr texture = new TextureCube(
-        size,
-        getFinalFormat(PixelFormat::kR8G8B8A8),
-        0,
-        GPUTexture::kAutoMipmap | GPUTexture::kRenderTarget);
+    TextureCubePtr texture = new TextureCube(size,
+                                             getFinalFormat(PixelFormat::kR8G8B8A8),
+                                             0,
+                                             GPUTexture::kAutoMipmap | GPUTexture::kRenderTarget);
 
     /* Copy source texture data into the cube texture. */
     for (unsigned i = 0; i < CubeFace::kNumFaces; i++) {

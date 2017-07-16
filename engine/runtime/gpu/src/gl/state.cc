@@ -33,23 +33,23 @@
  * entries here.
  */
 GLState::GLState() :
-    blendEnabled(false),
-    blendEquation(GL_FUNC_ADD),
-    blendSourceFactor(GL_ONE),
-    blendDestFactor(GL_ZERO),
-    depthTestEnabled(false),
-    depthWriteEnabled(true),
-    depthFunc(GL_LESS),
-    cullFaceEnabled(false),
-    cullFace(GL_BACK),
-    depthClampEnabled(false),
-    scissorTestEnabled(false),
-    boundDrawFramebuffer(0),
-    boundReadFramebuffer(0),
-    boundPipeline(0),
-    activeTexture(0),
-    textureUnits(nullptr),
-    boundVertexArray(0)
+    blendEnabled         (false),
+    blendEquation        (GL_FUNC_ADD),
+    blendSourceFactor    (GL_ONE),
+    blendDestFactor      (GL_ZERO),
+    depthTestEnabled     (false),
+    depthWriteEnabled    (true),
+    depthFunc            (GL_LESS),
+    cullFaceEnabled      (false),
+    cullFace             (GL_BACK),
+    depthClampEnabled    (false),
+    scissorTestEnabled   (false),
+    boundDrawFramebuffer (0),
+    boundReadFramebuffer (0),
+    boundPipeline        (0),
+    activeTexture        (0),
+    textureUnits         (nullptr),
+    boundVertexArray     (0)
 {}
 
 /** Destroy the GL state. */
@@ -368,10 +368,9 @@ void GLState::invalidateTexture(GLuint texture) {
 GPUBlendStatePtr GLGPUManager::createBlendState(const GPUBlendStateDesc &desc) {
     GLBlendState *state = new GLBlendState(desc);
 
-    state->enable =
-        desc.func != BlendFunc::kAdd ||
-        desc.sourceFactor != BlendFactor::kOne ||
-        desc.destFactor != BlendFactor::kZero;
+    state->enable = desc.func != BlendFunc::kAdd ||
+                    desc.sourceFactor != BlendFactor::kOne ||
+                    desc.destFactor != BlendFactor::kZero;
     state->blendEquation = GLUtil::convertBlendFunc(desc.func);
     state->sourceFactor = GLUtil::convertBlendFactor(desc.sourceFactor);
     state->destFactor = GLUtil::convertBlendFactor(desc.destFactor);
@@ -451,7 +450,7 @@ void GLGPUManager::setRasterizerState(GPURasterizerState *state) {
 /** Initialize a GL sampler state object.
  * @param desc          Descriptor for sampler state. */
 GLSamplerState::GLSamplerState(const GPUSamplerStateDesc &desc) :
-    GPUSamplerState(desc)
+    GPUSamplerState (desc)
 {
     glGenSamplers(1, &m_sampler);
 
@@ -480,10 +479,11 @@ GLSamplerState::GLSamplerState(const GPUSamplerStateDesc &desc) :
             /* Set maximum anisotropy. TODO: global default if set to 0. In
              * this case we should insert the object into the hash table with
              * 0 replaced with setting, so we don't dup the same object. */
-            glSamplerParameterf(m_sampler, GL_TEXTURE_MAX_ANISOTROPY_EXT, glm::clamp(
-                static_cast<float>(m_desc.maxAnisotropy),
-                1.0f,
-                g_opengl->features.maxAnisotropy));
+            glSamplerParameterf(m_sampler,
+                                GL_TEXTURE_MAX_ANISOTROPY_EXT,
+                                glm::clamp(static_cast<float>(m_desc.maxAnisotropy),
+                                           1.0f,
+                                           g_opengl->features.maxAnisotropy));
 
             break;
         default:
@@ -492,14 +492,12 @@ GLSamplerState::GLSamplerState(const GPUSamplerStateDesc &desc) :
             break;
     }
 
-    glSamplerParameteri(
-        m_sampler,
-        GL_TEXTURE_COMPARE_MODE,
-        (m_desc.compareEnable) ? GL_COMPARE_REF_TO_TEXTURE : GL_NONE);
-    glSamplerParameteri(
-        m_sampler,
-        GL_TEXTURE_COMPARE_FUNC,
-        GLUtil::convertComparisonFunc(m_desc.compareFunc));
+    glSamplerParameteri(m_sampler,
+                        GL_TEXTURE_COMPARE_MODE,
+                        (m_desc.compareEnable) ? GL_COMPARE_REF_TO_TEXTURE : GL_NONE);
+    glSamplerParameteri(m_sampler,
+                        GL_TEXTURE_COMPARE_FUNC,
+                        GLUtil::convertComparisonFunc(m_desc.compareFunc));
 }
 
 /** Destroy the sampler state object. */

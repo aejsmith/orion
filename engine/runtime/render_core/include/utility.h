@@ -30,15 +30,14 @@ namespace RenderUtil {
      * @param usage         Usage hint, defaults to GPUBuffer::kStaticUsage.
      * @return              Pointer to created buffer. */
     template <typename ElementType>
-    inline GPUBufferPtr buildGPUBuffer(
-        GPUBuffer::Type type,
-        const std::vector<ElementType> &data,
-        GPUBuffer::Usage usage = GPUBuffer::kStaticUsage)
+    inline GPUBufferPtr buildGPUBuffer(GPUBuffer::Type type,
+                                       const std::vector<ElementType> &data,
+                                       GPUBuffer::Usage usage = GPUBuffer::kStaticUsage)
     {
         auto desc = GPUBufferDesc().
-            setType(type).
-            setUsage(usage).
-            setSize(data.size() * sizeof(ElementType));
+            setType  (type).
+            setUsage (usage).
+            setSize  (data.size() * sizeof(ElementType));
         GPUBufferPtr buffer = g_gpuManager->createBuffer(desc);
         buffer->write(0, desc.size, &data[0]);
         return buffer;

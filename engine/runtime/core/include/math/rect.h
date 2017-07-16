@@ -35,24 +35,24 @@ public:
     using VecType = glm::tvec2<T, glm::highp>;
 
     RectImpl() :
-        x(0),
-        y(0),
-        width(0),
-        height(0)
+        x      (0),
+        y      (0),
+        width  (0),
+        height (0)
     {}
 
     RectImpl(T _x, T _y, T _width, T _height) :
-        x(_x),
-        y(_y),
-        width(_width),
-        height(_height)
+        x      (_x),
+        y      (_y),
+        width  (_width),
+        height (_height)
     {}
 
     RectImpl(const VecType &pos, const VecType &size) :
-        x(pos.x),
-        y(pos.y),
-        width(size.x),
-        height(size.y)
+        x      (pos.x),
+        y      (pos.y),
+        width  (size.x),
+        height (size.y)
     {}
 
     /** @return             Position of the rectangle. */
@@ -71,11 +71,10 @@ public:
      * @param other         Rectangle to check.
      * @return              Whether the rectangle is completely within in this one. */
     bool contains(const RectImpl &other) const {
-        return
-            other.x >= x &&
-            other.y >= y &&
-            (other.x + other.width) <= (x + width) &&
-            (other.y + other.height) <= (y + height);
+        return other.x >= x &&
+               other.y >= y &&
+               (other.x + other.width) <= (x + width) &&
+               (other.y + other.height) <= (y + height);
     }
 
     /** Compare for equality with another rectangle.

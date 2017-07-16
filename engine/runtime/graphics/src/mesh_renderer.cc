@@ -48,8 +48,8 @@ private:
  * @param index         Index of the submesh.
  * @param parent        Parent mesh renderer. */
 SubMeshRenderEntity::SubMeshRenderEntity(Mesh *mesh, size_t index, MeshRenderer *parent) :
-    m_subMesh(mesh->subMesh(index)),
-    m_parent(parent)
+    m_subMesh (mesh->subMesh(index)),
+    m_parent  (parent)
 {
     setBoundingBox(m_subMesh->boundingBox);
 
@@ -61,10 +61,10 @@ SubMeshRenderEntity::SubMeshRenderEntity(Mesh *mesh, size_t index, MeshRenderer 
 Geometry SubMeshRenderEntity::geometry() const {
     Geometry geometry;
 
-    geometry.vertices = (m_subMesh->vertices)
-        ? m_subMesh->vertices
-        : m_subMesh->parent()->sharedVertices;
-    geometry.indices = m_subMesh->indices;
+    geometry.vertices      = (m_subMesh->vertices)
+                                 ? m_subMesh->vertices
+                                 : m_subMesh->parent()->sharedVertices;
+    geometry.indices       = m_subMesh->indices;
     geometry.primitiveType = PrimitiveType::kTriangleList;
 
     return geometry;

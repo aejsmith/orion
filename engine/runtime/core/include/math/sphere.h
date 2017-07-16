@@ -30,6 +30,7 @@ struct Sphere {
 public:
     Sphere() {}
     Sphere(const glm::vec3 &_centre, float _radius) :
-        centre(_centre), radius(_radius)
+        centre (_centre),
+        radius (_radius)
     {}
 };

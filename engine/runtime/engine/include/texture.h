@@ -93,12 +93,11 @@ class Texture2D : public TextureBase {
 public:
     CLASS();
 
-    Texture2D(
-        uint32_t width,
-        uint32_t height,
-        PixelFormat format = PixelFormat::kR8G8B8A8,
-        unsigned mips = 0,
-        uint32_t flags = GPUTexture::kAutoMipmap);
+    Texture2D(uint32_t width,
+              uint32_t height,
+              PixelFormat format = PixelFormat::kR8G8B8A8,
+              unsigned mips = 0,
+              uint32_t flags = GPUTexture::kAutoMipmap);
 
     void clear();
 
@@ -126,11 +125,10 @@ class TextureCube : public TextureBase {
 public:
     CLASS();
 
-    TextureCube(
-        uint32_t size,
-        PixelFormat format = PixelFormat::kR8G8B8A8,
-        unsigned mips = 0,
-        uint32_t flags = GPUTexture::kAutoMipmap);
+    TextureCube(uint32_t size,
+                PixelFormat format = PixelFormat::kR8G8B8A8,
+                unsigned mips = 0,
+                uint32_t flags = GPUTexture::kAutoMipmap);
 
     void clear();
 

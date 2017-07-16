@@ -43,10 +43,9 @@ VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureDesc &de
     createInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
     createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     createInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    createInfo.usage =
-        VK_IMAGE_USAGE_SAMPLED_BIT |
-        VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
-        VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    createInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT |
+                       VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+                       VK_IMAGE_USAGE_TRANSFER_DST_BIT;
     if (desc.flags & kRenderTarget) {
         if (PixelFormat::isDepth(desc.format)) {
             createInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
@@ -100,12 +99,11 @@ VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureDesc &de
     subresources.levelCount = m_mips;
     subresources.baseArrayLayer = 0;
     subresources.layerCount = createInfo.arrayLayers;
-    VulkanUtil::setImageLayout(
-        manager->memoryManager()->getStagingCmdBuf(),
-        m_handle,
-        subresources,
-        VK_IMAGE_LAYOUT_UNDEFINED,
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    VulkanUtil::setImageLayout(manager->memoryManager()->getStagingCmdBuf(),
+                               m_handle,
+                               subresources,
+                               VK_IMAGE_LAYOUT_UNDEFINED,
+                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     /* Create a resource view. */
     VkImageViewCreateInfo viewCreateInfo = {};
@@ -115,8 +113,8 @@ VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureDesc &de
     // TODO: Only have depth for depth/stencil formats for now, because we can
     // only have one aspect set when using an image in a descriptor set.
     viewCreateInfo.subresourceRange.aspectMask = (PixelFormat::isDepth(desc.format))
-        ? VK_IMAGE_ASPECT_DEPTH_BIT
-        : VK_IMAGE_ASPECT_COLOR_BIT;
+                                                     ? VK_IMAGE_ASPECT_DEPTH_BIT
+                                                     : VK_IMAGE_ASPECT_COLOR_BIT;
     viewCreateInfo.subresourceRange.baseMipLevel = 0;
     viewCreateInfo.subresourceRange.levelCount = m_mips;
     viewCreateInfo.subresourceRange.baseArrayLayer = 0;
@@ -151,8 +149,8 @@ VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureDesc &de
  * @param image         Image to create the view for.
  * @return              Pointer to created texture view. */
 VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureImageRef &image) :
-    GPUTexture(image),
-    VulkanHandle(manager)
+    GPUTexture   (image),
+    VulkanHandle (manager)
 {
     auto source = static_cast<VulkanTexture *>(m_source.get());
 
@@ -163,8 +161,8 @@ VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureImageRef
     viewCreateInfo.image = m_handle;
     viewCreateInfo.format = manager->features().formats[m_format].format;
     viewCreateInfo.subresourceRange.aspectMask = (PixelFormat::isDepth(m_format))
-        ? VK_IMAGE_ASPECT_DEPTH_BIT
-        : VK_IMAGE_ASPECT_COLOR_BIT;
+                                                     ? VK_IMAGE_ASPECT_DEPTH_BIT
+                                                     : VK_IMAGE_ASPECT_COLOR_BIT;
     viewCreateInfo.subresourceRange.baseMipLevel = image.mip;
     viewCreateInfo.subresourceRange.levelCount = 1;
     viewCreateInfo.subresourceRange.baseArrayLayer = image.layer;
@@ -245,12 +243,13 @@ void VulkanTexture::update(const IntRect &area, const void *data, unsigned mip, 
     subresources.levelCount = 1;
     subresources.baseArrayLayer = layer;
     subresources.layerCount = 1;
-    VulkanUtil::setImageLayout(
-        stagingCmdBuf,
-        m_handle,
-        subresources,
-        (isWholeSubresource) ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    VulkanUtil::setImageLayout(stagingCmdBuf,
+                               m_handle,
+                               subresources,
+                               (isWholeSubresource)
+                                   ? VK_IMAGE_LAYOUT_UNDEFINED
+                                   : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
     /* Copy the image data. */
     VkBufferImageCopy region = {};
@@ -263,21 +262,19 @@ void VulkanTexture::update(const IntRect &area, const void *data, unsigned mip, 
     region.imageExtent.width = areaWidth;
     region.imageExtent.height = areaHeight;
     region.imageExtent.depth = 1;
-    vkCmdCopyBufferToImage(
-        stagingCmdBuf->handle(),
-        staging->buffer(),
-        m_handle,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        1,
-        &region);
+    vkCmdCopyBufferToImage(stagingCmdBuf->handle(),
+                           staging->buffer(),
+                           m_handle,
+                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                           1,
+                           &region);
 
     /* Transition back to shader read only. */
-    VulkanUtil::setImageLayout(
-        stagingCmdBuf,
-        m_handle,
-        subresources,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    VulkanUtil::setImageLayout(stagingCmdBuf,
+                               m_handle,
+                               subresources,
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     /* Ensure that the texture is kept alive until the update is complete. Our
      * memory allocation lifetime is tied to our own lifetime so there's no
@@ -353,12 +350,11 @@ void VulkanTexture::generateMipmap() {
     srcSubresource.levelCount = 1;
     srcSubresource.baseArrayLayer = 0;
     srcSubresource.layerCount = numLayers;
-    VulkanUtil::setImageLayout(
-        cmdBuf,
-        m_handle,
-        srcSubresource,
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    VulkanUtil::setImageLayout(cmdBuf,
+                               m_handle,
+                               srcSubresource,
+                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
     /* Transition the other levels to the transfer destination layout. Don't
      * care about their existing content. */
@@ -368,37 +364,32 @@ void VulkanTexture::generateMipmap() {
     dstSubresource.levelCount = m_mips - 1;
     dstSubresource.baseArrayLayer = 0;
     dstSubresource.layerCount = numLayers;
-    VulkanUtil::setImageLayout(
-        cmdBuf,
-        m_handle,
-        dstSubresource,
-        VK_IMAGE_LAYOUT_UNDEFINED,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    VulkanUtil::setImageLayout(cmdBuf,
+                               m_handle,
+                               dstSubresource,
+                               VK_IMAGE_LAYOUT_UNDEFINED,
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
     /* Perform the blits. */
-    vkCmdBlitImage(
-        cmdBuf->handle(),
-        m_handle,
-        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        m_handle,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        imageBlits.size(),
-        &imageBlits[0],
-        VK_FILTER_LINEAR);
+    vkCmdBlitImage(cmdBuf->handle(),
+                   m_handle,
+                   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                   m_handle,
+                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                   imageBlits.size(), &imageBlits[0],
+                   VK_FILTER_LINEAR);
 
     /* Transition the whole image back to shader read only. */
-    VulkanUtil::setImageLayout(
-        cmdBuf,
-        m_handle,
-        srcSubresource,
-        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    VulkanUtil::setImageLayout(
-        cmdBuf,
-        m_handle,
-        dstSubresource,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    VulkanUtil::setImageLayout(cmdBuf,
+                               m_handle,
+                               srcSubresource,
+                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    VulkanUtil::setImageLayout(cmdBuf,
+                               m_handle,
+                               dstSubresource,
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     cmdBuf->addReference(this);
 }
@@ -421,8 +412,8 @@ GPUTexturePtr VulkanGPUManager::createTextureView(const GPUTextureImageRef &imag
  * @param manager       Manager that owns the object.
  * @param desc          Descriptor for sampler state. */
 VulkanSamplerState::VulkanSamplerState(VulkanGPUManager *manager, const GPUSamplerStateDesc &desc) :
-    GPUSamplerState(desc),
-    VulkanHandle(manager)
+    GPUSamplerState (desc),
+    VulkanHandle    (manager)
 {
     VkSamplerCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -496,12 +487,11 @@ GPUSamplerStatePtr VulkanGPUManager::createSamplerState(const GPUSamplerStateDes
  * @param sourcePos     Position in source texture to copy from.
  * @param destPos       Position in destination texture to copy to.
  * @param size          Size of area to copy. */
-void VulkanGPUManager::blit(
-    const GPUTextureImageRef &source,
-    const GPUTextureImageRef &dest,
-    glm::ivec2 sourcePos,
-    glm::ivec2 destPos,
-    glm::ivec2 size)
+void VulkanGPUManager::blit(const GPUTextureImageRef &source,
+                            const GPUTextureImageRef &dest,
+                            glm::ivec2 sourcePos,
+                            glm::ivec2 destPos,
+                            glm::ivec2 size)
 {
     // TODO: If formats are the same, we can use CopyImage.
 
@@ -513,8 +503,8 @@ void VulkanGPUManager::blit(
     VkImageBlit imageBlit = {};
     // FIXME: Can't blit depth and stencil together.
     imageBlit.srcSubresource.aspectMask = (isDepth)
-        ? VK_IMAGE_ASPECT_DEPTH_BIT
-        : VK_IMAGE_ASPECT_COLOR_BIT;
+                                              ? VK_IMAGE_ASPECT_DEPTH_BIT
+                                              : VK_IMAGE_ASPECT_COLOR_BIT;
     imageBlit.srcSubresource.mipLevel = source.mip;
     imageBlit.srcSubresource.baseArrayLayer = source.layer;
     imageBlit.srcSubresource.layerCount = 1;
@@ -551,12 +541,11 @@ void VulkanGPUManager::blit(
     srcSubresource.levelCount = 1;
     srcSubresource.baseArrayLayer = source.layer;
     srcSubresource.layerCount = 1;
-    VulkanUtil::setImageLayout(
-        primaryCmdBuf,
-        vkSource->handle(),
-        srcSubresource,
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    VulkanUtil::setImageLayout(primaryCmdBuf,
+                               vkSource->handle(),
+                               srcSubresource,
+                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
     /* Transition the destination subresource to the transfer destination layout. */
     VkImageSubresourceRange dstSubresource = {};
@@ -565,34 +554,32 @@ void VulkanGPUManager::blit(
     dstSubresource.levelCount = 1;
     dstSubresource.baseArrayLayer = dest.layer;
     dstSubresource.layerCount = 1;
-    VulkanUtil::setImageLayout(
-        primaryCmdBuf,
-        vkDest->handle(),
-        dstSubresource,
-        (isWholeDestSubresource) ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    VulkanUtil::setImageLayout(primaryCmdBuf,
+                               vkDest->handle(),
+                               dstSubresource,
+                               (isWholeDestSubresource)
+                                   ? VK_IMAGE_LAYOUT_UNDEFINED
+                                   : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
     /* Perform the blit. */
-    vkCmdBlitImage(
-        primaryCmdBuf->handle(),
-        vkSource->handle(),
-        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        vkDest->handle(),
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        1, &imageBlit,
-        VK_FILTER_NEAREST);
+    vkCmdBlitImage(primaryCmdBuf->handle(),
+                   vkSource->handle(),
+                   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                   vkDest->handle(),
+                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                   1, &imageBlit,
+                   VK_FILTER_NEAREST);
 
     /* Transition the images back to shader read only. */
-    VulkanUtil::setImageLayout(
-        primaryCmdBuf,
-        vkSource->handle(),
-        srcSubresource,
-        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    VulkanUtil::setImageLayout(
-        primaryCmdBuf,
-        vkDest->handle(),
-        dstSubresource,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    VulkanUtil::setImageLayout(primaryCmdBuf,
+                               vkSource->handle(),
+                               srcSubresource,
+                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    VulkanUtil::setImageLayout(primaryCmdBuf,
+                               vkDest->handle(),
+                               dstSubresource,
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }

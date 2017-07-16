@@ -81,8 +81,8 @@ namespace Math {
         if (w < 1.0e-6f * fromToLength) {
             w = 0.0f;
             n = (glm::abs(from.x) > glm::abs(from.z))
-                ? glm::vec3(-from.y, from.x, 0.0f)
-                : glm::vec3(0.0f, -from.z, from.y);
+                    ? glm::vec3(-from.y, from.x, 0.0f)
+                    : glm::vec3(0.0f, -from.z, from.y);
         } else {
             n = glm::cross(from, to);
         }
@@ -103,9 +103,8 @@ namespace Math {
      *
      * @return              Rotation quaternion.
      */
-    static inline glm::quat quatLookAt(
-        const glm::vec3 &forward,
-        const glm::vec3 &up = glm::vec3(0.0f, 1.0f, 0.0f))
+    static inline glm::quat quatLookAt(const glm::vec3 &forward,
+                                       const glm::vec3 &up = glm::vec3(0.0f, 1.0f, 0.0f))
     {
         glm::mat4 look = glm::lookAt(glm::vec3(0.0), forward, up);
         return glm::inverse(glm::normalize(glm::quat_cast(look)));

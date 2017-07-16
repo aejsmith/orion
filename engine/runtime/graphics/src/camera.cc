@@ -44,7 +44,7 @@
  * The default render target will be the main window.
  */
 Camera::Camera() :
-    RenderLayer(RenderLayer::kCameraPriority)
+    RenderLayer (RenderLayer::kCameraPriority)
 {
     /* Initialize the scene view with a default projection. */
     perspective();
@@ -62,10 +62,9 @@ void Camera::render(bool first) {
     assert(renderTarget());
 
     auto &system = getSystem<GraphicsSystem>();
-    this->renderPipeline->render(
-        system.renderWorld(),
-        m_renderView,
-        *renderTarget());
+    this->renderPipeline->render(system.renderWorld(),
+                                 m_renderView,
+                                 *renderTarget());
 }
 
 /** Update the viewport in the SceneView. */

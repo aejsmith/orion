@@ -25,27 +25,27 @@
 /** Create a new command list for a render pass.
  * @param passInstance  Render pass instance pointer. */
 GPUCommandList::GPUCommandList(GPURenderPassInstance *passInstance) :
-    m_passInstance(passInstance),
-    m_parent(nullptr),
-    m_dirtyState(kAllState),
-    m_dirtyResourceSets(0)
+    m_passInstance      (passInstance),
+    m_parent            (nullptr),
+    m_dirtyState        (kAllState),
+    m_dirtyResourceSets (0)
 {
     /* Set up default state. */
-    m_state.blendState = g_gpuManager->getBlendState();
+    m_state.blendState        = g_gpuManager->getBlendState();
     m_state.depthStencilState = g_gpuManager->getDepthStencilState();
-    m_state.rasterizerState = g_gpuManager->getRasterizerState();
-    m_state.viewport = m_passInstance->desc().renderArea;
-    m_state.scissorEnabled = false;
+    m_state.rasterizerState   = g_gpuManager->getRasterizerState();
+    m_state.viewport          = m_passInstance->desc().renderArea;
+    m_state.scissorEnabled    = false;
 }
 
 /** Create a new child command list.
  * @param parent        Parent command list.
  * @param inherit       Flags indicating which state to inherit. */
 GPUCommandList::GPUCommandList(GPUCommandList *parent, uint32_t inherit) :
-    m_passInstance(parent->m_passInstance),
-    m_parent(parent),
-    m_dirtyState(kAllState),
-    m_dirtyResourceSets(0)
+    m_passInstance      (parent->m_passInstance),
+    m_parent            (parent),
+    m_dirtyState        (kAllState),
+    m_dirtyResourceSets (0)
 {
     if (inherit & kPipelineState)
         m_state.pipeline = parent->m_state.pipeline;
@@ -58,18 +58,18 @@ GPUCommandList::GPUCommandList(GPUCommandList *parent, uint32_t inherit) :
         }
     }
 
-    m_state.blendState = (inherit & kBlendState)
-        ? parent->m_state.blendState
-        : g_gpuManager->getBlendState();
+    m_state.blendState        = (inherit & kBlendState)
+                                    ? parent->m_state.blendState
+                                    : g_gpuManager->getBlendState();
     m_state.depthStencilState = (inherit & kDepthStencilState)
-        ? parent->m_state.depthStencilState
-        : g_gpuManager->getDepthStencilState();
-    m_state.rasterizerState = (inherit & kRasterizerState)
-        ? parent->m_state.rasterizerState
-        : g_gpuManager->getRasterizerState();
-    m_state.viewport = (inherit & kViewportState)
-        ? parent->m_state.viewport
-        : m_passInstance->desc().renderArea;
+                                    ? parent->m_state.depthStencilState
+                                    : g_gpuManager->getDepthStencilState();
+    m_state.rasterizerState   = (inherit & kRasterizerState)
+                                    ? parent->m_state.rasterizerState
+                                    : g_gpuManager->getRasterizerState();
+    m_state.viewport          = (inherit & kViewportState)
+                                    ? parent->m_state.viewport
+                                    : m_passInstance->desc().renderArea;
 
     if (inherit & kScissorState) {
         m_state.scissorEnabled = parent->m_state.scissorEnabled;

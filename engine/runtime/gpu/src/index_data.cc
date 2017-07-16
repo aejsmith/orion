@@ -24,10 +24,10 @@
 /** Initialize the index data object.
  * @param desc          Descriptor for the index data object. */
 GPUIndexData::GPUIndexData(GPUIndexDataDesc &&desc) :
-    m_buffer(std::move(desc.buffer)),
-    m_type(desc.type),
-    m_count(desc.count),
-    m_offset(desc.offset)
+    m_buffer (std::move(desc.buffer)),
+    m_type   (desc.type),
+    m_count  (desc.count),
+    m_offset (desc.offset)
 {
     check(m_buffer->type() == GPUBuffer::kIndexBuffer);
     check((m_offset + m_count) * elementSize() <= m_buffer->size());

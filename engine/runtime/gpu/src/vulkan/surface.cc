@@ -50,8 +50,8 @@
  * @param manager       Manager that owns the surface.
  * @param config        Engine configuration structure. */
 VulkanSurface::VulkanSurface(VulkanGPUManager *manager, const EngineConfiguration &config) :
-    Window(config),
-    VulkanHandle(manager)
+    Window       (config),
+    VulkanHandle (manager)
 {}
 
 /** Create the surface. */
@@ -147,12 +147,12 @@ void VulkanSurface::chooseFormat() {
 void VulkanSurface::finalise() {
     /* Create our backing texture. */
     auto desc = GPUTextureDesc().
-        setType(GPUTexture::kTexture2D).
-        setWidth(width()).
-        setHeight(height()).
-        setMips(1).
-        setFlags(GPUTexture::kRenderTarget).
-        setFormat(m_format);
+        setType   (GPUTexture::kTexture2D).
+        setWidth  (width()).
+        setHeight (height()).
+        setMips   (1).
+        setFlags  (GPUTexture::kRenderTarget).
+        setFormat (m_format);
     m_texture = manager()->createTexture(desc);
 }
 

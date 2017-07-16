@@ -57,9 +57,9 @@ struct EngineStats {
     unsigned drawCalls;             /**< Number of draw calls in the last frame. */
 public:
     EngineStats() :
-        fps(0),
-        frameTime(0),
-        drawCalls(0)
+        fps       (0),
+        frameTime (0),
+        drawCalls (0)
     {}
 };
 

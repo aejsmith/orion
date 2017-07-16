@@ -41,18 +41,16 @@ public:
 };
 
 namespace VulkanUtil {
-    extern void setImageLayout(
-        VulkanCommandBuffer *cmdBuf,
-        VkImage image,
-        const VkImageSubresourceRange &subresources,
-        VkImageLayout oldLayout,
-        VkImageLayout newLayout);
-    extern void setImageLayout(
-        VulkanCommandBuffer *cmdBuf,
-        VkImage image,
-        VkImageAspectFlags aspectMask,
-        VkImageLayout oldLayout,
-        VkImageLayout newLayout);
+    extern void setImageLayout(VulkanCommandBuffer *cmdBuf,
+                               VkImage image,
+                               const VkImageSubresourceRange &subresources,
+                               VkImageLayout oldLayout,
+                               VkImageLayout newLayout);
+    extern void setImageLayout(VulkanCommandBuffer *cmdBuf,
+                               VkImage image,
+                               VkImageAspectFlags aspectMask,
+                               VkImageLayout oldLayout,
+                               VkImageLayout newLayout);
 
     /** Determine the aspect mask covering a given format.
      * @param format        Pixel format.

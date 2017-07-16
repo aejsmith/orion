@@ -34,12 +34,11 @@ namespace String {
      *                      is added to the last token.
      * @param trimEmpty     Whether to ignore empty tokens (defaults to true). */
     template <typename Container>
-    void tokenize(
-        const std::string &str,
-        Container &tokens,
-        const char *delimiters = " ",
-        int maxTokens = -1,
-        bool trimEmpty = true)
+    void tokenize(const std::string &str,
+                  Container &tokens,
+                  const char *delimiters = " ",
+                  int maxTokens = -1,
+                  bool trimEmpty = true)
     {
         size_t last = 0;
         size_t pos = 0;

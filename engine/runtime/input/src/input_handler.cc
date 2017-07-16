@@ -25,8 +25,8 @@
 /** Initialise the input handler.
  * @param priority      Input handling priority. */
 InputHandler::InputHandler(Priority priority) :
-    m_priority(priority),
-    m_registered(false)
+    m_priority   (priority),
+    m_registered (false)
 {}
 
 /** Destroy the input handler. */

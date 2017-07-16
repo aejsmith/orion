@@ -29,10 +29,9 @@ struct SDL_Window;
 /** Engine main window class. */
 class Window : public RenderTarget {
 public:
-    Window(
-        const EngineConfiguration &config,
-        uint32_t sdlFlags = 0,
-        PixelFormat format = PixelFormat::kUnknown);
+    Window(const EngineConfiguration &config,
+           uint32_t sdlFlags = 0,
+           PixelFormat format = PixelFormat::kUnknown);
     ~Window();
 
     void getRenderTargetDesc(GPURenderTargetDesc &desc) const override;

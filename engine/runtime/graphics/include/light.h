@@ -79,10 +79,9 @@ protected:
 
     /** @return             Attenuation parameters (constant, linear, exponential). */
     glm::vec3 attenuation() const {
-        return glm::vec3(
-            m_renderLight.attenuationConstant(),
-            m_renderLight.attenuationLinear(),
-            m_renderLight.attenuationExp());
+        return glm::vec3(m_renderLight.attenuationConstant(),
+                         m_renderLight.attenuationLinear(),
+                         m_renderLight.attenuationExp());
     }
 protected:
     /** Renderer light implementing this light. */

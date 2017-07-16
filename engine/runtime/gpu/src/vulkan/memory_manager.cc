@@ -45,9 +45,10 @@ VulkanMemoryManager::VulkanMemoryManager(VulkanGPUManager *manager) :
         if (heap.flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
             addFlag(heapFlags, "device local");
 
-        logInfo(
-            "    Heap %u: %" PRIu64 " bytes / %" PRIu64 " MB, 0x%x%s",
-            i, heap.size, heap.size / 1024 / 1024, heap.flags, heapFlags.c_str());
+        logInfo("    Heap %u: %" PRIu64 " bytes / %" PRIu64 " MB, 0x%x%s",
+                i,
+                heap.size, heap.size / 1024 / 1024,
+                heap.flags, heapFlags.c_str());
 
         for (uint32_t j = 0; j < m_properties.memoryTypeCount; j++) {
             const VkMemoryType &type = m_properties.memoryTypes[j];
@@ -141,12 +142,11 @@ VulkanMemoryManager::Pool *VulkanMemoryManager::createPool(VkDeviceSize size, ui
     pool->freeEntries.push_back(entry);
 
     if (m_properties.memoryTypes[memoryType].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
-        checkVk(vkMapMemory(
-            manager()->device()->handle(),
-            pool->handle,
-            0, pool->size,
-            0,
-            reinterpret_cast<void **>(&pool->mapping)));
+        checkVk(vkMapMemory(manager()->device()->handle(),
+                            pool->handle,
+                            0, pool->size,
+                            0,
+                            reinterpret_cast<void **>(&pool->mapping)));
     } else {
         pool->mapping = nullptr;
     }
@@ -162,11 +162,11 @@ VulkanMemoryManager::Pool *VulkanMemoryManager::createPool(VkDeviceSize size, ui
  * @return              Array of allocated entry references, empty if could not
  *                      allocate. Each entry should have a handle allocated for
  *                      it and set by the caller. */
-std::vector<VulkanMemoryManager::PoolReference> VulkanMemoryManager::allocatePoolEntries(
-    Pool *pool,
-    VkDeviceSize size,
-    size_t count,
-    VkDeviceSize alignment)
+std::vector<VulkanMemoryManager::PoolReference>
+VulkanMemoryManager::allocatePoolEntries(Pool *pool,
+                                         VkDeviceSize size,
+                                         size_t count,
+                                         VkDeviceSize alignment)
 {
     std::vector<PoolReference> references;
     references.reserve(count);
@@ -181,8 +181,8 @@ std::vector<VulkanMemoryManager::PoolReference> VulkanMemoryManager::allocatePoo
 
             /* See if this entry can satisfy the alignment constraints. */
             VkDeviceSize alignedOffset = (alignment)
-                ? Math::roundUp(entry->offset, alignment)
-                : entry->offset;
+                                             ? Math::roundUp(entry->offset, alignment)
+                                             : entry->offset;
             VkDeviceSize diff = alignedOffset - entry->offset;
             if (diff > entry->size || entry->size - diff < size)
                 continue;
@@ -292,11 +292,11 @@ void VulkanMemoryManager::freePoolEntry(const PoolReference &reference) {
  *
  * @return              Handle to the allocated memory.
  */
-std::vector<VulkanMemoryManager::BufferMemory *> VulkanMemoryManager::allocateBuffers(
-    VkDeviceSize size,
-    size_t count,
-    VkBufferUsageFlags usage,
-    VkMemoryPropertyFlags memoryFlags)
+std::vector<VulkanMemoryManager::BufferMemory *>
+VulkanMemoryManager::allocateBuffers(VkDeviceSize size,
+                                     size_t count,
+                                     VkBufferUsageFlags usage,
+                                     VkMemoryPropertyFlags memoryFlags)
 {
     /* From the usage given, determine the required alignment of the buffer. */
     const VkPhysicalDeviceLimits &limits = manager()->device()->limits();
@@ -341,10 +341,9 @@ std::vector<VulkanMemoryManager::BufferMemory *> VulkanMemoryManager::allocateBu
 
         /* We mark the buffer as usable for all types of GPUBuffer we can
          * create, as we mix buffer types within a pool. */
-        bufferCreateInfo.usage =
-            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-            VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
-            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+        bufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+                                 VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
+                                 VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 
         /* If this is device local, we probably want to be able to transfer to it. */
         if (memoryFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)

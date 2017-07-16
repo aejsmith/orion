@@ -82,28 +82,25 @@ VulkanPipeline::~VulkanPipeline() {
  * @param state         Current command state.
  * @param primType      Primitive type being rendered.
  * @param vertices      Vertex data. */
-VulkanPipeline::StateKey::StateKey(
-    const VulkanCommandState &state,
-    PrimitiveType primType,
-    const GPUVertexData *vertices)
-    :
-    primitiveType(primType),
-    renderPass(state.renderPass),
-    rasterizerState(state.pending.rasterizerState),
-    depthStencilState(state.pending.depthStencilState),
-    blendState(state.pending.blendState),
-    vertexDataLayout(vertices->layout())
+VulkanPipeline::StateKey::StateKey(const VulkanCommandState &state,
+                                   PrimitiveType primType,
+                                   const GPUVertexData *vertices) :
+    primitiveType     (primType),
+    renderPass        (state.renderPass),
+    rasterizerState   (state.pending.rasterizerState),
+    depthStencilState (state.pending.depthStencilState),
+    blendState        (state.pending.blendState),
+    vertexDataLayout  (vertices->layout())
 {}
 
 /** Compare this key with another. */
 bool VulkanPipeline::StateKey::operator ==(const StateKey &other) const {
-    return
-        primitiveType == other.primitiveType &&
-        renderPass == other.renderPass &&
-        rasterizerState == other.rasterizerState &&
-        depthStencilState == other.depthStencilState &&
-        blendState == other.blendState &&
-        vertexDataLayout == other.vertexDataLayout;
+    return primitiveType == other.primitiveType &&
+           renderPass == other.renderPass &&
+           rasterizerState == other.rasterizerState &&
+           depthStencilState == other.depthStencilState &&
+           blendState == other.blendState &&
+           vertexDataLayout == other.vertexDataLayout;
 }
 
 /** Get a hash from a render pass compatibility key. */
@@ -126,8 +123,8 @@ void VulkanPipeline::bind(VulkanCommandState &state, PrimitiveType primType, con
     StateKey key(state, primType, vertices);
     auto ret = m_pipelines.find(key);
     VkPipeline pipeline = (ret != m_pipelines.end())
-        ? ret->second
-        : create(state, primType, vertices, std::move(key));
+                              ? ret->second
+                              : create(state, primType, vertices, std::move(key));
 
     if (pipeline != state.pipelineObject) {
         vkCmdBindPipeline(state.cmdBuf->handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
@@ -144,11 +141,10 @@ void VulkanPipeline::bind(VulkanCommandState &state, PrimitiveType primType, con
  * @param vertices      Vertex data.
  * @param key           Pipeline state key.
  * @return              Created pipeline. */
-VkPipeline VulkanPipeline::create(
-    const VulkanCommandState &state,
-    PrimitiveType primType,
-    const GPUVertexData *vertices,
-    StateKey &&key)
+VkPipeline VulkanPipeline::create(const VulkanCommandState &state,
+                                  PrimitiveType primType,
+                                  const GPUVertexData *vertices,
+                                  StateKey &&key)
 {
     VkGraphicsPipelineCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -248,12 +244,11 @@ VkPipeline VulkanPipeline::create(
 
     /* Create the pipeline. TODO: Pipeline caching. */
     VkPipeline pipeline;
-    checkVk(vkCreateGraphicsPipelines(
-        manager()->device()->handle(),
-        VK_NULL_HANDLE,
-        1, &createInfo,
-        nullptr,
-        &pipeline));
+    checkVk(vkCreateGraphicsPipelines(manager()->device()->handle(),
+                                      VK_NULL_HANDLE,
+                                      1, &createInfo,
+                                      nullptr,
+                                      &pipeline));
 
     /* Set the initial pipeline if this is it. */
     if (m_pipelines.empty())
@@ -364,8 +359,8 @@ static const VkFormat kAttributeFormats[VertexAttribute::kNumTypes][4][2] = {
 /** Initialise the vertex data layout.
  * @param desc          Layout descriptor. */
 VulkanVertexDataLayout::VulkanVertexDataLayout(const GPUVertexDataLayoutDesc &desc) :
-    GPUVertexDataLayout(desc),
-    m_createInfo()
+    GPUVertexDataLayout (desc),
+    m_createInfo        ()
 {
     m_bindings.resize(m_desc.bindings.size());
     for (size_t i = 0; i < m_bindings.size(); i++) {
@@ -409,8 +404,8 @@ GPUVertexDataLayoutPtr VulkanGPUManager::createVertexDataLayout(const GPUVertexD
 /** Initialise the blend state.
  * @param desc          Descriptor for blend state. */
 VulkanBlendState::VulkanBlendState(const GPUBlendStateDesc &desc) :
-    GPUBlendState(desc),
-    m_createInfo()
+    GPUBlendState (desc),
+    m_createInfo  ()
 {
     auto convertBlendFactor =
         [] (BlendFactor factor) -> VkBlendFactor {
@@ -461,21 +456,19 @@ VulkanBlendState::VulkanBlendState(const GPUBlendStateDesc &desc) :
      * to the correct value there. */
     m_attachments.resize(kMaxColourRenderTargets);
     for (auto &attachment : m_attachments) {
-        attachment.blendEnable =
-            desc.func != BlendFunc::kAdd ||
-            desc.sourceFactor != BlendFactor::kOne ||
-            desc.destFactor != BlendFactor::kZero;
+        attachment.blendEnable         = desc.func != BlendFunc::kAdd ||
+                                         desc.sourceFactor != BlendFactor::kOne ||
+                                         desc.destFactor != BlendFactor::kZero;
         attachment.srcColorBlendFactor = convertBlendFactor(desc.sourceFactor);
         attachment.srcAlphaBlendFactor = attachment.srcColorBlendFactor;
         attachment.dstColorBlendFactor = convertBlendFactor(desc.destFactor);
         attachment.dstAlphaBlendFactor = attachment.dstColorBlendFactor;
-        attachment.colorBlendOp = convertBlendFunc(desc.func);
-        attachment.alphaBlendOp = attachment.colorBlendOp;
-        attachment.colorWriteMask =
-            VK_COLOR_COMPONENT_R_BIT |
-            VK_COLOR_COMPONENT_G_BIT |
-            VK_COLOR_COMPONENT_B_BIT |
-            VK_COLOR_COMPONENT_A_BIT;
+        attachment.colorBlendOp        = convertBlendFunc(desc.func);
+        attachment.alphaBlendOp        = attachment.colorBlendOp;
+        attachment.colorWriteMask      = VK_COLOR_COMPONENT_R_BIT |
+                                         VK_COLOR_COMPONENT_G_BIT |
+                                         VK_COLOR_COMPONENT_B_BIT |
+                                         VK_COLOR_COMPONENT_A_BIT;
     }
 
     m_createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -493,8 +486,8 @@ GPUBlendStatePtr VulkanGPUManager::createBlendState(const GPUBlendStateDesc &des
 /** Initialise the depth/stencil state.
  * @param desc          Descriptor for depth/stencil state. */
 VulkanDepthStencilState::VulkanDepthStencilState(const GPUDepthStencilStateDesc &desc) :
-    GPUDepthStencilState(desc),
-    m_createInfo()
+    GPUDepthStencilState (desc),
+    m_createInfo         ()
 {
     m_createInfo.sType            = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     m_createInfo.depthTestEnable  = desc.depthFunc != ComparisonFunc::kAlways;
@@ -512,8 +505,8 @@ GPUDepthStencilStatePtr VulkanGPUManager::createDepthStencilState(const GPUDepth
 /** Initialise the rasterizer state.
  * @param desc          Descriptor for rasterizer state. */
 VulkanRasterizerState::VulkanRasterizerState(const GPURasterizerStateDesc &desc) :
-    GPURasterizerState(desc),
-    m_createInfo()
+    GPURasterizerState (desc),
+    m_createInfo       ()
 {
     m_createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     m_createInfo.depthClampEnable = desc.depthClamp;

@@ -30,8 +30,8 @@
  * coefficient and 0.6 for the restitution coefficient.
  */
 PhysicsMaterial::PhysicsMaterial() :
-    m_restitution(0.6f),
-    m_friction(0.5f)
+    m_restitution (0.6f),
+    m_friction    (0.5f)
 {}
 
 /** Set the restitution (bounciness) coefficient.

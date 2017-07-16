@@ -66,10 +66,9 @@ public:
      * @param outResults    Results structure to fill in.
      * @param flags         Culling behaviour flags.
      */
-    virtual void cull(
-        RenderView &view,
-        CullResults &outResults,
-        uint32_t flags = kCullLights) const = 0;
+    virtual void cull(RenderView &view,
+                      CullResults &outResults,
+                      uint32_t flags = kCullLights) const = 0;
 
     /** Add an entity to the world.
      * @param entity        Entity to add. */

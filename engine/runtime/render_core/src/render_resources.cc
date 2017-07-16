@@ -35,31 +35,32 @@ RenderResources::RenderResources() {
     /* Create the simple vertex data layout. */
     {
         GPUVertexDataLayoutDesc desc(1, 4);
-        desc.bindings[0].stride = sizeof(SimpleVertex);
-        desc.attributes[0].semantic = VertexAttribute::kPositionSemantic;
-        desc.attributes[0].index = 0;
-        desc.attributes[0].type = VertexAttribute::kFloatType;
+        desc.bindings[0].stride       = sizeof(SimpleVertex);
+        desc.attributes[0].semantic   = VertexAttribute::kPositionSemantic;
+        desc.attributes[0].index      = 0;
+        desc.attributes[0].type       = VertexAttribute::kFloatType;
         desc.attributes[0].components = 3;
-        desc.attributes[0].binding = 0;
-        desc.attributes[0].offset = offsetof(SimpleVertex, x);
-        desc.attributes[1].semantic = VertexAttribute::kNormalSemantic;
-        desc.attributes[1].index = 0;
-        desc.attributes[1].type = VertexAttribute::kFloatType;
+        desc.attributes[0].binding    = 0;
+        desc.attributes[0].offset     = offsetof(SimpleVertex, x);
+        desc.attributes[1].semantic   = VertexAttribute::kNormalSemantic;
+        desc.attributes[1].index      = 0;
+        desc.attributes[1].type       = VertexAttribute::kFloatType;
         desc.attributes[1].components = 3;
-        desc.attributes[1].binding = 0;
-        desc.attributes[1].offset = offsetof(SimpleVertex, nx);
-        desc.attributes[2].semantic = VertexAttribute::kTexcoordSemantic;
-        desc.attributes[2].index = 0;
-        desc.attributes[2].type = VertexAttribute::kFloatType;
+        desc.attributes[1].binding    = 0;
+        desc.attributes[1].offset     = offsetof(SimpleVertex, nx);
+        desc.attributes[2].semantic   = VertexAttribute::kTexcoordSemantic;
+        desc.attributes[2].index      = 0;
+        desc.attributes[2].type       = VertexAttribute::kFloatType;
         desc.attributes[2].components = 2;
-        desc.attributes[2].binding = 0;
-        desc.attributes[2].offset = offsetof(SimpleVertex, u);
-        desc.attributes[3].semantic = VertexAttribute::kDiffuseSemantic;
-        desc.attributes[3].index = 0;
-        desc.attributes[3].type = VertexAttribute::kFloatType;
+        desc.attributes[2].binding    = 0;
+        desc.attributes[2].offset     = offsetof(SimpleVertex, u);
+        desc.attributes[3].semantic   = VertexAttribute::kDiffuseSemantic;
+        desc.attributes[3].index      = 0;
+        desc.attributes[3].type       = VertexAttribute::kFloatType;
         desc.attributes[3].components = 4;
-        desc.attributes[3].binding = 0;
-        desc.attributes[3].offset = offsetof(SimpleVertex, r);
+        desc.attributes[3].binding    = 0;
+        desc.attributes[3].offset     = offsetof(SimpleVertex, r);
+
         m_simpleVertexDataLayout = g_gpuManager->getVertexDataLayout(desc);
     }
 

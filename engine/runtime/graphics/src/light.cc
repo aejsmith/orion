@@ -33,7 +33,7 @@ static const glm::vec3 kDefaultDirection = glm::vec3(0.0f, 0.0f, -1.0f);
 /** Initialize a light component.
  * @param type          Light type. */
 Light::Light(RenderLight::Type type) :
-    m_renderLight(type)
+    m_renderLight (type)
 {
     /* Set default colour/intensity. */
     setColour(glm::vec3(1.0f, 1.0f, 1.0f));

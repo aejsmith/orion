@@ -88,10 +88,9 @@ void LogManager::write(LogLevel level, const char *file, int line, const char *f
                 break;
         }
 
-        fprintf(
-            (level < LogLevel::kError) ? stdout : stderr,
-            "%s %s %s (%s)\n",
-            timeString, levelString, msg.c_str(), fileDetails.c_str());
+        fprintf((level < LogLevel::kError) ? stdout : stderr,
+                "%s %s %s (%s)\n",
+                timeString, levelString, msg.c_str(), fileDetails.c_str());
     #else
         const char *levelString = "";
         switch (level) {
@@ -112,11 +111,10 @@ void LogManager::write(LogLevel level, const char *file, int line, const char *f
         struct winsize w; 
         ioctl(0, TIOCGWINSZ, &w);
 
-        fprintf(
-            (level < LogLevel::kError) ? stdout : stderr,
-            "%s%s \033[0m%s\033[0;34m%*s\033[0m\n",
-            levelString, timeString, msg.c_str(),
-            w.ws_col - std::strlen(timeString) - msg.length() - 2,
-            fileDetails.c_str());
+        fprintf((level < LogLevel::kError) ? stdout : stderr,
+                "%s%s \033[0m%s\033[0;34m%*s\033[0m\n",
+                levelString, timeString, msg.c_str(),
+                w.ws_col - std::strlen(timeString) - msg.length() - 2,
+                fileDetails.c_str());
     #endif
 }

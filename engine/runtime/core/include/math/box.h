@@ -37,30 +37,30 @@ public:
     using VecType = glm::tvec3<T, glm::highp>;
 
     BoxImpl() :
-        x(0),
-        y(0),
-        z(0),
-        width(0),
-        height(0),
-        depth(0)
+        x      (0),
+        y      (0),
+        z      (0),
+        width  (0),
+        height (0),
+        depth  (0)
     {}
 
     BoxImpl(T _x, T _y, T _z, T _width, T _height, T _depth) :
-        x(_x),
-        y(_y),
-        z(_z),
-        width(_width),
-        height(_height),
-        depth(_depth)
+        x      (_x),
+        y      (_y),
+        z      (_z),
+        width  (_width),
+        height (_height),
+        depth  (_depth)
     {}
 
     BoxImpl(const VecType &pos, const VecType &size) :
-        x(pos.x),
-        y(pos.y),
-        z(pos.z),
-        width(size.x),
-        height(size.y),
-        depth(size.z)
+        x      (pos.x),
+        y      (pos.y),
+        z      (pos.z),
+        width  (size.x),
+        height (size.y),
+        depth  (size.z)
     {}
 
     /** @return             Position of the box. */
@@ -72,16 +72,16 @@ public:
      * @param point         Point to check for.
      * @return              Whether the point is within the box. */
     bool contains(const VecType &point) const {
-        return (point.x >= x && point.y >= y && point.z >= z &&
-            point.x < (x + width) && point.y < (y + height) && point.z < (z + depth));
+        return point.x >= x && point.y >= y && point.z >= z &&
+               point.x < (x + width) && point.y < (y + height) && point.z < (z + depth);
     }
 
     /** Compare for equality with another box.
      * @param other         Box to compare with.
      * @return              Whether they are equal. */
     bool operator ==(const BoxImpl &other) const {
-        return (x == other.x && y == other.y && z == other.z &&
-            width == other.width && height == other.height && depth == other.depth);
+        return x == other.x && y == other.y && z == other.z &&
+               width == other.width && height == other.height && depth == other.depth;
     }
 
     /** Compare for inequality with another box.

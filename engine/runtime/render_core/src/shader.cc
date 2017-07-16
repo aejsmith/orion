@@ -27,7 +27,7 @@
 
 /** Initialize the shader. */
 Shader::Shader() :
-    m_uniformStruct(nullptr)
+    m_uniformStruct (nullptr)
 {}
 
 /** Destroy the shader. */
@@ -138,10 +138,9 @@ void Shader::finaliseParameters() {
             /* Add a uniform struct member for it. Create struct if we don't
              * already have one. */
             if (!m_uniformStruct) {
-                m_uniformStruct = new UniformStruct(
-                    "MaterialUniforms",
-                    nullptr,
-                    ResourceSets::kMaterialResources);
+                m_uniformStruct = new UniformStruct("MaterialUniforms",
+                                                    nullptr,
+                                                    ResourceSets::kMaterialResources);
                 desc.slots[ResourceSlots::kUniforms].type = GPUResourceType::kUniformBuffer;
             }
 

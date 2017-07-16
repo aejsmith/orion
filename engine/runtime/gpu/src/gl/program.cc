@@ -45,10 +45,10 @@ static GLProgram::ResourceList getResources(spirv_cross::CompilerGLSL &compiler)
         [&] (const spirv_cross::Resource &spvResource, GPUResourceType type) {
             resources.emplace_back();
             GLProgram::Resource &resource = resources.back();
-            resource.name = spvResource.name;
-            resource.type = type;
-            resource.set  = compiler.get_decoration(spvResource.id, spv::DecorationDescriptorSet);
-            resource.slot = compiler.get_decoration(spvResource.id, spv::DecorationBinding);
+            resource.name    = spvResource.name;
+            resource.type    = type;
+            resource.set     = compiler.get_decoration(spvResource.id, spv::DecorationDescriptorSet);
+            resource.slot    = compiler.get_decoration(spvResource.id, spv::DecorationBinding);
             resource.current = -1u;
 
             compiler.unset_decoration(spvResource.id, spv::DecorationDescriptorSet);
@@ -73,8 +73,8 @@ static std::string generateSource(spirv_cross::CompilerGLSL &compiler, unsigned 
     GLFeatures &features = g_opengl->features;
 
     spirv_cross::CompilerGLSL::Options options;
-    options.version = (features.versionMajor * 100) + (features.versionMinor * 10);
-    options.es = false;
+    options.version          = (features.versionMajor * 100) + (features.versionMinor * 10);
+    options.es               = false;
     options.vulkan_semantics = false;
     compiler.set_options(options);
 
@@ -123,7 +123,7 @@ static std::string generateSource(spirv_cross::CompilerGLSL &compiler, unsigned 
 /** Initialize the program.
  * @param desc          Descriptor for the program. */
 GLProgram::GLProgram(GPUProgramDesc &&desc) :
-    GPUProgram(desc.stage)
+    GPUProgram (desc.stage)
 {
     spirv_cross::CompilerGLSL compiler(desc.spirv);
 

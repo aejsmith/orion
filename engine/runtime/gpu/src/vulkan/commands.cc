@@ -28,16 +28,14 @@
  * @param manager       Manager that owns the command list.
  * @param passInstance  Render pass instance pointer.
  * @param framebuffer   Framebuffer for the render pass. */
-VulkanCommandList::VulkanCommandList(
-    VulkanGPUManager *manager,
-    GPURenderPassInstance *passInstance,
-    const VulkanFramebuffer *framebuffer)
-    :
-    GPUCommandList(passInstance),
-    VulkanObject(manager),
-    m_cmdState(m_state)
+VulkanCommandList::VulkanCommandList(VulkanGPUManager *manager,
+                                     GPURenderPassInstance *passInstance,
+                                     const VulkanFramebuffer *framebuffer) :
+    GPUCommandList (passInstance),
+    VulkanObject   (manager),
+    m_cmdState     (m_state)
 {
-    m_cmdState.renderPass = static_cast<const VulkanRenderPass *>(m_passInstance->desc().pass);
+    m_cmdState.renderPass  = static_cast<const VulkanRenderPass *>(m_passInstance->desc().pass);
     m_cmdState.framebuffer = framebuffer;
 }
 
@@ -46,9 +44,9 @@ VulkanCommandList::VulkanCommandList(
  * @param parent        Parent command list.
  * @param inherit       Flags indicating which state to inherit. */
 VulkanCommandList::VulkanCommandList(VulkanGPUManager *manager, GPUCommandList *parent, uint32_t inherit) :
-    GPUCommandList(parent, inherit),
-    VulkanObject(manager),
-    m_cmdState(m_state)
+    GPUCommandList (parent, inherit),
+    VulkanObject   (manager),
+    m_cmdState     (m_state)
 {
     auto vkParent = static_cast<VulkanCommandList *>(parent);
     m_cmdState.renderPass = vkParent->m_cmdState.renderPass;
@@ -108,9 +106,8 @@ void VulkanCommandList::prepareCmdBuf() {
         inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
         inheritanceInfo.renderPass = m_cmdState.renderPass->handle();
         inheritanceInfo.framebuffer = m_cmdState.framebuffer->handle();
-        m_cmdState.cmdBuf->begin(
-            VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT | VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT,
-            &inheritanceInfo);
+        m_cmdState.cmdBuf->begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT | VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT,
+                                 &inheritanceInfo);
 
         m_cmdBufs.push_back(m_cmdState.cmdBuf);
 
@@ -171,8 +168,8 @@ void VulkanCommandList::draw(PrimitiveType type, GPUVertexData *vertices, GPUInd
     /* Set scissor state. */
     if (m_dirtyState & kScissorState) {
         const IntRect &rect = (m_cmdState.pending.scissorEnabled)
-            ? m_cmdState.pending.scissor
-            : m_cmdState.pending.viewport;
+                                  ? m_cmdState.pending.scissor
+                                  : m_cmdState.pending.viewport;
 
         /* Same as for viewport. */
         VkRect2D scissor;
@@ -206,12 +203,11 @@ void VulkanCommandList::draw(PrimitiveType type, GPUVertexData *vertices, GPUInd
             m_cmdState.cmdBuf->addReference(buffer);
         }
 
-        vkCmdBindVertexBuffers(
-            m_cmdState.cmdBuf->handle(),
-            0,
-            vertexBuffers.size(),
-            &vertexBuffers[0],
-            &vertexBufferOffsets[0]);
+        vkCmdBindVertexBuffers(m_cmdState.cmdBuf->handle(),
+                               0,
+                               vertexBuffers.size(),
+                               &vertexBuffers[0],
+                               &vertexBufferOffsets[0]);
     }
 
     /* Bind the index buffer. */
@@ -227,11 +223,10 @@ void VulkanCommandList::draw(PrimitiveType type, GPUVertexData *vertices, GPUInd
         }
 
         auto buffer = static_cast<VulkanBuffer *>(indices->buffer());
-        vkCmdBindIndexBuffer(
-            m_cmdState.cmdBuf->handle(),
-            buffer->allocation()->buffer(),
-            buffer->allocation()->offset(),
-            indexType);
+        vkCmdBindIndexBuffer(m_cmdState.cmdBuf->handle(),
+                             buffer->allocation()->buffer(),
+                             buffer->allocation()->offset(),
+                             indexType);
 
         m_cmdState.cmdBuf->addReference(buffer);
     }

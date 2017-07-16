@@ -167,11 +167,10 @@ public:
     explicit VulkanMemoryManager(VulkanGPUManager *manager);
     ~VulkanMemoryManager();
 
-    std::vector<BufferMemory *> allocateBuffers(
-        VkDeviceSize size,
-        size_t count,
-        VkBufferUsageFlags usage,
-        VkMemoryPropertyFlags memoryFlags);
+    std::vector<BufferMemory *> allocateBuffers(VkDeviceSize size,
+                                                size_t count,
+                                                VkBufferUsageFlags usage,
+                                                VkMemoryPropertyFlags memoryFlags);
     ImageMemory *allocateImage(VkMemoryRequirements &requirements);
     void freeResource(ResourceMemory *memory);
 

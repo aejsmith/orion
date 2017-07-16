@@ -127,10 +127,10 @@ ImTextureID DebugWindow::refTexture(Texture2D *texture) {
 
 /** Initialise the debug overlay. */
 DebugOverlay::DebugOverlay() :
-    RenderLayer(RenderLayer::kDebugOverlayPriority),
-    InputHandler(InputHandler::kDebugOverlayPriority),
-    m_state(State::kInactive),
-    m_inputtingText(false)
+    RenderLayer     (RenderLayer::kDebugOverlayPriority),
+    InputHandler    (InputHandler::kDebugOverlayPriority),
+    m_state         (State::kInactive),
+    m_inputtingText (false)
 {}
 
 /** Destroy the debug overlay. */
@@ -203,22 +203,20 @@ void DebugOverlay::initResources() {
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
     auto textureDesc = GPUTextureDesc().
-        setType(GPUTexture::kTexture2D).
-        setWidth(width).
-        setHeight(height).
-        setFormat(PixelFormat::kR8G8B8A8).
-        setMips(1);
+        setType   (GPUTexture::kTexture2D).
+        setWidth  (width).
+        setHeight (height).
+        setFormat (PixelFormat::kR8G8B8A8).
+        setMips   (1);
     m_fontTexture = g_gpuManager->createTexture(textureDesc);
-    m_fontTexture->update(
-        IntRect(0, 0, width, height),
-        pixels);
+    m_fontTexture->update(IntRect(0, 0, width, height), pixels);
     io.Fonts->SetTexID(m_fontTexture.get());
     io.Fonts->ClearTexData();
 
     /* Create the texture sampler. */
     auto samplerDesc = GPUSamplerStateDesc().
-        setFilterMode(SamplerFilterMode::kBilinear).
-        setMaxAnisotropy(1);
+        setFilterMode    (SamplerFilterMode::kBilinear).
+        setMaxAnisotropy (1);
     m_sampler = g_gpuManager->getSamplerState(samplerDesc);
 
     /* Add the overlay to the main window. */
@@ -240,12 +238,11 @@ void DebugOverlay::addText(const std::string &text, const glm::vec4 &colour) {
     ImGui::SetNextWindowPos(ImVec2(10, 10 + delta));
 
     /* Creating a window with the same title appends to it. */
-    ImGui::Begin(
-        "Debug Text",
-        nullptr,
-        ImVec2(0, 0),
-        0.0f,
-        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::Begin("Debug Text",
+                 nullptr,
+                 ImVec2(0, 0),
+                 0.0f,
+                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
     ImGui::PushStyleColor(ImGuiCol_Text, colour);
     ImGui::Text(text.c_str());
     ImGui::PopStyleColor();
@@ -315,19 +312,18 @@ void DebugOverlay::render(bool first) {
     if (!drawData)
         return;
 
-    GPUCommandList *cmdList = beginLayerRenderPass(
-        (first) ? GPURenderLoadOp::kClear : GPURenderLoadOp::kLoad,
-        glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+    GPUCommandList *cmdList = beginLayerRenderPass((first) ? GPURenderLoadOp::kClear : GPURenderLoadOp::kLoad,
+                                                   glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
     cmdList->setBlendState(GPUBlendStateDesc().
-        setFunc(BlendFunc::kAdd).
-        setSourceFactor(BlendFactor::kSourceAlpha).
-        setDestFactor(BlendFactor::kOneMinusSourceAlpha));
+        setFunc         (BlendFunc::kAdd).
+        setSourceFactor (BlendFactor::kSourceAlpha).
+        setDestFactor   (BlendFactor::kOneMinusSourceAlpha));
     cmdList->setDepthStencilState(GPUDepthStencilStateDesc().
-        setDepthFunc(ComparisonFunc::kAlways).
-        setDepthWrite(false));
+        setDepthFunc  (ComparisonFunc::kAlways).
+        setDepthWrite (false));
     cmdList->setRasterizerState(GPURasterizerStateDesc().
-        setCullMode(CullMode::kDisabled));
+        setCullMode (CullMode::kDisabled));
 
     MaterialPtr material;
     GPUTexture *lastTexture = nullptr;
@@ -337,21 +333,21 @@ void DebugOverlay::render(bool first) {
 
         /* Generate vertex data. */
         auto vertexDataDesc = GPUVertexDataDesc().
-            setCount(imCmdList->VtxBuffer.size()).
-            setLayout(m_vertexDataLayout);
+            setCount  (imCmdList->VtxBuffer.size()).
+            setLayout (m_vertexDataLayout);
         auto vertexBufferDesc = GPUBufferDesc().
-            setType(GPUBuffer::kVertexBuffer).
-            setUsage(GPUBuffer::kTransientUsage).
-            setSize(imCmdList->VtxBuffer.size() * sizeof(ImDrawVert));
+            setType  (GPUBuffer::kVertexBuffer).
+            setUsage (GPUBuffer::kTransientUsage).
+            setSize  (imCmdList->VtxBuffer.size() * sizeof(ImDrawVert));
         vertexDataDesc.buffers[0] = g_gpuManager->createBuffer(vertexBufferDesc);
         vertexDataDesc.buffers[0]->write(0, vertexBufferDesc.size, &imCmdList->VtxBuffer.front());
         GPUVertexDataPtr vertexData = g_gpuManager->createVertexData(std::move(vertexDataDesc));
 
         /* Generate index buffer. */
         auto indexBufferDesc = GPUBufferDesc().
-            setType(GPUBuffer::kIndexBuffer).
-            setUsage(GPUBuffer::kTransientUsage).
-            setSize(imCmdList->IdxBuffer.size() * sizeof(ImDrawIdx));
+            setType  (GPUBuffer::kIndexBuffer).
+            setUsage (GPUBuffer::kTransientUsage).
+            setSize  (imCmdList->IdxBuffer.size() * sizeof(ImDrawIdx));
         GPUBufferPtr indexBuffer = g_gpuManager->createBuffer(indexBufferDesc);
         indexBuffer->write(0, indexBufferDesc.size, &imCmdList->IdxBuffer.front());
 
@@ -379,21 +375,19 @@ void DebugOverlay::render(bool first) {
 
             /* Create index data. */
             auto indexDataDesc = GPUIndexDataDesc().
-                setBuffer(indexBuffer).
-                setType(GPUIndexData::kUnsignedShortType).
-                setCount(cmd->ElemCount).
-                setOffset(indexBufferOffset);
+                setBuffer (indexBuffer).
+                setType   (GPUIndexData::kUnsignedShortType).
+                setCount  (cmd->ElemCount).
+                setOffset (indexBufferOffset);
             GPUIndexDataPtr indexData = g_gpuManager->createIndexData(std::move(indexDataDesc));
 
             /* Configure scissor test for clipping. */
             const IntRect &viewport = pixelViewport();
-            cmdList->setScissor(
-                true,
-                IntRect(
-                    viewport.x + cmd->ClipRect.x,
-                    viewport.y + cmd->ClipRect.y,
-                    cmd->ClipRect.z - cmd->ClipRect.x,
-                    cmd->ClipRect.w - cmd->ClipRect.y));
+            cmdList->setScissor(true,
+                                IntRect(viewport.x + cmd->ClipRect.x,
+                                        viewport.y + cmd->ClipRect.y,
+                                        cmd->ClipRect.z - cmd->ClipRect.x,
+                                        cmd->ClipRect.w - cmd->ClipRect.y));
 
             material->setDrawState(cmdList, Pass::kBasicType);
             cmdList->draw(PrimitiveType::kTriangleList, vertexData, indexData);
@@ -619,54 +613,42 @@ void DebugManager::draw(const BoundingBox &box, const glm::vec4 &colour, bool pe
  * @param perView       Whether to draw for the whole frame or just the next
  *                      view rendered. */
 void DebugManager::draw(const Frustum &frustum, const glm::vec4 &colour, bool perView) {
-    drawLine(
-        frustum.corner(Frustum::kFarBottomLeftCorner),
-        frustum.corner(Frustum::kFarBottomRightCorner),
-        colour, perView);
-    drawLine(
-        frustum.corner(Frustum::kFarBottomRightCorner),
-        frustum.corner(Frustum::kNearBottomRightCorner),
-        colour, perView);
-    drawLine(
-        frustum.corner(Frustum::kNearBottomRightCorner),
-        frustum.corner(Frustum::kNearBottomLeftCorner),
-        colour, perView);
-    drawLine(
-        frustum.corner(Frustum::kNearBottomLeftCorner),
-        frustum.corner(Frustum::kFarBottomLeftCorner),
-        colour, perView);
-    drawLine(
-        frustum.corner(Frustum::kFarTopLeftCorner),
-        frustum.corner(Frustum::kFarTopRightCorner),
-        colour, perView);
-    drawLine(
-        frustum.corner(Frustum::kFarTopRightCorner),
-        frustum.corner(Frustum::kNearTopRightCorner),
-        colour, perView);
-    drawLine(
-        frustum.corner(Frustum::kNearTopRightCorner),
-        frustum.corner(Frustum::kNearTopLeftCorner),
-        colour, perView);
-    drawLine(
-        frustum.corner(Frustum::kNearTopLeftCorner),
-        frustum.corner(Frustum::kFarTopLeftCorner),
-        colour, perView);
-    drawLine(
-        frustum.corner(Frustum::kFarBottomLeftCorner),
-        frustum.corner(Frustum::kFarTopLeftCorner),
-        colour, perView);
-    drawLine(
-        frustum.corner(Frustum::kFarBottomRightCorner),
-        frustum.corner(Frustum::kFarTopRightCorner),
-        colour, perView);
-    drawLine(
-        frustum.corner(Frustum::kNearBottomRightCorner),
-        frustum.corner(Frustum::kNearTopRightCorner),
-        colour, perView);
-    drawLine(
-        frustum.corner(Frustum::kNearBottomLeftCorner),
-        frustum.corner(Frustum::kNearTopLeftCorner),
-        colour, perView);
+    drawLine(frustum.corner(Frustum::kFarBottomLeftCorner),
+             frustum.corner(Frustum::kFarBottomRightCorner),
+             colour, perView);
+    drawLine(frustum.corner(Frustum::kFarBottomRightCorner),
+             frustum.corner(Frustum::kNearBottomRightCorner),
+             colour, perView);
+    drawLine(frustum.corner(Frustum::kNearBottomRightCorner),
+             frustum.corner(Frustum::kNearBottomLeftCorner),
+             colour, perView);
+    drawLine(frustum.corner(Frustum::kNearBottomLeftCorner),
+             frustum.corner(Frustum::kFarBottomLeftCorner),
+             colour, perView);
+    drawLine(frustum.corner(Frustum::kFarTopLeftCorner),
+             frustum.corner(Frustum::kFarTopRightCorner),
+             colour, perView);
+    drawLine(frustum.corner(Frustum::kFarTopRightCorner),
+             frustum.corner(Frustum::kNearTopRightCorner),
+             colour, perView);
+    drawLine(frustum.corner(Frustum::kNearTopRightCorner),
+             frustum.corner(Frustum::kNearTopLeftCorner),
+             colour, perView);
+    drawLine(frustum.corner(Frustum::kNearTopLeftCorner),
+             frustum.corner(Frustum::kFarTopLeftCorner),
+             colour, perView);
+    drawLine(frustum.corner(Frustum::kFarBottomLeftCorner),
+             frustum.corner(Frustum::kFarTopLeftCorner),
+             colour, perView);
+    drawLine(frustum.corner(Frustum::kFarBottomRightCorner),
+             frustum.corner(Frustum::kFarTopRightCorner),
+             colour, perView);
+    drawLine(frustum.corner(Frustum::kNearBottomRightCorner),
+             frustum.corner(Frustum::kNearTopRightCorner),
+             colour, perView);
+    drawLine(frustum.corner(Frustum::kNearBottomLeftCorner),
+             frustum.corner(Frustum::kNearTopLeftCorner),
+             colour, perView);
 }
 
 /**
@@ -697,12 +679,12 @@ void DebugManager::renderView(GPUCommandList *cmdList, GPUResourceSet *view) {
     PrimitiveRenderer renderer;
 
     cmdList->setBlendState(GPUBlendStateDesc().
-        setFunc(BlendFunc::kAdd).
-        setSourceFactor(BlendFactor::kSourceAlpha).
-        setDestFactor(BlendFactor::kOneMinusSourceAlpha));
+        setFunc         (BlendFunc::kAdd).
+        setSourceFactor (BlendFactor::kSourceAlpha).
+        setDestFactor   (BlendFactor::kOneMinusSourceAlpha));
     cmdList->setDepthStencilState(GPUDepthStencilStateDesc().
-        setDepthFunc(ComparisonFunc::kAlways).
-        setDepthWrite(false));
+        setDepthFunc  (ComparisonFunc::kAlways).
+        setDepthWrite (false));
 
     /* Add all lines. */
     renderer.begin(PrimitiveType::kLineList, m_primitiveMaterial);

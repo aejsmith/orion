@@ -33,8 +33,8 @@
 
 /** Initialise the world explorer. */
 WorldExplorerWindow::WorldExplorerWindow() :
-    DebugWindow("World Explorer"),
-    m_entityToOpen(nullptr)
+    DebugWindow   ( "World Explorer"),
+    m_entityToOpen (nullptr)
 {}
 
 /** Render the world explorer. */
@@ -122,9 +122,9 @@ void WorldExplorerWindow::displayOptions() {
 
             JSONSerialiser serialiser;
             std::vector<uint8_t> data = serialiser.serialise(g_engine->world());
-            std::unique_ptr<File> file(Filesystem::openFile(
-                path,
-                File::kWrite | File::kCreate | File::kTruncate));
+            std::unique_ptr<File> file(
+                Filesystem::openFile(path,
+                                     File::kWrite | File::kCreate | File::kTruncate));
             if (file) {
                 file->write(&data[0], data.size());
             } else {
@@ -251,10 +251,9 @@ void WorldExplorerWindow::displayEnumPropertyEditor(Object *object, const MetaPr
             break;
     }
 
-    if (ImGui::Combo(
-        "", &index, enumItemGetter,
-        const_cast<MetaType::EnumConstantArray *>(&constants),
-        constants.size()))
+    if (ImGui::Combo("", &index, enumItemGetter,
+                     const_cast<MetaType::EnumConstantArray *>(&constants),
+                     constants.size()))
     {
         value = constants[index].second;
         object->setProperty(property.name(), property.type(), &value);
@@ -471,15 +470,13 @@ void WorldExplorerWindow::displayPropertyEditors(Object *object, const MetaClass
             object, property,
             [&] (glm::quat *value) {
                 glm::vec3 eulerAngles = glm::eulerAngles(*value);
-                eulerAngles = glm::vec3(
-                    glm::degrees(eulerAngles.x),
-                    glm::degrees(eulerAngles.y),
-                    glm::degrees(eulerAngles.z));
+                eulerAngles = glm::vec3(glm::degrees(eulerAngles.x),
+                                        glm::degrees(eulerAngles.y),
+                                        glm::degrees(eulerAngles.z));
                 if (ImGui::SliderFloat3("", &eulerAngles.x, -180.0f, 180.0f)) {
-                    eulerAngles = glm::vec3(
-                        glm::radians(eulerAngles.x),
-                        glm::radians(eulerAngles.y),
-                        glm::radians(eulerAngles.z));
+                    eulerAngles = glm::vec3(glm::radians(eulerAngles.x),
+                                            glm::radians(eulerAngles.y),
+                                            glm::radians(eulerAngles.z));
                     *value = glm::quat(eulerAngles);
                     return true;
                 } else {

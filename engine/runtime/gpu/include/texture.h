@@ -139,14 +139,13 @@ struct GPUTextureDesc {
 
     /** Compare this descriptor with another. */
     bool operator ==(const GPUTextureDesc &other) const {
-        return
-            type == other.type &&
-            width == other.width &&
-            height == other.height &&
-            ((type != GPUTexture::kTexture2DArray && type != GPUTexture::kTexture3D) || depth == other.depth) &&
-            format == other.format &&
-            mips == other.mips &&
-            flags == other.flags;
+        return type == other.type &&
+               width == other.width &&
+               height == other.height &&
+               ((type != GPUTexture::kTexture2DArray && type != GPUTexture::kTexture3D) || depth == other.depth) &&
+               format == other.format &&
+               mips == other.mips &&
+               flags == other.flags;
     }
 
     /** Get a hash from a texture descriptor. */
@@ -173,23 +172,23 @@ struct GPUTextureImageRef {
 public:
     /** Initialize as a null reference. */
     GPUTextureImageRef() :
-        texture(nullptr),
-        layer(0),
-        mip(0)
+        texture (nullptr),
+        layer   (0),
+        mip     (0)
     {}
 
     /** Initialize to a texture. */
     GPUTextureImageRef(GPUTexture *inTexture, unsigned inLayer = 0, unsigned inMip = 0) :
-        texture(inTexture),
-        layer(inLayer),
-        mip(inMip)
+        texture (inTexture),
+        layer   (inLayer),
+        mip     (inMip)
     {}
 
     /** Initialize to a texture. */
     GPUTextureImageRef(const GPUTexturePtr &inTexture, unsigned inLayer = 0, unsigned inMip = 0) :
-        texture(inTexture),
-        layer(inLayer),
-        mip(inMip)
+        texture (inTexture),
+        layer   (inLayer),
+        mip     (inMip)
     {}
 
     /** @return             Whether this is a valid image reference. */

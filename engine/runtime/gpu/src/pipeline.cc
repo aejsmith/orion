@@ -24,10 +24,9 @@
 /** Initialize the pipeline.
  * @param desc          Parameters for the pipeline. */
 GPUPipeline::GPUPipeline(GPUPipelineDesc &&desc) :
-    m_programs(std::move(desc.programs)),
-    m_resourceLayout(std::move(desc.resourceLayout))
+    m_programs       (std::move(desc.programs)),
+    m_resourceLayout (std::move(desc.resourceLayout))
 {
-    checkMsg(
-        m_programs[ShaderStage::kVertex] && m_programs[ShaderStage::kFragment],
-        "A pipeline requires at least a vertex and a fragment program");
+    checkMsg(m_programs[ShaderStage::kVertex] && m_programs[ShaderStage::kFragment],
+             "A pipeline requires at least a vertex and a fragment program");
 }

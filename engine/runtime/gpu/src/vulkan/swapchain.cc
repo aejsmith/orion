@@ -64,34 +64,30 @@ void VulkanSwapchain::recreate() {
 
     /* Get surface capabilities. */
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
-    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
-        device->physicalHandle(),
-        surface->handle(),
-        &surfaceCapabilities);
+    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device->physicalHandle(),
+                                                       surface->handle(),
+                                                       &surfaceCapabilities);
     if (result != VK_SUCCESS)
         fatal("Failed to get Vulkan surface capabilities: %d", result);
 
     /* Determine number of images. Request at least one more than the minimum
      * number of images required by the presentation engine, because that is
      * the minimum it needs to work and we want an additional one for buffering. */
-    createInfo.minImageCount = glm::clamp(
-        kNumSwapchainImages,
-        surfaceCapabilities.minImageCount + 1,
-        surfaceCapabilities.maxImageCount);
+    createInfo.minImageCount = glm::clamp(kNumSwapchainImages,
+                                          surfaceCapabilities.minImageCount + 1,
+                                          surfaceCapabilities.maxImageCount);
 
     /* Define swap chain image extents. If the current extent is given as -1,
      * this means the surface size will be determined by the size we give for
      * the swap chain, so set the requested window size in this case. Otherwise,
      * use what we are given. */
     if (surfaceCapabilities.currentExtent.width == static_cast<uint32_t>(-1)) {
-        createInfo.imageExtent.width = glm::clamp(
-            surface->width(),
-            surfaceCapabilities.minImageExtent.width,
-            surfaceCapabilities.maxImageExtent.width);
-        createInfo.imageExtent.height = glm::clamp(
-            surface->height(),
-            surfaceCapabilities.minImageExtent.height,
-            surfaceCapabilities.maxImageExtent.height);
+        createInfo.imageExtent.width  = glm::clamp(surface->width(),
+                                                   surfaceCapabilities.minImageExtent.width,
+                                                   surfaceCapabilities.maxImageExtent.width);
+        createInfo.imageExtent.height = glm::clamp(surface->height(),
+                                                   surfaceCapabilities.minImageExtent.height,
+                                                   surfaceCapabilities.maxImageExtent.height);
     } else {
         createInfo.imageExtent = surfaceCapabilities.currentExtent;
     }
@@ -106,11 +102,10 @@ void VulkanSwapchain::recreate() {
     createInfo.imageFormat = surface->surfaceFormat().format;
 
     /* Get presentation modes. */
-    result = vkGetPhysicalDeviceSurfacePresentModesKHR(
-        device->physicalHandle(),
-        surface->handle(),
-        &count,
-        nullptr);
+    result = vkGetPhysicalDeviceSurfacePresentModesKHR(device->physicalHandle(),
+                                                       surface->handle(),
+                                                       &count,
+                                                       nullptr);
     if (result != VK_SUCCESS) {
         fatal("Failed to get Vulkan presentation modes (1): %d", result);
     } else if (count == 0) {
@@ -118,11 +113,10 @@ void VulkanSwapchain::recreate() {
     }
 
     std::vector<VkPresentModeKHR> presentModes(count);
-    result = vkGetPhysicalDeviceSurfacePresentModesKHR(
-        device->physicalHandle(),
-        surface->handle(),
-        &count,
-        &presentModes[0]);
+    result = vkGetPhysicalDeviceSurfacePresentModesKHR(device->physicalHandle(),
+                                                       surface->handle(),
+                                                       &count,
+                                                       &presentModes[0]);
     if (result != VK_SUCCESS)
         fatal("Failed to get Vulkan presentation modes (2): %d", result);
 
@@ -186,13 +180,12 @@ void VulkanSwapchain::startFrame() {
      * indefinitely until an image is available. The image however may not
      * actually be usable for rendering until the semaphore is signalled. */
     m_currentSem = (m_currentSem + 1) % m_images.size();
-    checkVk(vkAcquireNextImageKHR(
-        manager()->device()->handle(),
-        m_handle,
-        UINT64_MAX,
-        m_presentCompleteSems[m_currentSem]->handle(),
-        VK_NULL_HANDLE,
-        &m_currentImage));
+    checkVk(vkAcquireNextImageKHR(manager()->device()->handle(),
+                                  m_handle,
+                                  UINT64_MAX,
+                                  m_presentCompleteSems[m_currentSem]->handle(),
+                                  VK_NULL_HANDLE,
+                                  &m_currentImage));
 }
 
 /**
@@ -222,54 +215,48 @@ void VulkanSwapchain::endFrame(VulkanCommandBuffer *cmdBuf, VulkanFence *fence) 
 
     /* Transition the surface image to the transfer source layout and the
      * swapchain image to transfer destination. */
-    VulkanUtil::setImageLayout(
-        cmdBuf,
-        texture->handle(),
-        VK_IMAGE_ASPECT_COLOR_BIT,
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    VulkanUtil::setImageLayout(
-        cmdBuf,
-        m_images[m_currentImage],
-        VK_IMAGE_ASPECT_COLOR_BIT,
-        VK_IMAGE_LAYOUT_UNDEFINED,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    VulkanUtil::setImageLayout(cmdBuf,
+                               texture->handle(),
+                               VK_IMAGE_ASPECT_COLOR_BIT,
+                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    VulkanUtil::setImageLayout(cmdBuf,
+                               m_images[m_currentImage],
+                               VK_IMAGE_ASPECT_COLOR_BIT,
+                               VK_IMAGE_LAYOUT_UNDEFINED,
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
     /* Perform the blit. */
-    vkCmdBlitImage(
-        cmdBuf->handle(),
-        texture->handle(),
-        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        m_images[m_currentImage],
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        1, &imageBlit,
-        VK_FILTER_NEAREST);
+    vkCmdBlitImage(cmdBuf->handle(),
+                   texture->handle(),
+                   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                   m_images[m_currentImage],
+                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                   1, &imageBlit,
+                   VK_FILTER_NEAREST);
 
     /* Transition the surface image back to shader read only and the swapchain
      * image to present source. */
-    VulkanUtil::setImageLayout(
-        cmdBuf,
-        texture->handle(),
-        VK_IMAGE_ASPECT_COLOR_BIT,
-        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    VulkanUtil::setImageLayout(
-        cmdBuf,
-        m_images[m_currentImage],
-        VK_IMAGE_ASPECT_COLOR_BIT,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    VulkanUtil::setImageLayout(cmdBuf,
+                               texture->handle(),
+                               VK_IMAGE_ASPECT_COLOR_BIT,
+                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    VulkanUtil::setImageLayout(cmdBuf,
+                               m_images[m_currentImage],
+                               VK_IMAGE_ASPECT_COLOR_BIT,
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                               VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
     /* Submit the command buffer. Need to wait until presentation is completed
      * before executing, and need to signal the semaphore that the present will
      * wait on after execution. */
     cmdBuf->end();
-    manager()->queue()->submit(
-        cmdBuf,
-        m_presentCompleteSems[m_currentSem].get(),
-        VK_PIPELINE_STAGE_TRANSFER_BIT,
-        m_renderCompleteSems[m_currentSem].get(),
-        fence);
+    manager()->queue()->submit(cmdBuf,
+                               m_presentCompleteSems[m_currentSem].get(),
+                               VK_PIPELINE_STAGE_TRANSFER_BIT,
+                               m_renderCompleteSems[m_currentSem].get(),
+                               fence);
 
     /* Present the image. */
     VkPresentInfoKHR presentInfo = {};

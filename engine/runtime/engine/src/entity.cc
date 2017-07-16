@@ -31,10 +31,10 @@
 
 /** Initialize a new entity. */
 Entity::Entity() :
-    m_world(nullptr),
-    m_parent(nullptr),
-    m_active(false),
-    m_activeInWorld(false)
+    m_world         (nullptr),
+    m_parent        (nullptr),
+    m_active        (false),
+    m_activeInWorld (false)
 {}
 
 /** Private destructor. To destroy an entity use destroy(). */
@@ -42,10 +42,9 @@ Entity::~Entity() {
     /* An entity is deleted when its reference count becomes 0. This should
      * only happen if we have called destroy() to remove references to the
      * entity from the world. */
-    checkMsg(
-        !m_active && m_components.empty() && m_children.empty() && !m_parent,
-        "Entity '%s' has no remaining references yet has not been destroyed",
-        this->name.c_str());
+    checkMsg(!m_active && m_components.empty() && m_children.empty() && !m_parent,
+             "Entity '%s' has no remaining references yet has not been destroyed",
+             this->name.c_str());
 }
 
 /**
@@ -228,9 +227,8 @@ void Entity::addChild(EntityPtr entity) {
  * @return              Pointer to created component.
  */
 Component *Entity::createComponent(const MetaClass &metaClass) {
-    checkMsg(
-        Component::staticMetaClass.isBaseOf(metaClass),
-        "Specified class must be derived from Component");
+    checkMsg(Component::staticMetaClass.isBaseOf(metaClass),
+             "Specified class must be derived from Component");
 
     ComponentPtr component = metaClass.construct().staticCast<Component>();
     Component *ret = component.get();
@@ -269,10 +267,9 @@ Component *Entity::findComponent(const MetaClass &metaClass, bool exactClass) co
 void Entity::addComponent(ComponentPtr component) {
     /* This only checks for an exact match on class type, so for instance we
      * don't forbid multiple Behaviour-derived classes on the same object. */
-    checkMsg(
-        !findComponent(component->metaClass(), true),
-        "Component of type '%s' already exists on entity '%s'",
-        component->metaClass().name(), this->name.c_str());
+    checkMsg(!findComponent(component->metaClass(), true),
+             "Component of type '%s' already exists on entity '%s'",
+             component->metaClass().name(), this->name.c_str());
 
     component->m_entity = this;
     m_components.emplace_back(std::move(component));
@@ -295,9 +292,9 @@ void Entity::removeComponent(Component *component) {
         }
     }
 
-    checkMsg(
-        false, "Removing component '%s' which is not registered on entity '%s'",
-        component->metaClass().name(), this->name.c_str());
+    checkMsg(false,
+             "Removing component '%s' which is not registered on entity '%s'",
+             component->metaClass().name(), this->name.c_str());
 }
 
 /**
@@ -398,9 +395,8 @@ void Entity::transformed(unsigned changed) {
         orientation = parentOrientation * orientation;
         scale = parentScale * scale;
     } else {
-        checkMsg(
-            position == glm::vec3() && orientation == glm::quat() && scale == glm::vec3(),
-            "Cannot transform root entity");
+        checkMsg(position == glm::vec3() && orientation == glm::quat() && scale == glm::vec3(),
+                 "Cannot transform root entity");
     }
 
     m_worldTransform.set(position, orientation, scale);

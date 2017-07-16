@@ -27,8 +27,8 @@
  * @param manager       Manager that owns this render pass.
  * @param desc          Descriptor for the render pass. */
 VulkanRenderPass::VulkanRenderPass(VulkanGPUManager *manager, GPURenderPassDesc &&desc) :
-    GPURenderPass(std::move(desc)),
-    VulkanHandle(manager)
+    GPURenderPass (std::move(desc)),
+    VulkanHandle  (manager)
 {
     std::vector<VkAttachmentDescription> attachments;
     attachments.reserve(m_desc.colourAttachments.size() + ((m_desc.depthStencilAttachment) ? 1 : 0));
@@ -58,13 +58,11 @@ VulkanRenderPass::VulkanRenderPass(VulkanGPUManager *manager, GPURenderPassDesc 
             attachment.format = format.format;
 
             if (depthStencil) {
-                checkMsg(
-                    format.properties.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                    "Format does not support use as depth/stencil attachment");
+                checkMsg(format.properties.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                         "Format does not support use as depth/stencil attachment");
             } else {
-                checkMsg(
-                    format.properties.optimalTilingFeatures & VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT,
-                    "Format does not support use as colour attachment");
+                checkMsg(format.properties.optimalTilingFeatures & VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT,
+                         "Format does not support use as colour attachment");
             }
 
             attachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -97,8 +95,8 @@ VulkanRenderPass::VulkanRenderPass(VulkanGPUManager *manager, GPURenderPassDesc 
     subpass.colorAttachmentCount = m_desc.colourAttachments.size();
     subpass.pColorAttachments = &attachmentRefs[0];
     subpass.pDepthStencilAttachment = (m_desc.depthStencilAttachment)
-        ? &attachmentRefs[attachmentRefs.size() - 1]
-        : nullptr;
+                                          ? &attachmentRefs[attachmentRefs.size() - 1]
+                                          : nullptr;
 
     VkRenderPassCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -107,11 +105,10 @@ VulkanRenderPass::VulkanRenderPass(VulkanGPUManager *manager, GPURenderPassDesc 
     createInfo.subpassCount = 1;
     createInfo.pSubpasses = &subpass;
 
-    checkVk(vkCreateRenderPass(
-        manager->device()->handle(),
-        &createInfo,
-        nullptr,
-        &m_handle));
+    checkVk(vkCreateRenderPass(manager->device()->handle(),
+                               &createInfo,
+                               nullptr,
+                               &m_handle));
 }
 
 /** Destroy the render pass. */
@@ -129,13 +126,11 @@ GPURenderPassPtr VulkanGPUManager::createRenderPass(GPURenderPassDesc &&desc) {
 /** Create a framebuffer object.
  * @param targets       Render target descriptor.
  * @param pass          Pass that the framebuffer must be compatible with. */
-VulkanFramebuffer::VulkanFramebuffer(
-    VulkanGPUManager *manager,
-    const GPURenderTargetDesc &targets,
-    const VulkanRenderPass *pass)
-    :
-    VulkanHandle(manager),
-    m_targets(targets)
+VulkanFramebuffer::VulkanFramebuffer(VulkanGPUManager *manager,
+                                     const GPURenderTargetDesc &targets,
+                                     const VulkanRenderPass *pass) :
+    VulkanHandle (manager),
+    m_targets    (targets)
 {
     /* Create image views. */
     m_views.reserve(targets.colour.size() + ((targets.depthStencil) ? 1 : 0));
@@ -148,8 +143,9 @@ VulkanFramebuffer::VulkanFramebuffer(
             VkImageViewCreateInfo viewCreateInfo = {};
             viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 
-            auto texture = static_cast<VulkanTexture *>(
-                (imageRef) ? imageRef.texture : manager->surface()->texture());
+            auto texture = static_cast<VulkanTexture *>((imageRef)
+                                                            ? imageRef.texture
+                                                            : manager->surface()->texture());
 
             viewCreateInfo.image = texture->handle();
             viewCreateInfo.format = manager->features().formats[texture->format()].format;
@@ -235,10 +231,9 @@ void VulkanGPUManager::invalidateFramebuffers(const VulkanTexture *texture) {
  * @param cmdBuf        Command buffer to use.
  * @param imageRef      Image reference.
  * @param begin         Whether this is the beginning of the pass. */
-static void transitionRenderTarget(
-    VulkanCommandBuffer *cmdBuf,
-    const GPUTextureImageRef &imageRef,
-    bool begin)
+static void transitionRenderTarget(VulkanCommandBuffer *cmdBuf,
+                                   const GPUTextureImageRef &imageRef,
+                                   bool begin)
 {
     auto texture = static_cast<VulkanTexture *>(imageRef.texture);
 
@@ -251,15 +246,14 @@ static void transitionRenderTarget(
 
     VkImageLayout defaultLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     VkImageLayout attachmentLayout = (PixelFormat::isDepth(texture->format()))
-        ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-        : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                                         ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+                                         : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-    VulkanUtil::setImageLayout(
-        cmdBuf,
-        texture->handle(),
-        subresources,
-        (begin) ? defaultLayout : attachmentLayout,
-        (begin) ? attachmentLayout : defaultLayout);
+    VulkanUtil::setImageLayout(cmdBuf,
+                               texture->handle(),
+                               subresources,
+                               (begin) ? defaultLayout : attachmentLayout,
+                               (begin) ? attachmentLayout : defaultLayout);
 
     if (begin && imageRef) {
         /* Reference the textures in the command buffer. */

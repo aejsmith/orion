@@ -39,21 +39,21 @@ public:
     /** Construct from existing plane vector.
      * @param vector        Plane vector. */
     Plane(const glm::vec4 &vector) :
-        m_vector(vector)
+        m_vector (vector)
     {}
 
     /** Construct from normal and distance.
      * @param normal        Plane normal (must be normalised).
      * @param distance      Distance from origin. */
     Plane(const glm::vec3 &normal, float distance) :
-        m_vector(normal, distance)
+        m_vector (normal, distance)
     {}
 
     /** Construct from a normal and a known point on the plane.
      * @param normal        Plane normal (must be normalised).
      * @param point         Known point on the plane. */
     Plane(const glm::vec3 &normal, const glm::vec3 &point) :
-        m_vector(normal, glm::dot(normal, point))
+        m_vector (normal, glm::dot(normal, point))
     {}
 
     /** @return             Vector representation of plane. */

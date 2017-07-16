@@ -115,8 +115,8 @@ struct VulkanFramebufferKey {
      * @param inTargets     Render target descriptor.
      * @param inPass        Pass that the framebuffer should be compatible with. */
     VulkanFramebufferKey(const GPURenderTargetDesc &inTargets, const VulkanRenderPass *inPass) :
-        targets(inTargets),
-        renderPass(inPass)
+        targets    (inTargets),
+        renderPass (inPass)
     {}
 
     /** Compare this key with another. */
@@ -149,8 +149,8 @@ public:
     /** @return             Current target size. */
     glm::ivec2 size() const {
         const GPUTexture *texture = (m_targets.colour.size())
-            ? m_targets.colour[0].texture
-            : m_targets.depthStencil.texture;
+                                        ? m_targets.colour[0].texture
+                                        : m_targets.depthStencil.texture;
         return glm::ivec2(texture->width(), texture->height());
     }
 private:

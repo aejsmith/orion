@@ -39,8 +39,8 @@
 /** Initialize the vertex data object.
  * @param desc          Descriptor for the vertex data object. */
 GLVertexData::GLVertexData(GPUVertexDataDesc &&desc) :
-    GPUVertexData(std::move(desc)),
-    m_boundIndices(nullptr)
+    GPUVertexData  (std::move(desc)),
+    m_boundIndices (nullptr)
 {
     glGenVertexArrays(1, &m_array);
     g_opengl->state.bindVertexArray(m_array);

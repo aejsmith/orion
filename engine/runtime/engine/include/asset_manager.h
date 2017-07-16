@@ -85,9 +85,8 @@ extern AssetManager *g_assetManager;
  */
 template <typename AssetType>
 inline TypedAssetPtr<AssetType> AssetManager::load(const Path &path) {
-    static_assert(
-        std::is_base_of<Asset, AssetType>::value,
-        "AssetType is not derived from Asset");
+    static_assert(std::is_base_of<Asset, AssetType>::value,
+                  "AssetType is not derived from Asset");
 
     AssetPtr asset = load(path);
     if (!asset)

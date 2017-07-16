@@ -62,8 +62,8 @@ static FreeTypeLibrary g_freeType;
 
 /** Initialise the font. */
 Font::Font() :
-    m_dataSize(0),
-    m_face(nullptr)
+    m_dataSize (0),
+    m_face     (nullptr)
 {}
 
 /** Destroy the font. */
@@ -119,12 +119,11 @@ bool Font::setData(std::unique_ptr<char[]> &&data, size_t size) {
     FT_Library library = g_freeType.get();
 
     /* Open the face. */
-    FT_Error ret = FT_New_Memory_Face(
-        library,
-        reinterpret_cast<const FT_Byte *>(data.get()),
-        size,
-        0,
-        reinterpret_cast<FT_Face *>(&m_face));
+    FT_Error ret = FT_New_Memory_Face(library,
+                                      reinterpret_cast<const FT_Byte *>(data.get()),
+                                      size,
+                                      0,
+                                      reinterpret_cast<FT_Face *>(&m_face));
     if (ret != 0) {
         logError("Failed to load font: %d", ret);
         return false;
@@ -145,12 +144,12 @@ bool Font::isFixedWidth() const {
  * @param font          Font this variant belongs to.
  * @param desc          Descriptor containing variant properties. */
 FontVariant::FontVariant(Font *font, const FontVariantDesc &desc) :
-    m_font(font),
-    m_desc(desc),
-    m_height(0),
-    m_maxWidth(0),
-    m_maxAscender(0),
-    m_maxDescender(0)
+    m_font         (font),
+    m_desc         (desc),
+    m_height       (0),
+    m_maxWidth     (0),
+    m_maxAscender  (0),
+    m_maxDescender (0)
 {}
 
 /** Destroy the variant. */
@@ -167,9 +166,8 @@ bool FontVariant::load() {
     /* Determine maximum font heights. Divide by 64 to get pixels. */
     m_maxAscender = face->size->metrics.ascender / 64;
     m_maxDescender = -(face->size->metrics.descender / 64);
-    m_height = std::max(
-        m_maxAscender + m_maxDescender,
-        static_cast<unsigned>(face->size->metrics.height / 64));
+    m_height = std::max(m_maxAscender + m_maxDescender,
+                        static_cast<unsigned>(face->size->metrics.height / 64));
 
     /* Determine the maximum glyph width, which will be the spacing between
      * glyphs in the texture atlas.. For this we have to check each glyph in

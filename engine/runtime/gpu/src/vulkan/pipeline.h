@@ -73,11 +73,10 @@ public:
 protected:
     ~VulkanPipeline();
 private:
-    VkPipeline create(
-        const VulkanCommandState &state,
-        PrimitiveType primType,
-        const GPUVertexData *vertices,
-        StateKey &&key);
+    VkPipeline create(const VulkanCommandState &state,
+                      PrimitiveType primType,
+                      const GPUVertexData *vertices,
+                      StateKey &&key);
 
     VkPipelineLayout m_layout;          /**< Pipeline layout. */
 

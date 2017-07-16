@@ -26,12 +26,12 @@
  * @param manager       Manager which owns the buffer.
  * @param desc          Descriptor for the buffer. */
 VulkanBuffer::VulkanBuffer(VulkanGPUManager *manager, const GPUBufferDesc &desc) :
-    GPUBuffer(desc),
-    VulkanObject(manager),
-    m_generation(0),
-    m_dynamicCount(1),
-    m_dynamicIndex(0),
-    m_mapSize(0)
+    GPUBuffer      (desc),
+    VulkanObject   (manager),
+    m_generation   (0),
+    m_dynamicCount (1),
+    m_dynamicIndex (0),
+    m_mapSize      (0)
 {
     /* See description of m_dynamicCount. */
     if (m_type == kUniformBuffer && m_usage == kDynamicUsage)
@@ -80,11 +80,10 @@ void VulkanBuffer::reallocate() {
             unreachable();
     }
 
-    m_allocations = manager()->memoryManager()->allocateBuffers(
-        m_size,
-        m_dynamicCount,
-        usageFlag,
-        memoryFlags);
+    m_allocations = manager()->memoryManager()->allocateBuffers(m_size,
+                                                                m_dynamicCount,
+                                                                usageFlag,
+                                                                memoryFlags);
 
     m_generation++;
     m_dynamicIndex = 0;
@@ -110,9 +109,8 @@ void *VulkanBuffer::map(size_t offset, size_t size, uint32_t flags, uint32_t acc
         m_mapStaging = manager()->memoryManager()->allocateStagingMemory(size);
         ret = m_mapStaging->map();
     } else {
-        checkMsg(
-            (flags & kMapInvalidateBuffer) || (offset == 0 && size == m_size),
-            "Non-invalidating dynamic buffer mappings not implemented");
+        checkMsg((flags & kMapInvalidateBuffer) || (offset == 0 && size == m_size),
+                 "Non-invalidating dynamic buffer mappings not implemented");
 
         /* We're invalidating the whole buffer, so re-allocate it if it is in
          * use, to save us having to synchronise. */
@@ -154,11 +152,10 @@ void VulkanBuffer::unmap() {
         bufferCopy.size = m_mapSize;
 
         VulkanCommandBuffer *stagingCmdBuf = manager()->memoryManager()->getStagingCmdBuf();
-        vkCmdCopyBuffer(
-            stagingCmdBuf->handle(),
-            m_mapStaging->buffer(),
-            allocation()->buffer(),
-            1, &bufferCopy);
+        vkCmdCopyBuffer(stagingCmdBuf->handle(),
+                        m_mapStaging->buffer(),
+                        allocation()->buffer(),
+                        1, &bufferCopy);
 
         stagingCmdBuf->addReference(this);
     }

@@ -84,8 +84,8 @@ bool TGALoader::loadData() {
     /* Read in the data, which is after the ID and colour map. */
     size_t size = m_width * m_height * (header.depth / 8);
     uint64_t offset = sizeof(header) +
-        header.idLength +
-        (header.colourMapLength * (header.colourMapDepth / 8));
+                      header.idLength +
+                      (header.colourMapLength * (header.colourMapDepth / 8));
 
     std::unique_ptr<uint8_t []> buffer(new uint8_t[size]);
 

@@ -57,9 +57,8 @@ public:
      * @param outResults    Results structure to fill in.
      * @param flags         Culling behaviour flags.
      */
-    void cull(
-        RenderWorld::CullResults &outResults,
-        uint32_t flags = RenderWorld::kCullLights) const
+    void cull(RenderWorld::CullResults &outResults,
+              uint32_t flags = RenderWorld::kCullLights) const
     {
         m_world.cull(m_view, outResults, flags);
     }

@@ -42,9 +42,9 @@ GPUBuffer::GPUBuffer(const GPUBufferDesc &desc) :
  * @param flags         Mapping flags to use.
  */
 void GPUBuffer::write(size_t offset, size_t size, const void *buf, uint32_t flags) {
-    checkMsg(
-        (offset + size) <= m_size,
-        "Write outside buffer bounds (total: %zu, offset: %zu, size: %zu)", m_size, offset, size);
+    checkMsg((offset + size) <= m_size,
+             "Write outside buffer bounds (total: %zu, offset: %zu, size: %zu)",
+             m_size, offset, size);
 
     void *data = map(offset, size, kWriteAccess, flags);
     memcpy(data, buf, size);

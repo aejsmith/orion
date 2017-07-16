@@ -129,12 +129,11 @@ public:
 
     void endFrame() override;
 
-    void blit(
-        const GPUTextureImageRef &source,
-        const GPUTextureImageRef &dest,
-        glm::ivec2 sourcePos,
-        glm::ivec2 destPos,
-        glm::ivec2 size) override;
+    void blit(const GPUTextureImageRef &source,
+              const GPUTextureImageRef &dest,
+              glm::ivec2 sourcePos,
+              glm::ivec2 destPos,
+              glm::ivec2 size) override;
 
     GPUCommandList *beginRenderPass(const GPURenderPassInstanceDesc &desc) override;
     void submitRenderPass(GPUCommandList *cmdList) override;
@@ -180,14 +179,13 @@ private:
     void initFeatures();
     void initPixelFormats();
 
-    static void GLEWAPIENTRY debugCallback(
-        GLenum source,
-        GLenum type,
-        GLuint id,
-        GLenum severity,
-        GLsizei length,
-        const GLchar *message,
-        const GLvoid *param);
+    static void GLEWAPIENTRY debugCallback(GLenum source,
+                                           GLenum type,
+                                           GLuint id,
+                                           GLenum severity,
+                                           GLsizei length,
+                                           const GLchar *message,
+                                           const GLvoid *param);
 
     SDL_GLContext m_sdlContext;         /**< SDL GL context. */
 

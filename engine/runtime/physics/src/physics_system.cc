@@ -32,11 +32,10 @@ PhysicsSystem::PhysicsSystem() {
     m_btDispatcher.reset(new btCollisionDispatcher(m_btCollisionConfiguration.get()));
     m_btBroadphase.reset(new btDbvtBroadphase());
     m_btConstraintSolver.reset(new btSequentialImpulseConstraintSolver());
-    m_btWorld.reset(new btDiscreteDynamicsWorld(
-        m_btDispatcher.get(),
-        m_btBroadphase.get(),
-        m_btConstraintSolver.get(),
-        m_btCollisionConfiguration.get()));
+    m_btWorld.reset(new btDiscreteDynamicsWorld(m_btDispatcher.get(),
+                                                m_btBroadphase.get(),
+                                                m_btConstraintSolver.get(),
+                                                m_btCollisionConfiguration.get()));
 
     setGravity(glm::vec3(0.0f, -9.81f, 0.0f));
 }

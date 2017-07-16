@@ -69,16 +69,15 @@ static void identifyGLCoreVersion() {
     int majorVersion = kGLMaxMajorVersion;
     int minorVersion = kGLMaxMinorVersion;
 
-    while (
-        majorVersion > kGLMinMajorVersion ||
-        (majorVersion == kGLMinMajorVersion && minorVersion >= kGLMinMinorVersion))
+    while (majorVersion > kGLMinMajorVersion ||
+           (majorVersion == kGLMinMajorVersion && minorVersion >= kGLMinMinorVersion))
     {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, majorVersion);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minorVersion);
 
-        SDL_Window *window = SDL_CreateWindow(
-            nullptr, 0, 0, 1, 1,
-            SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS | SDL_WINDOW_HIDDEN);
+        SDL_Window *window = SDL_CreateWindow(nullptr,
+                                              0, 0, 1, 1,
+                                              SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS | SDL_WINDOW_HIDDEN);
         if (!window)
             fatal("Failed to create dummy window: %s", SDL_GetError());
 
@@ -163,10 +162,9 @@ GLGPUManager::GLGPUManager(const EngineConfiguration &config, Window *&window) :
             }
 
             /* Only enable debug notifications if we want them. */
-            glDebugMessageControl(
-                GL_DONT_CARE, GL_DONT_CARE,
-                GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr,
-                ORION_GL_DEBUG_NOTIFICATIONS);
+            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE,
+                                  GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr,
+                                  ORION_GL_DEBUG_NOTIFICATIONS);
         }
     #endif
 
@@ -282,14 +280,13 @@ static const char *kDebugMessageFilters[] = {
  * @param length        Length of the message.
  * @param message       Message text.
  * @param param         User-defined parameter (unused). */
-void GLEWAPIENTRY GLGPUManager::debugCallback(
-    GLenum source,
-    GLenum type,
-    GLuint id,
-    GLenum severity,
-    GLsizei length,
-    const GLchar *message,
-    const GLvoid *param)
+void GLEWAPIENTRY GLGPUManager::debugCallback(GLenum source,
+                                              GLenum type,
+                                              GLuint id,
+                                              GLenum severity,
+                                              GLsizei length,
+                                              const GLchar *message,
+                                              const GLvoid *param)
 {
     for (const char *filter : kDebugMessageFilters) {
         if (std::strstr(message, filter))

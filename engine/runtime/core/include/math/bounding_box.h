@@ -30,16 +30,16 @@ struct BoundingBox {
 public:
     /** Initialise an empty bounding box. */
     BoundingBox() :
-        minimum(0.0f),
-        maximum(0.0f)
+        minimum (0.0f),
+        maximum (0.0f)
     {}
 
     /** Initialise from a minimum/maximum position.
      * @param _minimum      Minimum position.
      * @param _maximum      Maximum position. */
     BoundingBox(const glm::vec3 &_minimum, const glm::vec3 &_maximum) :
-        minimum(_minimum),
-        maximum(_maximum)
+        minimum (_minimum),
+        maximum (_maximum)
     {}
 
     /** Compare this bounding box with another. */

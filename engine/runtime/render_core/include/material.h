@@ -46,11 +46,10 @@ public:
     Shader *shader() const { return m_shader; }
 
     void setDrawState(GPUCommandList *cmdList) const;
-    void setDrawState(
-        GPUCommandList *cmdList,
-        const std::string &passType,
-        size_t index = 0,
-        const ShaderKeywordSet &variation = ShaderKeywordSet()) const;
+    void setDrawState(GPUCommandList *cmdList,
+                      const std::string &passType,
+                      size_t index = 0,
+                      const ShaderKeywordSet &variation = ShaderKeywordSet()) const;
 
     /**
      * Parameter value access.

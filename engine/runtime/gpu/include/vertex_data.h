@@ -120,14 +120,13 @@ struct VertexAttribute {
 
     /** Compare this descriptor with another. */
     bool operator ==(const VertexAttribute &other) const {
-        return
-            semantic == other.semantic &&
-            index == other.index &&
-            type == other.type &&
-            normalised == other.normalised &&
-            components == other.components &&
-            binding == other.binding &&
-            offset == other.offset;
+        return semantic == other.semantic &&
+               index == other.index &&
+               type == other.type &&
+               normalised == other.normalised &&
+               components == other.components &&
+               binding == other.binding &&
+               offset == other.offset;
     }
 
     /** Get a hash from a vertex attribute descriptor. */
@@ -155,15 +154,13 @@ struct GPUVertexDataLayoutDesc {
      * @param numBindings   Number of bindings.
      * @param numAttributes Number of attributes. */
     explicit GPUVertexDataLayoutDesc(size_t numBindings = 0, size_t numAttributes = 0) :
-        bindings(numBindings),
-        attributes(numAttributes)
+        bindings   (numBindings),
+        attributes (numAttributes)
     {}
 
     /** Compare this descriptor with another. */
     bool operator ==(const GPUVertexDataLayoutDesc &other) const {
-        return
-            bindings == other.bindings &&
-            attributes == other.attributes;
+        return bindings == other.bindings && attributes == other.attributes;
     }
 
     /** Get a hash from a vertex data layout descriptor. */

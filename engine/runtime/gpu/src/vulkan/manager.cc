@@ -44,11 +44,10 @@ GPUManager *GPUManager::create(const EngineConfiguration &config, Window *&windo
  * @param layers        Where to store array of layers to enable.
  * @param extensions    Where to store array of extensions to enable.
  * @param features      Features structure to fill in. */
-static void enableInstanceExtensions(
-    VulkanSurface *surface,
-    std::vector<const char *> &layers,
-    std::vector<const char *> &extensions,
-    VulkanFeatures &features)
+static void enableInstanceExtensions(VulkanSurface *surface,
+                                     std::vector<const char *> &layers,
+                                     std::vector<const char *> &extensions,
+                                     VulkanFeatures &features)
 {
     VkResult result;
     uint32_t count;
@@ -66,13 +65,12 @@ static void enableInstanceExtensions(
     HashSet<std::string> availableLayers;
     logInfo("  Instance layers:");
     for (const auto &layer : layerProps) {
-        logInfo(
-            "    %s (spec version %u.%u.%u, revision %u)",
-            layer.layerName,
-            VK_VERSION_MAJOR(layer.specVersion),
-            VK_VERSION_MINOR(layer.specVersion),
-            VK_VERSION_PATCH(layer.specVersion),
-            layer.implementationVersion);
+        logInfo("    %s (spec version %u.%u.%u, revision %u)",
+                layer.layerName,
+                VK_VERSION_MAJOR(layer.specVersion),
+                VK_VERSION_MINOR(layer.specVersion),
+                VK_VERSION_PATCH(layer.specVersion),
+                layer.implementationVersion);
         availableLayers.insert(layer.layerName);
     }
 
@@ -95,9 +93,8 @@ static void enableInstanceExtensions(
 
     /* Check whether we have all required extensions, including the platform-
      * specific surface extension. */
-    extensions.assign(
-        kRequiredInstanceExtensions,
-        &kRequiredInstanceExtensions[arraySize(kRequiredInstanceExtensions)]);
+    extensions.assign(kRequiredInstanceExtensions,
+                      &kRequiredInstanceExtensions[arraySize(kRequiredInstanceExtensions)]);
     extensions.push_back(surface->getPlatformExtensionName());
     for (const char *extension : extensions) {
         if (availableExtensions.find(extension) == availableExtensions.end())
@@ -126,15 +123,15 @@ static const char *kDebugMessageFilters[] = {
 };
 
 /** Vulkan debug report callback. */
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugReportCallback(
-    VkDebugReportFlagsEXT flags,
-    VkDebugReportObjectTypeEXT objectType,
-    uint64_t object,
-    size_t location,
-    int32_t messageCode,
-    const char *pLayerPrefix,
-    const char *pMessage,
-    void *pUserData)
+static VKAPI_ATTR VkBool32 VKAPI_CALL
+debugReportCallback(VkDebugReportFlagsEXT flags,
+                    VkDebugReportObjectTypeEXT objectType,
+                    uint64_t object,
+                    size_t location,
+                    int32_t messageCode,
+                    const char *pLayerPrefix,
+                    const char *pMessage,
+                    void *pUserData)
 {
     for (const char *filter : kDebugMessageFilters) {
         if (std::strstr(pMessage, filter))
@@ -178,7 +175,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugReportCallback(
  * @param config        Engine configuration.
  * @param window        Where to store pointer to created window. */
 VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&window) :
-    m_features()
+    m_features ()
 {
     VkResult result;
 
@@ -220,10 +217,9 @@ VulkanGPUManager::VulkanGPUManager(const EngineConfiguration &config, Window *&w
     #if ORION_VULKAN_VALIDATION
         VkDebugReportCallbackCreateInfoEXT callbackCreateInfo = {};
         callbackCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
-        callbackCreateInfo.flags =
-            VK_DEBUG_REPORT_ERROR_BIT_EXT |
-            VK_DEBUG_REPORT_WARNING_BIT_EXT |
-            VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+        callbackCreateInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT |
+                                   VK_DEBUG_REPORT_WARNING_BIT_EXT |
+                                   VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
         callbackCreateInfo.pfnCallback = debugReportCallback;
 
         m_functions.CreateDebugReportCallbackEXT(
@@ -335,10 +331,9 @@ void VulkanGPUManager::initFeatures() {
         [&] (PixelFormat engineFormat, VkFormat vkFormat) {
             auto &format = m_features.formats[engineFormat];
             format.format = vkFormat;
-            vkGetPhysicalDeviceFormatProperties(
-                m_device->physicalHandle(),
-                vkFormat,
-                &format.properties);
+            vkGetPhysicalDeviceFormatProperties(m_device->physicalHandle(),
+                                                vkFormat,
+                                                &format.properties);
             if (!format.properties.linearTilingFeatures &&
                 !format.properties.optimalTilingFeatures &&
                 !format.properties.bufferFeatures)

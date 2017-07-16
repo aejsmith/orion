@@ -63,9 +63,8 @@ template <typename T>
 static void generateEnumDefinitions(std::string &source) {
     const MetaType::EnumConstantArray &constants = MetaType::lookup<T>().enumConstants();
     for (const MetaType::EnumConstant &constant : constants) {
-        source += String::format(
-            "#define %s %llu\n",
-            constant.first, constant.second);
+        source += String::format("#define %s %llu\n",
+                                 constant.first, constant.second);
     }
 
     source += "\n";
@@ -75,14 +74,15 @@ static void generateEnumDefinitions(std::string &source) {
  * @param source        Source string to modify.
  * @param uniforms      Uniform structure to generate. */
 static void generateUniformBlock(std::string &source, const UniformStruct *uniforms) {
-    source += String::format(
-        "layout(std140, set = %u, binding = %u) uniform %s {\n",
-        uniforms->set, ResourceSlots::kUniforms, uniforms->name);
+    source += String::format("layout(std140, set = %u, binding = %u) uniform %s {\n",
+                             uniforms->set,
+                             ResourceSlots::kUniforms,
+                             uniforms->name);
 
     for (const UniformStructMember &member : uniforms->members()) {
         source += String::format("    %s %s;\n",
-            ShaderParameter::glslType(member.type),
-            member.name);
+                                 ShaderParameter::glslType(member.type),
+                                 member.name);
     }
 
     if (uniforms->instanceName && strlen(uniforms->instanceName)) {
@@ -103,21 +103,16 @@ static std::string generateSource(const ShaderCompiler::Options &options) {
 
     /* For vertex shaders, insert attribute semantic definitions. */
     if (options.stage == ShaderStage::kVertex) {
-        source += String::format(
-            "#define kPositionSemantic %u\n",
-            VertexAttribute::glslIndex(VertexAttribute::kPositionSemantic, 0));
-        source += String::format(
-            "#define kNormalSemantic %u\n",
-            VertexAttribute::glslIndex(VertexAttribute::kNormalSemantic, 0));
-        source += String::format(
-            "#define kTexcoordSemantic %u\n",
-            VertexAttribute::glslIndex(VertexAttribute::kTexcoordSemantic, 0));
-        source += String::format(
-            "#define kDiffuseSemantic %u\n",
-            VertexAttribute::glslIndex(VertexAttribute::kDiffuseSemantic, 0));
-        source += String::format(
-            "#define kSpecularSemantic %u\n\n",
-            VertexAttribute::glslIndex(VertexAttribute::kSpecularSemantic, 0));
+        source += String::format("#define kPositionSemantic %u\n",
+                                 VertexAttribute::glslIndex(VertexAttribute::kPositionSemantic, 0));
+        source += String::format("#define kNormalSemantic %u\n",
+                                 VertexAttribute::glslIndex(VertexAttribute::kNormalSemantic, 0));
+        source += String::format("#define kTexcoordSemantic %u\n",
+                                 VertexAttribute::glslIndex(VertexAttribute::kTexcoordSemantic, 0));
+        source += String::format("#define kDiffuseSemantic %u\n",
+                                 VertexAttribute::glslIndex(VertexAttribute::kDiffuseSemantic, 0));
+        source += String::format("#define kSpecularSemantic %u\n\n",
+                                 VertexAttribute::glslIndex(VertexAttribute::kSpecularSemantic, 0));
     }
 
     /* Add resource set/slot definitions. */
@@ -140,10 +135,11 @@ static std::string generateSource(const ShaderCompiler::Options &options) {
 
     /* Define other parameters (e.g. textures). */
     for (const ShaderCompiler::ParameterDefinition &parameter : options.parameters) {
-        source += String::format(
-            "layout(set = %u, binding = %u) uniform %s %s;\n",
-            ResourceSets::kMaterialResources, parameter.second.resourceSlot,
-            parameter.second.glslType(), parameter.first.c_str());
+        source += String::format("layout(set = %u, binding = %u) uniform %s %s;\n",
+                                 ResourceSets::kMaterialResources,
+                                 parameter.second.resourceSlot,
+                                 parameter.second.glslType(),
+                                 parameter.first.c_str());
     }
     if (!options.parameters.empty())
         source += "\n";
@@ -202,10 +198,9 @@ static bool logSPIRVMessages(const Path &path, const spv::SpvBuildLogger &logger
         const std::string warningPrefix = "warning: ";
         bool warning = !line.compare(0, warningPrefix.length(), warningPrefix);
 
-        logWrite(
-            (warning) ? LogLevel::kWarning : LogLevel::kError,
-            "%s: SPIR-V %s",
-            path.c_str(), line.c_str());
+        logWrite((warning) ? LogLevel::kWarning : LogLevel::kError,
+                 "%s: SPIR-V %s",
+                 path.c_str(), line.c_str());
 
         if (!warning)
             return false;
@@ -228,8 +223,8 @@ public:
         std::string data;
 
         StringResult(const std::string &inName, std::string &&inData) :
-            IncludeResult(inName, nullptr, inData.length(), nullptr),
-            data(std::move(inData))
+            IncludeResult (inName, nullptr, inData.length(), nullptr),
+            data          (std::move(inData))
         {
             /* Bleh. Our data has to be initialised after we call base ctor. */
             const_cast<const char *&>(this->file_data) = this->data.c_str();
@@ -315,11 +310,10 @@ bool ShaderCompiler::compile(const ShaderCompiler::Options &options, std::vector
     const char *sourceName = SourceIncluder::kBuiltInFileName;
     shader.setStringsWithLengthsAndNames(&sourceString, &sourceLength, &sourceName, 1);
     SourceIncluder includer;
-    bool parsed = shader.parse(
-        &glslang::DefaultTBuiltInResource,
-        kTargetGLSLVersion, ENoProfile, false, false,
-        messages,
-        includer);
+    bool parsed = shader.parse(&glslang::DefaultTBuiltInResource,
+                               kTargetGLSLVersion, ENoProfile, false, false,
+                               messages,
+                               includer);
     logGLSLMessages(options.path.c_str(), shader.getInfoLog());
     if (!parsed)
         return false;
@@ -354,9 +348,9 @@ bool ShaderCompiler::compile(const ShaderCompiler::Options &options, std::vector
                 strcmp(dumpEnv, dumpFileName.c_str()) == 0 ||
                 strcmp(dumpEnv, options.path.c_str()) == 0)
             {
-                std::unique_ptr<File> dumpFile(Filesystem::openFile(
-                    dumpFileName,
-                    File::kWrite | File::kCreate | File::kTruncate));
+                std::unique_ptr<File> dumpFile(
+                    Filesystem::openFile(dumpFileName,
+                                         File::kWrite | File::kCreate | File::kTruncate));
                 if (dumpFile)
                     dumpFile->write(&spirv[0], spirv.size() * sizeof(spirv[0]));
             }

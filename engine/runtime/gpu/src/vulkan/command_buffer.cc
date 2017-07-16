@@ -30,13 +30,12 @@
 /** Create a command pool.
  * @param manager       Manager that owns this command pool. */
 VulkanCommandPool::VulkanCommandPool(VulkanGPUManager *manager) :
-    VulkanObject(manager)
+    VulkanObject (manager)
 {
     VkCommandPoolCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    createInfo.flags =
-        VK_COMMAND_POOL_CREATE_TRANSIENT_BIT |
-        VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    createInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT |
+                       VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     createInfo.queueFamilyIndex = manager->device()->queueFamily();
 
     checkVk(vkCreateCommandPool(manager->device()->handle(), &createInfo, nullptr, &m_transientPool));
@@ -92,10 +91,10 @@ void VulkanCommandPool::cleanupFrame(VulkanFrame &frame, bool completed) {
  * @param level         Command buffer level.
  * @param transient     Whether the buffer is transient. */
 VulkanCommandBuffer::VulkanCommandBuffer(VulkanCommandPool *pool, VkCommandBufferLevel level, bool transient) :
-    VulkanHandle(pool->manager()),
-    m_pool(pool),
-    m_transient(transient),
-    m_state(State::kAllocated)
+    VulkanHandle (pool->manager()),
+    m_pool       (pool),
+    m_transient  (transient),
+    m_state      (State::kAllocated)
 {
     // TODO: Always transient for now. Fix in destructor as well.
     check(transient);
@@ -118,9 +117,8 @@ VulkanCommandBuffer::~VulkanCommandBuffer() {
 /** Begin recording a command buffer.
  * @param usage         Usage flags.
  * @param inheritance   For a secondary command buffer, inheritance information. */
-void VulkanCommandBuffer::begin(
-    VkCommandBufferUsageFlags usage,
-    const VkCommandBufferInheritanceInfo *inheritance)
+void VulkanCommandBuffer::begin(VkCommandBufferUsageFlags usage,
+                                const VkCommandBufferInheritanceInfo *inheritance)
 {
     check(m_state == State::kAllocated);
 

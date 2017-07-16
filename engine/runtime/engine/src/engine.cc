@@ -46,10 +46,10 @@ Engine *g_engine = nullptr;
  * @param argc          Command line argument count.
  * @param argv          Command line argument array. */
 Engine::Engine(int argc, char **argv) :
-    m_world(nullptr),
-    m_lastTick(0),
-    m_lastFPS(0),
-    m_frames(0)
+    m_world    (nullptr),
+    m_lastTick (0),
+    m_lastFPS  (0),
+    m_frames   (0)
 {
     check(!g_engine);
     g_engine = this;

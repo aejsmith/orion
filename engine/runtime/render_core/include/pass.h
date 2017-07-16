@@ -78,9 +78,8 @@ public:
 
     bool loadStage(unsigned stage, const Path &path, const ShaderKeywordSet &keywords);
 
-    void setDrawState(
-        GPUCommandList *cmdList,
-        const ShaderKeywordSet &variation = ShaderKeywordSet()) const;
+    void setDrawState(GPUCommandList *cmdList,
+                      const ShaderKeywordSet &variation = ShaderKeywordSet()) const;
 private:
     /** Structure holding a shader variation. */
     struct Variation {

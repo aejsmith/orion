@@ -59,10 +59,10 @@ public:
      * @param inSet         Resource set to bind to in shaders. The slot used is
      *                      the standard ResourceSlots::kUniforms. */
     UniformStruct(const char *inName, const char *inInstance, unsigned inSet) :
-        name(inName),
-        instanceName(inInstance),
-        set(inSet),
-        m_size(0)
+        name         (inName),
+        instanceName (inInstance),
+        set          (inSet),
+        m_size       (0)
     {}
 
     UniformStruct(const char *inName, const char *inInstance, unsigned inSet, size_t size, InitFunc init);

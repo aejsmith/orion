@@ -241,9 +241,8 @@ Type *Entity::createComponent(Args &&...args) {
  */
 template <typename Type>
 inline Type *Entity::findComponent(bool exactClass) const {
-    static_assert(
-        std::is_base_of<Component, Type>::value,
-        "Type must be derived from Component");
+    static_assert(std::is_base_of<Component, Type>::value,
+                  "Type must be derived from Component");
 
     return static_cast<Type *>(findComponent(Type::staticMetaClass));
 }

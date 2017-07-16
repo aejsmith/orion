@@ -30,10 +30,9 @@ class VulkanQueue : public VulkanHandle<VkQueue> {
 public:
     VulkanQueue(VulkanGPUManager *manager, uint32_t queueFamily, uint32_t index);
 
-    void submit(
-        VulkanCommandBuffer *cmdBuf,
-        VulkanSemaphore *wait = nullptr,
-        VkPipelineStageFlags waitStages = 0,
-        VulkanSemaphore *signal = nullptr,
-        VulkanFence *fence = nullptr);
+    void submit(VulkanCommandBuffer *cmdBuf,
+                VulkanSemaphore *wait = nullptr,
+                VkPipelineStageFlags waitStages = 0,
+                VulkanSemaphore *signal = nullptr,
+                VulkanFence *fence = nullptr);
 };

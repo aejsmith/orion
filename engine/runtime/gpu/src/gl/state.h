@@ -46,9 +46,9 @@ struct GLState {
     class BufferBindings {
     public:
         BufferBindings() :
-            m_arrayBuffer(0),
-            m_elementArrayBuffer(0),
-            m_uniformBuffer(0)
+            m_arrayBuffer        (0),
+            m_elementArrayBuffer (0),
+            m_uniformBuffer      (0)
         {}
 
         /** @return             Current binding for the specified target. */
@@ -77,9 +77,9 @@ struct GLState {
         GLuint sampler;
     public:
         TextureUnit() :
-            target(GL_NONE),
-            texture(0),
-            sampler(0)
+            target  (GL_NONE),
+            texture (0),
+            sampler (0)
         {}
     };
 public:

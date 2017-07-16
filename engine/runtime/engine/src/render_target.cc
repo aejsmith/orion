@@ -34,11 +34,11 @@
  * @param priority      Rendering priority.
  */
 RenderLayer::RenderLayer(unsigned priority) :
-    m_renderTarget(nullptr),
-    m_viewport(0.0f, 0.0f, 1.0f, 1.0f),
-    m_pixelViewport(0, 0, 0, 0),
-    m_priority(priority),
-    m_registered(false)
+    m_renderTarget  (nullptr),
+    m_viewport      (0.0f, 0.0f, 1.0f, 1.0f),
+    m_pixelViewport (0, 0, 0, 0),
+    m_priority      (priority),
+    m_registered    (false)
 {}
 
 /** Destroy the layer. */
@@ -83,11 +83,10 @@ void RenderLayer::setViewport(const Rect &viewport) {
     uint32_t targetWidth = m_renderTarget->width();
     uint32_t targetHeight = m_renderTarget->height();
 
-    m_pixelViewport = IntRect(
-        m_viewport.x * static_cast<float>(targetWidth),
-        m_viewport.y * static_cast<float>(targetHeight),
-        m_viewport.width * static_cast<float>(targetWidth),
-        m_viewport.height * static_cast<float>(targetHeight));
+    m_pixelViewport = IntRect(m_viewport.x * static_cast<float>(targetWidth),
+                              m_viewport.y * static_cast<float>(targetHeight),
+                              m_viewport.width * static_cast<float>(targetWidth),
+                              m_viewport.height * static_cast<float>(targetHeight));
 
     viewportChanged();
 }
@@ -168,10 +167,10 @@ GPUCommandList *RenderLayer::beginLayerRenderPass(GPURenderLoadOp loadOp, const 
  * @param format        Pixel format of the render target.
  * @param priority      Rendering priority. */
 RenderTarget::RenderTarget(uint32_t width, uint32_t height, PixelFormat format, unsigned priority) :
-    m_width(width),
-    m_height(height),
-    m_format(format),
-    m_priority(priority)
+    m_width    (width),
+    m_height   (height),
+    m_format   (format),
+    m_priority (priority)
 {}
 
 /** Destroy the render target. */

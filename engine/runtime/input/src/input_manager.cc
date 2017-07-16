@@ -31,8 +31,8 @@ InputManager *g_inputManager;
 
 /** Initialise the input manager. */
 InputManager::InputManager() :
-    m_mouseCaptured(false),
-    m_textInputHandler(nullptr)
+    m_mouseCaptured    (false),
+    m_textInputHandler (nullptr)
 {
     SDL_StopTextInput();
 }
@@ -151,8 +151,8 @@ bool InputManager::handleEvent(SDL_Event *event) {
              * keycodes are defined to ASCII values if they have a printable
              * representation, or the scancode with bit 30 set otherwise. */
             char character = (!(event->key.keysym.sym & SDLK_SCANCODE_MASK))
-                ? event->key.keysym.sym
-                : 0;
+                                 ? event->key.keysym.sym
+                                 : 0;
 
             ButtonEvent buttonEvent(inputInfo, modifiers, character);
 

@@ -30,9 +30,9 @@ struct InputInfo {
     InputType type;                 /**< Type of the input. */
 public:
     InputInfo(InputCode inCode, const char *inName, InputType inType) :
-        code(inCode),
-        name(inName),
-        type(inType)
+        code (inCode),
+        name (inName),
+        type (inType)
     {}
 
     static const InputInfo *lookup(InputCode code);

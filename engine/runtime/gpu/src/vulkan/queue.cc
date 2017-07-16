@@ -38,12 +38,11 @@ VulkanQueue::VulkanQueue(VulkanGPUManager *manager, uint32_t queueFamily, uint32
  * @param waitStages    Pipeline stages wait should take place at.
  * @param signal        Optional semaphore to signal after execution is complete.
  * @param fence         Optional fence to signal upon completion. */
-void VulkanQueue::submit(
-    VulkanCommandBuffer *cmdBuf,
-    VulkanSemaphore *wait,
-    VkPipelineStageFlags waitStages,
-    VulkanSemaphore *signal,
-    VulkanFence *fence)
+void VulkanQueue::submit(VulkanCommandBuffer *cmdBuf,
+                         VulkanSemaphore *wait,
+                         VkPipelineStageFlags waitStages,
+                         VulkanSemaphore *signal,
+                         VulkanFence *fence)
 {
     check(cmdBuf->m_state == VulkanCommandBuffer::State::kRecorded);
 
@@ -61,10 +60,9 @@ void VulkanQueue::submit(
     VkSemaphore signalHandle = (signal) ? signal->handle() : VK_NULL_HANDLE;
     submitInfo.pSignalSemaphores = &signalHandle;
 
-    checkVk(vkQueueSubmit(
-        m_handle,
-        1, &submitInfo,
-        (fence) ? fence->handle() : VK_NULL_HANDLE));
+    checkVk(vkQueueSubmit(m_handle,
+                          1, &submitInfo,
+                          (fence) ? fence->handle() : VK_NULL_HANDLE));
 
     cmdBuf->m_state = VulkanCommandBuffer::State::kSubmitted;
 }

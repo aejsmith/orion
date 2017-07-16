@@ -46,7 +46,7 @@ struct GPUResourceSetLayoutDesc {
     /** Initialise with pre-allocated arrays.
      * @param numSlots      Number of slots to allocate. */
     explicit GPUResourceSetLayoutDesc(size_t numSlots = 0) :
-        slots(numSlots)
+        slots (numSlots)
     {}
 };
 
@@ -93,7 +93,7 @@ public:
         GPUSamplerStatePtr sampler;
 
         Slot(const GPUResourceSetLayoutDesc::Slot &inDesc) :
-            desc(inDesc)
+            desc (inDesc)
         {}
     };
 

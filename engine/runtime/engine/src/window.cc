@@ -34,16 +34,18 @@ Window *g_mainWindow;
  * @param sdlFlags      Additional SDL window flags.
  * @param format        Format of the window. */
 Window::Window(const EngineConfiguration &config, uint32_t sdlFlags, PixelFormat format) :
-    RenderTarget(config.displayWidth, config.displayHeight, format, kWindowPriority)
+    RenderTarget (config.displayWidth,
+                  config.displayHeight,
+                  format,
+                  kWindowPriority)
 {
     if (config.displayFullscreen)
         sdlFlags |= SDL_WINDOW_FULLSCREEN;
 
-    m_sdlWindow = SDL_CreateWindow(
-        config.title.c_str(),
-        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        config.displayWidth, config.displayHeight,
-        sdlFlags);
+    m_sdlWindow = SDL_CreateWindow(config.title.c_str(),
+                                   SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                                   config.displayWidth, config.displayHeight,
+                                   sdlFlags);
     if (!m_sdlWindow)
         fatal("Failed to create main window: %s", SDL_GetError());
 }

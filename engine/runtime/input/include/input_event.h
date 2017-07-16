@@ -30,9 +30,9 @@ struct InputEvent {
     uint32_t modifiers;             /**< Current modifier state (bitmap of InputModifier values). */
 public:
     InputEvent(const InputInfo *inInfo, uint32_t inModifiers) :
-        code(inInfo->code),
-        info(inInfo),
-        modifiers(inModifiers)
+        code      (inInfo->code),
+        info      (inInfo),
+        modifiers (inModifiers)
     {}
 };
 
@@ -49,8 +49,8 @@ struct ButtonEvent : InputEvent {
     char character;
 public:
     ButtonEvent(const InputInfo *inInfo, uint32_t inModifiers, char inCharacter) :
-        InputEvent(inInfo, inModifiers),
-        character(inCharacter)
+        InputEvent (inInfo, inModifiers),
+        character  (inCharacter)
     {}
 };
 
@@ -67,8 +67,8 @@ struct AxisEvent : InputEvent {
     float delta;
 public:
     AxisEvent(const InputInfo *inInfo, uint32_t inModifiers, float inDelta) :
-        InputEvent(inInfo, inModifiers),
-        delta(inDelta)
+        InputEvent (inInfo, inModifiers),
+        delta      (inDelta)
     {}
 };
 
@@ -78,6 +78,6 @@ struct TextInputEvent {
     std::string text;
 public:
     TextInputEvent(std::string inText) :
-        text(std::move(inText))
+        text (std::move(inText))
     {}
 };

@@ -27,7 +27,7 @@
 /** Initialise a render pass object.
  * @param desc          Descriptor for the render pass. */
 GPURenderPass::GPURenderPass(GPURenderPassDesc &&desc) :
-    GPUState(std::move(desc))
+    GPUState (std::move(desc))
 {
     check(m_desc.colourAttachments.size() <= kMaxColourRenderTargets);
     check(m_desc.colourAttachments.size() > 0 || m_desc.depthStencilAttachment);

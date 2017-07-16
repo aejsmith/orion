@@ -36,8 +36,8 @@ template <typename Function>
 class ScopeGuard {
 public:
     ScopeGuard(Function f) :
-        m_function(std::move(f)),
-        m_active(true)
+        m_function (std::move(f)),
+        m_active   (true)
     {}
 
     ~ScopeGuard() {
@@ -46,8 +46,8 @@ public:
     }
 
     ScopeGuard(ScopeGuard &&other) :
-        m_function(std::move(other.m_function)),
-        m_active(other.m_active)
+        m_function (std::move(other.m_function)),
+        m_active   (other.m_active)
     {
         other.cancel();
     }

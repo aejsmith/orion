@@ -34,29 +34,26 @@ static void setAttachment(GLenum attachment, const GPUTextureImageRef &texture) 
 
     switch (glTexture->glTarget()) {
         case GL_TEXTURE_2D:
-            glFramebufferTexture2D(
-                GL_DRAW_FRAMEBUFFER,
-                attachment,
-                glTexture->glTarget(),
-                glTexture->texture(),
-                texture.mip);
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER,
+                                   attachment,
+                                   glTexture->glTarget(),
+                                   glTexture->texture(),
+                                   texture.mip);
             break;
         case GL_TEXTURE_CUBE_MAP:
-            glFramebufferTexture2D(
-                GL_DRAW_FRAMEBUFFER,
-                attachment,
-                GL_TEXTURE_CUBE_MAP_POSITIVE_X + texture.layer,
-                glTexture->texture(),
-                texture.mip);
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER,
+                                   attachment,
+                                   GL_TEXTURE_CUBE_MAP_POSITIVE_X + texture.layer,
+                                   glTexture->texture(),
+                                   texture.mip);
             break;
         case GL_TEXTURE_2D_ARRAY:
         case GL_TEXTURE_3D:
-            glFramebufferTextureLayer(
-                GL_DRAW_FRAMEBUFFER,
-                attachment,
-                glTexture->texture(),
-                texture.mip,
-                texture.layer);
+            glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER,
+                                      attachment,
+                                      glTexture->texture(),
+                                      texture.mip,
+                                      texture.layer);
             break;
         default:
             fatal("Unhandled texture render target type");

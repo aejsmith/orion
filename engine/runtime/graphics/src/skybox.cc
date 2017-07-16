@@ -44,7 +44,7 @@ private:
 /** Initialize the entity
  * @param parent        Parent skybox. */
 SkyboxRenderEntity::SkyboxRenderEntity(Skybox *parent) :
-    m_parent(parent)
+    m_parent (parent)
 {
     /* Don't want to cull the skybox. */
     BoundingBox boundingBox(glm::vec3(-FLT_MAX), glm::vec3(FLT_MAX));

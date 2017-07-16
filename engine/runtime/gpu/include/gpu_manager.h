@@ -130,12 +130,11 @@ public:
      * @param destPos       Position in destination texture to copy to.
      * @param size          Size of area to copy.
      */
-    virtual void blit(
-        const GPUTextureImageRef &source,
-        const GPUTextureImageRef &dest,
-        glm::ivec2 sourcePos,
-        glm::ivec2 destPos,
-        glm::ivec2 size) = 0;
+    virtual void blit(const GPUTextureImageRef &source,
+                      const GPUTextureImageRef &dest,
+                      glm::ivec2 sourcePos,
+                      glm::ivec2 destPos,
+                      glm::ivec2 size) = 0;
 
     /**
      * Render pass methods.

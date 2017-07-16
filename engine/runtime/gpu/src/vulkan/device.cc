@@ -31,8 +31,8 @@ static const char *kRequiredDeviceExtensions[] = {
  * @param manager        Manager that owns this device.
  * @param physicalDevice Physical device this object corresponds to. */
 VulkanDevice::VulkanDevice(VulkanGPUManager *manager, VkPhysicalDevice physicalDevice) :
-    VulkanHandle(manager),
-    m_physicalHandle(physicalDevice)
+    VulkanHandle     (manager),
+    m_physicalHandle (physicalDevice)
 {}
 
 /** Destroy the device. */
@@ -66,9 +66,9 @@ bool VulkanDevice::identify(VulkanSurface *surface, VulkanFeatures &features) {
     }
 
     logInfo("    API version: %u.%u.%u",
-        VK_VERSION_MAJOR(m_properties.apiVersion),
-        VK_VERSION_MINOR(m_properties.apiVersion),
-        VK_VERSION_PATCH(m_properties.apiVersion));
+            VK_VERSION_MAJOR(m_properties.apiVersion),
+            VK_VERSION_MINOR(m_properties.apiVersion),
+            VK_VERSION_PATCH(m_properties.apiVersion));
     logInfo("    Vendor:      0x%x (%s)", m_properties.vendorID, vendorString);
     logInfo("    Device:      0x%x (%s)", m_properties.deviceID, m_properties.deviceName);
 
@@ -90,9 +90,8 @@ bool VulkanDevice::identify(VulkanSurface *surface, VulkanFeatures &features) {
     }
 
     /* Check whether we have all required extensions, */
-    m_extensions.assign(
-        kRequiredDeviceExtensions,
-        &kRequiredDeviceExtensions[arraySize(kRequiredDeviceExtensions)]);
+    m_extensions.assign(kRequiredDeviceExtensions,
+                        &kRequiredDeviceExtensions[arraySize(kRequiredDeviceExtensions)]);
     for (const char *extension : m_extensions) {
         if (availableExtensions.find(extension) == availableExtensions.end()) {
             logWarning("    Required device extension '%s' not available", extension);
@@ -119,17 +118,15 @@ bool VulkanDevice::identify(VulkanSurface *surface, VulkanFeatures &features) {
 
         for (uint32_t i = 0; i < count; i++) {
             /* Check for graphics support. */
-            bool graphicsSupported =
-                queueFamilyProps[i].queueCount > 0 &&
-                queueFamilyProps[i].queueFlags & VK_QUEUE_GRAPHICS_BIT;
+            bool graphicsSupported = queueFamilyProps[i].queueCount > 0 &&
+                                     queueFamilyProps[i].queueFlags & VK_QUEUE_GRAPHICS_BIT;
 
             /* Check support for presentation to our surface. */
             VkBool32 presentSupported = false;
-            vkGetPhysicalDeviceSurfaceSupportKHR(
-                m_physicalHandle,
-                i,
-                surface->handle(),
-                &presentSupported);
+            vkGetPhysicalDeviceSurfaceSupportKHR(m_physicalHandle,
+                                                 i,
+                                                 surface->handle(),
+                                                 &presentSupported);
 
             if (graphicsSupported && presentSupported) {
                 m_queueFamily = i;

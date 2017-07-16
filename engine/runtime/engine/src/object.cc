@@ -91,14 +91,12 @@ static auto &metaClassMap() {
  * @param parent        Parent meta-class.
  * @param constructor   Constructor function (if constructable).
  * @param properties    Array of properties. */
-MetaClass::MetaClass(
-    const char *name,
-    size_t size,
-    uint32_t traits,
-    const MetaClass *parent,
-    ConstructorFunction constructor,
-    const PropertyArray &properties)
-    :
+MetaClass::MetaClass(const char *name,
+                     size_t size,
+                     uint32_t traits,
+                     const MetaClass *parent,
+                     ConstructorFunction constructor,
+                     const PropertyArray &properties) :
     MetaType      (name, size, traits | MetaType::kIsObject, parent),
     m_constructor (constructor),
     m_properties  (properties)
@@ -143,10 +141,9 @@ bool MetaClass::isBaseOf(const MetaClass &other) const {
  * @return              Pointer to constructed object.
  */
 ObjectPtr<Object> MetaClass::construct() const {
-    checkMsg(
-        m_traits & kIsPublicConstructable,
-        "Attempt to construct object of class '%s' which is not publically constructable",
-        m_name);
+    checkMsg(m_traits & kIsPublicConstructable,
+             "Attempt to construct object of class '%s' which is not publically constructable",
+             m_name);
     return m_constructor();
 }
 
@@ -160,10 +157,9 @@ ObjectPtr<Object> MetaClass::construct() const {
  * @return              Pointer to constructed object.
  */
 ObjectPtr<Object> MetaClass::constructPrivate() const {
-    checkMsg(
-        m_traits & kIsConstructable,
-        "Attempt to construct object of class '%s' which is not constructable",
-        m_name);
+    checkMsg(m_traits & kIsConstructable,
+             "Attempt to construct object of class '%s' which is not constructable",
+             m_name);
     return m_constructor();
 }
 
@@ -212,13 +208,11 @@ void MetaClass::visit(const std::function<void (const MetaClass &)> &function) {
  * @param type          Type of the property.
  * @param getFunction   Function to get the property value.
  * @param setFunction   Function to set the property value. */
-MetaProperty::MetaProperty(
-    const char *name,
-    const MetaType &type,
-    uint32_t flags,
-    GetFunction getFunction,
-    SetFunction setFunction)
-    :
+MetaProperty::MetaProperty(const char *name,
+                           const MetaType &type,
+                           uint32_t flags,
+                           GetFunction getFunction,
+                           SetFunction setFunction) :
     m_name        (name),
     m_type        (type),
     m_flags       (flags),
@@ -232,10 +226,9 @@ MetaProperty::MetaProperty(
  * @param type          Requested type.
  * @return              Pointer to property if found and correct type, null
  *                      otherwise. */
-static const MetaProperty *lookupAndCheckProperty(
-    const MetaClass &metaClass,
-    const char *name,
-    const MetaType &type)
+static const MetaProperty *lookupAndCheckProperty(const MetaClass &metaClass,
+                                                  const char *name,
+                                                  const MetaType &type)
 {
     const MetaProperty *property = metaClass.lookupProperty(name);
     if (!property) {
@@ -244,9 +237,8 @@ static const MetaProperty *lookupAndCheckProperty(
     }
 
     if (&type != &property->type()) {
-        logError(
-            "Type mismatch accessing property '%s' on class '%s', requested '%s', actual '%s'",
-            name, metaClass.name(), type.name(), property->type().name());
+        logError("Type mismatch accessing property '%s' on class '%s', requested '%s', actual '%s'",
+                 name, metaClass.name(), type.name(), property->type().name());
         return nullptr;
     }
 
@@ -296,8 +288,8 @@ struct SerialisationBuffer {
     uint8_t *data;
 
     SerialisationBuffer(const MetaType &inType) :
-        type(&inType),
-        data(new uint8_t[type->size()])
+        type (&inType),
+        data (new uint8_t[type->size()])
     {
         if (this->type == &MetaType::lookup<std::string>()) {
             new (data) std::string();

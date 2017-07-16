@@ -35,11 +35,10 @@ VulkanProgram::VulkanProgram(VulkanGPUManager *manager, GPUProgramDesc &&desc) :
     createInfo.codeSize = desc.spirv.size() * sizeof(desc.spirv[0]);
     createInfo.pCode = &desc.spirv[0];
 
-    checkVk(vkCreateShaderModule(
-        manager->device()->handle(),
-        &createInfo,
-        nullptr,
-        &m_handle));
+    checkVk(vkCreateShaderModule(manager->device()->handle(),
+                                 &createInfo,
+                                 nullptr,
+                                 &m_handle));
 }
 
 /** Destroy the program. */

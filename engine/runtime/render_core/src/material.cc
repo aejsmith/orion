@@ -25,14 +25,14 @@
 
 /** Private default constructor for deserialisation. */
 Material::Material() :
-    m_uniforms(nullptr)
+    m_uniforms (nullptr)
 {}
 
 /** Create a new material.
  * @param shader        Shader to use for the material. */
 Material::Material(Shader *shader) :
-    m_shader(shader),
-    m_uniforms(nullptr)
+    m_shader   (shader),
+    m_uniforms (nullptr)
 {
     check(shader);
     createResources();
@@ -164,11 +164,10 @@ void Material::setDrawState(GPUCommandList *cmdList) const {
  * @param index         Index of the pass.
  * @param variation     Variation to use. This should be a valid variation for
  *                      the given pass type. */
-void Material::setDrawState(
-    GPUCommandList *cmdList,
-    const std::string &passType,
-    size_t index,
-    const ShaderKeywordSet &variation) const
+void Material::setDrawState(GPUCommandList *cmdList,
+                            const std::string &passType,
+                            size_t index,
+                            const ShaderKeywordSet &variation) const
 {
     setDrawState(cmdList);
 
@@ -187,8 +186,8 @@ void Material::getValue(const char *name, ShaderParameter::Type type, void *buf)
 
     if (param->isTexture()) {
         Asset *asset = (m_resourceAssets.size() > param->resourceSlot)
-            ? m_resourceAssets[param->resourceSlot].get()
-            : nullptr;
+                           ? m_resourceAssets[param->resourceSlot].get()
+                           : nullptr;
 
         switch (param->type) {
             case ShaderParameter::Type::kTexture2D:
@@ -270,9 +269,9 @@ void Material::setGPUTexture(const char *name, GPUTexture *texture, GPUSamplerSt
             return;
     }
 
-    checkMsg(
-        parameter->type == expected,
-        "Incorrect type for parameter '%s' in '%s'", name, m_shader->path().c_str());
+    checkMsg(parameter->type == expected,
+             "Incorrect type for parameter '%s' in '%s'",
+             name, m_shader->path().c_str());
 
     if (m_resourceAssets.size() > parameter->resourceSlot)
         m_resourceAssets[parameter->resourceSlot] = nullptr;

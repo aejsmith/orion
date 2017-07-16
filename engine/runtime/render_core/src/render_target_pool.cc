@@ -60,11 +60,10 @@ RenderTargetPool::Handle RenderTargetPool::allocate(const GPUTextureDesc &desc) 
         }
     }
 
-    logDebug(
-        "Allocating new %ux%ux%u temporary render target of type %d",
-        desc.width, desc.height,
-        (desc.type == GPUTexture::kTexture2DArray || desc.type == GPUTexture::kTexture3D) ? desc.depth : 0,
-        desc.type);
+    logDebug("Allocating new %ux%ux%u temporary render target of type %d",
+             desc.width, desc.height,
+             (desc.type == GPUTexture::kTexture2DArray || desc.type == GPUTexture::kTexture3D) ? desc.depth : 0,
+             desc.type);
 
     /* Nothing found, create a new texture. */
     ReferencePtr<Target> target = new Target;
@@ -83,11 +82,11 @@ void RenderTargetPool::frameStarted() {
         if (target->refcount() == 1) {
             if (target->unusedFrames == kNumUnusedFramesBeforeFree) {
                 const GPUTextureDesc &desc = it->first;
-                logDebug(
-                    "Releasing unused %ux%ux%u temporary render target of type %d",
-                    desc.width, desc.height,
-                    (desc.type == GPUTexture::kTexture2DArray || desc.type == GPUTexture::kTexture3D) ? desc.depth : 0,
-                    desc.type);
+
+                logDebug("Releasing unused %ux%ux%u temporary render target of type %d",
+                         desc.width, desc.height,
+                         (desc.type == GPUTexture::kTexture2DArray || desc.type == GPUTexture::kTexture3D) ? desc.depth : 0,
+                         desc.type);
 
                 it = m_pool.erase(it);
                 continue;

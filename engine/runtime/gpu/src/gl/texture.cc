@@ -29,8 +29,8 @@
 /** Initialize a new texture.
  * @param desc          Texture descriptor. */
 GLTexture::GLTexture(const GPUTextureDesc &desc) :
-    GPUTexture(desc),
-    m_glTarget(GLUtil::convertTextureType(desc.type))
+    GPUTexture (desc),
+    m_glTarget (GLUtil::convertTextureType(desc.type))
 {
     glGenTextures(1, &m_texture);
     bindForModification();
@@ -42,19 +42,17 @@ GLTexture::GLTexture(const GPUTextureDesc &desc) :
     switch (desc.type) {
         case kTexture2D:
         case kTextureCube:
-            glTexStorage2D(
-                m_glTarget,
-                m_mips,
-                g_opengl->pixelFormats[m_format].internalFormat,
-                m_width, m_height);
+            glTexStorage2D(m_glTarget,
+                           m_mips,
+                           g_opengl->pixelFormats[m_format].internalFormat,
+                           m_width, m_height);
             break;
         case kTexture2DArray:
         case kTexture3D:
-            glTexStorage3D(
-                m_glTarget,
-                m_mips,
-                g_opengl->pixelFormats[m_format].internalFormat,
-                m_width, m_height, m_depth);
+            glTexStorage3D(m_glTarget,
+                           m_mips,
+                           g_opengl->pixelFormats[m_format].internalFormat,
+                           m_width, m_height, m_depth);
             break;
     }
 }
@@ -63,21 +61,20 @@ GLTexture::GLTexture(const GPUTextureDesc &desc) :
  * @param image         Image to create the view for.
  * @return              Pointer to created texture view. */
 GLTexture::GLTexture(const GPUTextureImageRef &image) :
-    GPUTexture(image),
-    m_glTarget(GLUtil::convertTextureType(m_type))
+    GPUTexture (image),
+    m_glTarget (GLUtil::convertTextureType(m_type))
 {
     GLTexture *source = static_cast<GLTexture *>(image.texture);
 
     glGenTextures(1, &m_texture);
-    glTextureView(
-        m_texture,
-        m_glTarget,
-        source->m_texture,
-        g_opengl->pixelFormats[m_format].internalFormat,
-        image.mip,
-        1,
-        image.layer,
-        1);
+    glTextureView(m_texture,
+                  m_glTarget,
+                  source->m_texture,
+                  g_opengl->pixelFormats[m_format].internalFormat,
+                  image.mip,
+                  1,
+                  image.layer,
+                  1);
 
     bindForModification();
     glTexParameteri(m_glTarget, GL_TEXTURE_MAX_LEVEL, m_mips - 1);
@@ -102,10 +99,9 @@ void GLTexture::bind(unsigned index) {
 void GLTexture::bindForModification() {
     /* We reserve the last available texture unit to bind textures to when
      * modifying them, rather than when using them for rendering. */
-    g_opengl->state.bindTexture(
-        g_opengl->features.maxTextureUnits - 1,
-        m_glTarget,
-        m_texture);
+    g_opengl->state.bindTexture(g_opengl->features.maxTextureUnits - 1,
+                                m_glTarget,
+                                m_texture);
 }
 
 /** Update 2D texture area.
@@ -124,25 +120,23 @@ void GLTexture::update(const IntRect &area, const void *data, unsigned mip, unsi
     bindForModification();
 
     if (m_type == kTexture2DArray) {
-        glTexSubImage3D(
-            m_glTarget, 
-            mip,
-            area.x, area.y, layer, area.width, area.height, 1,
-            g_opengl->pixelFormats[m_format].format,
-            g_opengl->pixelFormats[m_format].type,
-            data);
+        glTexSubImage3D(m_glTarget, 
+                        mip,
+                        area.x, area.y, layer, area.width, area.height, 1,
+                        g_opengl->pixelFormats[m_format].format,
+                        g_opengl->pixelFormats[m_format].type,
+                        data);
     } else {
         GLenum target = (m_type == kTextureCube)
-            ? GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer
-            : m_glTarget;
+                            ? GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer
+                            : m_glTarget;
 
-        glTexSubImage2D(
-            target, 
-            mip,
-            area.x, area.y, area.width, area.height,
-            g_opengl->pixelFormats[m_format].format,
-            g_opengl->pixelFormats[m_format].type,
-            data);
+        glTexSubImage2D(target, 
+                        mip,
+                        area.x, area.y, area.width, area.height,
+                        g_opengl->pixelFormats[m_format].format,
+                        g_opengl->pixelFormats[m_format].type,
+                        data);
     }
 }
 
@@ -159,13 +153,12 @@ void GLTexture::update(const IntBox &area, const void *data, unsigned mip) {
 
     bindForModification();
 
-    glTexSubImage3D(
-        m_glTarget, 
-        mip,
-        area.x, area.y, area.z, area.width, area.height, area.depth,
-        g_opengl->pixelFormats[m_format].format,
-        g_opengl->pixelFormats[m_format].type,
-        data);
+    glTexSubImage3D(m_glTarget, 
+                    mip,
+                    area.x, area.y, area.z, area.width, area.height, area.depth,
+                    g_opengl->pixelFormats[m_format].format,
+                    g_opengl->pixelFormats[m_format].type,
+                    data);
 }
 
 /** Generate mipmap images. */

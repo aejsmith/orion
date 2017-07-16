@@ -25,9 +25,9 @@
 /** Initialize a new GL buffer.
  * @param desc          Descriptor for the buffer. */
 GLBuffer::GLBuffer(const GPUBufferDesc &desc) :
-    GPUBuffer(desc),
-    m_glTarget(GLUtil::convertBufferType(m_type)),
-    m_glUsage(GLUtil::convertBufferUsage(m_usage))
+    GPUBuffer  (desc),
+    m_glTarget (GLUtil::convertBufferType(m_type)),
+    m_glUsage  (GLUtil::convertBufferUsage(m_usage))
 {
     glGenBuffers(1, &m_buffer);
 

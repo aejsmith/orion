@@ -50,18 +50,17 @@ struct VulkanCommandState {
     std::array<VkDescriptorSet, ResourceSets::kNumResourceSets> descriptorSets;
 
     explicit VulkanCommandState(const GPUCommandList::State &inPending) :
-        pending(inPending),
-        cmdBuf(nullptr)
+        pending (inPending),
+        cmdBuf  (nullptr)
     {}
 };
 
 /** Vulkan command list implementation. */
 class VulkanCommandList : public GPUCommandList, public VulkanObject {
 public:
-    VulkanCommandList(
-        VulkanGPUManager *manager,
-        GPURenderPassInstance *passInstance,
-        const VulkanFramebuffer *framebuffer);
+    VulkanCommandList(VulkanGPUManager *manager,
+                      GPURenderPassInstance *passInstance,
+                      const VulkanFramebuffer *framebuffer);
     VulkanCommandList(VulkanGPUManager *manager, GPUCommandList *parent, uint32_t inherit);
     ~VulkanCommandList();
 

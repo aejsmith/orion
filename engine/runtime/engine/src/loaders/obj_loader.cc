@@ -108,9 +108,9 @@ private:
 
 /** Initialize the OBJ loader. */
 OBJLoader::OBJLoader() :
-    m_currentLine(0),
-    m_currentMaterial("default"),
-    m_currentSubMesh(nullptr)
+    m_currentLine     (0),
+    m_currentMaterial ("default"),
+    m_currentSubMesh  (nullptr)
 {}
 
 /** Load an OBJ file.
@@ -175,8 +175,8 @@ AssetPtr OBJLoader::load() {
 
     /* Create the vertex buffer. */
     auto vertexDataDesc = GPUVertexDataDesc().
-        setCount(m_vertices.size()).
-        setLayout(g_renderResources->simpleVertexDataLayout());
+        setCount  (m_vertices.size()).
+        setLayout (g_renderResources->simpleVertexDataLayout());
     vertexDataDesc.buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, m_vertices);
     mesh->sharedVertices = g_gpuManager->createVertexData(std::move(vertexDataDesc));
 
@@ -190,9 +190,9 @@ AssetPtr OBJLoader::load() {
 
         /* Create an index buffer. */
         auto indexDataDesc = GPUIndexDataDesc().
-            setBuffer(RenderUtil::buildGPUBuffer(GPUBuffer::kIndexBuffer, desc.indices)).
-            setType(GPUIndexData::kUnsignedShortType).
-            setCount(desc.indices.size());
+            setBuffer (RenderUtil::buildGPUBuffer(GPUBuffer::kIndexBuffer, desc.indices)).
+            setType   (GPUIndexData::kUnsignedShortType).
+            setCount  (desc.indices.size());
         subMesh->indices = g_gpuManager->createIndexData(std::move(indexDataDesc));
 
         subMesh->boundingBox = desc.boundingBox;
@@ -212,9 +212,8 @@ AssetPtr OBJLoader::load() {
  * @param array         Array to add to.
  * @return              Whether the declaration was valid. */
 template <typename VectorType>
-bool OBJLoader::addVertexElement(
-    const std::vector<std::string> &tokens,
-    std::vector<VectorType> &array)
+bool OBJLoader::addVertexElement(const std::vector<std::string> &tokens,
+                                 std::vector<VectorType> &array)
 {
     VectorType value;
 
@@ -311,10 +310,9 @@ bool OBJLoader::addFace(const std::vector<std::string> &tokens) {
             /* We succeeded in adding a new element, this means this is a new
              * vertex. Add one. */
             ret.first->second = m_vertices.size();
-            m_vertices.emplace_back(
-                m_positions[key.position],
-                m_normals[key.normal],
-                m_texcoords[key.texcoord]);
+            m_vertices.emplace_back(m_positions[key.position],
+                                    m_normals[key.normal],
+                                    m_texcoords[key.texcoord]);
         }
 
         /* Record minimum and maximum positions for bounding box calculation. */

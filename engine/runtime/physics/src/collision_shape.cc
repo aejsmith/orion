@@ -36,7 +36,7 @@
  * the scale will be marked as changed.
  */
 CollisionShape::CollisionShape() :
-    m_rigidBody(nullptr)
+    m_rigidBody (nullptr)
 {}
 
 /** Destroy the collision shape. */
@@ -107,7 +107,7 @@ CollisionShape *CollisionShape::fromBtShape(btCollisionShape *btShape) {
  * direction.
  */
 BoxCollisionShape::BoxCollisionShape() :
-    m_halfExtents(0.5f, 0.5f, 0.5f)
+    m_halfExtents (0.5f, 0.5f, 0.5f)
 {}
 
 /** Set the half extents of the box.
@@ -151,9 +151,8 @@ void CapsuleCollisionShape::setHalfHeight(float halfHeight) {
 /** Update the Bullet shape, called if dimensions changes. */
 void CapsuleCollisionShape::updateShape() {
     glm::vec3 scale = worldScale();
-    checkMsg(
-        scale.x == scale.y && scale.y == scale.z,
-        "CapsuleCollisionShape does not support a non-uniform scale");
+    checkMsg(scale.x == scale.y && scale.y == scale.z,
+             "CapsuleCollisionShape does not support a non-uniform scale");
 
     btCapsuleShape *shape = new btCapsuleShape(m_radius * scale.x, m_halfHeight * 2.0f * scale.x);
     setShape(shape);
@@ -165,7 +164,7 @@ void CapsuleCollisionShape::updateShape() {
  * Initialises the sphere collision shape with a radius of 0.5.
  */
 SphereCollisionShape::SphereCollisionShape() :
-    m_radius(0.5f)
+    m_radius (0.5f)
 {}
 
 /** Set the radius of the sphere.
@@ -178,9 +177,8 @@ void SphereCollisionShape::setRadius(float radius) {
 /** Update the Bullet shape, called if dimensions changes. */
 void SphereCollisionShape::updateShape() {
     glm::vec3 scale = worldScale();
-    checkMsg(
-        scale.x == scale.y && scale.y == scale.z,
-        "SphereCollisionShape does not support a non-uniform scale");
+    checkMsg(scale.x == scale.y && scale.y == scale.z,
+             "SphereCollisionShape does not support a non-uniform scale");
 
     btSphereShape *shape = new btSphereShape(m_radius * scale.x);
     setShape(shape);

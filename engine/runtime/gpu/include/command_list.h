@@ -81,9 +81,9 @@ public:
         kViewportState = (1 << 5),
         kScissorState = (1 << 6),
 
-        kAllState =
-            kPipelineState | kResourceSetState | kBlendState | kDepthStencilState |
-            kRasterizerState | kViewportState | kScissorState,
+        kAllState = kPipelineState | kResourceSetState | kBlendState |
+                    kDepthStencilState | kRasterizerState | kViewportState |
+                    kScissorState,
     };
 
     virtual ~GPUCommandList();

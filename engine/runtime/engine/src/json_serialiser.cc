@@ -53,9 +53,9 @@ struct JSONSerialiser::State {
         size_t nextIndex;                   /**< Next array index. */
 
         Scope(Type inType, rapidjson::Value &inValue) :
-            type(inType),
-            value(inValue),
-            nextIndex(0)
+            type      (inType),
+            value     (inValue),
+            nextIndex (0)
         {}
     };
 
@@ -90,8 +90,8 @@ struct JSONSerialiser::State {
      * @return              Whether the scope was found (for deserialisation). */
     bool beginScope(const char *name, Scope::Type type) {
         rapidjson::Type jsonType = (type == Scope::kArray)
-            ? rapidjson::kArrayType
-            : rapidjson::kObjectType;
+                                       ? rapidjson::kArrayType
+                                       : rapidjson::kObjectType;
 
         Scope &scope = currentScope(name);
 
@@ -148,7 +148,7 @@ struct JSONSerialiser::State {
 };
 
 JSONSerialiser::JSONSerialiser() :
-    m_state(nullptr)
+    m_state (nullptr)
 {}
 
 /** Serialise an object.
@@ -453,9 +453,8 @@ bool JSONSerialiser::read(const char *name, const MetaType &type, void *value) {
         if (Serialiser::read("asset", path)) {
             ret = g_assetManager->load(path);
             if (ret && !metaClass.isBaseOf(ret->metaClass())) {
-                logError(
-                    "Class mismatch in serialised data (expected '%s', have '%s')",
-                    metaClass.name(), ret->metaClass().name());
+                logError("Class mismatch in serialised data (expected '%s', have '%s')",
+                         metaClass.name(), ret->metaClass().name());
                 ret.reset();
             }
         } else {
@@ -558,9 +557,8 @@ bool JSONSerialiser::read(const char *name, const MetaType &type, void *value) {
             return false;
         }
 
-        *reinterpret_cast<glm::vec2 *>(value) = glm::vec2(
-            jsonValue[0u].GetFloat(),
-            jsonValue[1u].GetFloat());
+        *reinterpret_cast<glm::vec2 *>(value) = glm::vec2(jsonValue[0u].GetFloat(),
+                                                          jsonValue[1u].GetFloat());
     } else if (&type == &MetaType::lookup<glm::vec3>()) {
         if (!jsonValue.IsArray() ||
             jsonValue.Size() != 3 ||
@@ -571,10 +569,9 @@ bool JSONSerialiser::read(const char *name, const MetaType &type, void *value) {
             return false;
         }
 
-        *reinterpret_cast<glm::vec3 *>(value) = glm::vec3(
-            jsonValue[0u].GetFloat(),
-            jsonValue[1u].GetFloat(),
-            jsonValue[2u].GetFloat());
+        *reinterpret_cast<glm::vec3 *>(value) = glm::vec3(jsonValue[0u].GetFloat(),
+                                                          jsonValue[1u].GetFloat(),
+                                                          jsonValue[2u].GetFloat());
     } else if (&type == &MetaType::lookup<glm::vec4>()) {
         if (!jsonValue.IsArray() ||
             jsonValue.Size() != 4 ||
@@ -586,11 +583,10 @@ bool JSONSerialiser::read(const char *name, const MetaType &type, void *value) {
             return false;
         }
 
-        *reinterpret_cast<glm::vec4 *>(value) = glm::vec4(
-            jsonValue[0u].GetFloat(),
-            jsonValue[1u].GetFloat(),
-            jsonValue[2u].GetFloat(),
-            jsonValue[3u].GetFloat());
+        *reinterpret_cast<glm::vec4 *>(value) = glm::vec4(jsonValue[0u].GetFloat(),
+                                                          jsonValue[1u].GetFloat(),
+                                                          jsonValue[2u].GetFloat(),
+                                                          jsonValue[3u].GetFloat());
     } else if (&type == &MetaType::lookup<glm::quat>()) {
         if (!jsonValue.IsArray() ||
             jsonValue.Size() != 4 ||
@@ -602,11 +598,10 @@ bool JSONSerialiser::read(const char *name, const MetaType &type, void *value) {
             return false;
         }
 
-        *reinterpret_cast<glm::quat *>(value) = glm::quat(
-            jsonValue[0u].GetFloat(),
-            jsonValue[1u].GetFloat(),
-            jsonValue[2u].GetFloat(),
-            jsonValue[3u].GetFloat());
+        *reinterpret_cast<glm::quat *>(value) = glm::quat(jsonValue[0u].GetFloat(),
+                                                          jsonValue[1u].GetFloat(),
+                                                          jsonValue[2u].GetFloat(),
+                                                          jsonValue[3u].GetFloat());
     } else if (type.isEnum()) {
         if (!jsonValue.IsString())
             return false;

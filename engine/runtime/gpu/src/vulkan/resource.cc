@@ -32,8 +32,8 @@ static constexpr uint32_t kMaxImageSamplerDescriptors = 2048;
  * @param manager       Manager that owns the resource set layout.
  * @param desc          Descriptor for the layout. */
 VulkanResourceSetLayout::VulkanResourceSetLayout(VulkanGPUManager *manager, GPUResourceSetLayoutDesc &&desc) :
-    GPUResourceSetLayout(std::move(desc)),
-    VulkanHandle(manager)
+    GPUResourceSetLayout (std::move(desc)),
+    VulkanHandle         (manager)
 {
     std::vector<VkDescriptorSetLayoutBinding> bindings;
     bindings.reserve(m_desc.slots.size());
@@ -68,11 +68,10 @@ VulkanResourceSetLayout::VulkanResourceSetLayout(VulkanGPUManager *manager, GPUR
     createInfo.bindingCount = bindings.size();
     createInfo.pBindings = &bindings[0];
 
-    checkVk(vkCreateDescriptorSetLayout(
-        manager->device()->handle(),
-        &createInfo,
-        nullptr,
-        &m_handle));
+    checkVk(vkCreateDescriptorSetLayout(manager->device()->handle(),
+                                        &createInfo,
+                                        nullptr,
+                                        &m_handle));
 }
 
 /** Destroy the resource set layout. */
@@ -83,7 +82,7 @@ VulkanResourceSetLayout::~VulkanResourceSetLayout() {
 /** Create the descriptor pool.
  * @param manager       Manager that owns the object. */
 VulkanDescriptorPool::VulkanDescriptorPool(VulkanGPUManager *manager) :
-    VulkanHandle(manager)
+    VulkanHandle (manager)
 {
     // TODO: This probably needs reworking in future, we can run out of
     // descriptors. Also, for multithreading we'll want per-thread pools.
@@ -113,11 +112,11 @@ VulkanDescriptorPool::~VulkanDescriptorPool() {
  * @param manager       Manager that owns the resource set.
  * @param layout        Layout for the resource set. */
 VulkanResourceSet::VulkanResourceSet(VulkanGPUManager *manager, GPUResourceSetLayout *layout) :
-    GPUResourceSet(layout),
-    VulkanObject(manager),
-    m_dirtySlots(m_slots.size(), false),
-    m_bufferBindings(m_slots.size(), 0),
-    m_bufferOffsets(m_slots.size(), 0)
+    GPUResourceSet   (layout),
+    VulkanObject     (manager),
+    m_dirtySlots     (m_slots.size(), false),
+    m_bufferBindings (m_slots.size(), 0),
+    m_bufferOffsets  (m_slots.size(), 0)
 {}
 
 /** Destroy the resource set. */
@@ -130,11 +129,9 @@ VulkanResourceSet::~VulkanResourceSet() {
 /** Initialise the descriptor set.
  * @param manager       Manager that owns the object.
  * @param layout        Layout for the set. */
-VulkanResourceSet::DescriptorSet::DescriptorSet(
-    VulkanGPUManager *manager,
-    const VulkanResourceSetLayout *layout)
-    :
-    VulkanHandle(manager)
+VulkanResourceSet::DescriptorSet::DescriptorSet(VulkanGPUManager *manager,
+                                                const VulkanResourceSetLayout *layout) :
+    VulkanHandle (manager)
 {
     // TODO: Need to handle failure. Pools can be exhausted, or can become
     // fragmented causing an allocation failure.
@@ -149,10 +146,9 @@ VulkanResourceSet::DescriptorSet::DescriptorSet(
 
 /** Destroy the descriptor set. */
 VulkanResourceSet::DescriptorSet::~DescriptorSet() {
-    vkFreeDescriptorSets(
-        manager()->device()->handle(),
-        manager()->descriptorPool()->handle(),
-        1, &m_handle);
+    vkFreeDescriptorSets(manager()->device()->handle(),
+                         manager()->descriptorPool()->handle(),
+                         1, &m_handle);
 }
 
 /** Update a slot's binding.
@@ -367,13 +363,12 @@ void VulkanResourceSet::bind(VulkanCommandState &state, size_t index) {
             }
         }
 
-        vkCmdBindDescriptorSets(
-            state.cmdBuf->handle(),
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            state.pipeline->layout(),
-            index,
-            1, &handle,
-            dynamicOffsets.size(), &dynamicOffsets[0]);
+        vkCmdBindDescriptorSets(state.cmdBuf->handle(),
+                                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                state.pipeline->layout(),
+                                index,
+                                1, &handle,
+                                dynamicOffsets.size(), &dynamicOffsets[0]);
 
         state.descriptorSets[index] = handle;
     }

@@ -24,12 +24,12 @@
 /** Initialize the texture.
  * @param desc          Descriptor containing texture parameters. */
 GPUTexture::GPUTexture(const GPUTextureDesc &desc) :
-    m_type(desc.type),
-    m_width(desc.width),
-    m_height(desc.height),
-    m_depth(desc.depth),
-    m_format(desc.format),
-    m_flags(desc.flags)
+    m_type   (desc.type),
+    m_width  (desc.width),
+    m_height (desc.height),
+    m_depth  (desc.depth),
+    m_format (desc.format),
+    m_flags  (desc.flags)
 {
     check(m_width > 0);
     check(m_height > 0);
@@ -65,16 +65,15 @@ GPUTexture::GPUTexture(const GPUTextureDesc &desc) :
 /** Initialize the texture as a texture view.
  * @param image         Image to create the view for. */
 GPUTexture::GPUTexture(const GPUTextureImageRef &image) :
-    m_type(kTexture2D),
-    m_width(image.texture->m_width),
-    m_height(image.texture->m_height),
-    m_depth(1),
-    m_format(image.texture->m_format),
-    m_mips(1),
-    m_flags(0),
-    m_source(image.texture)
+    m_type   (kTexture2D),
+    m_width  (image.texture->m_width),
+    m_height (image.texture->m_height),
+    m_depth  (1),
+    m_format (image.texture->m_format),
+    m_mips   (1),
+    m_flags  (0),
+    m_source (image.texture)
 {
-    checkMsg(
-        image.texture->m_type == kTextureCube || image.texture->m_type == kTexture2DArray,
-        "Texture views only supported for cube or 2D array textures");
+    checkMsg(image.texture->m_type == kTextureCube || image.texture->m_type == kTexture2DArray,
+             "Texture views only supported for cube or 2D array textures");
 }

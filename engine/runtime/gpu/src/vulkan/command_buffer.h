@@ -49,9 +49,8 @@ private:
 /** Class wrapping a command buffer. */
 class VulkanCommandBuffer : public VulkanHandle<VkCommandBuffer> {
 public:
-    void begin(
-        VkCommandBufferUsageFlags usage,
-        const VkCommandBufferInheritanceInfo *inheritance = nullptr);
+    void begin(VkCommandBufferUsageFlags usage,
+               const VkCommandBufferInheritanceInfo *inheritance = nullptr);
     void end();
 
     void addReference(Refcounted *object);

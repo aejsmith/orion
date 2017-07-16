@@ -63,7 +63,7 @@ static const size_t kGLMaxTexturesPerSet = 48 / kGLMaxResourceSets;
 /** Create a resource set layout.
  * @param desc          Descriptor for the layout. */
 GLResourceSetLayout::GLResourceSetLayout(GPUResourceSetLayoutDesc &&desc) :
-    GPUResourceSetLayout(std::move(desc))
+    GPUResourceSetLayout (std::move(desc))
 {
     m_mapping.resize(m_desc.slots.size());
 
@@ -73,16 +73,14 @@ GLResourceSetLayout::GLResourceSetLayout(GPUResourceSetLayoutDesc &&desc) :
     for (size_t i = 0; i < m_desc.slots.size(); i++) {
         switch (m_desc.slots[i].type) {
             case GPUResourceType::kUniformBuffer:
-                checkMsg(
-                    nextUniformBuffer < kGLMaxUniformBuffersPerSet,
-                    "Exceeded maximum number of uniform buffers per resource set");
+                checkMsg(nextUniformBuffer < kGLMaxUniformBuffersPerSet,
+                         "Exceeded maximum number of uniform buffers per resource set");
 
                 m_mapping[i] = nextUniformBuffer++;
                 break;
             case GPUResourceType::kTexture:
-                checkMsg(
-                    nextTexture < kGLMaxTexturesPerSet,
-                    "Exceeded maximum number of textures per resource set");
+                checkMsg(nextTexture < kGLMaxTexturesPerSet,
+                         "Exceeded maximum number of textures per resource set");
 
                 m_mapping[i] = nextTexture++;
                 break;

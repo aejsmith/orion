@@ -46,8 +46,8 @@ protected:
     /** Initialise a debug window.
      * @param title         Title for the window. */
     explicit DebugWindow(const std::string &title) :
-        m_title(title),
-        m_open(false)
+        m_title (title),
+        m_open  (false)
     {}
 
     /**

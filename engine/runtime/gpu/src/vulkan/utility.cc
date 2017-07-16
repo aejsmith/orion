@@ -75,7 +75,7 @@ bool VulkanFence::wait(uint64_t timeout) const {
 /** Create a new semaphore.
  * @param manager       Manager that owns the semaphore. */
 VulkanSemaphore::VulkanSemaphore(VulkanGPUManager *manager) :
-    VulkanHandle(manager)
+    VulkanHandle (manager)
 {
     VkSemaphoreCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -93,12 +93,11 @@ VulkanSemaphore::~VulkanSemaphore() {
  * @param subresources  Subresource range to set layout of.
  * @param oldLayout     Previous layout.
  * @param newLayout     New layout. */
-void VulkanUtil::setImageLayout(
-    VulkanCommandBuffer *cmdBuf,
-    VkImage image,
-    const VkImageSubresourceRange &subresources,
-    VkImageLayout oldLayout,
-    VkImageLayout newLayout)
+void VulkanUtil::setImageLayout(VulkanCommandBuffer *cmdBuf,
+                                VkImage image,
+                                const VkImageSubresourceRange &subresources,
+                                VkImageLayout oldLayout,
+                                VkImageLayout newLayout)
 {
     VkImageMemoryBarrier barrier = {};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -165,14 +164,13 @@ void VulkanUtil::setImageLayout(
             break;
     }
 
-    vkCmdPipelineBarrier(
-        cmdBuf->handle(),
-        srcStageMask,
-        dstStageMask,
-        0,
-        0, nullptr,
-        0, nullptr,
-        1, &barrier);
+    vkCmdPipelineBarrier(cmdBuf->handle(),
+                         srcStageMask,
+                         dstStageMask,
+                         0,
+                         0, nullptr,
+                         0, nullptr,
+                         1, &barrier);
 }
 
 /** Set the layout of the first mip of the first layer of an image.
@@ -181,12 +179,11 @@ void VulkanUtil::setImageLayout(
  * @param subresources  Subresource range to set layout of.
  * @param oldLayout     Previous layout.
  * @param newLayout     New layout. */
-void VulkanUtil::setImageLayout(
-    VulkanCommandBuffer *cmdBuf,
-    VkImage image,
-    VkImageAspectFlags aspectMask,
-    VkImageLayout oldLayout,
-    VkImageLayout newLayout)
+void VulkanUtil::setImageLayout(VulkanCommandBuffer *cmdBuf,
+                                VkImage image,
+                                VkImageAspectFlags aspectMask,
+                                VkImageLayout oldLayout,
+                                VkImageLayout newLayout)
 {
     VkImageSubresourceRange subresources = {};
     subresources.aspectMask = aspectMask;

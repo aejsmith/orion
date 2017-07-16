@@ -443,11 +443,10 @@ protected:
     virtual bool read(const char *name, const MetaType &type, void *value) = 0;
 
     void serialiseObject(const Object *object);
-    bool deserialiseObject(
-        const char *className,
-        const MetaClass &metaClass,
-        bool isPrimary,
-        ObjectPtr<Object> &object);
+    bool deserialiseObject(const char *className,
+                           const MetaClass &metaClass,
+                           bool isPrimary,
+                           ObjectPtr<Object> &object);
 private:
     friend class Object;
 };

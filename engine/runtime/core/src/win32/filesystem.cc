@@ -174,7 +174,7 @@ bool Win32File::write(const void *buf, size_t size, uint64_t offset) {
 /** Initialize the directory.
  * @param path          Path to the directory. */
 Win32Directory::Win32Directory(const Path &path) :
-    m_find(INVALID_HANDLE_VALUE)
+    m_find (INVALID_HANDLE_VALUE)
 {
     /* To match the entire directory contents we need a wildcard. */
     m_path = path.toPlatform() + "\\*";
@@ -252,14 +252,13 @@ File *Filesystem::openFile(const Path &path, unsigned mode) {
         creationDisposition = TRUNCATE_EXISTING;
     }
 
-    HANDLE handle = CreateFile(
-        winPath.c_str(),
-        desiredAccess,
-        0,
-        nullptr,
-        creationDisposition,
-        0,
-        nullptr);
+    HANDLE handle = CreateFile(winPath.c_str(),
+                               desiredAccess,
+                               0,
+                               nullptr,
+                               creationDisposition,
+                               0,
+                               nullptr);
     if (handle == INVALID_HANDLE_VALUE) {
         logError("Failed to open file '%s': 0x%x", winPath.c_str(), GetLastError());
         return nullptr;

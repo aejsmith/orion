@@ -63,11 +63,11 @@ private:
 
 /** Initialize an identity transformation. */
 inline Transform::Transform() :
-    m_position(0.0f),
-    m_orientation(1.0f, 0.0f, 0.0f, 0.0f),
-    m_scale(1.0f),
-    m_matrix(1.0f),
-    m_matrixOutdated(false)
+    m_position       (0.0f),
+    m_orientation    (1.0f, 0.0f, 0.0f, 0.0f),
+    m_scale          (1.0f),
+    m_matrix         (1.0f),
+    m_matrixOutdated (false)
 {}
 
 /** Initialize a transformation.
@@ -75,20 +75,20 @@ inline Transform::Transform() :
  * @param orientation   Orientation.
  * @param scale         Scale. */
 inline Transform::Transform(const glm::vec3 &position, const glm::quat &orientation, const glm::vec3 &scale) :
-    m_position(position),
-    m_orientation(orientation),
-    m_scale(scale),
-    m_matrixOutdated(true)
+    m_position       (position),
+    m_orientation    (orientation),
+    m_scale          (scale),
+    m_matrixOutdated (true)
 {}
 
 /** Copy a transformation.
  * @param other         Transformation to copy. */
 inline Transform::Transform(const Transform &other) :
-    m_position(other.m_position),
-    m_orientation(other.m_orientation),
-    m_scale(other.m_scale),
-    m_matrix(other.m_matrix),
-    m_matrixOutdated(other.m_matrixOutdated)
+    m_position       (other.m_position),
+    m_orientation    (other.m_orientation),
+    m_scale          (other.m_scale),
+    m_matrix         (other.m_matrix),
+    m_matrixOutdated (other.m_matrixOutdated)
 {}
 
 /** Assign a transformation.

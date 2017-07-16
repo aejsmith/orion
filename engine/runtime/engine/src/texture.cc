@@ -38,9 +38,9 @@
 
 /** Private constructor, does not actually create the texture. */
 TextureBase::TextureBase() :
-    m_filterMode(SamplerFilterMode::kAnisotropic),
-    m_anisotropy(8),
-    m_addressMode(SamplerAddressMode::kClamp)
+    m_filterMode  (SamplerFilterMode::kAnisotropic),
+    m_anisotropy  (8),
+    m_addressMode (SamplerAddressMode::kClamp)
 {
     updateSamplerState();
 }
@@ -99,11 +99,11 @@ void TextureBase::setAddressMode(SamplerAddressMode mode) {
 /** Recreate the texture sampler state. */
 void TextureBase::updateSamplerState() {
     auto desc = GPUSamplerStateDesc().
-        setFilterMode(m_filterMode).
-        setMaxAnisotropy(m_anisotropy).
-        setAddressU(m_addressMode).
-        setAddressV(m_addressMode).
-        setAddressW(m_addressMode);
+        setFilterMode    (m_filterMode).
+        setMaxAnisotropy (m_anisotropy).
+        setAddressU      (m_addressMode).
+        setAddressV      (m_addressMode).
+        setAddressW      (m_addressMode);
     m_sampler = g_gpuManager->getSamplerState(desc);
 }
 
@@ -133,27 +133,26 @@ void TextureBase::explore() {
 
     glm::vec2 texSize(m_gpu->width(), m_gpu->height());
     float scaleFactor = (texSize.x > texSize.y)
-        ? glm::min(128.0f, texSize.x) / texSize.x
-        : glm::min(128.0f, texSize.y) / texSize.y;
+                            ? glm::min(128.0f, texSize.x) / texSize.x
+                            : glm::min(128.0f, texSize.y) / texSize.y;
     glm::vec2 drawSize = texSize * scaleFactor;
 
     for (unsigned i = 0; i < layers; i++) {
         // FIXME: We're losing mipmapping because I was lazy when implementing
         // implementing texture views.
         GPUTexturePtr texture = (m_gpu->type() != GPUTexture::kTexture2D)
-            ? g_gpuManager->createTextureView(GPUTextureImageRef(m_gpu, i, 0))
-            : m_gpu;
+                                    ? g_gpuManager->createTextureView(GPUTextureImageRef(m_gpu, i, 0))
+                                    : m_gpu;
         ImTextureID textureRef = DebugWindow::refTexture(texture);
 
         ImGui::Text("Image %u:", i);
         ImGui::SameLine(100);
         glm::vec2 texPos = ImGui::GetCursorScreenPos();
-        ImGui::Image(
-            textureRef,
-            drawSize,
-            ImVec2(0, 1), ImVec2(1, 0),
-            ImColor(255, 255, 255, 255),
-            ImColor(0, 0, 0, 0));
+        ImGui::Image(textureRef,
+                     drawSize,
+                     ImVec2(0, 1), ImVec2(1, 0),
+                     ImColor(255, 255, 255, 255),
+                     ImColor(0, 0, 0, 0));
 
         /* If we scaled down the texture, add a popup to zoom over it. */
         if (scaleFactor < 1.0f && ImGui::IsItemHovered()) {
@@ -166,23 +165,20 @@ void TextureBase::explore() {
             glm::vec2 mouseTexPos(
                 mouseRelPos.x / scaleFactor,
                 texSize.y - (mouseRelPos.y / scaleFactor));
-            float focusX = std::min(
-                std::max(0.0f, mouseTexPos.x - focusSize * 0.5f),
-                texSize.x - focusSize);
-            float focusY = std::min(
-                std::max(0.0f, mouseTexPos.y - focusSize * 0.5f),
-                texSize.y - focusSize);
+            float focusX = std::min(std::max(0.0f, mouseTexPos.x - focusSize * 0.5f),
+                                    texSize.x - focusSize);
+            float focusY = std::min(std::max(0.0f, mouseTexPos.y - focusSize * 0.5f),
+                                    texSize.y - focusSize);
 
             ImGui::Text("Min: (%.2f, %.2f)", focusX, focusY);
             ImGui::Text("Max: (%.2f, %.2f)", focusX + focusSize, focusY + focusSize);
 
-            ImGui::Image(
-                textureRef,
-                ImVec2(focusSize, focusSize),
-                ImVec2(focusX / texSize.x, (focusY + focusSize) / texSize.y),
-                ImVec2((focusX + focusSize) / texSize.x, focusY / texSize.y),
-                ImColor(255, 255, 255, 255),
-                ImColor(0, 0, 0, 0));
+            ImGui::Image(textureRef,
+                         ImVec2(focusSize, focusSize),
+                         ImVec2(focusX / texSize.x, (focusY + focusSize) / texSize.y),
+                         ImVec2((focusX + focusSize) / texSize.x, focusY / texSize.y),
+                         ImColor(255, 255, 255, 255),
+                         ImColor(0, 0, 0, 0));
 
             ImGui::EndTooltip();
         }
@@ -206,22 +202,20 @@ void TextureBase::explore() {
  * @param mips          Number of mip levels (0 for full pyramid).
  * @param flags         GPU texture creation flags.
  */
-Texture2D::Texture2D(
-    uint32_t width,
-    uint32_t height,
-    PixelFormat format,
-    unsigned mips,
-    uint32_t flags)
-    :
-    m_renderTexture(nullptr)
+Texture2D::Texture2D(uint32_t width,
+                     uint32_t height,
+                     PixelFormat format,
+                     unsigned mips,
+                     uint32_t flags) :
+    m_renderTexture (nullptr)
 {
     auto desc = GPUTextureDesc().
-        setType(GPUTexture::kTexture2D).
-        setWidth(width).
-        setHeight(height).
-        setFormat(format).
-        setMips(mips).
-        setFlags(flags);
+        setType   (GPUTexture::kTexture2D).
+        setWidth  (width).
+        setHeight (height).
+        setFormat (format).
+        setMips   (mips).
+        setFlags  (flags);
 
     m_gpu = g_gpuManager->createTexture(desc);
 
@@ -339,12 +333,12 @@ RenderTexture *Texture2D::renderTexture() {
  */
 TextureCube::TextureCube(uint32_t size, PixelFormat format, unsigned mips, uint32_t flags) {
     auto desc = GPUTextureDesc().
-        setType(GPUTexture::kTextureCube).
-        setWidth(size).
-        setHeight(size).
-        setFormat(format).
-        setMips(mips).
-        setFlags(flags);
+        setType   (GPUTexture::kTextureCube).
+        setWidth  (size).
+        setHeight (size).
+        setFormat (format).
+        setMips   (mips).
+        setFlags  (flags);
 
     m_gpu = g_gpuManager->createTexture(desc);
 }
@@ -440,13 +434,12 @@ void TextureCube::update(unsigned face, unsigned mip, const IntRect &area, const
  * @param texture       Texture that this render texture belongs to.
  * @param layer         Layer that is being targeted. */
 RenderTexture::RenderTexture(TextureBase *texture, unsigned layer) :
-    RenderTarget(
-        texture->gpu()->width(),
-        texture->gpu()->height(),
-        texture->format(),
-        kTextureMediumPriority),
-    m_texture(texture),
-    m_layer(layer)
+    RenderTarget (texture->gpu()->width(),
+                  texture->gpu()->height(),
+                  texture->format(),
+                  kTextureMediumPriority),
+    m_texture    (texture),
+    m_layer      (layer)
 {}
 
 /** Get the target GPU render target descriptor.

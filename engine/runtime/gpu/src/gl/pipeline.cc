@@ -38,23 +38,20 @@ GLPipeline::GLPipeline(GPUPipelineDesc &&desc) :
 
         /* Check whether this program is compatible with the layout. */
         for (const GLProgram::Resource &resource : program->resources()) {
-            checkMsg(
-                resource.set < m_resourceLayout.size() && m_resourceLayout[resource.set],
-                "Shader resource '%s' wants set %u which is not in layout",
-                resource.name.c_str(), resource.set);
+            checkMsg(resource.set < m_resourceLayout.size() && m_resourceLayout[resource.set],
+                     "Shader resource '%s' wants set %u which is not in layout",
+                     resource.name.c_str(), resource.set);
 
             const GPUResourceSetLayoutDesc &desc = m_resourceLayout[resource.set]->desc();
 
-            checkMsg(
-                resource.slot < desc.slots.size() && desc.slots[resource.slot].type != GPUResourceType::kNone,
-                "Shader resource '%s' wants set %u slot %u which is not in layout",
-                resource.name.c_str(), resource.set, resource.slot);
+            checkMsg(resource.slot < desc.slots.size() && desc.slots[resource.slot].type != GPUResourceType::kNone,
+                     "Shader resource '%s' wants set %u slot %u which is not in layout",
+                     resource.name.c_str(), resource.set, resource.slot);
 
-            checkMsg(
-                resource.type == desc.slots[resource.slot].type,
-                "Shader resource '%s' (set %u slot %u) has type mismatch with layout (want %d, have %d)",
-                resource.name.c_str(), resource.set, resource.slot,
-                resource.type, desc.slots[resource.slot].type);
+            checkMsg(resource.type == desc.slots[resource.slot].type,
+                     "Shader resource '%s' (set %u slot %u) has type mismatch with layout (want %d, have %d)",
+                     resource.name.c_str(), resource.set, resource.slot,
+                     resource.type, desc.slots[resource.slot].type);
         }
 
         /* Bind to our pipeline. */

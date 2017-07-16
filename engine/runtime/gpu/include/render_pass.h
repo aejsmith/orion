@@ -50,9 +50,9 @@ struct GPURenderAttachmentDesc {
 
     /** Initialise as an unused attachment. */
     GPURenderAttachmentDesc() :
-        format(PixelFormat::kUnknown),
-        loadOp(GPURenderLoadOp::kDontCare),
-        stencilLoadOp(GPURenderLoadOp::kDontCare)
+        format        (PixelFormat::kUnknown),
+        loadOp        (GPURenderLoadOp::kDontCare),
+        stencilLoadOp (GPURenderLoadOp::kDontCare)
     {}
 
     /** @return             Whether this is a used attachment. */
@@ -133,7 +133,7 @@ struct GPURenderTargetDesc {
     /** Initialise the descriptor.
      * @param numColour     Number of colour targets. */
     explicit GPURenderTargetDesc(size_t numColour = 0) :
-        colour(numColour)
+        colour (numColour)
     {}
 
     /** Compare this descriptor with another. */
@@ -200,9 +200,9 @@ struct GPURenderPassInstanceDesc {
     /** Initialise the descriptor (pre-allocates vectors with correct size).
      * @param inPass        Pass the instance is for. */
     explicit GPURenderPassInstanceDesc(const GPURenderPass *inPass) :
-        pass(inPass),
-        targets(inPass->desc().colourAttachments.size()),
-        clearColours(inPass->desc().colourAttachments.size())
+        pass         (inPass),
+        targets      (inPass->desc().colourAttachments.size()),
+        clearColours (inPass->desc().colourAttachments.size())
     {}
 };
 

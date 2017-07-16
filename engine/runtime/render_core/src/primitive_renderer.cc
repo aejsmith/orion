@@ -28,8 +28,8 @@
 
 /** Initialise the renderer. */
 PrimitiveRenderer::PrimitiveRenderer() :
-    m_currentBatch(nullptr),
-    m_finalized(false)
+    m_currentBatch (nullptr),
+    m_finalized    (false)
 {}
 
 /** Destroy the renderer. */
@@ -83,12 +83,13 @@ void PrimitiveRenderer::draw(GPUCommandList *cmdList, GPUResourceSet *view) {
 
             /* Generate vertex data. */
             auto vertexDataDesc = GPUVertexDataDesc().
-                setCount(data.vertices.size()).
-                setLayout(g_renderResources->simpleVertexDataLayout());
-            vertexDataDesc.buffers[0] = RenderUtil::buildGPUBuffer(
-                GPUBuffer::kVertexBuffer,
-                data.vertices,
-                GPUBuffer::kTransientUsage);
+                setCount  (data.vertices.size()).
+                setLayout (g_renderResources->simpleVertexDataLayout());
+
+            vertexDataDesc.buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer,
+                                                                   data.vertices,
+                                                                   GPUBuffer::kTransientUsage);
+
             data.gpu = g_gpuManager->createVertexData(std::move(vertexDataDesc));
 
             /* No longer require CPU-side data. */

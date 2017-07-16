@@ -38,17 +38,15 @@ static UniformStruct::StructList &uniformStructList() {
  * @param inSet         Resource set to bind to in shaders.
  * @param size          Size of the structure.
  * @param init          Function to populate the member list. */
-UniformStruct::UniformStruct(
-    const char *inName,
-    const char *inInstance,
-    unsigned inSet,
-    size_t size,
-    InitFunc init)
-    :
-    name(inName),
-    instanceName(inInstance),
-    set(inSet),
-    m_size(size)
+UniformStruct::UniformStruct(const char *inName,
+                             const char *inInstance,
+                             unsigned inSet,
+                             size_t size,
+                             InitFunc init) :
+    name         (inName),
+    instanceName (inInstance),
+    set          (inSet),
+    m_size       (size)
 {
     init(this);
 
@@ -126,8 +124,8 @@ const UniformStruct *UniformStruct::lookup(const std::string &name) {
  * @param ustruct       Uniform structure type.
  * @param usage         GPU usage hint for the buffer. */
 UniformBufferBase::UniformBufferBase(const UniformStruct &ustruct, GPUBuffer::Usage usage) :
-    m_uniformStruct(ustruct),
-    m_dirty(true)
+    m_uniformStruct (ustruct),
+    m_dirty         (true)
 {
     auto desc = GPUBufferDesc().
         setType(GPUBuffer::kUniformBuffer).
@@ -173,12 +171,12 @@ void UniformBufferBase::readMember(const UniformStructMember *member, void *buf)
 void UniformBufferBase::readMember(const char *name, ShaderParameter::Type type, void *buf) const {
     const UniformStructMember *member = m_uniformStruct.lookupMember(name);
 
-    checkMsg(
-        member,
-        "Member '%s' in uniform struct '%s' not found", name, m_uniformStruct.name);
-    checkMsg(
-        member->type == type,
-        "Member '%s' in uniform struct '%s' incorrect type", name, m_uniformStruct.name);
+    checkMsg(member,
+             "Member '%s' in uniform struct '%s' not found",
+             name, m_uniformStruct.name);
+    checkMsg(member->type == type,
+             "Member '%s' in uniform struct '%s' incorrect type",
+             name, m_uniformStruct.name);
 
     readMember(member, buf);
 }
@@ -198,12 +196,12 @@ void UniformBufferBase::writeMember(const UniformStructMember *member, const voi
 void UniformBufferBase::writeMember(const char *name, ShaderParameter::Type type, const void *buf) {
     const UniformStructMember *member = m_uniformStruct.lookupMember(name);
 
-    checkMsg(
-        member,
-        "Member '%s' in uniform struct '%s' not found", name, m_uniformStruct.name);
-    checkMsg(
-        member->type == type,
-        "Member '%s' in uniform struct '%s' incorrect type", name, m_uniformStruct.name);
+    checkMsg(member,
+             "Member '%s' in uniform struct '%s' not found",
+             name, m_uniformStruct.name);
+    checkMsg(member->type == type,
+             "Member '%s' in uniform struct '%s' incorrect type",
+             name, m_uniformStruct.name);
 
     writeMember(member, buf);
 }

@@ -52,12 +52,11 @@ void GLGPUManager::endFrame() {
  * @param sourcePos     Position in source texture to copy from.
  * @param destPos       Position in destination texture to copy to.
  * @param size          Size of area to copy. */
-void GLGPUManager::blit(
-    const GPUTextureImageRef &source,
-    const GPUTextureImageRef &dest,
-    glm::ivec2 sourcePos,
-    glm::ivec2 destPos,
-    glm::ivec2 size)
+void GLGPUManager::blit(const GPUTextureImageRef &source,
+                        const GPUTextureImageRef &dest,
+                        glm::ivec2 sourcePos,
+                        glm::ivec2 destPos,
+                        glm::ivec2 size)
 {
     check(!m_currentRenderPass);
 
@@ -112,13 +111,12 @@ void GLGPUManager::blit(
     this->state.bindFramebuffer(GL_READ_FRAMEBUFFER, sourceFBO);
 
     /* Blit the region. */
-    glBlitFramebuffer(
-        sourcePos.x, sourcePos.y,
-        sourcePos.x + size.x, sourcePos.y + size.y,
-        destPos.x, destPos.y,
-        destPos.x + size.x, destPos.y + size.y,
-        (isDepth) ? GL_DEPTH_BUFFER_BIT : GL_COLOR_BUFFER_BIT,
-        GL_NEAREST);
+    glBlitFramebuffer(sourcePos.x, sourcePos.y,
+                      sourcePos.x + size.x, sourcePos.y + size.y,
+                      destPos.x, destPos.y,
+                      destPos.x + size.x, destPos.y + size.y,
+                      (isDepth) ? GL_DEPTH_BUFFER_BIT : GL_COLOR_BUFFER_BIT,
+                      GL_NEAREST);
 
     /* Restore previous state. */
     this->state.bindFramebuffer(GL_DRAW_FRAMEBUFFER, prevDrawFBO);
@@ -151,26 +149,25 @@ void GLGPUManager::submitRenderPass(GPUCommandList *cmdList) {
         m_currentRTSize.y = g_mainWindow->height();
     } else {
         GPUTexture *texture = (desc.targets.colour.size())
-            ? desc.targets.colour[0].texture
-            : desc.targets.depthStencil.texture;
+                                  ? desc.targets.colour[0].texture
+                                  : desc.targets.depthStencil.texture;
         m_currentRTSize.x = texture->width();
         m_currentRTSize.y = texture->height();
     }
 
     /* Get an FBO for the render target and bind it. */
     GLuint fbo = (desc.targets.isMainWindow())
-        ? 0
-        : createFBO(desc.targets);
+                     ? 0
+                     : createFBO(desc.targets);
     this->state.bindFramebuffer(GL_FRAMEBUFFER, fbo);
 
     const GPURenderPassDesc &passDesc = desc.pass->desc();
 
     /* We want to only clear the specified render area. Use scissor to do this. */
-    bool needScissor =
-        desc.renderArea.x != 0 ||
-        desc.renderArea.y != 0 ||
-        desc.renderArea.width < m_currentRTSize.x ||
-        desc.renderArea.height < m_currentRTSize.y;
+    bool needScissor = desc.renderArea.x != 0 ||
+                       desc.renderArea.y != 0 ||
+                       desc.renderArea.width < m_currentRTSize.x ||
+                       desc.renderArea.height < m_currentRTSize.y;
     auto configureClearState =
         [&] (bool isDepth) {
             setViewport(desc.renderArea);
@@ -317,11 +314,10 @@ void GLGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexDat
     GLenum mode = GLUtil::convertPrimitiveType(type);
     if (indices) {
         /* FIXME: Check whether index type is supported (in generic code?) */
-        glDrawElements(
-            mode,
-            indices->count(),
-            GLUtil::convertIndexType(indices->type()),
-            reinterpret_cast<void *>(indices->offset() * indices->elementSize()));
+        glDrawElements(mode,
+                       indices->count(),
+                       GLUtil::convertIndexType(indices->type()),
+                       reinterpret_cast<void *>(indices->offset() * indices->elementSize()));
     } else {
         glDrawArrays(mode, 0, vertices->count());
     }

@@ -26,7 +26,7 @@
 /** Create a GPU resource set.
  * @param layout        Layout to use for the set. */
 GPUResourceSet::GPUResourceSet(GPUResourceSetLayout *layout) :
-    m_layout(layout)
+    m_layout (layout)
 {
     const GPUResourceSetLayoutDesc &desc = m_layout->desc();
     m_slots.reserve(desc.slots.size());

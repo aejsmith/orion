@@ -67,14 +67,14 @@ private:
  * the material.
  */
 RigidBody::RigidBody() :
-    m_mass(0.0f),
-    m_linearDamping(0.0f),
-    m_angularDamping(0.0f),
-    m_material(PhysicsSystem::defaultMaterial()),
-    m_updatingTransform(false),
-    m_btRigidBody(nullptr),
-    m_btCompoundShape(nullptr),
-    m_motionState(new MotionState(this))
+    m_mass              (0.0f),
+    m_linearDamping     (0.0f),
+    m_angularDamping    (0.0f),
+    m_material          (PhysicsSystem::defaultMaterial()),
+    m_updatingTransform (false),
+    m_btRigidBody       (nullptr),
+    m_btCompoundShape   (nullptr),
+    m_motionState       (new MotionState(this))
 {}
 
 /** Destroy the rigid body. */
@@ -183,21 +183,19 @@ void RigidBody::setAngularVelocity(const glm::vec3 &velocity) {
  */
 btCollisionShape *RigidBody::getShape() const {
     return (m_btCompoundShape)
-        ? m_btCompoundShape
-        : m_btRigidBody->getCollisionShape();
+               ? m_btCompoundShape
+               : m_btRigidBody->getCollisionShape();
 }
 
 /** Calculate the local transformation for a CollisionShape.
  * @param rigidBody     Rigid body being added to.
  * @param shape         Shape being added. */
-static inline btTransform calculateLocalTransform(
-    const RigidBody *rigidBody,
-    const CollisionShape *shape)
+static inline btTransform calculateLocalTransform(const RigidBody *rigidBody,
+                                                  const CollisionShape *shape)
 {
     glm::vec3 position = shape->worldPosition() - rigidBody->worldPosition();
-    glm::quat orientation = Math::quatDifference(
-        rigidBody->worldOrientation(),
-        shape->worldOrientation());
+    glm::quat orientation = Math::quatDifference(rigidBody->worldOrientation(),
+                                                 shape->worldOrientation());
     return btTransform(BulletUtil::toBullet(orientation), BulletUtil::toBullet(position));
 }
 
@@ -235,8 +233,8 @@ void RigidBody::addShape(CollisionShape *shape) {
     /* Create the body if we don't have one yet. */
     if (!m_btRigidBody) {
         btCollisionShape *bodyShape = (m_btCompoundShape)
-            ? m_btCompoundShape
-            : shape->m_btShape.get();
+                                          ? m_btCompoundShape
+                                          : shape->m_btShape.get();
 
         btVector3 inertia(0.0f, 0.0f, 0.0f);
         bodyShape->calculateLocalInertia(m_mass, inertia);
