@@ -499,16 +499,16 @@
         ]
     },
     {
-        "objectClass": "FXAAEffect",
-        "objectID": 21,
-        "objectProperties": {}
-    },
-    {
         "objectClass": "GammaCorrectionEffect",
-        "objectID": 22,
+        "objectID": 21,
         "objectProperties": {
             "gamma": 2.200000047683716
         }
+    },
+    {
+        "objectClass": "FXAAEffect",
+        "objectID": 22,
+        "objectProperties": {}
     },
     {
         "objectClass": "Entity",

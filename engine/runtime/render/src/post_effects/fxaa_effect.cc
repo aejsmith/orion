@@ -32,6 +32,13 @@ FXAAEffect::FXAAEffect() {
 /** Destroy the effect. */
 FXAAEffect::~FXAAEffect() {}
 
+/** @return             Expected input image type. */
+RenderPipeline::ImageType FXAAEffect::inputImageType() const {
+    /* FXAA expects non-linear LDR input according to the comments in
+     * Fxaa3_11.h. */
+    return RenderPipeline::ImageType::kNonLinearLDR;
+}
+
 /** Render the effect.
  * @param source        Source texture.
  * @param target        Render target.
