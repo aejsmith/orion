@@ -16,7 +16,7 @@
 
 /**
  * @file
- * @brief               Gamma correction post-processing effect.
+ * @brief               Tonemapping post-processing effect.
  */
 
 #pragma once
@@ -26,25 +26,28 @@
 #include "render_core/material.h"
 
 /**
- * Gamma correction post-processing effect.
+ * Tonemapping post-processing effect.
  *
- * This effect performs gamma correction. The input image should be in linear
- * space, and the output value will be in gamma space.
+ * This effect converts a HDR input image to a linear LDR output by performing
+ * tonemapping.
  */
-class GammaCorrectionEffect : public PostEffect {
+class TonemapEffect : public PostEffect {
 public:
     CLASS();
 
-    GammaCorrectionEffect();
-    ~GammaCorrectionEffect();
+    TonemapEffect();
+    ~TonemapEffect();
 
-    /** Gamma value to use. */
-    PROPERTY() float gamma;
+    /** Exposure value to use. */
+    PROPERTY() float exposure;
+
+    /** White point value to use. */
+    PROPERTY() float whitePoint;
 
     RenderPipeline::ImageType inputImageType() const override;
     RenderPipeline::ImageType outputImageType() const override;
 
     void render(GPUTexture *source, const GPURenderTargetDesc &target, const IntRect &area) const override;
 private:
-    MaterialPtr m_material;             /**< Gamma correction material. */
+    MaterialPtr m_material;             /**< Tonemapping material. */
 };

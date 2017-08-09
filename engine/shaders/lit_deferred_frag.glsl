@@ -43,12 +43,10 @@ void main() {
     deferredBufferB.rgb = diffuse.rgb;
     deferredBufferB.a = 1.0;
 
-    /* Write specular colour/exponent. Since the G-Buffer is a unorm texture,
-     * values will be clamped between 0.0 and 1.0. Therefore, we store the
-     * exponent as its reciprocal. */
+    /* Write specular colour/exponent. */
     #ifdef SPECULAR
         deferredBufferC.rgb = specularColour.rgb;
-        deferredBufferC.a = 1.0 / shininess;
+        deferredBufferC.a = shininess;
     #else
         deferredBufferC = vec4(0.0, 0.0, 0.0, 1.0);
     #endif

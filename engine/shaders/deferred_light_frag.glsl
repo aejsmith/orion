@@ -41,9 +41,9 @@ void decodeGBuffer(out LightingData data) {
     /* Sample the diffuse colour buffer. */
     data.diffuseColour = sampleB.rgb;
 
-    /* Sample specular colour/exponent. Exponent is stored as reciprocal. */
+    /* Sample specular colour/exponent. */
     data.specularColour = sampleC.rgb;
-    data.shininess = 1.0 / sampleC.a;
+    data.shininess = sampleC.a;
 
     /* Sample the depth buffer. */
     float bufferDepth = sampleD.r;

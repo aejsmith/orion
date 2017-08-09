@@ -34,28 +34,23 @@
 /**
  * G-Buffer pixel formats. The buffer layout is as follows:
  *
- *     | Format      | R          | G          | B          | A
- *  ---|-------------|------------|------------|------------|------------
- *   A | R10G10B10A2 | Normal.x   | Normal.y   | Normal.z   | -
- *  ---|-------------|------------|------------|------------|------------
- *   B | R8G8B8A8    | Diffuse.r  | Diffuse.g  | Diffuse.b  | -
- *  ---|-------------|------------|------------|------------|------------
- *   C | R8G8B8A8    | Specular.r | Specular.g | Specular.b | 1/Shininess
- *  ---|-------------|------------|------------|------------|------------
- *   D | D32         | Depth      | -          | -          | -
+ *     | Format            | R          | G          | B          | A
+ *  ---|-------------------|------------|------------|------------|-----------
+ *   A | R10G10B10A2       | Normal.x   | Normal.y   | Normal.z   | -
+ *  ---|-------------------|------------|------------|------------|-----------
+ *   B | FloatR16G16B16A16 | Diffuse.r  | Diffuse.g  | Diffuse.b  | -
+ *  ---|-------------------|------------|------------|------------|-----------
+ *   C | FloatR16G16B16A16 | Specular.r | Specular.g | Specular.b | Shininess
+ *  ---|-------------------|------------|------------|------------|-----------
+ *   D | D32               | Depth      | -          | -          | -
  *
- * These are all unsigned normalized textures, therefore the normals are scaled
- * to fit into the [0, 1] range, and the shininess is stored as its reciprocal.
- * Position is reconstructed from the depth buffer.
- *
- * Currently sRGB formats are used for the diffuse and specular buffers, since
- * regular 8-bit formats do not have sufficient precision to store linear values
- * without introducing banding. This will be swapped to 16-bit float formats
- * when HDR is implemented.
+ * The normal buffer is an unsigned normalized format, therefore the normals
+ * are scaled to fit into the [0, 1] range. Position is reconstructed from the
+ * depth buffer.
  */
 static const PixelFormat kDeferredBufferAFormat = PixelFormat::kR10G10B10A2;
-static const PixelFormat kDeferredBufferBFormat = PixelFormat::kR8G8B8A8sRGB;
-static const PixelFormat kDeferredBufferCFormat = PixelFormat::kR8G8B8A8sRGB;
+static const PixelFormat kDeferredBufferBFormat = PixelFormat::kFloatR16G16B16A16;
+static const PixelFormat kDeferredBufferCFormat = PixelFormat::kFloatR16G16B16A16;
 static const PixelFormat kDeferredBufferDFormat = PixelFormat::kDepth32;
 
 /** Shadow map format. TODO: Investigate lowering this to D16. */

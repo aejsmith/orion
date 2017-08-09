@@ -100,7 +100,7 @@ DeferredRenderPipeline::Resources::Resources() {
 
     /* Create the lighting pass. */
     passDesc.colourAttachments.resize(1);
-    passDesc.colourAttachments[0].format          = kLinearLDRColourBufferFormat;
+    passDesc.colourAttachments[0].format          = kHDRColourBufferFormat;
     passDesc.colourAttachments[0].loadOp          = GPURenderLoadOp::kClear;
     passDesc.depthStencilAttachment.format        = kDepthBufferFormat;
     passDesc.depthStencilAttachment.loadOp        = GPURenderLoadOp::kLoad;
@@ -110,7 +110,7 @@ DeferredRenderPipeline::Resources::Resources() {
 
     /* Create the basic material pass. */
     passDesc.colourAttachments.resize(1);
-    passDesc.colourAttachments[0].format          = kLinearLDRColourBufferFormat;
+    passDesc.colourAttachments[0].format          = kHDRColourBufferFormat;
     passDesc.colourAttachments[0].loadOp          = GPURenderLoadOp::kLoad;
     passDesc.depthStencilAttachment.format        = kDepthBufferFormat;
     passDesc.depthStencilAttachment.loadOp        = GPURenderLoadOp::kLoad;
@@ -155,7 +155,7 @@ void DeferredRenderPipeline::render(const RenderWorld &world, RenderView &view, 
 
     /* Perform post-processing effects and output the image to the real render
      * target. */
-    renderPostEffects(context, context.colourBuffer, ImageType::kLinearLDR);
+    renderPostEffects(context, context.colourBuffer, ImageType::kHDR);
 
     /* Render debug primitives. */
     renderDebug(context);
@@ -174,7 +174,7 @@ void DeferredRenderPipeline::allocateResources(Context &context) const {
         setFlags  (GPUTexture::kRenderTarget);
 
     /* Allocate the main output textures. */
-    textureDesc.format      = kLinearLDRColourBufferFormat;
+    textureDesc.format      = kHDRColourBufferFormat;
     context.colourBuffer    = g_renderTargetPool->allocate(textureDesc);
     textureDesc.format      = kDepthBufferFormat;
     context.depthBuffer     = g_renderTargetPool->allocate(textureDesc);

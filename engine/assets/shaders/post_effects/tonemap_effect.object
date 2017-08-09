@@ -1,0 +1,32 @@
+[
+    {
+        "objectClass": "Shader",
+        "objectID": 0,
+        "objectProperties": {},
+        "parameters": [
+            {
+                "name": "sourceTexture",
+                "type": "kTexture2D"
+            },
+            {
+                "name": "exposure",
+                "type": "kFloat"
+            },
+            {
+                "name": "whitePoint",
+                "type": "kFloat"
+            }
+        ],
+        "passes": [
+            {
+                "type": "PostEffect",
+                "vertex": {
+                    "source": "engine/shaders/post_effect_vtx.glsl"
+                },
+                "fragment": {
+                    "source": "engine/shaders/tonemap_effect_frag.glsl"
+                }
+            }
+        ]
+    }
+]

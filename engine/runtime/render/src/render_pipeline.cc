@@ -28,6 +28,7 @@
 #include "render/render_view.h"
 
 #include "render/post_effects/gamma_correction_effect.h"
+#include "render/post_effects/tonemap_effect.h"
 
 /** Global resources for all pipelines. */
 static GlobalResource<RenderPipeline::BaseResources> g_renderPipelineResources;
@@ -37,9 +38,11 @@ RenderPipeline::RenderPipeline() {
     /* Ensure global resources are initialised. */
     g_renderPipelineResources.init();
 
-    /* Default to having a gamma correction pass. Really this should only be
-     * done if targetting the main window, for off-screen rendering it would
-     * be better to just store the results in an sRGB texture. */
+    /* Default to having a tonemapping and gamma correction pass. Really the
+     * gamma correction should only be done if targetting the main window, for
+     * off-screen rendering it would be better to just store the results in an
+     * sRGB texture. */
+    m_postEffects.emplace_back(new TonemapEffect);
     m_postEffects.emplace_back(new GammaCorrectionEffect);
 }
 
