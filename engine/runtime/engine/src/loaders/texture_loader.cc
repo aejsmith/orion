@@ -74,7 +74,7 @@ AssetPtr Texture2DLoader::load() {
                                          m_height,
                                          getFinalFormat(m_format),
                                          0,
-                                         GPUTexture::kAutoMipmap | GPUTexture::kRenderTarget);
+                                         GPUTexture::kAutoMipmap);
     texture->update(m_buffer.get());
 
     /* Apply attributes. */
@@ -129,7 +129,7 @@ AssetPtr TextureCubeLoader::load() {
     TextureCubePtr texture = new TextureCube(size,
                                              getFinalFormat(PixelFormat::kR8G8B8A8),
                                              0,
-                                             GPUTexture::kAutoMipmap | GPUTexture::kRenderTarget);
+                                             GPUTexture::kAutoMipmap);
 
     /* Copy source texture data into the cube texture. */
     for (unsigned i = 0; i < CubeFace::kNumFaces; i++) {

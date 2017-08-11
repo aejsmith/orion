@@ -30,8 +30,6 @@
 static void setAttachment(GLenum attachment, const GPUTextureImageRef &texture) {
     GLTexture *glTexture = static_cast<GLTexture *>(texture.texture);
 
-    check(glTexture->flags() & GPUTexture::kRenderTarget);
-
     switch (glTexture->glTarget()) {
         case GL_TEXTURE_2D:
             glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER,
