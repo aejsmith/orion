@@ -47,23 +47,39 @@ protected:
 
 /** Blending state descriptor. */
 struct GPUBlendStateDesc {
-    BlendFunc func;                 /**< Blending function. */
-    BlendFactor sourceFactor;       /**< Source factor. */
-    BlendFactor destFactor;         /**< Destination factor. */
+    BlendFunc func;                 /**< Colour blending function. */
+    BlendFactor sourceFactor;       /**< Source colour factor. */
+    BlendFactor destFactor;         /**< Destination colour factor. */
+
+    BlendFunc alphaFunc;            /**< Alpha blending function. */
+    BlendFactor sourceAlphaFactor;  /**< Source alpha factor. */
+    BlendFactor destAlphaFactor;    /**< Destination alpha factor. */
 
     GPUBlendStateDesc() :
-        func         (BlendFunc::kAdd),
-        sourceFactor (BlendFactor::kOne),
-        destFactor   (BlendFactor::kZero)
+        func              (BlendFunc::kAdd),
+        sourceFactor      (BlendFactor::kOne),
+        destFactor        (BlendFactor::kZero),
+        alphaFunc         (BlendFunc::kAdd),
+        sourceAlphaFactor (BlendFactor::kOne),
+        destAlphaFactor   (BlendFactor::kZero)
     {}
 
     SET_DESC_PARAMETER(setFunc, BlendFunc, func);
     SET_DESC_PARAMETER(setSourceFactor, BlendFactor, sourceFactor);
     SET_DESC_PARAMETER(setDestFactor, BlendFactor, destFactor);
 
+    SET_DESC_PARAMETER(setAlphaFunc, BlendFunc, alphaFunc);
+    SET_DESC_PARAMETER(setSourceAlphaFactor, BlendFactor, sourceAlphaFactor);
+    SET_DESC_PARAMETER(setDestAlphaFactor, BlendFactor, destAlphaFactor);
+
     /** Compare this descriptor with another. */
     bool operator ==(const GPUBlendStateDesc &other) const {
-        return func == other.func && sourceFactor == other.sourceFactor && destFactor == other.destFactor;
+        return func == other.func &&
+               sourceFactor == other.sourceFactor &&
+               destFactor == other.destFactor &&
+               alphaFunc == other.alphaFunc &&
+               sourceAlphaFactor == other.sourceAlphaFactor &&
+               destAlphaFactor == other.destAlphaFactor;
     }
 
     /** Get a hash from a blend state descriptor. */
@@ -71,6 +87,9 @@ struct GPUBlendStateDesc {
         size_t hash = hashValue(desc.func);
         hash = hashCombine(hash, desc.sourceFactor);
         hash = hashCombine(hash, desc.destFactor);
+        hash = hashCombine(hash, desc.alphaFunc);
+        hash = hashCombine(hash, desc.sourceAlphaFactor);
+        hash = hashCombine(hash, desc.destAlphaFactor);
         return hash;
     }
 };

@@ -316,14 +316,17 @@ void DebugOverlay::render(bool first) {
                                                    glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
     cmdList->setBlendState(GPUBlendStateDesc().
-        setFunc         (BlendFunc::kAdd).
-        setSourceFactor (BlendFactor::kSourceAlpha).
-        setDestFactor   (BlendFactor::kOneMinusSourceAlpha));
+        setFunc              (BlendFunc::kAdd).
+        setSourceFactor      (BlendFactor::kSourceAlpha).
+        setDestFactor        (BlendFactor::kOneMinusSourceAlpha).
+        setAlphaFunc         (BlendFunc::kAdd).
+        setSourceAlphaFactor (BlendFactor::kOne).
+        setDestAlphaFactor   (BlendFactor::kOneMinusSourceAlpha));
     cmdList->setDepthStencilState(GPUDepthStencilStateDesc().
-        setDepthFunc  (ComparisonFunc::kAlways).
-        setDepthWrite (false));
+        setDepthFunc         (ComparisonFunc::kAlways).
+        setDepthWrite        (false));
     cmdList->setRasterizerState(GPURasterizerStateDesc().
-        setCullMode (CullMode::kDisabled));
+        setCullMode          (CullMode::kDisabled));
 
     MaterialPtr material;
     GPUTexture *lastTexture = nullptr;
@@ -336,9 +339,9 @@ void DebugOverlay::render(bool first) {
             setCount  (imCmdList->VtxBuffer.size()).
             setLayout (m_vertexDataLayout);
         auto vertexBufferDesc = GPUBufferDesc().
-            setType  (GPUBuffer::kVertexBuffer).
-            setUsage (GPUBuffer::kTransientUsage).
-            setSize  (imCmdList->VtxBuffer.size() * sizeof(ImDrawVert));
+            setType   (GPUBuffer::kVertexBuffer).
+            setUsage  (GPUBuffer::kTransientUsage).
+            setSize   (imCmdList->VtxBuffer.size() * sizeof(ImDrawVert));
         vertexDataDesc.buffers[0] = g_gpuManager->createBuffer(vertexBufferDesc);
         vertexDataDesc.buffers[0]->write(0, vertexBufferDesc.size, &imCmdList->VtxBuffer.front());
         GPUVertexDataPtr vertexData = g_gpuManager->createVertexData(std::move(vertexDataDesc));
@@ -678,10 +681,7 @@ void DebugManager::writeText(const std::string &text, const glm::vec4 &colour) {
 void DebugManager::renderView(GPUCommandList *cmdList, GPUResourceSet *view) {
     PrimitiveRenderer renderer;
 
-    cmdList->setBlendState(GPUBlendStateDesc().
-        setFunc         (BlendFunc::kAdd).
-        setSourceFactor (BlendFactor::kSourceAlpha).
-        setDestFactor   (BlendFactor::kOneMinusSourceAlpha));
+    cmdList->setBlendState(GPUBlendStateDesc());
     cmdList->setDepthStencilState(GPUDepthStencilStateDesc().
         setDepthFunc  (ComparisonFunc::kAlways).
         setDepthWrite (false));

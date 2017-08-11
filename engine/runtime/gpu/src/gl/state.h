@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -89,8 +89,11 @@ public:
     /** Blending state. */
     bool blendEnabled;
     GLenum blendEquation;
+    GLenum blendAlphaEquation;
     GLenum blendSourceFactor;
     GLenum blendDestFactor;
+    GLenum blendSourceAlphaFactor;
+    GLenum blendDestAlphaFactor;
 
     /** Depth testing state. */
     bool depthTestEnabled;
@@ -123,8 +126,11 @@ public:
     void setViewport(const IntRect &viewport);
 
     void enableBlend(bool enable);
-    void setBlendEquation(GLenum equation);
-    void setBlendFunc(GLenum sourceFactor, GLenum destFactor);
+    void setBlendEquation(GLenum equation, GLenum alphaEquation);
+    void setBlendFunc(GLenum sourceFactor,
+                      GLenum destFactor,
+                      GLenum sourceAlphaFactor,
+                      GLenum destAlphaFactor);
 
     void enableDepthTest(bool enable);
     void enableDepthWrite(bool enable);
@@ -157,9 +163,12 @@ public:
 /** OpenGL blend state object implementation. */
 struct GLBlendState : public GPUBlendState {
     bool enable;                    /**< Whether to enable blending. */
-    GLenum blendEquation;           /**< GL blend equation. */
-    GLenum sourceFactor;            /**< GL source factor. */
-    GLenum destFactor;              /**< GL destination factor. */
+    GLenum equation;                /**< GL colour blend equation. */
+    GLenum sourceFactor;            /**< GL colour source factor. */
+    GLenum destFactor;              /**< GL colour destination factor. */
+    GLenum alphaEquation;           /**< GL alpha blend equation. */
+    GLenum sourceAlphaFactor;       /**< GL alpha source factor. */
+    GLenum destAlphaFactor;         /**< GL alpha destination factor. */
 public:
     GLBlendState(const GPUBlendStateDesc &desc) : GPUBlendState(desc) {}
 };

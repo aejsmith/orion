@@ -438,9 +438,12 @@ void DeferredRenderPipeline::renderDeferredLights(Context &context) const {
 
     /* Light volumes should be rendered with additive blending. */
     cmdList->setBlendState(GPUBlendStateDesc().
-        setFunc         (BlendFunc::kAdd).
-        setSourceFactor (BlendFactor::kOne).
-        setDestFactor   (BlendFactor::kOne));
+        setFunc              (BlendFunc::kAdd).
+        setSourceFactor      (BlendFactor::kOne).
+        setDestFactor        (BlendFactor::kOne).
+        setAlphaFunc         (BlendFunc::kAdd).
+        setSourceAlphaFactor (BlendFactor::kOne).
+        setDestAlphaFactor   (BlendFactor::kZero));
 
     for (Light &light : context.lights) {
         GPU_CMD_DEBUG_GROUP(cmdList, "Light '%s'", light.renderLight->name.c_str());

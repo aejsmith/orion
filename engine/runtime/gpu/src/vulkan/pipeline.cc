@@ -236,6 +236,7 @@ VkPipeline VulkanPipeline::create(const VulkanCommandState &state,
         VK_DYNAMIC_STATE_VIEWPORT,
         VK_DYNAMIC_STATE_SCISSOR,
     };
+
     VkPipelineDynamicStateCreateInfo dynamicStateInfo = {};
     dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
     dynamicStateInfo.dynamicStateCount = arraySize(kDynamicStates);
@@ -458,13 +459,16 @@ VulkanBlendState::VulkanBlendState(const GPUBlendStateDesc &desc) :
     for (auto &attachment : m_attachments) {
         attachment.blendEnable         = desc.func != BlendFunc::kAdd ||
                                          desc.sourceFactor != BlendFactor::kOne ||
-                                         desc.destFactor != BlendFactor::kZero;
+                                         desc.destFactor != BlendFactor::kZero ||
+                                         desc.alphaFunc != BlendFunc::kAdd ||
+                                         desc.sourceAlphaFactor != BlendFactor::kOne ||
+                                         desc.destAlphaFactor != BlendFactor::kZero;
         attachment.srcColorBlendFactor = convertBlendFactor(desc.sourceFactor);
-        attachment.srcAlphaBlendFactor = attachment.srcColorBlendFactor;
+        attachment.srcAlphaBlendFactor = convertBlendFactor(desc.sourceAlphaFactor);
         attachment.dstColorBlendFactor = convertBlendFactor(desc.destFactor);
-        attachment.dstAlphaBlendFactor = attachment.dstColorBlendFactor;
+        attachment.dstAlphaBlendFactor = convertBlendFactor(desc.destAlphaFactor);
         attachment.colorBlendOp        = convertBlendFunc(desc.func);
-        attachment.alphaBlendOp        = attachment.colorBlendOp;
+        attachment.alphaBlendOp        = convertBlendFunc(desc.alphaFunc);
         attachment.colorWriteMask      = VK_COLOR_COMPONENT_R_BIT |
                                          VK_COLOR_COMPONENT_G_BIT |
                                          VK_COLOR_COMPONENT_B_BIT |

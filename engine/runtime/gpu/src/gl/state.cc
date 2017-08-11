@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -33,23 +33,26 @@
  * entries here.
  */
 GLState::GLState() :
-    blendEnabled         (false),
-    blendEquation        (GL_FUNC_ADD),
-    blendSourceFactor    (GL_ONE),
-    blendDestFactor      (GL_ZERO),
-    depthTestEnabled     (false),
-    depthWriteEnabled    (true),
-    depthFunc            (GL_LESS),
-    cullFaceEnabled      (false),
-    cullFace             (GL_BACK),
-    depthClampEnabled    (false),
-    scissorTestEnabled   (false),
-    boundDrawFramebuffer (0),
-    boundReadFramebuffer (0),
-    boundPipeline        (0),
-    activeTexture        (0),
-    textureUnits         (nullptr),
-    boundVertexArray     (0)
+    blendEnabled           (false),
+    blendEquation          (GL_FUNC_ADD),
+    blendAlphaEquation     (GL_FUNC_ADD),
+    blendSourceFactor      (GL_ONE),
+    blendDestFactor        (GL_ZERO),
+    blendSourceAlphaFactor (GL_ONE),
+    blendDestAlphaFactor   (GL_ZERO),
+    depthTestEnabled       (false),
+    depthWriteEnabled      (true),
+    depthFunc              (GL_LESS),
+    cullFaceEnabled        (false),
+    cullFace               (GL_BACK),
+    depthClampEnabled      (false),
+    scissorTestEnabled     (false),
+    boundDrawFramebuffer   (0),
+    boundReadFramebuffer   (0),
+    boundPipeline          (0),
+    activeTexture          (0),
+    textureUnits           (nullptr),
+    boundVertexArray       (0)
 {}
 
 /** Destroy the GL state. */
@@ -88,22 +91,36 @@ void GLState::enableBlend(bool enable) {
 }
 
 /** Set the blend equation.
- * @param equation      Blending equation. */
-void GLState::setBlendEquation(GLenum equation) {
-    if (equation != this->blendEquation) {
-        glBlendEquation(equation);
-        this->blendEquation = equation;
+ * @param equation      Colour blending equation.
+ * @param alphaEquation Alpha blending equation. */
+void GLState::setBlendEquation(GLenum equation, GLenum alphaEquation) {
+    if (equation != this->blendEquation || alphaEquation != this->blendAlphaEquation) {
+        glBlendEquationSeparate(equation, alphaEquation);
+        this->blendEquation      = equation;
+        this->blendAlphaEquation = alphaEquation;
     }
 }
 
 /** Set the blending factors.
- * @param sourceFactor  Source factor.
- * @param destFactor    Destination factor. */
-void GLState::setBlendFunc(GLenum sourceFactor, GLenum destFactor) {
-    if (sourceFactor != this->blendSourceFactor || destFactor != this->blendDestFactor) {
-        glBlendFunc(sourceFactor, destFactor);
-        this->blendSourceFactor = sourceFactor;
-        this->blendDestFactor = destFactor;
+ * @param sourceFactor      Source factor.
+ * @param destFactor        Destination factor.
+ * @param sourceAlphaFactor Source factor.
+ * @param destAlphaFactor   Destination factor. */
+void GLState::setBlendFunc(GLenum sourceFactor,
+                           GLenum destFactor,
+                           GLenum sourceAlphaFactor,
+                           GLenum destAlphaFactor)
+{
+    if (sourceFactor != this->blendSourceFactor ||
+        destFactor != this->blendDestFactor ||
+        sourceAlphaFactor != this->blendSourceAlphaFactor ||
+        destAlphaFactor != this->blendDestAlphaFactor)
+    {
+        glBlendFuncSeparate(sourceFactor, destFactor, sourceAlphaFactor, destAlphaFactor);
+        this->blendSourceFactor      = sourceFactor;
+        this->blendDestFactor        = destFactor;
+        this->blendSourceAlphaFactor = sourceAlphaFactor;
+        this->blendDestAlphaFactor   = destAlphaFactor;
     }
 }
 
@@ -368,12 +385,19 @@ void GLState::invalidateTexture(GLuint texture) {
 GPUBlendStatePtr GLGPUManager::createBlendState(const GPUBlendStateDesc &desc) {
     GLBlendState *state = new GLBlendState(desc);
 
-    state->enable = desc.func != BlendFunc::kAdd ||
-                    desc.sourceFactor != BlendFactor::kOne ||
-                    desc.destFactor != BlendFactor::kZero;
-    state->blendEquation = GLUtil::convertBlendFunc(desc.func);
-    state->sourceFactor = GLUtil::convertBlendFactor(desc.sourceFactor);
-    state->destFactor = GLUtil::convertBlendFactor(desc.destFactor);
+    state->enable            = desc.func != BlendFunc::kAdd ||
+                               desc.sourceFactor != BlendFactor::kOne ||
+                               desc.destFactor != BlendFactor::kZero ||
+                               desc.alphaFunc != BlendFunc::kAdd ||
+                               desc.sourceAlphaFactor != BlendFactor::kOne ||
+                               desc.destAlphaFactor != BlendFactor::kZero;
+
+    state->equation          = GLUtil::convertBlendFunc(desc.func);
+    state->sourceFactor      = GLUtil::convertBlendFactor(desc.sourceFactor);
+    state->destFactor        = GLUtil::convertBlendFactor(desc.destFactor);
+    state->alphaEquation     = GLUtil::convertBlendFunc(desc.alphaFunc);
+    state->sourceAlphaFactor = GLUtil::convertBlendFactor(desc.sourceAlphaFactor);
+    state->destAlphaFactor   = GLUtil::convertBlendFactor(desc.destAlphaFactor);
 
     return state;
 }
@@ -386,8 +410,11 @@ void GLGPUManager::setBlendState(GPUBlendState *state) {
     GLBlendState *glState = static_cast<GLBlendState *>(state);
 
     this->state.enableBlend(glState->enable);
-    this->state.setBlendEquation(glState->blendEquation);
-    this->state.setBlendFunc(glState->sourceFactor, glState->destFactor);
+    this->state.setBlendEquation(glState->equation, glState->alphaEquation);
+    this->state.setBlendFunc(glState->sourceFactor,
+                             glState->destFactor,
+                             glState->sourceAlphaFactor,
+                             glState->destAlphaFactor);
 }
 
 /** Create a depth/stencil state object.
