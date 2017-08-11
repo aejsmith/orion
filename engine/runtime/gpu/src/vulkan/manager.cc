@@ -161,7 +161,7 @@ debugReportCallback(VkDebugReportFlagsEXT flags,
     logWrite(level,
         "Vulkan [layer = %s, flags = %s, object = 0x%" PRIx64 ", location = %zu, messageCode = %d]:",
         pLayerPrefix, flagsString.c_str(), object, location, messageCode);
-    logWrite(level, "  %s", pMessage);
+    logWrite(level, "%s", pMessage);
 
     if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
         fatal("Vulkan validation error (see log for details)");

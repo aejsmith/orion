@@ -493,92 +493,119 @@ void VulkanGPUManager::blit(const GPUTextureImageRef &source,
                             glm::ivec2 destPos,
                             glm::ivec2 size)
 {
-    // TODO: If formats are the same, we can use CopyImage.
+    auto sourceTexture = static_cast<VulkanTexture *>((source) ? source.texture : m_surface->texture());
+    auto destTexture   = static_cast<VulkanTexture *>((dest) ? dest.texture : m_surface->texture());
+
+    const bool formatsMatch = sourceTexture->format() == destTexture->format();
 
     /* If copying a depth texture, both formats must match. */
-    bool isDepth = source && PixelFormat::isDepth(source.texture->format());
-    check(isDepth == (dest && PixelFormat::isDepth(dest.texture->format())));
-    check(!isDepth || source.texture->format() == dest.texture->format());
+    const bool isDepth = PixelFormat::isDepth(sourceTexture->format());
+    check(isDepth == PixelFormat::isDepth(destTexture->format()));
+    check(!isDepth || formatsMatch);
 
-    VkImageBlit imageBlit = {};
-    // FIXME: Can't blit depth and stencil together.
-    imageBlit.srcSubresource.aspectMask = (isDepth)
-                                              ? VK_IMAGE_ASPECT_DEPTH_BIT
-                                              : VK_IMAGE_ASPECT_COLOR_BIT;
-    imageBlit.srcSubresource.mipLevel = source.mip;
-    imageBlit.srcSubresource.baseArrayLayer = source.layer;
-    imageBlit.srcSubresource.layerCount = 1;
-    imageBlit.srcOffsets[0] = { sourcePos.x, sourcePos.y, 0 };
-    imageBlit.srcOffsets[1] = { sourcePos.x + size.x, sourcePos.y + size.y, 1 };
-    imageBlit.dstSubresource.aspectMask = imageBlit.srcSubresource.aspectMask;
-    imageBlit.dstSubresource.mipLevel = dest.mip;
-    imageBlit.dstSubresource.baseArrayLayer = dest.layer;
-    imageBlit.dstSubresource.layerCount = 1;
-    imageBlit.dstOffsets[0] = { destPos.x, destPos.y, 0 };
-    imageBlit.dstOffsets[1] = { destPos.x + size.x, destPos.y + size.y, 1 };
+    /* Must have matching aspects between formats. */
+    const uint32_t aspectMask = VulkanUtil::aspectMaskForFormat(sourceTexture->format());
+    check(aspectMask == VulkanUtil::aspectMaskForFormat(destTexture->format()));
 
     /* Determine if we're overwriting the whole destination, in which case we
      * can ignore the existing image content. */
-    uint32_t mipWidth = (dest) ? dest.texture->width() : m_surface->width();
+    uint32_t mipWidth  = (dest) ? dest.texture->width() : m_surface->width();
     uint32_t mipHeight = (dest) ? dest.texture->height() : m_surface->height();
     GPUUtil::calcMipDimensions(dest.mip, mipWidth, mipHeight);
-    bool isWholeDestSubresource =
-        destPos.x == 0 && destPos.y == 0 &&
-        static_cast<uint32_t>(size.x) == mipWidth && static_cast<uint32_t>(size.y) == mipHeight;
+    const bool isWholeDestSubresource = destPos.x == 0 &&
+                                        destPos.y == 0 &&
+                                        static_cast<uint32_t>(size.x) == mipWidth &&
+                                        static_cast<uint32_t>(size.y) == mipHeight;
 
+    /* Reference the images. */
     VulkanCommandBuffer *primaryCmdBuf = currentFrame().primaryCmdBuf;
-
-    /* Get the images. */
-    auto vkSource = static_cast<VulkanTexture *>((source) ? source.texture : m_surface->texture());
-    primaryCmdBuf->addReference(vkSource);
-    auto vkDest = static_cast<VulkanTexture *>((dest) ? dest.texture : m_surface->texture());
-    primaryCmdBuf->addReference(vkDest);
+    primaryCmdBuf->addReference(sourceTexture);
+    primaryCmdBuf->addReference(destTexture);
 
     /* Transition the source subresource to the transfer source layout. */
     VkImageSubresourceRange srcSubresource = {};
-    srcSubresource.aspectMask = imageBlit.srcSubresource.aspectMask;
-    srcSubresource.baseMipLevel = source.mip;
-    srcSubresource.levelCount = 1;
+    srcSubresource.aspectMask     = aspectMask;
+    srcSubresource.baseMipLevel   = source.mip;
+    srcSubresource.levelCount     = 1;
     srcSubresource.baseArrayLayer = source.layer;
-    srcSubresource.layerCount = 1;
+    srcSubresource.layerCount     = 1;
+
     VulkanUtil::setImageLayout(primaryCmdBuf,
-                               vkSource->handle(),
+                               sourceTexture->handle(),
                                srcSubresource,
                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
     /* Transition the destination subresource to the transfer destination layout. */
     VkImageSubresourceRange dstSubresource = {};
-    dstSubresource.aspectMask = imageBlit.dstSubresource.aspectMask;
-    dstSubresource.baseMipLevel = dest.mip;
-    dstSubresource.levelCount = 1;
+    dstSubresource.aspectMask     = aspectMask;
+    dstSubresource.baseMipLevel   = dest.mip;
+    dstSubresource.levelCount     = 1;
     dstSubresource.baseArrayLayer = dest.layer;
-    dstSubresource.layerCount = 1;
+    dstSubresource.layerCount     = 1;
+
     VulkanUtil::setImageLayout(primaryCmdBuf,
-                               vkDest->handle(),
+                               destTexture->handle(),
                                dstSubresource,
                                (isWholeDestSubresource)
                                    ? VK_IMAGE_LAYOUT_UNDEFINED
                                    : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-    /* Perform the blit. */
-    vkCmdBlitImage(primaryCmdBuf->handle(),
-                   vkSource->handle(),
-                   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                   vkDest->handle(),
-                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                   1, &imageBlit,
-                   VK_FILTER_NEAREST);
+    /* Use a copy if the formats match. TODO: Also do for compatible formats. */
+    if (formatsMatch) {
+        VkImageCopy imageCopy = {};
+        imageCopy.srcSubresource.aspectMask     = aspectMask;
+        imageCopy.srcSubresource.mipLevel       = source.mip;
+        imageCopy.srcSubresource.baseArrayLayer = source.layer;
+        imageCopy.srcSubresource.layerCount     = 1;
+        imageCopy.srcOffset                     = { sourcePos.x, sourcePos.y, 0 };
+        imageCopy.dstSubresource.aspectMask     = aspectMask;
+        imageCopy.dstSubresource.mipLevel       = dest.mip;
+        imageCopy.dstSubresource.baseArrayLayer = dest.layer;
+        imageCopy.dstSubresource.layerCount     = 1;
+        imageCopy.dstOffset                     = { destPos.x, destPos.y, 0 };
+        imageCopy.extent                        = { static_cast<uint32_t>(size.x), static_cast<uint32_t>(size.y), 1 };
+
+        vkCmdCopyImage(primaryCmdBuf->handle(),
+                       sourceTexture->handle(),
+                       VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                       destTexture->handle(),
+                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                       1, &imageCopy);
+    } else {
+        VkImageBlit imageBlit = {};
+        imageBlit.srcSubresource.aspectMask     = aspectMask;
+        imageBlit.srcSubresource.mipLevel       = source.mip;
+        imageBlit.srcSubresource.baseArrayLayer = source.layer;
+        imageBlit.srcSubresource.layerCount     = 1;
+        imageBlit.srcOffsets[0]                 = { sourcePos.x, sourcePos.y, 0 };
+        imageBlit.srcOffsets[1]                 = { sourcePos.x + size.x, sourcePos.y + size.y, 1 };
+        imageBlit.dstSubresource.aspectMask     = aspectMask;
+        imageBlit.dstSubresource.mipLevel       = dest.mip;
+        imageBlit.dstSubresource.baseArrayLayer = dest.layer;
+        imageBlit.dstSubresource.layerCount     = 1;
+        imageBlit.dstOffsets[0]                 = { destPos.x, destPos.y, 0 };
+        imageBlit.dstOffsets[1]                 = { destPos.x + size.x, destPos.y + size.y, 1 };
+
+        vkCmdBlitImage(primaryCmdBuf->handle(),
+                       sourceTexture->handle(),
+                       VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                       destTexture->handle(),
+                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                       1, &imageBlit,
+                       VK_FILTER_NEAREST);
+    }
 
     /* Transition the images back to shader read only. */
     VulkanUtil::setImageLayout(primaryCmdBuf,
-                               vkSource->handle(),
+                               sourceTexture->handle(),
                                srcSubresource,
                                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
     VulkanUtil::setImageLayout(primaryCmdBuf,
-                               vkDest->handle(),
+                               destTexture->handle(),
                                dstSubresource,
                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
