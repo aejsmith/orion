@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -24,12 +24,14 @@
 /** Initialize the texture.
  * @param desc          Descriptor containing texture parameters. */
 GPUTexture::GPUTexture(const GPUTextureDesc &desc) :
-    m_type   (desc.type),
-    m_width  (desc.width),
-    m_height (desc.height),
-    m_depth  (desc.depth),
-    m_format (desc.format),
-    m_flags  (desc.flags)
+    m_type      (desc.type),
+    m_width     (desc.width),
+    m_height    (desc.height),
+    m_depth     (desc.depth),
+    m_format    (desc.format),
+    m_flags     (desc.flags),
+    m_baseMip   (0),
+    m_baseLayer (0)
 {
     check(m_width > 0);
     check(m_height > 0);
@@ -63,17 +65,61 @@ GPUTexture::GPUTexture(const GPUTextureDesc &desc) :
 }
 
 /** Initialize the texture as a texture view.
- * @param image         Image to create the view for. */
-GPUTexture::GPUTexture(const GPUTextureImageRef &image) :
-    m_type   (kTexture2D),
-    m_width  (image.texture->m_width),
-    m_height (image.texture->m_height),
-    m_depth  (1),
-    m_format (image.texture->m_format),
-    m_mips   (1),
-    m_flags  (0),
-    m_source (image.texture)
+ * @param desc          Descriptor for the view. */
+GPUTexture::GPUTexture(const GPUTextureViewDesc &desc) :
+    m_type      (desc.type),
+    m_width     (desc.source->m_width),
+    m_height    (desc.source->m_height),
+    m_depth     ((desc.type == kTexture3D) ? desc.source->m_depth : desc.layers),
+    m_format    (desc.format),
+    m_mips      (desc.mips),
+    m_flags     (0),
+    m_source    (desc.source),
+    m_baseMip   (desc.baseMip),
+    m_baseLayer (desc.baseLayer)
 {
-    checkMsg(image.texture->m_type == kTextureCube || image.texture->m_type == kTexture2DArray,
-             "Texture views only supported for cube or 2D array textures");
+    #if ORION_BUILD_DEBUG
+        /* Source must not be a view. */
+        check(!desc.source->m_source);
+
+        check(m_baseMip < m_source->m_mips);
+
+        const uint32_t sourceLayers = (m_source->m_type == kTextureCube)
+                                          ? CubeFace::kNumFaces
+                                          : m_source->m_depth;
+        check(m_baseLayer < sourceLayers);
+
+        switch (desc.type) {
+            case kTexture2D:
+                check(m_source->m_type == kTexture2D ||
+                      m_source->m_type == kTexture2DArray ||
+                      m_source->m_type == kTextureCube);
+                break;
+
+            case kTexture2DArray:
+                check(m_source->m_type == kTexture2DArray);
+                break;
+
+            case kTextureCube:
+                check(m_source->m_type == kTextureCube);
+                break;
+
+            case kTexture3D:
+                check(m_source->m_type == kTexture3D);
+                break;
+
+        }
+    #endif
+
+    /* Automatically fill in up to the end of the texture if mip/layer counts
+     * are specified as 0. */
+    if (m_mips == 0) {
+        m_mips = m_source->m_mips - m_baseMip;
+        check(m_mips != 0);
+    }
+
+    if (m_depth == 0) {
+        m_depth = m_source->m_depth - m_baseLayer;
+        check(m_depth != 0);
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Alex Smith
+ * Copyright (C) 2016-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -92,7 +92,7 @@ public:
     GPUPipelinePtr createPipeline(GPUPipelineDesc &&desc) override;
     GPURenderPassPtr createRenderPass(GPURenderPassDesc &&desc) override;
     GPUTexturePtr createTexture(const GPUTextureDesc &desc) override;
-    GPUTexturePtr createTextureView(const GPUTextureImageRef &image) override;
+    GPUTexturePtr createTextureView(const GPUTextureViewDesc &desc) override;
 
     GPUBlendStatePtr createBlendState(const GPUBlendStateDesc &desc) override;
     GPUDepthStencilStatePtr createDepthStencilState(const GPUDepthStencilStateDesc &desc) override;

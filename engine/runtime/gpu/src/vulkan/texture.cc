@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Alex Smith
+ * Copyright (C) 2016-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -34,47 +34,51 @@ VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureDesc &de
     VkDevice device = manager->device()->handle();
 
     VkImageCreateInfo createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-    createInfo.format = manager->features().formats[desc.format].format;
-    createInfo.extent.width = desc.width;
+    createInfo.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    createInfo.format        = manager->features().formats[desc.format].format;
+    createInfo.extent.width  = desc.width;
     createInfo.extent.height = desc.height;
-    createInfo.mipLevels = m_mips;
-    createInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-    createInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-    createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    createInfo.mipLevels     = m_mips;
+    createInfo.samples       = VK_SAMPLE_COUNT_1_BIT;
+    createInfo.tiling        = VK_IMAGE_TILING_OPTIMAL;
+    createInfo.sharingMode   = VK_SHARING_MODE_EXCLUSIVE;
     createInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    createInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT |
-                       VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
-                       VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    createInfo.usage         = VK_IMAGE_USAGE_SAMPLED_BIT |
+                               VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+                               VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+
     if (desc.flags & kRenderTarget) {
         if (PixelFormat::isDepth(desc.format)) {
             createInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
         } else {
             createInfo.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
         }
+    } else {
+        /* Allow creating views with differing formats. */
+        createInfo.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
     }
 
     switch (desc.type) {
         case kTexture2D:
-            createInfo.imageType = VK_IMAGE_TYPE_2D;
+            createInfo.imageType    = VK_IMAGE_TYPE_2D;
             createInfo.extent.depth = 1;
-            createInfo.arrayLayers = 1;
+            createInfo.arrayLayers  = 1;
             break;
         case kTexture2DArray:
-            createInfo.imageType = VK_IMAGE_TYPE_2D;
+            createInfo.imageType    = VK_IMAGE_TYPE_2D;
             createInfo.extent.depth = 1;
-            createInfo.arrayLayers = desc.depth;
+            createInfo.arrayLayers  = desc.depth;
             break;
         case kTextureCube:
-            createInfo.imageType = VK_IMAGE_TYPE_2D;
+            createInfo.imageType    = VK_IMAGE_TYPE_2D;
             createInfo.extent.depth = 1;
-            createInfo.arrayLayers = CubeFace::kNumFaces;
-            createInfo.flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+            createInfo.arrayLayers  = CubeFace::kNumFaces;
+            createInfo.flags       |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
             break;
         case kTexture3D:
-            createInfo.imageType = VK_IMAGE_TYPE_3D;
+            createInfo.imageType    = VK_IMAGE_TYPE_3D;
             createInfo.extent.depth = desc.depth;
-            createInfo.arrayLayers = 1;
+            createInfo.arrayLayers  = 1;
             break;
         default:
             unreachable();
@@ -94,11 +98,11 @@ VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureDesc &de
 
     /* Set the initial image layout. */
     VkImageSubresourceRange subresources;
-    subresources.aspectMask = VulkanUtil::aspectMaskForFormat(m_format);
-    subresources.baseMipLevel = 0;
-    subresources.levelCount = m_mips;
+    subresources.aspectMask     = VulkanUtil::aspectMaskForFormat(m_format);
+    subresources.baseMipLevel   = 0;
+    subresources.levelCount     = m_mips;
     subresources.baseArrayLayer = 0;
-    subresources.layerCount = createInfo.arrayLayers;
+    subresources.layerCount     = createInfo.arrayLayers;
     VulkanUtil::setImageLayout(manager->memoryManager()->getStagingCmdBuf(),
                                m_handle,
                                subresources,
@@ -106,39 +110,44 @@ VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureDesc &de
                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     /* Create a resource view. */
-    VkImageViewCreateInfo viewCreateInfo = {};
-    viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    viewCreateInfo.image = m_handle;
-    viewCreateInfo.format = manager->features().formats[desc.format].format;
     // TODO: Only have depth for depth/stencil formats for now, because we can
     // only have one aspect set when using an image in a descriptor set.
-    viewCreateInfo.subresourceRange.aspectMask = (PixelFormat::isDepth(desc.format))
-                                                     ? VK_IMAGE_ASPECT_DEPTH_BIT
-                                                     : VK_IMAGE_ASPECT_COLOR_BIT;
-    viewCreateInfo.subresourceRange.baseMipLevel = 0;
-    viewCreateInfo.subresourceRange.levelCount = m_mips;
+    VkImageViewCreateInfo viewCreateInfo = {};
+    viewCreateInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewCreateInfo.image                           = m_handle;
+    viewCreateInfo.format                          = manager->features().formats[desc.format].format;
+    viewCreateInfo.subresourceRange.aspectMask     = (PixelFormat::isDepth(desc.format))
+                                                         ? VK_IMAGE_ASPECT_DEPTH_BIT
+                                                         : VK_IMAGE_ASPECT_COLOR_BIT;
+    viewCreateInfo.subresourceRange.baseMipLevel   = 0;
+    viewCreateInfo.subresourceRange.levelCount     = m_mips;
     viewCreateInfo.subresourceRange.baseArrayLayer = 0;
-    viewCreateInfo.subresourceRange.layerCount = createInfo.arrayLayers;
-    viewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_R;
-    viewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_G;
-    viewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_B;
-    viewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_A;
+    viewCreateInfo.subresourceRange.layerCount     = createInfo.arrayLayers;
+    viewCreateInfo.components.r                    = VK_COMPONENT_SWIZZLE_R;
+    viewCreateInfo.components.g                    = VK_COMPONENT_SWIZZLE_G;
+    viewCreateInfo.components.b                    = VK_COMPONENT_SWIZZLE_B;
+    viewCreateInfo.components.a                    = VK_COMPONENT_SWIZZLE_A;
 
     switch (desc.type) {
         case kTexture2D:
             viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
             break;
+
         case kTexture2DArray:
             viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
             break;
+
         case kTextureCube:
             viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
             break;
+
         case kTexture3D:
             viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_3D;
             break;
+
         default:
             unreachable();
+
     }
 
     checkVk(vkCreateImageView(device, &viewCreateInfo, nullptr, &m_resourceView));
@@ -146,10 +155,9 @@ VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureDesc &de
 
 /** Initialize a new texture view.
  * @param manager       Manager that owns this texture.
- * @param image         Image to create the view for.
- * @return              Pointer to created texture view. */
-VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureImageRef &image) :
-    GPUTexture   (image),
+ * @param desc          Descriptor for the view. */
+VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureViewDesc &desc) :
+    GPUTexture   (desc),
     VulkanHandle (manager)
 {
     auto source = static_cast<VulkanTexture *>(m_source.get());
@@ -157,33 +165,47 @@ VulkanTexture::VulkanTexture(VulkanGPUManager *manager, const GPUTextureImageRef
     m_handle = source->handle();
 
     VkImageViewCreateInfo viewCreateInfo = {};
-    viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    viewCreateInfo.image = m_handle;
-    viewCreateInfo.format = manager->features().formats[m_format].format;
-    viewCreateInfo.subresourceRange.aspectMask = (PixelFormat::isDepth(m_format))
-                                                     ? VK_IMAGE_ASPECT_DEPTH_BIT
-                                                     : VK_IMAGE_ASPECT_COLOR_BIT;
-    viewCreateInfo.subresourceRange.baseMipLevel = image.mip;
-    viewCreateInfo.subresourceRange.levelCount = 1;
-    viewCreateInfo.subresourceRange.baseArrayLayer = image.layer;
-    viewCreateInfo.subresourceRange.layerCount = 1;
-    viewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_R;
-    viewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_G;
-    viewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_B;
-    viewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_A;
+    viewCreateInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewCreateInfo.image                           = m_handle;
+    viewCreateInfo.format                          = manager->features().formats[m_format].format;
+    viewCreateInfo.subresourceRange.aspectMask     = (PixelFormat::isDepth(m_format))
+                                                         ? VK_IMAGE_ASPECT_DEPTH_BIT
+                                                         : VK_IMAGE_ASPECT_COLOR_BIT;
+    viewCreateInfo.subresourceRange.baseMipLevel   = m_baseMip;
+    viewCreateInfo.subresourceRange.levelCount     = m_mips;
+    viewCreateInfo.subresourceRange.baseArrayLayer = m_baseLayer;
+    viewCreateInfo.components.r                    = VK_COMPONENT_SWIZZLE_R;
+    viewCreateInfo.components.g                    = VK_COMPONENT_SWIZZLE_G;
+    viewCreateInfo.components.b                    = VK_COMPONENT_SWIZZLE_B;
+    viewCreateInfo.components.a                    = VK_COMPONENT_SWIZZLE_A;
 
-    switch (m_type) {
+    switch (desc.type) {
         case kTexture2D:
-            viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            viewCreateInfo.viewType                    = VK_IMAGE_VIEW_TYPE_2D;
+            viewCreateInfo.subresourceRange.layerCount = 1;
             break;
+
         case kTexture2DArray:
-            viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+            viewCreateInfo.viewType                    = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+            viewCreateInfo.subresourceRange.layerCount = m_depth;
             break;
-        default:
-            unreachable();
+
+        case kTextureCube:
+            viewCreateInfo.viewType                    = VK_IMAGE_VIEW_TYPE_CUBE;
+            viewCreateInfo.subresourceRange.layerCount = CubeFace::kNumFaces;
+            break;
+
+        case kTexture3D:
+            viewCreateInfo.viewType                    = VK_IMAGE_VIEW_TYPE_3D;
+            viewCreateInfo.subresourceRange.layerCount = 1;
+            break;
+
     }
 
-    checkVk(vkCreateImageView(manager->device()->handle(), &viewCreateInfo, nullptr, &m_resourceView));
+    checkVk(vkCreateImageView(manager->device()->handle(),
+                              &viewCreateInfo,
+                              nullptr,
+                              &m_resourceView));
 }
 
 /** Destroy the texture. */
@@ -402,10 +424,10 @@ GPUTexturePtr VulkanGPUManager::createTexture(const GPUTextureDesc &desc) {
 }
 
 /** Create a texture view.
- * @param image         Image to create the view for.
+ * @param desc          Descriptor for the view.
  * @return              Pointer to created texture view. */
-GPUTexturePtr VulkanGPUManager::createTextureView(const GPUTextureImageRef &image) {
-    return new VulkanTexture(this, image);
+GPUTexturePtr VulkanGPUManager::createTextureView(const GPUTextureViewDesc &desc) {
+    return new VulkanTexture(this, desc);
 }
 
 /** Initialise the sampler state object.

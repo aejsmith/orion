@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -28,6 +28,7 @@
 
 struct GPUTextureDesc;
 struct GPUTextureImageRef;
+struct GPUTextureViewDesc;
 
 /**
  * Class storing a texture on the GPU.
@@ -41,10 +42,10 @@ class GPUTexture : public GPUObject {
 public:
     /** Texture types. */
     enum Type {
-        kTexture2D,                 /**< 2-dimensional texture. */
-        kTexture2DArray,            /**< 2-dimensional texture array. */
-        kTextureCube,               /**< Cube texture (6 2-dimensional faces). */
-        kTexture3D,                 /**< 3-dimensional texture. */
+        kTexture2D,                     /**< 2-dimensional texture. */
+        kTexture2DArray,                /**< 2-dimensional texture array. */
+        kTextureCube,                   /**< Cube texture (6 2-dimensional faces). */
+        kTexture3D,                     /**< 3-dimensional texture. */
     };
 
     /** Texture behaviour flags. */
@@ -96,19 +97,21 @@ public:
     bool isView() const { return m_source; }
 protected:
     explicit GPUTexture(const GPUTextureDesc &desc);
-    explicit GPUTexture(const GPUTextureImageRef &image);
+    explicit GPUTexture(const GPUTextureViewDesc &desc);
     ~GPUTexture() {}
 
-    Type m_type;                    /**< Type of the texture. */
-    uint32_t m_width;               /**< Width of the texture. */
-    uint32_t m_height;              /**< Height of the texture. */
-    uint32_t m_depth;               /**< Depth of the texture. */
-    PixelFormat m_format;           /**< Pixel format. */
-    unsigned m_mips;                /**< Number of mip levels. */
-    uint32_t m_flags;               /**< Behaviour flags for the texture. */
+    Type m_type;                        /**< Type of the texture. */
+    uint32_t m_width;                   /**< Width of the texture. */
+    uint32_t m_height;                  /**< Height of the texture. */
+    uint32_t m_depth;                   /**< Depth of the texture. */
+    PixelFormat m_format;               /**< Pixel format. */
+    unsigned m_mips;                    /**< Number of mip levels. */
+    uint32_t m_flags;                   /**< Behaviour flags for the texture. */
 
-    /** For texture views, the source texture. */
-    GPUObjectPtr<GPUTexture> m_source;
+    /** View-specific fields. */
+    GPUObjectPtr<GPUTexture> m_source;  /**< Source texture. */
+    unsigned m_baseMip;                 /**< Base mip level. */
+    unsigned m_baseLayer;               /**< Base array layer. */
 };
 
 /** Type of a pointer to a texture. */
@@ -116,13 +119,13 @@ using GPUTexturePtr = GPUObjectPtr<GPUTexture>;
 
 /** Texture descriptor. */
 struct GPUTextureDesc {
-    GPUTexture::Type type;          /**< Type of the texture to create. */
-    uint32_t width;                 /**< Width in pixels. */
-    uint32_t height;                /**< Height in pixels (must be equal to width for kTextureCube). */
-    uint32_t depth;                 /**< Depth in pixels (kTexture3D) or number of layers (kTexture2DArray). */
-    PixelFormat format;             /**< Pixel format. */
-    unsigned mips;                  /**< Number of mip levels (0 for full pyramid). */
-    uint32_t flags;                 /**< Behaviour flags for the texture. */
+    GPUTexture::Type type;              /**< Type of the texture to create. */
+    uint32_t width;                     /**< Width in pixels. */
+    uint32_t height;                    /**< Height in pixels (must be equal to width for kTextureCube). */
+    uint32_t depth;                     /**< Depth in pixels (kTexture3D) or number of layers (kTexture2DArray). */
+    PixelFormat format;                 /**< Pixel format. */
+    unsigned mips;                      /**< Number of mip levels (0 for full pyramid). */
+    uint32_t flags;                     /**< Behaviour flags for the texture. */
 
     GPUTextureDesc() :
         mips(0),
@@ -166,9 +169,9 @@ struct GPUTextureDesc {
 
 /** Reference to a specific image (layer and mip) within a texture. */
 struct GPUTextureImageRef {
-    GPUTexture *texture;            /**< Texture to use. */
-    unsigned layer;                 /**< Array layer/cube face. */
-    unsigned mip;                   /**< Mip level. */
+    GPUTexture *texture;                /**< Texture to use. */
+    unsigned layer;                     /**< Array layer/cube face. */
+    unsigned mip;                       /**< Mip level. */
 public:
     /** Initialize as a null reference. */
     GPUTextureImageRef() :
@@ -213,4 +216,30 @@ public:
         hash = hashCombine(hash, ref.mip);
         return hash;
     }
+};
+
+/** Texture view descriptor. */
+struct GPUTextureViewDesc {
+    GPUTexture *source;                 /**< Texture to create the view for. */
+    GPUTexture::Type type;              /**< Type of the view to create. */
+    PixelFormat format;                 /**< Pixel format. */
+    unsigned baseMip;                   /**< Base mip level. */
+    unsigned mips;                      /**< Number of mip levels (0 goes from base down to end). */
+    unsigned baseLayer;                 /**< Base array layer. */
+    uint32_t layers;                    /**< Number of layers (0 goes from base down to end). */
+
+    GPUTextureViewDesc() :
+        baseMip   (0),
+        mips      (0),
+        baseLayer (0),
+        layers    (0)
+    {}
+
+    SET_DESC_PARAMETER(setSource, GPUTexture *, source);
+    SET_DESC_PARAMETER(setType, GPUTexture::Type, type);
+    SET_DESC_PARAMETER(setFormat, PixelFormat, format);
+    SET_DESC_PARAMETER(setBaseMip, unsigned, baseMip);
+    SET_DESC_PARAMETER(setMips, unsigned, mips);
+    SET_DESC_PARAMETER(setBaseLayer, unsigned, baseLayer);
+    SET_DESC_PARAMETER(setLayers, unsigned, layers);
 };

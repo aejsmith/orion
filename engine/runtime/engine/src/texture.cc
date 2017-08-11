@@ -138,11 +138,15 @@ void TextureBase::explore() {
     glm::vec2 drawSize = texSize * scaleFactor;
 
     for (unsigned i = 0; i < layers; i++) {
-        // FIXME: We're losing mipmapping because I was lazy when implementing
-        // implementing texture views.
-        GPUTexturePtr texture = (m_gpu->type() != GPUTexture::kTexture2D)
-                                    ? g_gpuManager->createTextureView(GPUTextureImageRef(m_gpu, i, 0))
-                                    : m_gpu;
+        /* Create a view of the texture. For array textures, we view each layer
+         * separately. */
+        auto desc = GPUTextureViewDesc().
+            setSource    (m_gpu).
+            setType      (GPUTexture::kTexture2D).
+            setFormat    (m_gpu->format()).
+            setBaseLayer (i).
+            setLayers    (1);
+        GPUTexturePtr texture  = g_gpuManager->createTextureView(desc);
         ImTextureID textureRef = DebugWindow::refTexture(texture);
 
         ImGui::Text("Image %u:", i);

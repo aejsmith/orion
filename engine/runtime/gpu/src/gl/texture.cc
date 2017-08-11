@@ -58,23 +58,40 @@ GLTexture::GLTexture(const GPUTextureDesc &desc) :
 }
 
 /** Initialize a new texture view.
- * @param image         Image to create the view for.
- * @return              Pointer to created texture view. */
-GLTexture::GLTexture(const GPUTextureImageRef &image) :
-    GPUTexture (image),
+ * @param desc          Descriptor for the view. */
+GLTexture::GLTexture(const GPUTextureViewDesc &desc) :
+    GPUTexture (desc),
     m_glTarget (GLUtil::convertTextureType(m_type))
 {
-    GLTexture *source = static_cast<GLTexture *>(image.texture);
+    GLTexture *source = static_cast<GLTexture *>(desc.source);
+
+    unsigned layerCount;
+
+    switch (m_type) {
+        case kTexture2D:
+        case kTexture3D:
+            layerCount = 1;
+            break;
+
+        case kTexture2DArray:
+            layerCount = m_depth;
+            break;
+
+        case kTextureCube:
+            layerCount = CubeFace::kNumFaces;
+            break;
+
+    }
 
     glGenTextures(1, &m_texture);
     glTextureView(m_texture,
                   m_glTarget,
                   source->m_texture,
                   g_opengl->pixelFormats[m_format].internalFormat,
-                  image.mip,
-                  1,
-                  image.layer,
-                  1);
+                  m_baseMip,
+                  m_mips,
+                  m_baseLayer,
+                  layerCount);
 
     bindForModification();
     glTexParameteri(m_glTarget, GL_TEXTURE_MAX_LEVEL, m_mips - 1);
@@ -181,8 +198,8 @@ GPUTexturePtr GLGPUManager::createTexture(const GPUTextureDesc &desc) {
 }
 
 /** Create a texture view.
- * @param image         Image to create the view for.
+ * @param desc          Descriptor for the view.
  * @return              Pointer to created texture view. */
-GPUTexturePtr GLGPUManager::createTextureView(const GPUTextureImageRef &image) {
-    return new GLTexture(image);
+GPUTexturePtr GLGPUManager::createTextureView(const GPUTextureViewDesc &desc) {
+    return new GLTexture(desc);
 }

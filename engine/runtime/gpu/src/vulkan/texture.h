@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Alex Smith
+ * Copyright (C) 2016-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -27,7 +27,7 @@
 class VulkanTexture : public GPUTexture, public VulkanHandle<VkImage> {
 public:
     VulkanTexture(VulkanGPUManager *manager, const GPUTextureDesc &desc);
-    VulkanTexture(VulkanGPUManager *manager, const GPUTextureImageRef &image);
+    VulkanTexture(VulkanGPUManager *manager, const GPUTextureViewDesc &desc);
 
     void update(const IntRect &area, const void *data, unsigned mip, unsigned layer) override;
     void update(const IntBox &area, const void *data, unsigned mip) override;

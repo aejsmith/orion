@@ -77,10 +77,9 @@ public:
     virtual GPUTexturePtr createTexture(const GPUTextureDesc &desc) = 0;
 
     /** Create a texture view.
-     * @param image         Image to create the view for.
+     * @param desc          Descriptor containing view parameters.
      * @return              Pointer to created texture view. */
-    // TODO: GPUTextureImageRef doesn't expose all functionality but it works for now.
-    virtual GPUTexturePtr createTextureView(const GPUTextureImageRef &image) = 0;
+    virtual GPUTexturePtr createTextureView(const GPUTextureViewDesc &desc) = 0;
 
     virtual GPUVertexDataPtr createVertexData(GPUVertexDataDesc &&desc);
 
