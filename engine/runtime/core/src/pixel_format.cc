@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -124,3 +124,30 @@ size_t PixelFormat::bytesPerPixel(const PixelFormat format) {
             unreachable();
     }
 }
+
+/** Given a pixel format, get a sRGB equivalent of it.
+ * @param format        Format to convert. */
+PixelFormat PixelFormat::getSRGBEquivalent(PixelFormat format) {
+    switch (format) {
+        case PixelFormat::kR8G8B8A8:
+            return PixelFormat::kR8G8B8A8sRGB;
+        case PixelFormat::kB8G8R8A8:
+            return PixelFormat::kB8G8R8A8sRGB;
+        default:
+            return format;
+    }
+}
+
+/** Given a pixel format, get a non-sRGB equivalent of it.
+ * @param format        Format to convert. */
+PixelFormat PixelFormat::getNonSRGBEquivalent(PixelFormat format) {
+    switch (format) {
+        case PixelFormat::kR8G8B8A8sRGB:
+            return PixelFormat::kR8G8B8A8;
+        case PixelFormat::kB8G8R8A8sRGB:
+            return PixelFormat::kB8G8R8A8;
+        default:
+            return format;
+    }
+}
+

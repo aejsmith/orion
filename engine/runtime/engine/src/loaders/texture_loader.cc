@@ -42,18 +42,8 @@ void TextureLoader::applyAttributes(TextureBase *texture) {
 /** Get the format to use taking attributes into account.
  * @param format        Base format (should not be sRGB). */
 PixelFormat TextureLoader::getFinalFormat(PixelFormat format) const {
-    if (this->sRGB) {
-        switch (format) {
-            case PixelFormat::kR8G8B8A8:
-                format = PixelFormat::kR8G8B8A8sRGB;
-                break;
-            case PixelFormat::kB8G8R8A8:
-                format = PixelFormat::kB8G8R8A8sRGB;
-                break;
-            default:
-                break;
-        }
-    }
+    if (this->sRGB)
+        format = PixelFormat::getSRGBEquivalent(format);
 
     return format;
 }
