@@ -139,11 +139,12 @@ void TextureBase::explore() {
 
     for (unsigned i = 0; i < layers; i++) {
         /* Create a view of the texture. For array textures, we view each layer
-         * separately. */
+         * separately. Additionally, for sRGB textures, we want to view them as
+         * non-sRGB since the GUI is rendered in gamma space. */
         auto desc = GPUTextureViewDesc().
             setSource    (m_gpu).
             setType      (GPUTexture::kTexture2D).
-            setFormat    (m_gpu->format()).
+            setFormat    (PixelFormat::getNonSRGBEquivalent(m_gpu->format())).
             setBaseLayer (i).
             setLayers    (1);
         GPUTexturePtr texture  = g_gpuManager->createTextureView(desc);
