@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -34,26 +34,28 @@
 /** Renderer entity for rendering a SubMesh. */
 class SubMeshRenderEntity : public RenderEntity {
 public:
-    SubMeshRenderEntity(Mesh *mesh, size_t index, MeshRenderer *parent);
+    SubMeshRenderEntity(Mesh &mesh, size_t index, MeshRenderer &parent);
 
     Geometry geometry() const override;
     Material *material() const override;
 private:
-    SubMesh *m_subMesh;             /**< Submesh to render. */
-    MeshRenderer *m_parent;         /**< Parent mesh renderer. */
+    SubMesh &m_subMesh;             /**< Submesh to render. */
+    MeshRenderer &m_parent;         /**< Parent mesh renderer. */
 };
 
 /** Initialize the entity.
  * @param mesh          Mesh the entity is for.
  * @param index         Index of the submesh.
  * @param parent        Parent mesh renderer. */
-SubMeshRenderEntity::SubMeshRenderEntity(Mesh *mesh, size_t index, MeshRenderer *parent) :
-    m_subMesh (mesh->subMesh(index)),
+SubMeshRenderEntity::SubMeshRenderEntity(Mesh &mesh, size_t index, MeshRenderer &parent) :
+    m_subMesh (mesh.subMesh(index)),
     m_parent  (parent)
 {
-    setBoundingBox(m_subMesh->boundingBox);
+    setBoundingBox(m_subMesh.boundingBox);
 
-    this->name = String::format("MeshRenderer '%s' SubMesh %zu", parent->entity()->path().c_str(), index);
+    this->name = String::format("MeshRenderer '%s' SubMesh %zu",
+                                m_parent.entity()->path().c_str(),
+                                index);
 }
 
 /** Get the geometry for the entity.
@@ -61,10 +63,8 @@ SubMeshRenderEntity::SubMeshRenderEntity(Mesh *mesh, size_t index, MeshRenderer 
 Geometry SubMeshRenderEntity::geometry() const {
     Geometry geometry;
 
-    geometry.vertices      = (m_subMesh->vertices)
-                                 ? m_subMesh->vertices
-                                 : m_subMesh->parent()->sharedVertices;
-    geometry.indices       = m_subMesh->indices;
+    geometry.vertices      = m_subMesh.parent().vertices();
+    geometry.indices       = m_subMesh.indices();
     geometry.primitiveType = PrimitiveType::kTriangleList;
 
     return geometry;
@@ -73,7 +73,7 @@ Geometry SubMeshRenderEntity::geometry() const {
 /** Get the material for the entity.
  * @return              Material for the entity. */
 Material *SubMeshRenderEntity::material() const {
-    return m_parent->m_materials[m_subMesh->material];
+    return m_parent.m_materials[m_subMesh.material];
 }
 
 /** Initialize the mesh renderer. */
@@ -181,7 +181,7 @@ void MeshRenderer::createRenderEntities(RenderEntityList &entities) {
     checkMsg(m_mesh, "No mesh set for MeshRenderer on '%s'", entity()->name.c_str());
 
     for (size_t i = 0; i < m_mesh->numSubMeshes(); i++) {
-        SubMeshRenderEntity *entity = new SubMeshRenderEntity(m_mesh, i, this);
+        SubMeshRenderEntity *entity = new SubMeshRenderEntity(*m_mesh, i, *this);
         entities.push_back(entity);
     }
 }

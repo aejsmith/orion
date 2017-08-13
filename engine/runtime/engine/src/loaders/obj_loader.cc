@@ -31,15 +31,21 @@
 
 #include "gpu/gpu_manager.h"
 
-#include "render_core/render_resources.h"
 #include "render_core/utility.h"
-#include "render_core/vertex.h"
 
 /** Wavefront .obj mesh loader. */
 class OBJLoader : public AssetLoader {
 public:
     CLASS();
 
+    OBJLoader();
+
+    /** @return             File extension which this loader handles. */
+    const char *extension() const override { return "obj"; }
+
+    AssetPtr load() override;
+
+private:
     /** Submesh descriptor. */
     struct SubMeshDesc {
         std::string material;           /**< Material name. */
@@ -47,8 +53,8 @@ public:
         BoundingBox boundingBox;        /**< Bounding box. */
     public:
         explicit SubMeshDesc(const std::string &inMaterial) :
-            material(inMaterial),
-            boundingBox(glm::vec3(FLT_MAX), glm::vec3(-FLT_MAX))
+            material    (inMaterial),
+            boundingBox (glm::vec3(FLT_MAX), glm::vec3(-FLT_MAX))
         {}
     };
 
@@ -71,18 +77,19 @@ public:
             return hash;
         }
     };
-public:
-    OBJLoader();
 
-    /** @return             File extension which this loader handles. */
-    const char *extension() const override { return "obj"; }
-
-    AssetPtr load() override;
+    /** Structure containing vertex data. */
+    struct Vertex {
+        glm::vec3 position;
+        glm::vec3 normal;
+        glm::vec2 texcoord;
+    };
 private:
     template <typename VectorType>
     bool addVertexElement(const std::vector<std::string> &tokens, std::vector<VectorType> &array);
 
     bool addFace(const std::vector<std::string> &tokens);
+
 private:
     /** Parser state. */
     size_t m_currentLine;               /**< Current line of the file (for error messages). */
@@ -98,7 +105,7 @@ private:
     std::list<SubMeshDesc> m_subMeshes;
 
     /** Array of vertices to go into the vertex buffer. */
-    std::vector<SimpleVertex> m_vertices;
+    std::vector<Vertex> m_vertices;
 
     /** Map from VertexKey to a buffer index. */
     HashMap<VertexKey, uint16_t> m_vertexMap;
@@ -173,29 +180,43 @@ AssetPtr OBJLoader::load() {
 
     MeshPtr mesh(new Mesh());
 
-    /* Create the vertex buffer. */
-    auto vertexDataDesc = GPUVertexDataDesc().
-        setCount  (m_vertices.size()).
-        setLayout (g_renderResources->simpleVertexDataLayout());
-    vertexDataDesc.buffers[0] = RenderUtil::buildGPUBuffer(GPUBuffer::kVertexBuffer, m_vertices);
-    mesh->sharedVertices = g_gpuManager->createVertexData(std::move(vertexDataDesc));
+    mesh->setNumVertices(m_vertices.size());
+
+    /* Add vertex attributes and upload data. */
+    mesh->addAttribute(VertexAttribute::kPositionSemantic,
+                       0,
+                       VertexAttribute::kFloatType,
+                       false,
+                       3,
+                       &m_vertices[0].position,
+                       sizeof(m_vertices[0]));
+    mesh->addAttribute(VertexAttribute::kNormalSemantic,
+                       0,
+                       VertexAttribute::kFloatType,
+                       false,
+                       3,
+                       &m_vertices[0].normal,
+                       sizeof(m_vertices[0]));
+    mesh->addAttribute(VertexAttribute::kTexcoordSemantic,
+                       0,
+                       VertexAttribute::kFloatType,
+                       false,
+                       2,
+                       &m_vertices[0].texcoord,
+                       sizeof(m_vertices[0]));
 
     /* Register all submeshes. */
     for (const SubMeshDesc &desc : m_subMeshes) {
-        SubMesh *subMesh = mesh->addSubMesh();
+        SubMesh &subMesh = mesh->addSubMesh();
 
         /* Add the material slot. If this name has already been added the
          * existing index is returned. */
-        subMesh->material = mesh->addMaterial(desc.material);
+        subMesh.material = mesh->addMaterial(desc.material);
 
         /* Create an index buffer. */
-        auto indexDataDesc = GPUIndexDataDesc().
-            setBuffer (RenderUtil::buildGPUBuffer(GPUBuffer::kIndexBuffer, desc.indices)).
-            setType   (GPUIndexData::kUnsignedShortType).
-            setCount  (desc.indices.size());
-        subMesh->indices = g_gpuManager->createIndexData(std::move(indexDataDesc));
+        subMesh.setIndices(desc.indices);
 
-        subMesh->boundingBox = desc.boundingBox;
+        subMesh.boundingBox = desc.boundingBox;
 
         logDebug("%s: Submesh %u: %u indices", m_path, mesh->numSubMeshes() - 1, desc.indices.size());
     }
@@ -310,9 +331,11 @@ bool OBJLoader::addFace(const std::vector<std::string> &tokens) {
             /* We succeeded in adding a new element, this means this is a new
              * vertex. Add one. */
             ret.first->second = m_vertices.size();
-            m_vertices.emplace_back(m_positions[key.position],
-                                    m_normals[key.normal],
-                                    m_texcoords[key.texcoord]);
+            m_vertices.emplace_back();
+            Vertex &vertex  = m_vertices.back();
+            vertex.position = m_positions[key.position];
+            vertex.normal   = m_normals[key.normal];
+            vertex.texcoord = m_texcoords[key.texcoord];
         }
 
         /* Record minimum and maximum positions for bounding box calculation. */

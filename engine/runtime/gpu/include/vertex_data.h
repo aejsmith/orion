@@ -64,6 +64,7 @@ struct VertexAttribute {
         kTexcoordSemantic,          /**< Texture coordinates. */
         kDiffuseSemantic,           /**< Diffuse colour. */
         kSpecularSemantic,          /**< Specular colour. */
+        kTangentSemantic,           /**< Tangent vector. */
     };
 
     /** Enumeration of attribute data types. */
@@ -140,6 +141,58 @@ struct VertexAttribute {
         hash = hashCombine(hash, desc.offset);
         return hash;
     }
+};
+
+/**
+ * Structure providing information about a vertex attribute type.
+ *
+ * This provides compile time information to map C++ types to vertex attribute
+ * types. It provides 2 constant members, kType which gives the base type
+ * enumeration, and kComponents, which gives the number of components.
+ */
+template <typename T>
+struct VertexAttributeTypeTraits;
+
+template <>
+struct VertexAttributeTypeTraits<int32_t> {
+    static constexpr VertexAttribute::Type kType = VertexAttribute::kIntType;
+    static constexpr size_t kComponents          = 1;
+};
+
+template <>
+struct VertexAttributeTypeTraits<uint32_t> {
+    static constexpr VertexAttribute::Type kType = VertexAttribute::kUnsignedIntType;
+    static constexpr size_t kComponents          = 1;
+};
+
+template <>
+struct VertexAttributeTypeTraits<float> {
+    static constexpr VertexAttribute::Type kType = VertexAttribute::kFloatType;
+    static constexpr size_t kComponents          = 1;
+};
+
+template <>
+struct VertexAttributeTypeTraits<double> {
+    static constexpr VertexAttribute::Type kType = VertexAttribute::kDoubleType;
+    static constexpr size_t kComponents          = 1;
+};
+
+template <>
+struct VertexAttributeTypeTraits<glm::vec2> {
+    static constexpr VertexAttribute::Type kType = VertexAttribute::kFloatType;
+    static constexpr size_t kComponents          = 2;
+};
+
+template <>
+struct VertexAttributeTypeTraits<glm::vec3> {
+    static constexpr VertexAttribute::Type kType = VertexAttribute::kFloatType;
+    static constexpr size_t kComponents          = 3;
+};
+
+template <>
+struct VertexAttributeTypeTraits<glm::vec4> {
+    static constexpr VertexAttribute::Type kType = VertexAttribute::kFloatType;
+    static constexpr size_t kComponents          = 4;
 };
 
 /** Vertex data layout descriptor. */

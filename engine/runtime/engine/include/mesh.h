@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -34,17 +34,29 @@ class Mesh;
 class SubMesh {
 public:
     /** @return             Parent mesh. */
-    Mesh *parent() const { return m_parent; }
+    Mesh &parent() const { return m_parent; }
 public:
-    GPUVertexDataPtr vertices;          /**< Local vertex data, overrides parent's vertex data. */
-    GPUIndexDataPtr indices;            /**< Indices into vertex data. */
-    size_t material;                    /**< Material index in parent mesh. */
-    BoundingBox boundingBox;            /**< Axis-aligned bounding box. */
+    /** @return             Number of indices in the sub-mesh. */
+    size_t numIndices() const { return m_indices->count(); }
+    /** @return             Current index data for the sub-mesh. */
+    GPUIndexData *indices() const { return m_indices; }
+
+    void setIndices(GPUIndexDataPtr indices);
+    void setIndices(const std::vector<uint16_t> &indices);
+    void setIndices(const std::vector<uint32_t> &indices);
+
+    size_t material;                        /**< Material index in parent mesh. */
+    BoundingBox boundingBox;                /**< Axis-aligned bounding box. */
 private:
-    explicit SubMesh(Mesh *parent) : material(0), m_parent(parent) {}
+    explicit SubMesh(Mesh &parent) :
+        material (0),
+        m_parent (parent)
+    {}
+
     ~SubMesh() {}
 private:
-    Mesh *m_parent;                     /**< Parent mesh. */
+    Mesh &m_parent;                         /**< Parent mesh. */
+    GPUIndexDataPtr m_indices;              /**< Indices into vertex data. */
 
     friend class Mesh;
 };
@@ -73,22 +85,55 @@ public:
     /** Get a child at the specified index.
      * @param index         Index of child. Not bounds checked.
      * @return              Child at the specified index. */
-    SubMesh *subMesh(size_t index) { return m_children[index]; }
-    const SubMesh *subMesh(size_t index) const { return m_children[index]; }
+    SubMesh &subMesh(size_t index) { return *m_children[index]; }
+    const SubMesh &subMesh(size_t index) const { return *m_children[index]; }
 
     /** @return             Map of material names to indices. */
     const MaterialMap &materials() const { return m_materials; }
 
     bool material(const std::string &name, size_t &index) const;
 
-    SubMesh *addSubMesh();
+    SubMesh &addSubMesh();
     size_t addMaterial(const std::string &name);
 
-    GPUVertexDataPtr sharedVertices;    /**< Vertex data shared by all submeshes. */
+    /** @return             Number of vertices in the mesh. */
+    size_t numVertices() const { return m_numVertices; }
+
+    GPUVertexData *vertices();
+
+    void setVertices(GPUVertexDataPtr data);
+
+    void setNumVertices(size_t count);
+
+    bool hasAttribute(VertexAttribute::Semantic semantic,
+                      unsigned index) const;
+    void addAttribute(VertexAttribute::Semantic semantic,
+                      unsigned index,
+                      VertexAttribute::Type type,
+                      bool normalised,
+                      size_t components);
+    void addAttribute(VertexAttribute::Semantic semantic,
+                      unsigned index,
+                      VertexAttribute::Type type,
+                      bool normalised,
+                      size_t components,
+                      const void *data,
+                      size_t stride);
+    void setAttribute(VertexAttribute::Semantic semantic,
+                      unsigned index,
+                      VertexAttribute::Type type,
+                      size_t components,
+                      const void *data,
+                      size_t stride);
+
+    template <typename T>
+    void setAttribute(VertexAttribute::Semantic semantic,
+                      unsigned index,
+                      const std::vector<T> &data);
 protected:
     ~Mesh();
 private:
-    std::vector<SubMesh *> m_children;  /**< Child submeshes. */
+    std::vector<SubMesh *> m_children;      /**< Child submeshes. */
 
     /**
      * Map of material names.
@@ -99,7 +144,47 @@ private:
      * mesh renderer.
      */
     MaterialMap m_materials;
+
+    /**
+     * Current vertex data.
+     *
+     * Current GPU vertex data object for the mesh. This is invalidated by
+     * setNumVertices() and addAttribute(), and will be recreated on-demand
+     * upon a call to vertices() if necessary.
+     */
+    GPUVertexDataPtr m_vertices;
+
+    size_t m_numVertices;                   /**< Number of vertices. */
+    GPUVertexDataLayoutDesc m_layoutDesc;   /**< Layout descriptor. */
+    GPUBufferArray m_buffers;               /**< Array of buffers containing mesh data. */
 };
 
 /** Type of a mesh pointer. */
 using MeshPtr = TypedAssetPtr<Mesh>;
+
+/**
+ * Update the data for an attribute from an array.
+ *
+ * Given an array of data, updates the GPU-side data for the specified attribute
+ * from that array. The specified attribute must be present, the type of the
+ * data must match that of the attribute, and the size of the array must match
+ * the number of vertices in the mesh.
+ *
+ * @param semantic      Semantic of the attribute to update.
+ * @param index         Index of the attribute to update.
+ * @param data          Data to update from.
+ */
+template <typename T>
+inline void Mesh::setAttribute(VertexAttribute::Semantic semantic,
+                               unsigned index,
+                               const std::vector<T> &data)
+{
+    check(data.size() == numVertices());
+
+    setAttribute(semantic,
+                 index,
+                 VertexAttributeTypeTraits<T>::kType,
+                 VertexAttributeTypeTraits<T>::kComponents,
+                 &data[0],
+                 sizeof(data[0]));
+}
