@@ -1,0 +1,10 @@
+[
+    {
+        "objectClass": "TGALoader",
+        "objectID": 0,
+        "objectProperties": {
+            "addressMode": "kWrap",
+            "sRGB": false
+        }
+    }
+]

@@ -4,7 +4,7 @@
         "objectID": 0,
         "objectProperties": {},
         "shader": {
-            "asset": "engine/shaders/lit_specular"
+            "asset": "engine/shaders/lit_specular_normal"
         },
         "parameters": {
             "shininess": 64.0,
@@ -15,6 +15,9 @@
             ],
             "diffuseTexture": {
                 "asset": "game/textures/floor"
+            },
+            "normalTexture": {
+                "asset": "game/textures/floor_normal"
             }
         }
     }

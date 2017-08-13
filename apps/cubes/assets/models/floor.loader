@@ -1,0 +1,9 @@
+[
+    {
+        "objectClass": "OBJLoader",
+        "objectID": 0,
+        "objectProperties": {
+            "generateTangents": true
+        }
+    }
+]
