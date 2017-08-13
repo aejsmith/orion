@@ -41,19 +41,19 @@
  */
 
 #if defined(__GNUC__)
-    #define NORETURN      __attribute__((noreturn))
-    #define FORCEINLINE   __attribute__((always_inline))
-    #define NOINLINE      __attribute__((noinline))
-    #define likely(x)     __builtin_expect(!!(x), 1)
-    #define unlikely(x)   __builtin_expect(!!(x), 0)
-    #define unreachable() do { check(false); __builtin_unreachable(); } while(0)
+    #define NORETURN                __attribute__((noreturn))
+    #define FORCEINLINE             __attribute__((always_inline))
+    #define NOINLINE                __attribute__((noinline))
+    #define likely(x)               __builtin_expect(!!(x), 1)
+    #define unlikely(x)             __builtin_expect(!!(x), 0)
+    #define compiler_unreachable()  __builtin_unreachable()
 #elif defined(_MSC_VER)
-    #define NORETURN      __declspec(noreturn)
-    #define FORCEINLINE   __forceinline
-    #define NOINLINE      __declspec(noinline)
-    #define likely(x)     (x)
-    #define unlikely(x)   (x)
-    #define unreachable() abort()
+    #define NORETURN                __declspec(noreturn)
+    #define FORCEINLINE             __forceinline
+    #define NOINLINE                __declspec(noinline)
+    #define likely(x)               (x)
+    #define unlikely(x)             (x)
+    #define compiler_unreachable()  abort()
 #else
     #error "Compiler is not supported"
 #endif
@@ -129,10 +129,30 @@ NORETURN extern void __fatal(const char *file, int line, const char *fmt, ...);
             __fatal(__FILE__, __LINE__, fmt, ##__VA_ARGS__); \
     } while (0)
 
+/**
+ * Mark that a point is unreachable, raise an error if not.
+ *
+ * This hints to the compiler that the point where it is used is unreachable,
+ * if it is reached then a fatal error will be raised in debug, otherwise in
+ * release it will be undefined behaviour.
+ */
+#define unreachable()       fatal("unreachable() statement hit");
+
+/**
+ * Mark that a point is unreachable, raise an error if not.
+ *
+ * This hints to the compiler that the point where it is used is unreachable,
+ * if it is reached then a fatal error will be raised in debug, otherwise in
+ * release it will be undefined behaviour.
+ */
+#define unreachableMsg(...) fatal(__VA_ARGS__);
+
 #else /* ORION_BUILD_DEBUG */
 
-#define check(cond) do { (void)sizeof(cond); } while(0)
+#define check(cond)              do { (void)sizeof(cond); } while(0)
 #define checkMsg(cond, fmt, ...) check(cond)
+#define unreachable()            compiler_unreachable()
+#define unreachableMsg(...)      compiler_unreachable()
 
 #endif /* ORION_BUILD_DEBUG */
 
