@@ -16,6 +16,7 @@ objects = map(env.ObjgenHeader, [
     'include/texture.h',
     'include/world.h',
 
+    'src/loaders/mesh_loader.h',
     'src/loaders/texture_loader.h',
 ])
 
@@ -47,6 +48,7 @@ objects += map(env.Object, [
     'src/world.cc',
     'src/world_explorer.cc',
 
+    'src/loaders/mesh_loader.cc',
     'src/loaders/obj_loader.cc',
     'src/loaders/texture_loader.cc',
     'src/loaders/tga_loader.cc',

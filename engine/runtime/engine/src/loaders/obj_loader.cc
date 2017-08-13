@@ -26,15 +26,12 @@
 #include "core/hash_table.h"
 #include "core/string.h"
 
-#include "engine/asset_loader.h"
-#include "engine/mesh.h"
-
 #include "gpu/gpu_manager.h"
 
-#include "render_core/utility.h"
+#include "mesh_loader.h"
 
 /** Wavefront .obj mesh loader. */
-class OBJLoader : public AssetLoader {
+class OBJLoader : public MeshLoader {
 public:
     CLASS();
 
@@ -46,18 +43,6 @@ public:
     AssetPtr load() override;
 
 private:
-    /** Submesh descriptor. */
-    struct SubMeshDesc {
-        std::string material;           /**< Material name. */
-        std::vector<uint16_t> indices;  /**< Array of vertex indices to go into index buffer. */
-        BoundingBox boundingBox;        /**< Bounding box. */
-    public:
-        explicit SubMeshDesc(const std::string &inMaterial) :
-            material    (inMaterial),
-            boundingBox (glm::vec3(FLT_MAX), glm::vec3(-FLT_MAX))
-        {}
-    };
-
     /** Indexes into the vertex element arrays for a single vertex. */
     struct VertexKey {
         uint16_t position;
@@ -78,12 +63,6 @@ private:
         }
     };
 
-    /** Structure containing vertex data. */
-    struct Vertex {
-        glm::vec3 position;
-        glm::vec3 normal;
-        glm::vec2 texcoord;
-    };
 private:
     template <typename VectorType>
     bool addVertexElement(const std::vector<std::string> &tokens, std::vector<VectorType> &array);
@@ -101,14 +80,8 @@ private:
     std::vector<glm::vec2> m_texcoords; /**< UVs ("vt" declarations). */
     std::vector<glm::vec3> m_normals;   /**< Normals ("vn" declarations). */
 
-    /** List of submeshes. */
-    std::list<SubMeshDesc> m_subMeshes;
-
-    /** Array of vertices to go into the vertex buffer. */
-    std::vector<Vertex> m_vertices;
-
     /** Map from VertexKey to a buffer index. */
-    HashMap<VertexKey, uint16_t> m_vertexMap;
+    HashMap<VertexKey, size_t> m_vertexMap;
 };
 
 #include "obj_loader.obj.cc"
@@ -123,6 +96,11 @@ OBJLoader::OBJLoader() :
 /** Load an OBJ file.
  * @return              Pointer to loaded asset, null on failure. */
 AssetPtr OBJLoader::load() {
+    /* Add attributes. FIXME: We can have models without some of these. */
+    addAttribute(VertexAttribute::kPositionSemantic, 0);
+    addAttribute(VertexAttribute::kNormalSemantic, 0);
+    addAttribute(VertexAttribute::kTexcoordSemantic, 0);
+
     /* Parse the file content. */
     std::string line;
     while (m_data->readLine(line)) {
@@ -173,59 +151,7 @@ AssetPtr OBJLoader::load() {
         }
     }
 
-    if (!m_subMeshes.size()) {
-        logError("%s: No faces defined", m_path);
-        return nullptr;
-    }
-
-    MeshPtr mesh(new Mesh());
-
-    mesh->setNumVertices(m_vertices.size());
-
-    /* Add vertex attributes and upload data. */
-    mesh->addAttribute(VertexAttribute::kPositionSemantic,
-                       0,
-                       VertexAttribute::kFloatType,
-                       false,
-                       3,
-                       &m_vertices[0].position,
-                       sizeof(m_vertices[0]));
-    mesh->addAttribute(VertexAttribute::kNormalSemantic,
-                       0,
-                       VertexAttribute::kFloatType,
-                       false,
-                       3,
-                       &m_vertices[0].normal,
-                       sizeof(m_vertices[0]));
-    mesh->addAttribute(VertexAttribute::kTexcoordSemantic,
-                       0,
-                       VertexAttribute::kFloatType,
-                       false,
-                       2,
-                       &m_vertices[0].texcoord,
-                       sizeof(m_vertices[0]));
-
-    /* Register all submeshes. */
-    for (const SubMeshDesc &desc : m_subMeshes) {
-        SubMesh &subMesh = mesh->addSubMesh();
-
-        /* Add the material slot. If this name has already been added the
-         * existing index is returned. */
-        subMesh.material = mesh->addMaterial(desc.material);
-
-        /* Create an index buffer. */
-        subMesh.setIndices(desc.indices);
-
-        subMesh.boundingBox = desc.boundingBox;
-
-        logDebug("%s: Submesh %u: %u indices", m_path, mesh->numSubMeshes() - 1, desc.indices.size());
-    }
-
-    logDebug(
-        "%s: %u vertices, %u submeshes, %u materials",
-        m_path, m_vertices.size(), mesh->numSubMeshes(), mesh->numMaterials());
-
-    return mesh;
+    return createMesh();
 }
 
 /** Handle a vertex element declaration.
@@ -262,8 +188,8 @@ bool OBJLoader::addVertexElement(const std::vector<std::string> &tokens,
 bool OBJLoader::addFace(const std::vector<std::string> &tokens) {
     /* If we don't have a current submesh, we must begin a new one. */
     if (!m_currentSubMesh) {
-        m_subMeshes.emplace_back(m_currentMaterial);
-        m_currentSubMesh = &m_subMeshes.back();
+        m_currentSubMesh = &addSubMesh();
+        m_currentSubMesh->material = m_currentMaterial;
     }
 
     size_t numVertices = tokens.size() - 1;
@@ -330,19 +256,11 @@ bool OBJLoader::addFace(const std::vector<std::string> &tokens) {
         if (ret.second) {
             /* We succeeded in adding a new element, this means this is a new
              * vertex. Add one. */
-            ret.first->second = m_vertices.size();
-            m_vertices.emplace_back();
-            Vertex &vertex  = m_vertices.back();
+            Vertex &vertex  = addVertex(ret.first->second);
             vertex.position = m_positions[key.position];
             vertex.normal   = m_normals[key.normal];
             vertex.texcoord = m_texcoords[key.texcoord];
         }
-
-        /* Record minimum and maximum positions for bounding box calculation. */
-        m_currentSubMesh->boundingBox.minimum
-            = glm::min(m_currentSubMesh->boundingBox.minimum, m_positions[key.position]);
-        m_currentSubMesh->boundingBox.maximum
-            = glm::max(m_currentSubMesh->boundingBox.maximum, m_positions[key.position]);
 
         indices[i] = ret.first->second;
     }
