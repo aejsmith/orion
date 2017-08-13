@@ -107,6 +107,8 @@ static std::string generateSource(const ShaderCompiler::Options &options) {
                                  VertexAttribute::glslIndex(VertexAttribute::kPositionSemantic, 0));
         source += String::format("#define kNormalSemantic %u\n",
                                  VertexAttribute::glslIndex(VertexAttribute::kNormalSemantic, 0));
+        source += String::format("#define kTangentSemantic %u\n",
+                                 VertexAttribute::glslIndex(VertexAttribute::kTangentSemantic, 0));
         source += String::format("#define kTexcoordSemantic %u\n",
                                  VertexAttribute::glslIndex(VertexAttribute::kTexcoordSemantic, 0));
         source += String::format("#define kDiffuseSemantic %u\n",

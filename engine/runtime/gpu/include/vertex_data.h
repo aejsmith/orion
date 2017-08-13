@@ -61,10 +61,10 @@ struct VertexAttribute {
     enum Semantic {
         kPositionSemantic,          /**< Vertex position. */
         kNormalSemantic,            /**< Vertex normal. */
+        kTangentSemantic,           /**< Tangent vector. */
         kTexcoordSemantic,          /**< Texture coordinates. */
         kDiffuseSemantic,           /**< Diffuse colour. */
         kSpecularSemantic,          /**< Specular colour. */
-        kTangentSemantic,           /**< Tangent vector. */
     };
 
     /** Enumeration of attribute data types. */

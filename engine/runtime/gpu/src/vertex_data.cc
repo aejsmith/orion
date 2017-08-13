@@ -50,9 +50,12 @@ unsigned VertexAttribute::glslIndex(Semantic semantic, unsigned index) {
         case kNormalSemantic:
             checkMsg(index < 2, "Exceeded maximum number of normal attributes");
             return 2 + index;
-        case kTexcoordSemantic:
-            checkMsg(index < 8, "Exceeded maximum number of texture coordinate attributes");
+        case kTangentSemantic:
+            checkMsg(index < 2, "Exceeded maximum number of tangent attributes");
             return 4 + index;
+        case kTexcoordSemantic:
+            checkMsg(index < 6, "Exceeded maximum number of texture coordinate attributes");
+            return 6 + index;
         case kDiffuseSemantic:
             checkMsg(index < 2, "Exceeded maximum number of diffuse colour attributes");
             return 12 + index;

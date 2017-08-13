@@ -33,6 +33,9 @@ public:
     // FIXME: objgen can't detect that a class has unimplemented pure virtuals.
     CLASS("constructable": false);
 
+    /** Whether to automatically generate tangents. */
+    PROPERTY() bool generateTangents;
+
 protected:
     /** Attribute information. */
     struct Attribute {
@@ -70,6 +73,7 @@ protected:
 
 private:
     BoundingBox calculateBoundingBox(const std::vector<uint16_t> &indices) const;
+    void calculateTangents();
 
 private:
     std::list<Attribute> m_attributes;      /**< Array of attribute details. */
