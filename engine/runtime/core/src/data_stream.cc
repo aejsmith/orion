@@ -31,7 +31,7 @@ bool DataStream::readLine(std::string &line) {
     /* Reserve space in the string so we're not repeatedly reallocating. */
     line.reserve(256);
 
-    char ch;
+    char ch = 0;
     while (read(&ch, 1) && ch != '\n')
         line.push_back(ch);
 
