@@ -120,6 +120,11 @@ static void enableInstanceExtensions(VulkanSurface *surface,
 static const char *kDebugMessageFilters[] = {
     /* Can't completely eliminate this, and it spams a lot. */
     "any subsequent sets were disturbed by newly bound pipelineLayout",
+
+    /* Not too bothered by this. We use single vertex layouts per mesh and
+     * depending on which shader they're used with some attributes may go
+     * unused. TODO: Could strip down at pipeline creation time? */
+    "not consumed by vertex shader",
 };
 
 /** Vulkan debug report callback. */
