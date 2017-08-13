@@ -305,15 +305,15 @@ VulkanGPUManager::~VulkanGPUManager() {
     destroyStates();
 
     delete m_swapchain;
-    delete m_memoryManager;
-    delete m_descriptorPool;
-    delete m_commandPool;
-    delete m_queue;
 
     /* Freed by the engine, but we need to destroy the surface prior to the
      * instance to avoid validation errors. */
     m_surface->destroy();
 
+    delete m_memoryManager;
+    delete m_descriptorPool;
+    delete m_commandPool;
+    delete m_queue;
     delete m_device;
 
     #if ORION_VULKAN_VALIDATION
