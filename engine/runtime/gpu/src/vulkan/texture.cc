@@ -515,8 +515,11 @@ void VulkanGPUManager::blit(const GPUTextureImageRef &source,
                             glm::ivec2 destPos,
                             glm::ivec2 size)
 {
-    auto sourceTexture = static_cast<VulkanTexture *>((source) ? source.texture : m_surface->texture());
-    auto destTexture   = static_cast<VulkanTexture *>((dest) ? dest.texture : m_surface->texture());
+    check(source);
+    check(dest);
+
+    auto sourceTexture = static_cast<VulkanTexture *>(source.texture);
+    auto destTexture   = static_cast<VulkanTexture *>(dest.texture);
 
     const bool formatsMatch = sourceTexture->format() == destTexture->format();
 
@@ -531,8 +534,8 @@ void VulkanGPUManager::blit(const GPUTextureImageRef &source,
 
     /* Determine if we're overwriting the whole destination, in which case we
      * can ignore the existing image content. */
-    uint32_t mipWidth  = (dest) ? dest.texture->width() : m_surface->width();
-    uint32_t mipHeight = (dest) ? dest.texture->height() : m_surface->height();
+    uint32_t mipWidth  =  dest.texture->width();
+    uint32_t mipHeight =  dest.texture->height();
     GPUUtil::calcMipDimensions(dest.mip, mipWidth, mipHeight);
     const bool isWholeDestSubresource = destPos.x == 0 &&
                                         destPos.y == 0 &&

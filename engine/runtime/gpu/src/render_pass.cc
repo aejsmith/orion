@@ -56,49 +56,37 @@ GPURenderPassInstance *GPURenderPass::createInstance(const GPURenderPassInstance
 
         const GPURenderTargetDesc &targets = instanceDesc.targets;
 
-        if (targets.isMainWindow()) {
-            check(m_desc.colourAttachments.size() == 1);
-            check(m_desc.colourAttachments[0].format == g_mainWindow->format());
-            check(!m_desc.depthStencilAttachment);
+        /* Check if we have all expected colour attachments. */
+        check(targets.colour.size() == m_desc.colourAttachments.size());
+        if (m_desc.colourAttachments.size()) {
+            for (size_t i = 0; i < targets.colour.size(); i++) {
+                check(targets.colour[i]);
 
-            check(targets.colour[0].mip == 0);
-            check(targets.colour[0].layer == 0);
+                /* Format must match. */
+                check(targets.colour[i].texture->format() == m_desc.colourAttachments[i].format);
 
-            width = g_mainWindow->width();
-            height = g_mainWindow->height();
-        } else {
-            /* Check if we have all expected colour attachments. */
-            check(targets.colour.size() == m_desc.colourAttachments.size());
-            if (m_desc.colourAttachments.size()) {
-                for (size_t i = 0; i < targets.colour.size(); i++) {
-                    check(targets.colour[i]);
-
-                    /* Format must match. */
-                    check(targets.colour[i].texture->format() == m_desc.colourAttachments[i].format);
-
-                    /* All targets must be the same size. */
-                    if (i == 0) {
-                        width = targets.colour[i].texture->width();
-                        height = targets.colour[i].texture->height();
-                    } else {
-                        check(targets.colour[i].texture->width() == width);
-                        check(targets.colour[i].texture->height() == height);
-                    }
+                /* All targets must be the same size. */
+                if (i == 0) {
+                    width = targets.colour[i].texture->width();
+                    height = targets.colour[i].texture->height();
+                } else {
+                    check(targets.colour[i].texture->width() == width);
+                    check(targets.colour[i].texture->height() == height);
                 }
             }
+        }
 
-            if (m_desc.depthStencilAttachment) {
-                check(targets.depthStencil);
-                check(targets.depthStencil.texture->format() == m_desc.depthStencilAttachment.format);
+        if (m_desc.depthStencilAttachment) {
+            check(targets.depthStencil);
+            check(targets.depthStencil.texture->format() == m_desc.depthStencilAttachment.format);
 
-                if (!width && !height) {
-                    width = targets.depthStencil.texture->width();
-                    height = targets.depthStencil.texture->height();
-                } else {
-                    /* Depth/stencil size must match colour size. */
-                    check(targets.depthStencil.texture->width() == width);
-                    check(targets.depthStencil.texture->height() == height);
-                }
+            if (!width && !height) {
+                width = targets.depthStencil.texture->width();
+                height = targets.depthStencil.texture->height();
+            } else {
+                /* Depth/stencil size must match colour size. */
+                check(targets.depthStencil.texture->width() == width);
+                check(targets.depthStencil.texture->height() == height);
             }
         }
 

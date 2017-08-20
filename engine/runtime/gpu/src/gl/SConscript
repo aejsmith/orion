@@ -11,6 +11,7 @@ objects = map(env.Object, [
     'state.cc',
     'texture.cc',
     'vertex_data.cc',
+    'window.cc',
 ])
 
 Return('objects')

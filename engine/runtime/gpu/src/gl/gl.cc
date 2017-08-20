@@ -20,9 +20,9 @@
  */
 
 #include "gl.h"
+#include "window.h"
 
 #include "engine/engine.h"
-#include "engine/window.h"
 
 /** Global GL GPU interface. */
 GLGPUManager *g_opengl = nullptr;
@@ -103,8 +103,8 @@ static void identifyGLCoreVersion() {
  * @param config        Engine configuration.
  * @param window        Where to store pointer to created window. */
 GLGPUManager::GLGPUManager(const EngineConfiguration &config, Window *&window) :
-    m_sdlContext(nullptr),
-    m_currentRenderPass(nullptr)
+    m_sdlContext        (nullptr),
+    m_currentRenderPass (nullptr)
 {
     g_opengl = this;
 
@@ -127,7 +127,7 @@ GLGPUManager::GLGPUManager(const EngineConfiguration &config, Window *&window) :
     #endif
 
     /* Create the window. */
-    window = new Window(config, SDL_WINDOW_OPENGL, PixelFormat::kR8G8B8A8);
+    window = new GLWindow(config);
 
     m_sdlContext = SDL_GL_CreateContext(g_mainWindow->sdlWindow());
     if (!m_sdlContext)

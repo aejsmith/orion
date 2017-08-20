@@ -21,13 +21,18 @@
 
 #pragma once
 
+#include "gl.h"
+
 #include "gpu/texture.h"
+
+class GLWindow;
 
 /** OpenGL texture implementation. */
 class GLTexture : public GPUTexture {
 public:
     explicit GLTexture(const GPUTextureDesc &desc);
     explicit GLTexture(const GPUTextureViewDesc &desc);
+    explicit GLTexture(GLWindow *window);
 
     ~GLTexture();
 
@@ -36,6 +41,10 @@ public:
     void generateMipmap() override;
 
     void bind(unsigned index);
+
+    /** @return             Whether this texture is a dummy backing texture for
+     *                      the main window. */
+    bool isMainWindow() const { return m_texture == 0; }
 
     /** @return             GL texture ID. */
     GLuint texture() const { return m_texture; }

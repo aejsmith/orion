@@ -58,21 +58,25 @@ void GLGPUManager::blit(const GPUTextureImageRef &source,
                         glm::ivec2 destPos,
                         glm::ivec2 size)
 {
+    check(source && dest);
     check(!m_currentRenderPass);
 
     // TODO: use ARB_copy_image where supported.
     // TODO: validate dimensions? against correct mip level
 
     /* If copying a depth texture, both formats must match. */
-    bool isDepth = source && PixelFormat::isDepth(source.texture->format());
-    check(isDepth == (dest && PixelFormat::isDepth(dest.texture->format())));
+    bool isDepth = PixelFormat::isDepth(source.texture->format());
+    check(isDepth == PixelFormat::isDepth(dest.texture->format()));
     check(!isDepth || source.texture->format() == dest.texture->format());
+
+    GLTexture *sourceTexture = static_cast<GLTexture *>(source.texture);
+    GLTexture *destTexture   = static_cast<GLTexture *>(dest.texture);
 
     /* Blitting from an sRGB texture to the backbuffer will give incorrect
      * results since we have to turn off GL_FRAMEBUFFER_SRGB when rendering to
      * the backbuffer (because GL implementations are terrible), but this means
      * sRGB conversion won't be done on reads. */
-    check(dest || !PixelFormat::isSRGB(source.texture->format()));
+    check(!destTexture->isMainWindow() || !PixelFormat::isSRGB(source.texture->format()));
 
     /* Preserve current framebuffer state. */
     GLuint prevDrawFBO = this->state.boundDrawFramebuffer;
@@ -80,7 +84,7 @@ void GLGPUManager::blit(const GPUTextureImageRef &source,
 
     /* Create a framebuffer for the source. */
     GLuint sourceFBO = 0;
-    if (source) {
+    if (!sourceTexture->isMainWindow()) {
         GPURenderTargetDesc sourceTarget;
         if (isDepth) {
             sourceTarget.depthStencil = source;
@@ -94,7 +98,7 @@ void GLGPUManager::blit(const GPUTextureImageRef &source,
 
     /* Bind the destination as the draw framebuffer. */
     GLuint destFBO = 0;
-    if (dest) {
+    if (!destTexture->isMainWindow()) {
         GPURenderTargetDesc destTarget;
         if (isDepth) {
             destTarget.depthStencil = dest;
@@ -144,19 +148,14 @@ void GLGPUManager::submitRenderPass(GPUCommandList *cmdList) {
     m_currentRenderArea = desc.renderArea;
 
     /* Get RT dimensions. */
-    if (desc.targets.isMainWindow()) {
-        m_currentRTSize.x = g_mainWindow->width();
-        m_currentRTSize.y = g_mainWindow->height();
-    } else {
-        GPUTexture *texture = (desc.targets.colour.size())
-                                  ? desc.targets.colour[0].texture
-                                  : desc.targets.depthStencil.texture;
-        m_currentRTSize.x = texture->width();
-        m_currentRTSize.y = texture->height();
-    }
+    auto texture      = static_cast<GLTexture *>((desc.targets.colour.size())
+                                                     ? desc.targets.colour[0].texture
+                                                     : desc.targets.depthStencil.texture);
+    m_currentRTSize.x = texture->width();
+    m_currentRTSize.y = texture->height();
 
     /* Get an FBO for the render target and bind it. */
-    GLuint fbo = (desc.targets.isMainWindow())
+    GLuint fbo = (texture->isMainWindow())
                      ? 0
                      : createFBO(desc.targets);
     this->state.bindFramebuffer(GL_FRAMEBUFFER, fbo);

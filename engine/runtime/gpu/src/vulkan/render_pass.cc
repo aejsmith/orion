@@ -143,9 +143,7 @@ VulkanFramebuffer::VulkanFramebuffer(VulkanGPUManager *manager,
             VkImageViewCreateInfo viewCreateInfo = {};
             viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 
-            auto texture = static_cast<VulkanTexture *>((imageRef)
-                                                            ? imageRef.texture
-                                                            : manager->surface()->texture());
+            auto texture = static_cast<VulkanTexture *>(imageRef.texture);
 
             viewCreateInfo.image = texture->handle();
             viewCreateInfo.format = manager->features().formats[texture->format()].format;
@@ -273,10 +271,6 @@ GPUCommandList *VulkanGPUManager::beginRenderPass(const GPURenderPassInstanceDes
     /* Look for an existing suitable framebuffer. */
     VulkanFramebuffer *framebuffer;
     VulkanFramebufferKey key(desc.targets, pass);
-
-    /* For the main window, update the key to refer to the surface texture. */
-    if (key.targets.isMainWindow())
-        key.targets.colour[0].texture = m_surface->texture();
 
     auto ret = m_framebuffers.find(key);
     if (ret == m_framebuffers.end()) {

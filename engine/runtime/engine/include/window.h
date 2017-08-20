@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -41,12 +41,26 @@ public:
 
     /** @return             SDL window. */
     SDL_Window *sdlWindow() const { return m_sdlWindow; }
+    /** @return             Backing texture for the window. */
+    GPUTexture *texture() const { return m_texture; }
 protected:
     #ifdef ORION_BUILD_DEBUG
     std::string renderTargetName() const override;
     #endif
 
     SDL_Window *m_sdlWindow;        /**< SDL window. */
+
+    /**
+     * Backing texture for the window.
+     *
+     * To avoid having a bunch of special-casing in the main engine to handle
+     * things for windows, they are backed by a texture object. It is up to the
+     * GPU backend to handle things internally for these texture objects.
+     *
+     * Note this is a special texture, only suitable for use as a render target
+     * and blit destination. Any other usage is not guaranteed to work.
+     */
+    GPUTexturePtr m_texture;
 };
 
 extern Window *g_mainWindow;

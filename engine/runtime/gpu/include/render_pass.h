@@ -118,10 +118,6 @@ using GPURenderPassPtr = GPUObjectPtr<GPURenderPass>;
  * This structure describes the textures to be rendered to in a render pass
  * instance. The render target layout and format of each image used must be
  * compatible with the render pass' attachment description.
- *
- * As a special case, if a render target description has 1 colour target which
- * is a null image reference, and a null depth/stencil target, then it refers
- * to the main window.
  */
 struct GPURenderTargetDesc {
     /** Array of colour render target descriptors. */
@@ -147,11 +143,6 @@ struct GPURenderTargetDesc {
         }
 
         return true;
-    }
-
-    /** @return             Whether this descriptor refers to the main window. */
-    bool isMainWindow() const {
-        return colour.size() == 1 && !colour[0] && !depthStencil;
     }
 
     /** Get a hash from a render target descriptor. */

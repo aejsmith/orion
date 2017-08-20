@@ -108,13 +108,10 @@ void RenderPipeline::renderPostEffects(RenderContext &context,
     auto validateTargetImageType =
         [&] (const ImageType outputImageType) {
             #if ORION_BUILD_DEBUG
-                /* FIXME: Can we kill this special casing for the main window
-                 * and always have a real texture object here? */
                 GPURenderTargetDesc target;
                 context.target().getRenderTargetDesc(target);
-                const PixelFormat targetFormat = (target.isMainWindow())
-                                                     ? g_mainWindow->format()
-                                                     : target.colour[0].texture->format();
+                const PixelFormat targetFormat = target.colour[0].texture->format();
+
                 ImageType targetType;
                 if (PixelFormat::isFloat(targetFormat)) {
                     targetType = ImageType::kHDR;
@@ -267,13 +264,9 @@ GPUCommandList* RenderPipeline::beginSimpleRenderPass(const GPURenderTargetDesc 
     assert(target.colour.size() == 1);
     assert(!target.depthStencil);
 
-    /* Get a render pass matching the target format.
-     * FIXME: Can we kill this special casing for the main window and always
-     * have a real texture object here? */
+    /* Get a render pass matching the target format. */
     GPURenderAttachmentDesc attachmentDesc;
-    attachmentDesc.format = (target.isMainWindow())
-                                ? g_mainWindow->format()
-                                : target.colour[0].texture->format();
+    attachmentDesc.format = target.colour[0].texture->format();
     attachmentDesc.loadOp = loadOp;
 
     auto &cache = g_renderPipelineResources->renderPasses;

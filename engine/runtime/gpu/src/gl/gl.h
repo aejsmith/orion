@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -48,13 +48,7 @@
 
 class GLTexture;
 
-/**
- * OpenGL feature information.
- *
- * TODO:
- *  - Add a bitmap of features that we often need to check for so we don't have
- *    to do a string comparison every time they are checked.
- */
+/** OpenGL feature information. */
 struct GLFeatures {
     /** Capabilities of the GL implementation (e.g. frequently-checked extensions). */
     enum : uint32_t {

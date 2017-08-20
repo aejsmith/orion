@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -155,6 +155,13 @@ NORETURN extern void __fatal(const char *file, int line, const char *fmt, ...);
 #define unreachableMsg(...)      compiler_unreachable()
 
 #endif /* ORION_BUILD_DEBUG */
+
+/**
+ * Helper macros.
+ */
+
+/** Mark that a variable may be unused (e.g. in release builds). */
+#define unused(var) ((void)(var))
 
 /**
  * Simple utility classes.

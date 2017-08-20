@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -58,15 +58,15 @@ Window::~Window() {
 /** Get the target GPU render target descriptor.
  * @param ref           Image reference structure to fill in. */
 void Window::getRenderTargetDesc(GPURenderTargetDesc &desc) const {
-    /* Descriptor with 1 null colour target and a null depth/stencil is treated
-     * as the main window. */
     desc = GPURenderTargetDesc(1);
+    desc.colour[0].texture = m_texture;
+    desc.colour[0].layer   = 0;
 }
 
 /** Get the target GPU texture image reference.
  * @param ref           Image reference structure to fill in. */
 void Window::getTextureImageRef(GPUTextureImageRef &ref) const {
-    ref = GPUTextureImageRef();
+    ref = GPUTextureImageRef(m_texture, 0);
 }
 
 /** Set the window title.

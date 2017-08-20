@@ -48,10 +48,7 @@ public:
 
     /** @return             Vulkan surface format. */
     VkSurfaceFormatKHR surfaceFormat() const { return m_surfaceFormat; }
-    /** @return             Backing texture that we use for the surface. */
-    GPUTexture *texture() const { return m_texture; }
 private:
     VkSurfaceFormatKHR m_surfaceFormat; /**< Vulkan surface format. */
-    GPUTexturePtr m_texture;            /**< Texture that we render to. */
 };
 

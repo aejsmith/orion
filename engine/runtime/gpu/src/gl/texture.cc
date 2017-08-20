@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -25,6 +25,7 @@
 
 #include "gl.h"
 #include "texture.h"
+#include "window.h"
 
 /** Initialize a new texture.
  * @param desc          Texture descriptor. */
@@ -97,23 +98,42 @@ GLTexture::GLTexture(const GPUTextureViewDesc &desc) :
     glTexParameteri(m_glTarget, GL_TEXTURE_MAX_LEVEL, m_mips - 1);
 }
 
+/** Initialize the texture as a dummy backing texture for the main window.
+ * @param window        Main window. */
+GLTexture::GLTexture(GLWindow *window) :
+    GPUTexture (GPUTextureDesc().
+                    setType   (GPUTexture::kTexture2D).
+                    setWidth  (window->width()).
+                    setHeight (window->height()).
+                    setMips   (1).
+                    setFlags  (GPUTexture::kRenderTarget).
+                    setFormat (window->format())),
+    m_texture  (0),
+    m_glTarget (GL_TEXTURE_2D)
+{}
+
 /** Destroy the texture. */
 GLTexture::~GLTexture() {
-    /* Invalidate all cached FBOs which refer to this texture. */
-    g_opengl->invalidateFBOs(this);
+    if (m_texture != 0) {
+        /* Invalidate all cached FBOs which refer to this texture. */
+        g_opengl->invalidateFBOs(this);
 
-    g_opengl->state.invalidateTexture(m_texture);
-    glDeleteTextures(1, &m_texture);
+        g_opengl->state.invalidateTexture(m_texture);
+        glDeleteTextures(1, &m_texture);
+    }
 }
 
 /** Bind the texture to a specific texture unit.
  * @param index         Texture unit index to bind to. */
 void GLTexture::bind(unsigned index) {
+    check(m_texture != 0);
     g_opengl->state.bindTexture(index, m_glTarget, m_texture);
 }
 
 /** Bind the texture for modification. */
 void GLTexture::bindForModification() {
+    check(m_texture != 0);
+
     /* We reserve the last available texture unit to bind textures to when
      * modifying them, rather than when using them for rendering. */
     g_opengl->state.bindTexture(g_opengl->features.maxTextureUnits - 1,
