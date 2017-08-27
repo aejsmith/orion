@@ -41,7 +41,7 @@ manager.AddComponent(
 # libclang.
 manager.AddComponent(
     name = 'external/libclang',
-    include_path = Dir('llvm-3.9.0/include'),
-    lib_path = Dir('llvm-3.9.0/lib'),
+    include_path = Dir('llvm-4.0.1/include'),
+    lib_path = Dir('llvm-4.0.1/lib'),
     libs = ['libclang'],
-    dlls = File('llvm-3.9.0/lib/libclang.dll'))
+    dlls = File('llvm-4.0.1/lib/libclang.dll'))
