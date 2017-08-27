@@ -1054,6 +1054,9 @@ int main(int argc, char **argv) {
     clangArgs.push_back("c++");
     clangArgs.push_back("-std=c++14");
     clangArgs.push_back("-DORION_OBJGEN=1");
+    #if ORION_PLATFORM_WIN32
+        clangArgs.push_back("-fms-compatibility-version=19");
+    #endif
 
     /* Create an index with diagnostic output disabled. */
     CXIndex index = clang_createIndex(1, 0);
