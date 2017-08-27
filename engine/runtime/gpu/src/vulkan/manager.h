@@ -90,6 +90,7 @@ public:
 
     GPUBufferPtr createBuffer(const GPUBufferDesc &desc) override;
     GPUPipelinePtr createPipeline(GPUPipelineDesc &&desc) override;
+    GPUQueryPoolPtr createQueryPool(const GPUQueryPoolDesc &desc) override;
     GPURenderPassPtr createRenderPass(GPURenderPassDesc &&desc) override;
     GPUTexturePtr createTexture(const GPUTextureDesc &desc) override;
     GPUTexturePtr createTextureView(const GPUTextureViewDesc &desc) override;
@@ -114,6 +115,8 @@ public:
 
     GPUCommandList *beginRenderPass(const GPURenderPassInstanceDesc &desc) override;
     void submitRenderPass(GPUCommandList *cmdList) override;
+
+    void endQuery(GPUQueryPool *queryPool, uint32_t index) override;
 
     #ifdef ORION_BUILD_DEBUG
     void beginDebugGroup(const std::string &str) override;
@@ -150,6 +153,7 @@ public:
     /** @return             Data for the current frame. */
     VulkanFrame &currentFrame() { return m_frames.back(); }
 
+    void flush();
     void invalidateFramebuffers(const VulkanTexture *texture);
 private:
     void initFeatures();

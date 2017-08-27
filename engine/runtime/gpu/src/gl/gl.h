@@ -109,6 +109,7 @@ public:
 
     GPUBufferPtr createBuffer(const GPUBufferDesc &desc) override;
     GPUPipelinePtr createPipeline(GPUPipelineDesc &&desc) override;
+    GPUQueryPoolPtr createQueryPool(const GPUQueryPoolDesc &desc) override;
     GPUTexturePtr createTexture(const GPUTextureDesc &desc) override;
     GPUTexturePtr createTextureView(const GPUTextureViewDesc &desc) override;
     GPUVertexDataPtr createVertexData(GPUVertexDataDesc &&desc) override;
@@ -145,6 +146,8 @@ public:
     void setScissor(bool enable, const IntRect &scissor) override;
 
     void draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) override;
+
+    void endQuery(GPUQueryPool *queryPool, uint32_t index) override;
 
     #ifdef ORION_BUILD_DEBUG
     void beginDebugGroup(const std::string &str) override;

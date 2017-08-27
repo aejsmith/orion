@@ -68,6 +68,7 @@ public:
     void submitChild(GPUCommandList *cmdList) override;
 
     void draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) override;
+    void endQuery(GPUQueryPool *queryPool, uint32_t index) override;
 
     #ifdef ORION_BUILD_DEBUG
     void beginDebugGroup(const std::string &str) override;

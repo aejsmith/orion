@@ -23,6 +23,7 @@
 
 #include "gpu/index_data.h"
 #include "gpu/pipeline.h"
+#include "gpu/query_pool.h"
 #include "gpu/render_pass.h"
 #include "gpu/resource.h"
 #include "gpu/state.h"
@@ -143,6 +144,16 @@ public:
      * @param indices       Index data to use (can be null). */
     virtual void draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) = 0;
 
+    /** Begin a query.
+     * @param queryPool     Query pool the query is in.
+     * @param index         Index of the query to begin. */
+    //virtual void beginQuery(GPUQueryPool *queryPool, uint32_t index) = 0;
+
+    /** End a query.
+     * @param queryPool     Query pool the query is in.
+     * @param index         Index of the query to end. */
+    virtual void endQuery(GPUQueryPool *queryPool, uint32_t index) = 0;
+
     /**
      * Debug methods.
      */
@@ -199,6 +210,7 @@ public:
     void submitChild(GPUCommandList *cmdList) override;
 
     void draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) override;
+    void endQuery(GPUQueryPool *queryPool, uint32_t index) override;
 
     #ifdef ORION_BUILD_DEBUG
     void beginDebugGroup(const std::string &str) override;
@@ -216,6 +228,7 @@ public:
         virtual void setViewport(const IntRect &viewport) = 0;
         virtual void setScissor(bool enable, const IntRect &scissor) = 0;
         virtual void draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) = 0;
+        virtual void endQuery(GPUQueryPool *queryPool, uint32_t index) = 0;
 
         #ifdef ORION_BUILD_DEBUG
         virtual void beginDebugGroup(const std::string &str) = 0;
@@ -237,6 +250,7 @@ private:
             kSetViewport,
             kSetScissor,
             kDraw,
+            kEndQuery,
             kBeginDebugGroup,
             kEndDebugGroup,
         };
@@ -296,6 +310,13 @@ private:
         GPUIndexDataPtr indices;
 
         CommandDraw() : Command(kDraw) {}
+    };
+
+    struct CommandEndQuery : Command {
+        GPUQueryPoolPtr queryPool;
+        uint32_t index;
+
+        CommandEndQuery() : Command(kEndQuery) {}
     };
 
     struct CommandBeginDebugGroup : Command {

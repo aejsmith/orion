@@ -22,6 +22,7 @@
 #include "buffer.h"
 #include "gl.h"
 #include "pipeline.h"
+#include "query_pool.h"
 #include "resource.h"
 #include "texture.h"
 #include "vertex_data.h"
@@ -322,6 +323,18 @@ void GLGPUManager::draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexDat
     }
 
     g_engine->stats().drawCalls++;
+}
+
+/**
+ * Query methods.
+ */
+
+/** End a query.
+ * @param queryPool     Query pool the query is in.
+ * @param index         Index of the query to end. */
+void GLGPUManager::endQuery(GPUQueryPool *queryPool, uint32_t index) {
+    auto glQueryPool = static_cast<GLQueryPool *>(queryPool);
+    glQueryPool->end(index);
 }
 
 /**

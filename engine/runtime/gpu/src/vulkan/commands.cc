@@ -21,6 +21,7 @@
 
 #include "commands.h"
 #include "manager.h"
+#include "query_pool.h"
 
 #include "engine/engine.h"
 
@@ -242,6 +243,24 @@ void VulkanCommandList::draw(PrimitiveType type, GPUVertexData *vertices, GPUInd
     }
 
     g_engine->stats().drawCalls++;
+}
+
+/** End a query.
+ * @param queryPool     Query pool the query is in.
+ * @param index         Index of the query to end. */
+void VulkanGPUManager::endQuery(GPUQueryPool *queryPool, uint32_t index) {
+    auto vkQueryPool = static_cast<VulkanQueryPool *>(queryPool);
+    vkQueryPool->end(index, currentFrame().primaryCmdBuf);
+}
+
+/** End a query.
+ * @param queryPool     Query pool the query is in.
+ * @param index         Index of the query to end. */
+void VulkanCommandList::endQuery(GPUQueryPool *queryPool, uint32_t index) {
+    prepareCmdBuf();
+
+    auto vkQueryPool = static_cast<VulkanQueryPool *>(queryPool);
+    vkQueryPool->end(index, m_cmdState.cmdBuf);
 }
 
 #ifdef ORION_BUILD_DEBUG

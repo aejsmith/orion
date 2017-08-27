@@ -366,6 +366,17 @@ void VulkanGPUManager::initFeatures() {
     initFormat(PixelFormat::kDepth32Stencil8,   VK_FORMAT_D32_SFLOAT_S8_UINT);
 }
 
+/** Flush the current primary command buffer. */
+void VulkanGPUManager::flush() {
+    VulkanFrame &frame = currentFrame();
+
+    frame.primaryCmdBuf->end();
+    m_queue->submit(frame.primaryCmdBuf);
+
+    frame.primaryCmdBuf = m_commandPool->allocateTransient(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+    frame.primaryCmdBuf->begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+}
+
 /** Begin a new frame. */
 void VulkanGPUManager::startFrame() {
     /* Start the new frame. */

@@ -7,6 +7,7 @@ objects = map(env.Object, [
     'gl.cc',
     'pipeline.cc',
     'program.cc',
+    'query_pool.cc',
     'resource.cc',
     'state.cc',
     'texture.cc',

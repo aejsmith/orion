@@ -291,6 +291,7 @@ GPUGenericCommandList::~GPUGenericCommandList() {
             DELETE_TYPE(kSetViewport, CommandSetViewport);
             DELETE_TYPE(kSetScissor, CommandSetScissor);
             DELETE_TYPE(kDraw, CommandDraw);
+            DELETE_TYPE(kEndQuery, CommandEndQuery);
             DELETE_TYPE(kBeginDebugGroup, CommandBeginDebugGroup);
             DELETE_TYPE(kEndDebugGroup, CommandEndDebugGroup);
         }
@@ -400,6 +401,16 @@ void GPUGenericCommandList::draw(PrimitiveType type, GPUVertexData *vertices, GP
     m_commands.push_back(command);
 }
 
+/** End a query.
+ * @param queryPool     Query pool the query is in.
+ * @param index         Index of the query to end. */
+void GPUGenericCommandList::endQuery(GPUQueryPool *queryPool, uint32_t index) {
+    CommandEndQuery *command = new CommandEndQuery;
+    command->queryPool = queryPool;
+    command->index     = index;
+    m_commands.push_back(command);
+}
+
 #ifdef ORION_BUILD_DEBUG
 
 /** Begin a debug group.
@@ -476,6 +487,13 @@ void GPUGenericCommandList::execute(Context *context) {
             {
                 auto command = static_cast<CommandDraw *>(baseCommand);
                 context->draw(command->type, command->vertices, command->indices);
+                break;
+            }
+
+            case Command::kEndQuery:
+            {
+                auto command = static_cast<CommandEndQuery *>(baseCommand);
+                context->endQuery(command->queryPool, command->index);
                 break;
             }
 

@@ -10,6 +10,7 @@ objects = map(env.Object, [
     'memory_manager.cc',
     'pipeline.cc',
     'program.cc',
+    'query_pool.cc',
     'queue.cc',
     'render_pass.cc',
     'resource.cc',

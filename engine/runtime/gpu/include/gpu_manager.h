@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016 Alex Smith
+ * Copyright (C) 2015-2017 Alex Smith
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -29,6 +29,7 @@
 #include "gpu/index_data.h"
 #include "gpu/pipeline.h"
 #include "gpu/program.h"
+#include "gpu/query_pool.h"
 #include "gpu/render_pass.h"
 #include "gpu/resource.h"
 #include "gpu/state.h"
@@ -68,6 +69,11 @@ public:
      * @param desc          Parameters for the pipeline.
      * @return              Pointer to created pipeline. */
     virtual GPUPipelinePtr createPipeline(GPUPipelineDesc &&desc) = 0;
+
+    /** Create a query pool.
+     * @param desc          Descriptor for the query pool.
+     * @return              Pointer to created pool. */
+    virtual GPUQueryPoolPtr createQueryPool(const GPUQueryPoolDesc &desc) = 0;
 
     virtual GPURenderPassPtr createRenderPass(GPURenderPassDesc &&desc);
 
@@ -169,6 +175,20 @@ public:
      * @param cmdList       Command list for the pass (will be deleted and must
      *                      not be used after this call). */
     virtual void submitRenderPass(GPUCommandList *cmdList) = 0;
+
+    /**
+     * Query methods.
+     */
+
+    /** Begin a query.
+     * @param queryPool     Query pool the query is in.
+     * @param index         Index of the query to begin. */
+    //virtual void beginQuery(GPUQueryPool *queryPool, uint32_t index) = 0;
+
+    /** End a query.
+     * @param queryPool     Query pool the query is in.
+     * @param index         Index of the query to end. */
+    virtual void endQuery(GPUQueryPool *queryPool, uint32_t index) = 0;
 
     /**
      * Debug methods.
