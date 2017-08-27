@@ -35,7 +35,7 @@ manager.AddComponent(
 manager.AddComponent(
     name = 'external/vulkan',
     include_path = "${ENV['VULKAN_SDK']}\Include",
-    lib_path = "${ENV['VULKAN_SDK']}\Bin",
+    lib_path = "${ENV['VULKAN_SDK']}\Lib",
     libs = ['vulkan-1'])
 
 # libclang.
