@@ -411,8 +411,6 @@ void GPUGenericCommandList::endQuery(GPUQueryPool *queryPool, uint32_t index) {
     m_commands.push_back(command);
 }
 
-#ifdef ORION_BUILD_DEBUG
-
 /** Begin a debug group.
  * @param str           Group string. */
 void GPUGenericCommandList::beginDebugGroup(const std::string &str) {
@@ -426,8 +424,6 @@ void GPUGenericCommandList::endDebugGroup() {
     CommandEndDebugGroup *command = new CommandEndDebugGroup;
     m_commands.push_back(command);
 }
-
-#endif
 
 /** Execute then delete the command list.
  * @param context       Context to execute commands on. */
@@ -497,8 +493,6 @@ void GPUGenericCommandList::execute(Context *context) {
                 break;
             }
 
-            #ifdef ORION_BUILD_DEBUG
-
             case Command::kBeginDebugGroup:
             {
                 auto command = static_cast<CommandBeginDebugGroup *>(baseCommand);
@@ -511,8 +505,6 @@ void GPUGenericCommandList::execute(Context *context) {
                 context->endDebugGroup();
                 break;
             }
-
-            #endif
 
             default:
                 unreachable();

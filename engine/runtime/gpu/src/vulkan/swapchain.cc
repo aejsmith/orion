@@ -174,6 +174,8 @@ void VulkanSwapchain::recreate() {
  * obtained by calling currentImage().
  */
 void VulkanSwapchain::startFrame() {
+    VULKAN_PROFILE_SCOPE("acquire");
+
     check(m_currentImage == UINT32_MAX);
 
     /* Get the next image from the presentation engine. This will wait
@@ -257,6 +259,8 @@ void VulkanSwapchain::endFrame(VulkanCommandBuffer *cmdBuf, VulkanFence *fence) 
                                VK_PIPELINE_STAGE_TRANSFER_BIT,
                                m_renderCompleteSems[m_currentSem].get(),
                                fence);
+
+    VULKAN_PROFILE_SCOPE("present");
 
     /* Present the image. */
     VkPresentInfoKHR presentInfo = {};

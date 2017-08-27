@@ -24,6 +24,8 @@
 #include "core/hash_table.h"
 #include "core/string.h"
 
+#include "engine/profiler.h"
+
 #include "gpu/buffer.h"
 #include "gpu/command_list.h"
 #include "gpu/index_data.h"
@@ -194,8 +196,6 @@ public:
      * Debug methods.
      */
 
-    #ifdef ORION_BUILD_DEBUG
-
     /** Begin a debug group.
      * @param str           Group string. */
     virtual void beginDebugGroup(const std::string &str) {}
@@ -203,7 +203,6 @@ public:
     /** End the current debug group. */
     virtual void endDebugGroup() {}
 
-    #endif
 protected:
     GPUManager();
 
@@ -244,8 +243,6 @@ private:
 
 extern GPUManager *g_gpuManager;
 
-#ifdef ORION_BUILD_DEBUG
-
 /** RAII debug group class. */
 class GPUDebugGroup {
 public:
@@ -253,13 +250,19 @@ public:
      * @param cmdList       GPU command list.
      * @param str           Group string. */
     GPUDebugGroup(GPUCommandList *cmdList, const std::string &str) :
-        m_cmdList(cmdList)
+        m_cmdList (cmdList)
     {
         if (cmdList) {
-            m_cmdList->beginDebugGroup(str);
+            cmdList->beginDebugGroup(str);
         } else {
             g_gpuManager->beginDebugGroup(str);
         }
+
+        #if ORION_PROFILE_GPU_GROUPS
+        MicroProfileGpuSetContext(cmdList);
+        m_token = MicroProfileGetToken("GPU", str.c_str(), 0xff0000, MicroProfileTokenTypeGpu);
+        m_tick  = MicroProfileEnter(m_token);
+        #endif
     }
 
     /** End the debug group. */
@@ -269,9 +272,19 @@ public:
         } else {
             g_gpuManager->endDebugGroup();
         }
+
+        #if ORION_PROFILE_GPU_GROUPS
+        MicroProfileGpuSetContext(m_cmdList);
+        MicroProfileLeave(m_token, m_tick);
+        #endif
     }
 private:
     GPUCommandList *m_cmdList;
+
+    #if ORION_PROFILE_GPU_GROUPS
+    MicroProfileToken m_token;
+    uint64_t m_tick;
+    #endif
 };
 
 /** Begin a scoped debug group.
@@ -305,15 +318,3 @@ private:
  * @param cmdList       GPU command list. */
 #define GPU_CMD_END_DEBUG_GROUP(cmdList) \
     (cmdList)->endDebugGroup();
-
-#else /* ORION_BUILD_DEBUG */
-
-#define GPU_DEBUG_GROUP(...) do {} while(0)
-#define GPU_BEGIN_DEBUG_GROUP(...) do {} while(0)
-#define GPU_END_DEBUG_GROUP() do {} while(0)
-
-#define GPU_CMD_DEBUG_GROUP(cmdList, ...) do {} while(0)
-#define GPU_CMD_BEGIN_DEBUG_GROUP(cmdList, ...) do {} while(0)
-#define GPU_CMD_END_DEBUG_GROUP(cmdList) do {} while(0)
-
-#endif /* ORION_BUILD_DEBUG */

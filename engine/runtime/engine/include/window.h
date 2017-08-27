@@ -44,9 +44,7 @@ public:
     /** @return             Backing texture for the window. */
     GPUTexture *texture() const { return m_texture; }
 protected:
-    #ifdef ORION_BUILD_DEBUG
     std::string renderTargetName() const override;
-    #endif
 
     SDL_Window *m_sdlWindow;        /**< SDL window. */
 

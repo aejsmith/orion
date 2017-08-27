@@ -60,6 +60,9 @@ depends = [
     'engine/core',
 ]
 
+if manager.baseEnv['MICROPROFILE']:
+    depends += ['3rdparty/microprofile']
+
 if manager.baseEnv['GPU_API'] == 'gl':
     depends += [
         'external/glew',

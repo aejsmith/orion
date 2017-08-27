@@ -55,6 +55,9 @@ objects += map(env.Object, [
     'src/loaders/ttf_loader.cc',
 ])
 
+if env['MICROPROFILE']:
+    objects += map(env.Object, ['src/profiler.cc'])
+
 # Generate the version information file.
 def gen_version_cc(target, source, env):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

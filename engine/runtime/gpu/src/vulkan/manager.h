@@ -118,10 +118,8 @@ public:
 
     void endQuery(GPUQueryPool *queryPool, uint32_t index) override;
 
-    #ifdef ORION_BUILD_DEBUG
     void beginDebugGroup(const std::string &str) override;
     void endDebugGroup() override;
-    #endif
 
     /**
      * Internal definitions.

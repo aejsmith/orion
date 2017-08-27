@@ -158,16 +158,12 @@ public:
      * Debug methods.
      */
 
-    #ifdef ORION_BUILD_DEBUG
-
     /** Begin a debug group.
      * @param str           Group string. */
     virtual void beginDebugGroup(const std::string &str) {}
 
     /** End the current debug group. */
     virtual void endDebugGroup() {}
-
-    #endif
 
     /**
      * State query methods.
@@ -212,10 +208,8 @@ public:
     void draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) override;
     void endQuery(GPUQueryPool *queryPool, uint32_t index) override;
 
-    #ifdef ORION_BUILD_DEBUG
     void beginDebugGroup(const std::string &str) override;
     void endDebugGroup() override;
-    #endif
 
     /** Context to execute commands on. */
     class Context {
@@ -229,11 +223,8 @@ public:
         virtual void setScissor(bool enable, const IntRect &scissor) = 0;
         virtual void draw(PrimitiveType type, GPUVertexData *vertices, GPUIndexData *indices) = 0;
         virtual void endQuery(GPUQueryPool *queryPool, uint32_t index) = 0;
-
-        #ifdef ORION_BUILD_DEBUG
         virtual void beginDebugGroup(const std::string &str) = 0;
         virtual void endDebugGroup() = 0;
-        #endif
     };
 
     void execute(Context *context);

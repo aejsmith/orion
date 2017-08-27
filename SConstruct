@@ -8,9 +8,10 @@ import util
 # Configurable build options.
 opts = Variables('.options.cache')
 opts.AddVariables(
-    ('APP', 'Application to build (cubes)', 'cubes'),
-    ('BUILD', 'Build type to perform (debug, release)', 'release'),
-    ('GPU_API', 'GPU API to use (gl, vulkan)', 'gl'),
+                ('APP',          'Application to build (cubes)', 'cubes'),
+                ('BUILD',        'Build type to perform (debug, release)', 'release'),
+                ('GPU_API',      'GPU API to use (gl, vulkan)', 'gl'),
+    BoolVariable('MICROPROFILE', 'Enable MicroProfile', False),
 )
 
 env = Environment(ENV = os.environ, variables = opts)
@@ -109,6 +110,9 @@ env['CPPDEFINES'].update(build_types[env['BUILD']]['CPPDEFINES'])
 env['CPPPATH'] = []
 env['LIBPATH'] = []
 env['LIBS'] = []
+
+if env['MICROPROFILE']:
+    env['CPPDEFINES']['ORION_MICROPROFILE'] = 1
 
 ########################
 # Component management #

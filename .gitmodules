@@ -16,3 +16,6 @@
 [submodule "engine/3rdparty/spirv-cross/repo"]
 	path = engine/3rdparty/spirv-cross/repo
 	url = https://github.com/KhronosGroup/SPIRV-Cross
+[submodule "engine/3rdparty/microprofile/repo"]
+	path = engine/3rdparty/microprofile/repo
+	url = https://github.com/zeux/microprofile.git

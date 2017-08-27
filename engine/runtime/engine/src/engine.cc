@@ -26,6 +26,7 @@
 #include "engine/debug_manager.h"
 #include "engine/engine.h"
 #include "engine/game.h"
+#include "engine/profiler.h"
 #include "engine/window.h"
 #include "engine/world.h"
 #include "engine/world_explorer.h"
@@ -38,6 +39,9 @@
 #include "render_core/render_target_pool.h"
 
 #include <SDL.h>
+
+#define ENGINE_PROFILE_FUNCTION_SCOPE() PROFILE_FUNCTION_SCOPE("Engine", 0x00ff00)
+#define ENGINE_PROFILE_SCOPE(name)      PROFILE_SCOPE("Engine", name, 0x00ff00)
 
 /** Global instance of the engine. */
 Engine *g_engine = nullptr;
@@ -77,6 +81,10 @@ Engine::Engine(int argc, char **argv) :
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
         fatal("Failed to initialize SDL: %s", SDL_GetError());
 
+    #if ORION_MICROPROFILE
+        g_profiler = new Profiler;
+    #endif
+
     /* Create the debug manager early to allow other systems to register things
      * with it. Rendering resources are initialised later. */
     g_debugManager = new DebugManager;
@@ -95,6 +103,9 @@ Engine::Engine(int argc, char **argv) :
 
     /* Create the GPU manager and the main window. */
     g_gpuManager = GPUManager::create(m_config, g_mainWindow);
+    #if ORION_MICROPROFILE
+        g_profiler->gpuInit();
+    #endif
 
     /* Initialize other global systems. */
     g_inputManager = new InputManager;
@@ -158,8 +169,17 @@ void Engine::run() {
         tick();
         renderAllTargets();
 
+        /* This needs to go before presenting, because MP needs to write a final
+         * timestamp for the frame. */
+        #if ORION_MICROPROFILE
+            g_profiler->endFrame();
+        #endif
+
         /* Present the final rendered frame. */
-        g_gpuManager->endFrame();
+        {
+            ENGINE_PROFILE_SCOPE("present");
+            g_gpuManager->endFrame();
+        }
 
         /* Clear out debug primitives from this frame. */
         g_debugManager->endFrame();
@@ -177,6 +197,8 @@ void Engine::run() {
 /** Poll for pending SDL events.
  * @return              Whether to continue executing. */
 bool Engine::pollEvents() {
+    ENGINE_PROFILE_FUNCTION_SCOPE();
+
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) {
@@ -198,6 +220,8 @@ bool Engine::pollEvents() {
 
 /** Tick the world. */
 void Engine::tick() {
+    ENGINE_PROFILE_FUNCTION_SCOPE();
+
     uint32_t tick = SDL_GetTicks();
 
     if (m_lastTick && tick != m_lastTick) {
@@ -225,6 +249,8 @@ void Engine::tick() {
 
 /** Render all render targets. */
 void Engine::renderAllTargets() {
+    ENGINE_PROFILE_FUNCTION_SCOPE();
+
     for (RenderTarget *target : m_renderTargets)
         target->render();
 }

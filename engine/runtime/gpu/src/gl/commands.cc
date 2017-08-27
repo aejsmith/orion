@@ -341,8 +341,6 @@ void GLGPUManager::endQuery(GPUQueryPool *queryPool, uint32_t index) {
  * Debug methods.
  */
 
-#ifdef ORION_BUILD_DEBUG
-
 /** Begin a debug group.
  * @param str           Group string. */
 void GLGPUManager::beginDebugGroup(const std::string &str) {
@@ -355,5 +353,3 @@ void GLGPUManager::endDebugGroup() {
     if (this->features[GLFeatures::kCapKHRDebug])
         glPopDebugGroup();
 }
-
-#endif /* ORION_BUILD_DEBUG */

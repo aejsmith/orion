@@ -30,7 +30,12 @@
 
 #include "loader.h"
 
+#include "engine/profiler.h"
+
 #include "gpu/gpu_manager.h"
+
+#define VULKAN_PROFILE_FUNCTION_SCOPE() PROFILE_FUNCTION_SCOPE("Vulkan", 0xffff00)
+#define VULKAN_PROFILE_SCOPE(name)      PROFILE_SCOPE("Vulkan", name, 0xffff00)
 
 /**
  * Maximum number of frames in progress at a time.

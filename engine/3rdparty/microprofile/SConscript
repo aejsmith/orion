@@ -1,0 +1,6 @@
+Import('manager')
+
+manager.AddComponent(
+    name = '3rdparty/microprofile',
+    include_path = Dir('repo'))
+

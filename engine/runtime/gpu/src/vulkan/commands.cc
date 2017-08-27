@@ -263,8 +263,6 @@ void VulkanCommandList::endQuery(GPUQueryPool *queryPool, uint32_t index) {
     vkQueryPool->end(index, m_cmdState.cmdBuf);
 }
 
-#ifdef ORION_BUILD_DEBUG
-
 /** Begin a debug group.
  * @param str           Group string. */
 void VulkanGPUManager::beginDebugGroup(const std::string &str) {
@@ -309,5 +307,3 @@ void VulkanCommandList::endDebugGroup() {
         manager()->device()->functions().CmdDebugMarkerEndEXT(m_cmdState.cmdBuf->handle());
     }
 }
-
-#endif

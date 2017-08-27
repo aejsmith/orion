@@ -44,6 +44,8 @@ void VulkanQueue::submit(VulkanCommandBuffer *cmdBuf,
                          VulkanSemaphore *signal,
                          VulkanFence *fence)
 {
+    VULKAN_PROFILE_FUNCTION_SCOPE();
+
     check(cmdBuf->m_state == VulkanCommandBuffer::State::kRecorded);
 
     VkCommandBuffer handle = cmdBuf->handle();

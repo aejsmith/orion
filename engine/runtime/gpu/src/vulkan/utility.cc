@@ -44,6 +44,8 @@ VulkanFence::~VulkanFence() {
 /** Get the fence status.
  * @return              Whether the fence is signalled. */
 bool VulkanFence::getStatus() const {
+    VULKAN_PROFILE_FUNCTION_SCOPE();
+
     VkResult result = vkGetFenceStatus(manager()->device()->handle(), m_handle);
     switch (result) {
         case VK_SUCCESS:
@@ -60,6 +62,8 @@ bool VulkanFence::getStatus() const {
  * @param timeout       Wait timeout (defaults to indefinite).
  * @return              Whether the fence was signalled within the timeout. */
 bool VulkanFence::wait(uint64_t timeout) const {
+    VULKAN_PROFILE_FUNCTION_SCOPE();
+
     VkResult result = vkWaitForFences(manager()->device()->handle(), 1, &m_handle, true, timeout);
     switch (result) {
         case VK_SUCCESS:
