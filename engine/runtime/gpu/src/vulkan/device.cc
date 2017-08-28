@@ -100,13 +100,11 @@ bool VulkanDevice::identify(VulkanSurface *surface, VulkanFeatures &features) {
     }
 
     /* Enable debug marker extension if present. */
-    #if ORION_BUILD_DEBUG
-        auto markerExtension = availableExtensions.find(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
-        if (markerExtension != availableExtensions.end()) {
-            m_extensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
-            features.debugMarker = true;
-        }
-    #endif
+    auto markerExtension = availableExtensions.find(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+    if (markerExtension != availableExtensions.end()) {
+        m_extensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+        features.debugMarker = true;
+    }
 
     /* Find suitable queue families. We need to support both graphics operations
      * and presentation to our surface. */
