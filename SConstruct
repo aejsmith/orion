@@ -95,7 +95,7 @@ elif sys.platform.startswith('win32'):
         },
         'release': {
             'CCFLAGS': ['/O2'],
-            'LINKFLAGS': [],
+            'LINKFLAGS': ['/DEBUG'],
         }
     }
 
